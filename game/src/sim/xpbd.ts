@@ -279,6 +279,21 @@ function targets(
     leftFootY += dip * 0.14; rightFootY += climb * 0.28;
     leftHand = [-0.74 - dip * 0.24, 1.78 + climb * 0.28, 0.24];
     rightHand = [0.74 + climb * 0.24, 1.02 + dip * 0.42, 0.38];
+  } else if (performance.motif === 'triple-key-cha-cha') {
+    const cha = Math.max(0, beat); const lock = Math.max(0, -beat);
+    const triple = Math.sin(performanceTime * Math.PI * 6);
+    bounce += (cha * 0.08 + Math.abs(triple) * 0.035) * intensity;
+    hipX = (alternate * 0.28 + triple * 0.09) * intensity;
+    chestX = (-alternate * 0.35 - triple * 0.07) * intensity;
+    chestZ = cha * 0.14 - lock * 0.09; headX += alternate * 0.26; headZ = triple * 0.07;
+    leftFootX = -0.34 - Math.max(0, triple) * 0.18;
+    rightFootX = 0.34 + Math.max(0, -triple) * 0.18;
+    leftFootZ = lock * 0.32 + Math.max(0, triple) * 0.2;
+    rightFootZ = cha * 0.38 + Math.max(0, -triple) * 0.2;
+    leftFootY += lock * 0.16 + Math.max(0, triple) * 0.1;
+    rightFootY += cha * 0.18 + Math.max(0, -triple) * 0.1;
+    leftHand = [-0.88 - cha * 0.2, 1.14 + lock * 0.58, 0.34];
+    rightHand = [0.88 + lock * 0.2, 1.72 - cha * 0.42, 0.18];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

@@ -1,6 +1,7 @@
 export interface HazardRuntimeProfile {
   readonly kind: 'conveyor' | 'timed-door';
-  readonly activation?: 'periodic' | 'before-key' | 'after-key' | 'after-tick' | 'until-bomb' | 'until-bomb-optional';
+  readonly activation?: 'periodic' | 'before-key' | 'after-key' | 'after-tick' | 'until-bomb' | 'until-bomb-optional'
+    | 'until-key-1' | 'until-key-2' | 'until-key-3';
   readonly column: number;
   readonly row: number;
   readonly halfWidth: number;
@@ -227,6 +228,14 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'timed-door', activation: 'after-tick', column: 10, row: 12,
     halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 3900,
   },
+  'three-key-brass-lock-v1': {
+    kind: 'timed-door', activation: 'until-key-1', column: 6, row: 5,
+    halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'three-key-cyan-lock-v1': {
+    kind: 'timed-door', activation: 'until-key-2', column: 7, row: 8,
+    halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -251,6 +260,7 @@ export interface DefenseTargetRuntimeProfile extends RuntimeGridCell {
 export interface LevelInteractionRuntimeProfile {
   readonly health: RuntimeGridCell;
   readonly key: RuntimeGridCell;
+  readonly additionalKeys?: readonly RuntimeGridCell[];
   readonly energy: RuntimeGridCell;
   readonly door: RuntimeGridCell;
   readonly checkpoint: RuntimeGridCell;
@@ -609,6 +619,18 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 7, row: 5, amount: 29 },
     },
   },
+  'boiler-three-key-tango': {
+    openings: [{ column: 4, row: 4 }, { column: 8, row: 6 }, { column: 10, row: 10 }],
+    interactions: {
+      health: { column: 1, row: 3, amount: 23 },
+      key: { column: 3, row: 3 },
+      additionalKeys: [{ column: 9, row: 7 }, { column: 11, row: 11 }],
+      energy: { column: 5, row: 7, amount: 31 },
+      door: { column: 9, row: 12 },
+      checkpoint: { column: 11, row: 13 },
+      coin: { column: 13, row: 7, amount: 30 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -622,7 +644,7 @@ export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 
   | 'turbo-shuffle' | 'giant-breakdown' | 'ticket-swing' | 'soft-shoe' | 'carousel-kick'
   | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut'
   | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step'
-  | 'duelling-tango' | 'detonator-danzon' | 'drainpipe-rumba';
+  | 'duelling-tango' | 'detonator-danzon' | 'drainpipe-rumba' | 'triple-key-cha-cha';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -652,6 +674,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'duelling-tango': 'duelling-tango',
   'detonator-danzon': 'detonator-danzon',
   'drainpipe-rumba': 'drainpipe-rumba',
+  'triple-key-cha-cha': 'triple-key-cha-cha',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -695,6 +718,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'duelling-tango': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'detonator-danzon': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'drainpipe-rumba': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'triple-key-cha-cha': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -739,6 +763,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-toxic-boiler-025': { roomSize: 0.92, decaySeconds: 0.84, dampingHz: 2350, wetMix: 0.38, pitchScale: 0.96 },
   'audio-toxic-boiler-026': { roomSize: 0.96, decaySeconds: 0.88, dampingHz: 2250, wetMix: 0.4, pitchScale: 1.02 },
   'audio-toxic-boiler-027': { roomSize: 0.88, decaySeconds: 0.78, dampingHz: 2500, wetMix: 0.36, pitchScale: 1.06 },
+  'audio-toxic-boiler-028': { roomSize: 0.93, decaySeconds: 0.83, dampingHz: 2380, wetMix: 0.39, pitchScale: 1.09 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -783,6 +808,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'duelling-tango': { rootMidi: 43, scale: [0, 1, 4, 6, 7, 10], leadPattern: [0, 5, 1, 4, 2, 5, 3, 1], bassPattern: [0, 4, 1, 5], swing: 0.2 },
   'detonator-danzon': { rootMidi: 46, scale: [0, 2, 3, 6, 7, 9], leadPattern: [0, 4, 1, 5, 2, 3, 5, 1], bassPattern: [0, 3, 5, 2], swing: 0.18 },
   'drainpipe-rumba': { rootMidi: 49, scale: [0, 2, 3, 5, 7, 10], leadPattern: [0, 3, 1, 5, 2, 4, 1, 3], bassPattern: [0, 4, 2, 5], swing: 0.22 },
+  'triple-key-cha-cha': { rootMidi: 54, scale: [0, 2, 3, 5, 7, 9], leadPattern: [0, 4, 1, 5, 2, 4, 3, 1], bassPattern: [0, 3, 5, 2], swing: 0.25 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -826,6 +852,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'toxic-boiler-25': { sky: [0.94, 0.52, 0.62], floor: [0.96, 0.86, 0.52], walls: [[0.74, 0.04, 0.12], [1, 0.24, 0.38], [0.1, 0.72, 0.78], [0.48, 0.16, 0.76]] },
   'toxic-boiler-26': { sky: [0.38, 0.82, 1], floor: [0.92, 0.88, 0.58], walls: [[1, 0.34, 0.08], [0.12, 0.72, 0.92], [0.92, 0.16, 0.48], [0.5, 0.22, 0.9]] },
   'toxic-boiler-27': { sky: [0.82, 0.5, 0.94], floor: [0.88, 0.9, 0.66], walls: [[0.92, 0.08, 0.62], [0.18, 0.7, 0.9], [0.98, 0.48, 0.12], [0.38, 0.18, 0.78]] },
+  'toxic-boiler-28': { sky: [0.54, 0.84, 0.96], floor: [0.94, 0.87, 0.5], walls: [[0.95, 0.56, 0.08], [0.04, 0.76, 0.9], [0.94, 0.12, 0.66], [0.34, 0.18, 0.82]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {

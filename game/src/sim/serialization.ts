@@ -4,7 +4,7 @@ import type { GameState } from './game';
 import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, type EncounterId, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
-import { createLevelRuntime, hazardActiveAtTick, type LevelRuntimeState, type PickupKind } from './interactions';
+import { createLevelRuntime, hazardActiveForLevel, type LevelRuntimeState, type PickupKind } from './interactions';
 import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
@@ -519,15 +519,15 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const player = validatePlayer(snapshotValue.player);
   const metrics = validateRunMetrics(snapshotValue.metrics, robots, level, player);
   if (level.hazards.some((hazard) => hazard.active
-    !== hazardActiveAtTick(hazard, tick, level.keyCollected, levelId))) {
+    !== hazardActiveForLevel(hazard, tick, level, levelId))) {
     throw new Error('snapshot.level hazard phase is inconsistent with snapshot.tick');
   }
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
   const pulseBurstShots = integer(snapshotValue.pulseBurstShots, 'snapshot.pulseBurstShots');
   if (pulseBurstShots > PULSE_MAX_BURST_SHOTS) throw new Error('snapshot.pulseBurstShots exceeds its bounded maximum');
-  const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
-  if (level.keyCollected === key.active) throw new Error('snapshot.level key state is inconsistent');
+  const activeKeyCount = level.pickups.filter((pickup) => pickup.kind === 'key' && pickup.active).length;
+  if (level.keyCollected !== (activeKeyCount === 0)) throw new Error('snapshot.level key state is inconsistent');
   if (level.door.open && !level.keyCollected) throw new Error('snapshot.level door cannot open before its key is collected');
   if (encounter === 'campaign') {
     const waves = campaignRobotWaves(levelId);

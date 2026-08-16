@@ -188,6 +188,13 @@
       "pitchScale": 1.06,
       "roomSize": 0.88,
       "wetMix": 0.36
+    },
+    "audio-toxic-boiler-028": {
+      "dampingHz": 2380,
+      "decaySeconds": 0.83,
+      "pitchScale": 1.09,
+      "roomSize": 0.93,
+      "wetMix": 0.39
     }
   },
   "danceGameplayProfiles": {
@@ -341,6 +348,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "triple-key-cha-cha": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "turbo-tool-shuffle": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -380,6 +393,7 @@
     "tempo-tent-twist": "tempo-twist",
     "ticket-taker-swing": "ticket-swing",
     "toxic-toe-tango": "toxic-toe",
+    "triple-key-cha-cha": "triple-key-cha-cha",
     "turbo-tool-shuffle": "turbo-shuffle",
     "wobble-march": "wobble-march"
   },
@@ -882,6 +896,28 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 45,
       "row": 6
+    },
+    "three-key-brass-lock-v1": {
+      "activation": "until-key-1",
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.25,
+      "halfWidth": 1.25,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 5
+    },
+    "three-key-cyan-lock-v1": {
+      "activation": "until-key-2",
+      "column": 7,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.25,
+      "halfWidth": 1.25,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 8
     },
     "ticket-gate-east-v1": {
       "column": 10,
@@ -1611,6 +1647,61 @@
         {
           "column": 10,
           "row": 12
+        }
+      ]
+    },
+    "boiler-three-key-tango": {
+      "interactions": {
+        "additionalKeys": [
+          {
+            "column": 9,
+            "row": 7
+          },
+          {
+            "column": 11,
+            "row": 11
+          }
+        ],
+        "checkpoint": {
+          "column": 11,
+          "row": 13
+        },
+        "coin": {
+          "amount": 30,
+          "column": 13,
+          "row": 7
+        },
+        "door": {
+          "column": 9,
+          "row": 12
+        },
+        "energy": {
+          "amount": 31,
+          "column": 5,
+          "row": 7
+        },
+        "health": {
+          "amount": 23,
+          "column": 1,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 3
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 10
         }
       ]
     },
@@ -3725,6 +3816,34 @@
       ],
       "swing": 0.22
     },
+    "triple-key-cha-cha": {
+      "bassPattern": [
+        0,
+        3,
+        5,
+        2
+      ],
+      "leadPattern": [
+        0,
+        4,
+        1,
+        5,
+        2,
+        4,
+        3,
+        1
+      ],
+      "rootMidi": 54,
+      "scale": [
+        0,
+        2,
+        3,
+        5,
+        7,
+        9
+      ],
+      "swing": 0.25
+    },
     "turbo-tool-shuffle": {
       "bassPattern": [
         0,
@@ -4696,6 +4815,40 @@
           0.38,
           0.18,
           0.78
+        ]
+      ]
+    },
+    "toxic-boiler-28": {
+      "floor": [
+        0.94,
+        0.87,
+        0.5
+      ],
+      "sky": [
+        0.54,
+        0.84,
+        0.96
+      ],
+      "walls": [
+        [
+          0.95,
+          0.56,
+          0.08
+        ],
+        [
+          0.04,
+          0.76,
+          0.9
+        ],
+        [
+          0.94,
+          0.12,
+          0.66
+        ],
+        [
+          0.34,
+          0.18,
+          0.82
         ]
       ]
     }

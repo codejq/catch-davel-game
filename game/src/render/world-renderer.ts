@@ -259,11 +259,23 @@ export class WorldRenderer {
   private buildDynamicInstances(state: RenderGameState, settings: RenderPresentationSettings): void {
     let instance = this.staticInstanceCount;
     const bob = Math.sin(state.tick * 0.08) * 0.12 * settings.motionScale;
+    let keyOrdinal = 0;
     for (const pickup of state.level.pickups) {
+      const pickupKeyOrdinal = pickup.kind === 'key' ? keyOrdinal++ : -1;
       if (!pickup.active) continue;
       if (pickup.kind === 'key') {
-        instance = this.writeInstance(instance, pickup.x, 0.72 + bob, pickup.z, 0.18, 0.75, 0.18, [1, 0.92, 0.12]);
-        instance = this.writeInstance(instance, pickup.x + 0.28, 0.48 + bob, pickup.z, 0.55, 0.18, 0.18, [1, 0.66, 0.08]);
+        const level28Colors = [
+          [[1, 0.78, 0.12], [0.82, 0.42, 0.06]],
+          [[0.12, 0.94, 1], [0.04, 0.56, 0.86]],
+          [[1, 0.18, 0.74], [0.66, 0.08, 0.62]],
+        ] as const;
+        const colors = state.levelId === 'level-028' ? level28Colors[pickupKeyOrdinal] : undefined;
+        instance = this.writeInstance(
+          instance, pickup.x, 0.72 + bob, pickup.z, 0.18, 0.75, 0.18, colors?.[0] ?? [1, 0.92, 0.12],
+        );
+        instance = this.writeInstance(
+          instance, pickup.x + 0.28, 0.48 + bob, pickup.z, 0.55, 0.18, 0.18, colors?.[1] ?? [1, 0.66, 0.08],
+        );
       } else if (pickup.kind === 'health') {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.22, 0.9, 0.22, [0.3, 1, 0.36]);
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.82, 0.22, 0.22, [0.3, 1, 0.36]);
@@ -282,6 +294,15 @@ export class WorldRenderer {
           instance = this.writeInstance(instance, hazard.x, 0.035, hazard.z, 2.72, 0.07, 2.72, [0.34, 0.06, 0.42]);
           instance = this.writeInstance(instance, hazard.x, gateHeight * 0.5, hazard.z, 2.5, gateHeight, 0.16, magenta);
           instance = this.writeInstance(instance, hazard.x, Math.max(0.12, gateHeight - 0.08), hazard.z, 2.76, 0.12, 0.26, [1, 0.52, 0.9]);
+          continue;
+        }
+        if (state.levelId === 'level-028') {
+          const lockColors = hazardIndex === 0
+            ? [[1, 0.7, 0.08], [0.72, 0.3, 0.04]] as const
+            : [[0.08, 0.9, 1], [0.02, 0.4, 0.7]] as const;
+          const color = hazard.active ? lockColors[0] : [0.1, 0.52, 0.38] as const;
+          instance = this.writeInstance(instance, hazard.x, 1.25, hazard.z, 2.55, 2.5, 0.2, color);
+          instance = this.writeInstance(instance, hazard.x, 1.7, hazard.z, 0.72, 0.72, 0.3, lockColors[1]);
           continue;
         }
         const gateColor: readonly [number, number, number] = hazard.active ? [1, 0.12, 0.62] : [0.12, 1, 0.72];

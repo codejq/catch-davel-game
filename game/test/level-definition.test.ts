@@ -10,7 +10,7 @@ import {
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
 import {
-  CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027,
+  CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027, LEVEL_028,
 } from '../src/content/levels/chapter-03';
 
 describe('Appendix A level-data contract', () => {
@@ -106,7 +106,7 @@ describe('Appendix A level-data contract', () => {
 
   it('admits Pipework Promenade as the first Chapter 3 bomb tutorial', () => {
     expect(CHAPTER_03_LEVELS).toEqual([
-      LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027,
+      LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027, LEVEL_028,
     ]);
     expect(validateLevelDefinition(LEVEL_021)).toBe(LEVEL_021);
     expect(campaignLevel('level-021')).toBe(LEVEL_021);
@@ -145,6 +145,14 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_027.tags).toEqual(expect.arrayContaining(['rising-hazard-escape', 'magenta-drain', 'drainpipe-rumba']));
     expect(LEVEL_027.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-027'));
+    expect(validateLevelDefinition(LEVEL_028)).toBe(LEVEL_028);
+    expect(campaignLevel('level-028')).toBe(LEVEL_028);
+    expect(LEVEL_028.maze.keys.map((key) => key.id)).toEqual([
+      'brass-tango-key', 'cyan-tango-key', 'magenta-tango-key',
+    ]);
+    expect(LEVEL_028.tags).toEqual(expect.arrayContaining(['multi-key-progression', 'triple-key-cha-cha']));
+    expect(LEVEL_028.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-028'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

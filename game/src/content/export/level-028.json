@@ -1,0 +1,562 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "79ca60a8fccd99b2",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "2ce1fc91cbee4832",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 16000,
+        "mode": "live-agent",
+        "parTicks": 12000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-three-key-tango"
+        ],
+        "seed": "campaign-level-028-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-028"
+  },
+  "briefingKey": "levels.028.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-028"
+    }
+  ],
+  "dance": {
+    "armPatternId": "triple-key-cha-cha-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 154,
+    "footPatternId": "triple-key-cha-cha-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "triple-key-cha-cha-head-v1",
+    "pathPatternId": "triple-key-cha-cha-path-v1",
+    "presetId": "triple-key-cha-cha",
+    "reducedMotionPresetId": "triple-key-cha-cha-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "triple-key-cha-cha-torso-v1",
+    "transitionIds": [
+      "cyan-key-counterstep",
+      "magenta-key-finale",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-028"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-028"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "triple-key-company",
+      "rewardId": "chapter-03-clear-028",
+      "roomNodeId": "three-key-floor",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "brass-key-beat",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "brass-wobblers",
+              "modifierIds": [
+                "brass-key-grin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-1.wobblers",
+              "spawnPointSetId": "level-028-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "brass-spinner",
+              "modifierIds": [
+                "brass-key-spin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-1.spinner",
+              "spawnPointSetId": "level-028-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "cyan-key-counterstep",
+          "id": "cyan-key-counterstep",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "cyan-sliders",
+              "modifierIds": [
+                "cyan-key-skate"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-2.sliders",
+              "spawnPointSetId": "level-028-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "cyan-dj",
+              "modifierIds": [
+                "lockstep-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-2.dj",
+              "spawnPointSetId": "level-028-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 17
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "magenta-key-finale",
+          "id": "magenta-key-finale",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "magenta-firemouth",
+              "modifierIds": [
+                "magenta-key-fire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-3.firemouth",
+              "spawnPointSetId": "level-028-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "magenta-foreman",
+              "modifierIds": [
+                "triple-lock-elite"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-3.foreman",
+              "spawnPointSetId": "level-028-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "magenta-spinner",
+              "modifierIds": [
+                "triple-lock-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-3.spinner",
+              "spawnPointSetId": "level-028-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-28",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "triple-key-cha-cha",
+              "id": "magenta-wobbler",
+              "modifierIds": [
+                "final-key-grin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-28",
+              "rngStream": "encounter.level-028.wave-3.wobbler",
+              "spawnPointSetId": "level-028-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 15
+        }
+      ]
+    }
+  ],
+  "id": "level-028",
+  "mastery": [
+    {
+      "presetId": "level-028-par-time"
+    },
+    {
+      "presetId": "level-028-three-keys-no-damage"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "tango-entry",
+        "id": "entry-brass",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "brass-key-bay",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "brass-key-bay",
+        "id": "brass-cyan",
+        "requiredKeyId": "brass-tango-key",
+        "stateTrigger": "key-collected",
+        "to": "cyan-key-bay",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "cyan-key-bay",
+        "id": "cyan-magenta",
+        "requiredKeyId": "cyan-tango-key",
+        "stateTrigger": "key-collected",
+        "to": "magenta-key-bay",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "magenta-key-bay",
+        "id": "magenta-floor",
+        "requiredKeyId": "magenta-tango-key",
+        "stateTrigger": "key-collected",
+        "to": "three-key-floor",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "three-key-floor",
+        "id": "floor-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "tango-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "tango-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "triple-lock-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "brass-key-bay",
+        "id": "brass-loop",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "gearbox-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "gearbox-loop",
+        "id": "loop-floor",
+        "requiredKeyId": "magenta-tango-key",
+        "stateTrigger": "key-collected",
+        "to": "three-key-floor",
+        "traversalCost": 3
+      }
+    ],
+    "entranceNodeId": "tango-entry",
+    "exitNodeId": "triple-lock-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "three-key-brass-lock-v1",
+        "id": "brass-key-lock",
+        "nodeId": "brass-key-bay",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "three-key-cyan-lock-v1",
+        "id": "cyan-key-lock",
+        "nodeId": "cyan-key-bay",
+        "periodTicks": 1
+      }
+    ],
+    "keys": [
+      {
+        "id": "brass-tango-key",
+        "placementNodeId": "brass-key-bay"
+      },
+      {
+        "id": "cyan-tango-key",
+        "placementNodeId": "cyan-key-bay"
+      },
+      {
+        "id": "magenta-tango-key",
+        "placementNodeId": "magenta-key-bay"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "tango-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "key-sequence"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "brass-key-bay",
+        "pickupIds": [
+          "brass-tango-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "brass-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "cyan-key-bay",
+        "pickupIds": [
+          "cyan-tango-key",
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "cyan-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "magenta-key-bay",
+        "pickupIds": [
+          "magenta-tango-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "magenta-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "triple-key-company"
+        ],
+        "id": "three-key-floor",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "triple-lock-arena"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "gearbox-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-loop"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-028",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "tango-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "three-key-console"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "triple-lock-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-three-key-tango",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.028.name",
+  "number": 28,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-three-key-tango",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "brass-key-beat",
+        "cyan-key-counterstep",
+        "magenta-key-finale"
+      ],
+      "titleKey": "objectives.level_028",
+      "type": "recover-keys"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-28"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-028-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 6,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 2,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-028-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "multi-key-progression",
+    "three-key-tango",
+    "triple-key-cha-cha"
+  ]
+}

@@ -97,7 +97,8 @@ export const LEVEL_INTERACTION_DEFINITIONS: Readonly<Record<PlayableLevelId, Lev
 
 function assertValidDefinition(levelId: PlayableLevelId, definition: LevelInteractionRuntimeProfile): void {
   const placements = [
-    definition.health, definition.key, definition.energy, definition.door, definition.checkpoint,
+    definition.health, definition.key, ...(definition.additionalKeys ?? []),
+    definition.energy, definition.door, definition.checkpoint,
     ...(definition.coin === undefined ? [] : [definition.coin]),
     ...(definition.secretCoin === undefined ? [] : [definition.secretCoin]),
     ...(definition.defense === undefined ? [] : [definition.defense]),
@@ -123,13 +124,20 @@ export function createLevelRuntime(
   if ((primaryObjective.type === 'defend') !== (definition.defense !== undefined)) {
     throw new Error(`${levelId} defend objective and runtime target must be declared together`);
   }
-  const keyDefinition = levelDefinition.maze.keys[0];
-  if (keyDefinition === undefined) throw new Error(`${levelId} has no campaign key`);
-  const keyedEdge = levelDefinition.maze.edges.find((edge) => edge.requiredKeyId === keyDefinition.id);
-  if (keyedEdge === undefined) throw new Error(`${levelId} has no door for campaign key ${keyDefinition.id}`);
+  const keyDefinitions = levelDefinition.maze.keys;
+  if (keyDefinitions.length === 0) throw new Error(`${levelId} has no campaign key`);
+  const keyPlacements = [definition.key, ...(definition.additionalKeys ?? [])];
+  if (keyPlacements.length !== keyDefinitions.length) {
+    throw new Error(`${levelId} must place all ${keyDefinitions.length} campaign keys`);
+  }
+  const doorKeyDefinition = keyDefinitions[keyDefinitions.length - 1]!;
+  const keyedEdge = levelDefinition.maze.edges.find((edge) => edge.requiredKeyId === doorKeyDefinition.id);
+  if (keyedEdge === undefined) throw new Error(`${levelId} has no door for campaign key ${doorKeyDefinition.id}`);
   const pickupDefinitions: { readonly id: string; readonly kind: PickupKind; readonly column: number; readonly row: number; readonly amount: number }[] = [
     { id: 'repair-kit', kind: 'health' as const, ...definition.health, amount: definition.health.amount ?? 25 },
-    { id: keyDefinition.id, kind: 'key' as const, ...definition.key, amount: 0 },
+    ...keyDefinitions.map((key, index) => ({
+      id: key.id, kind: 'key' as const, ...keyPlacements[index]!, amount: 0,
+    })),
     { id: 'pulse-cell', kind: 'energy' as const, ...definition.energy, amount: definition.energy.amount ?? 35 },
   ];
   if (definition.coin !== undefined) pickupDefinitions.push({
@@ -153,6 +161,8 @@ export function createLevelRuntime(
       phaseOffsetTicks: profile.phaseOffsetTicks,
       active: profile.activation === 'before-key' || profile.activation === 'until-bomb'
         || profile.activation === 'until-bomb-optional'
+        || profile.activation === 'until-key-1' || profile.activation === 'until-key-2'
+        || profile.activation === 'until-key-3'
         || (profile.activation !== 'after-key' && profile.activation !== 'after-tick' && phase < hazard.activeTicks),
     };
   });
@@ -178,7 +188,7 @@ export function createLevelRuntime(
     }),
     hazards,
     door: {
-      id: keyedEdge.doorType, keyId: keyDefinition.id, column: definition.door.column, row: definition.door.row,
+      id: keyedEdge.doorType, keyId: doorKeyDefinition.id, column: definition.door.column, row: definition.door.row,
       x: door.x, z: door.z, open: false,
     },
     checkpoint: {
@@ -262,16 +272,28 @@ export function stepLevelHazardPhases(
   level: LevelRuntimeState, tick: number, levelId: PlayableLevelId = 'level-001',
 ): void {
   for (const hazard of level.hazards) {
-    hazard.active = hazardActiveAtTick(hazard, tick, level.keyCollected, levelId);
+    hazard.active = hazardActiveForLevel(hazard, tick, level, levelId);
   }
 }
 
 function hazardActivation(
   levelId: PlayableLevelId, hazardId: string,
-): 'periodic' | 'before-key' | 'after-key' | 'after-tick' | 'until-bomb' | 'until-bomb-optional' {
+): NonNullable<ReturnType<typeof hazardRuntimeProfile>['activation']> {
   const authored = campaignLevel(levelId).maze.hazards.find((hazard) => hazard.id === hazardId);
   if (authored === undefined) return 'periodic';
   return hazardRuntimeProfile(authored.collisionProfileId).activation ?? 'periodic';
+}
+
+export function hazardActiveForLevel(
+  hazard: HazardRuntimeState, tick: number, level: LevelRuntimeState,
+  levelId: PlayableLevelId = 'level-001',
+): boolean {
+  const activation = hazardActivation(levelId, hazard.id);
+  if (activation === 'until-key-1' || activation === 'until-key-2' || activation === 'until-key-3') {
+    const keyIndex = Number(activation.slice(-1)) - 1;
+    return level.pickups.filter((pickup) => pickup.kind === 'key')[keyIndex]?.active ?? false;
+  }
+  return hazardActiveAtTick(hazard, tick, level.keyCollected, levelId);
 }
 
 export function hazardActiveAtTick(
@@ -348,7 +370,7 @@ export function collectLevelInteractions(
     if (pickup.kind === 'energy' && player.energy >= player.maxEnergy) continue;
     pickup.active = false;
     if (pickup.kind === 'key') {
-      level.keyCollected = true;
+      level.keyCollected = !level.pickups.some((candidate) => candidate.kind === 'key' && candidate.active);
       events.push({ type: 'key-collected' });
     } else if (pickup.kind === 'health') {
       const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), player.maxHealth - player.health);
