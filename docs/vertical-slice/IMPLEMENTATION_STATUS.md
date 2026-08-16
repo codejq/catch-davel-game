@@ -25,11 +25,13 @@ Implementation is active. Missing physical devices do not block development; the
 - Bounded three-buffer snapshot ownership with tested `producerOwned >= 1`, `inFlight <= 2`, coalescing, newest-state delivery, and independent consumer copies.
 - The live main-thread renderer now consumes the decoded immutable snapshot contract; simulation/render Worker hosting remains the next topology step.
 - Production simulation Worker adapter uses the same `GameSimulation`, supports seeded reset/manual action batches/checkpoint loading, publishes through the bounded pool, and generation-tags returns across resets.
+- The Worker also owns an autonomous 60 Hz clock with bounded catch-up, persistent movement input, one-shot look/fire latches, and independent snapshot/event ports.
+- Ordered event transport uses fixed records, stable deduplicated IDs, tick correlation, acknowledgement only after presentation, one credited batch, presentation-first overflow eviction, and epoch/resync handling for critical overflow.
 
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 12 files, 24 tests passed.
+- Automated tests: 13 files, 28 tests passed.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 12-tick command advanced exactly from tick 0 to tick 12 and remained paused at tick 12 during a 300 ms model-think interval.
@@ -37,6 +39,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Browser persistence check: IndexedDB advanced atomically from slot `a` revision 1 to slot `b` revision 2 across reload; a subsequent 240-tick agent session did not change the human revision.
 - Production API check: the default built artifact loaded with profile storage ready and did not expose `window.CatchDavelAgent`.
 - Worker determinism/stall check: a 240-tick browser Worker run matched the direct checksum, retained two in-flight/one producer-owned buffer, coalesced 239 snapshots under a deliberate consumer stall, and delivered tick 240 when capacity returned.
+- Autonomous-clock check: while the main browser thread was deliberately blocked for 300 ms, the simulation Worker advanced 18 fixed ticks, coalesced 17 snapshots, and delivered its newest tick 259 after recovery.
 - Visual inspection confirmed a bright continuous floor, bounded colorful corridors, readable HUD/gun, rounded connected robot parts, angry-comic faces, and visible size/proportion differences.
 
 These are development/CI results, not physical-device release certification.

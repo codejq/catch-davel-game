@@ -44,12 +44,21 @@ try {
     const directChecksum = api.getMetrics().checksum;
     const worker = new Worker(new URL('/src/workers/simulation.worker.ts', location.href), { type: 'module' });
     const channel = new MessageChannel();
+    const eventChannel = new MessageChannel();
     const responses = [];
     const snapshots = [];
     worker.onmessage = (event) => responses.push(event.data);
     channel.port2.onmessage = (event) => snapshots.push(event.data);
     channel.port2.start();
-    worker.postMessage({ type: 'initialize', seed, snapshotPort: channel.port1 }, [channel.port1]);
+    eventChannel.port2.onmessage = (event) => {
+      const message = event.data;
+      eventChannel.port2.postMessage({
+        type: 'event-ack', generation: message.generation,
+        highestContiguousBatchSequence: message.batchSequence,
+      });
+    };
+    eventChannel.port2.start();
+    worker.postMessage({ type: 'initialize', seed, mode: 'manual', snapshotPort: channel.port1, eventPort: eventChannel.port1 }, [channel.port1, eventChannel.port1]);
     const waitFor = async (predicate) => {
       const deadline = performance.now() + 10_000;
       while (!predicate()) {
@@ -78,14 +87,45 @@ try {
         type: 'return-snapshot', generation: message.generation, slotId: message.slotId, buffer: message.buffer,
       }, [message.buffer]);
     }
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    snapshots.length = 0;
+    worker.postMessage({ type: 'set-mode', requestId: 8, mode: 'realtime' });
+    await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 8));
+    const realtimeStart = responses.find((message) => message.type === 'complete' && message.requestId === 8);
+    const blockedUntil = performance.now() + 300;
+    while (performance.now() < blockedUntil) { /* deliberate main-thread consumer stall */ }
+    worker.postMessage({ type: 'set-mode', requestId: 9, mode: 'manual' });
+    await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 9));
+    const realtimeEnd = responses.find((message) => message.type === 'complete' && message.requestId === 9);
+    await waitFor(() => snapshots.length >= 2);
+    const beforeRecoveryCount = snapshots.length;
+    const realtimeReturned = snapshots[0];
+    channel.port2.postMessage({
+      type: 'return-snapshot', generation: realtimeReturned.generation,
+      slotId: realtimeReturned.slotId, buffer: realtimeReturned.buffer,
+    }, [realtimeReturned.buffer]);
+    await waitFor(() => snapshots.length > beforeRecoveryCount);
+    const realtimeNewestTick = new DataView(snapshots.at(-1).buffer).getUint32(4, true);
     worker.terminate();
-    return { directChecksum, workerChecksum: complete.checksum, transport: complete.transport, initialTicks, newestTick };
+    return {
+      directChecksum, workerChecksum: complete.checksum, transport: complete.transport, initialTicks, newestTick,
+      realtime: {
+        startTick: realtimeStart.tick,
+        endTick: realtimeEnd.tick,
+        ticksDuringMainStall: realtimeEnd.tick - realtimeStart.tick,
+        coalescedDuringStall: realtimeEnd.transport.coalesced - realtimeStart.transport.coalesced,
+        newestTick: realtimeNewestTick,
+      },
+    };
   });
   const failures = [...errors];
   if (result.directChecksum !== result.workerChecksum) failures.push('Direct and Worker checksums differ');
   if (result.transport.inFlight !== 2 || result.transport.producerOwned !== 1) failures.push('Three-buffer ownership invariant was not observed');
   if (result.transport.coalesced !== 239) failures.push(`Expected 239 coalesced snapshots, got ${result.transport.coalesced}`);
   if (result.newestTick !== 240) failures.push(`Expected recovered newest tick 240, got ${result.newestTick}`);
+  if (result.realtime.ticksDuringMainStall < 10) failures.push('Simulation Worker did not continue through the main-thread stall');
+  if (result.realtime.coalescedDuringStall < 1) failures.push('Realtime stall did not exercise snapshot coalescing');
+  if (result.realtime.newestTick !== result.realtime.endTick) failures.push('Realtime recovery did not deliver the newest completed tick');
   if (failures.length > 0) throw new Error(failures.join('; '));
   process.stdout.write(`${JSON.stringify({ passed: true, ...result }, null, 2)}\n`);
 } finally {

@@ -55,6 +55,10 @@ The production three-slot pool uses one staging slot, up to two in-flight transf
 
 The simulation Worker adapter instantiates the exact production `GameSimulation` and accepts bounded manual action batches, resets, and complete checkpoint loads. Snapshot messages and returned buffers carry a generation, so an old transfer returned after reset cannot corrupt the new pool. `npm run game:test:worker` compares its checksum with the direct browser simulation and injects a 240-tick consumer stall to verify bounded ownership and newest-snapshot recovery.
 
+Realtime mode owns its 60 Hz deadline inside the Worker. Main-thread input messages replace persistent movement state and accumulate bounded look deltas plus a one-shot fire latch; each authoritative tick atomically consumes those transient inputs. A four-tick catch-up cap and controlled deadline resynchronization prevent debugger/pause explosions without making physics adaptive.
+
+Ordered events travel on a port independent from snapshots. The current provisional contract uses the reviewed 256-record/64-KiB producer and consumer caps, 64-record/16-KiB batches, and one credited in-flight batch. State-critical events force an epoch transition only when presentation records cannot make room. Consumers correlate by authoritative tick, deduplicate event IDs, sort delayed/reordered batches, and acknowledge only the highest contiguous batch after presentation. These capacities remain transport tuning and are excluded from simulation/replay hashes.
+
 ## Agent isolation
 
 Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
