@@ -12,6 +12,7 @@ import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids'
 import { isKeyAmbushLevel } from './level-mechanics';
 import type { RunMetrics } from './run-metrics';
 import { difficultyProfile, difficultyRobotHealth, isDifficultyId, type DifficultyId } from './difficulty';
+import { PULSE_MAX_BURST_SHOTS } from './combat';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -55,6 +56,7 @@ export interface SimulationSnapshotV1 {
   readonly player: PlayerState;
   readonly robots: readonly RobotSnapshotV1[];
   readonly lastShotTick: number;
+  readonly pulseBurstShots: number;
   readonly shotSerial: number;
   readonly victory: boolean;
   readonly defeat: boolean;
@@ -119,6 +121,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     player: copyPlayer(state.player),
     robots: state.robots.map(snapshotRobot),
     lastShotTick: state.lastShotTick,
+    pulseBurstShots: state.pulseBurstShots,
     shotSerial: state.shotSerial,
     victory: state.victory,
     defeat: state.defeat,
@@ -428,7 +431,7 @@ function validateRunMetrics(
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
-    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'difficulty', 'player', 'robots', 'lastShotTick', 'shotSerial',
+    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'difficulty', 'player', 'robots', 'lastShotTick', 'pulseBurstShots', 'shotSerial',
     'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
     'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level', 'metrics',
   ], 'snapshot');
@@ -468,6 +471,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   }
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
+  const pulseBurstShots = integer(snapshotValue.pulseBurstShots, 'snapshot.pulseBurstShots');
+  if (pulseBurstShots > PULSE_MAX_BURST_SHOTS) throw new Error('snapshot.pulseBurstShots exceeds its bounded maximum');
   const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
   if (level.keyCollected === key.active) throw new Error('snapshot.level key state is inconsistent');
   if (level.door.open && !level.keyCollected) throw new Error('snapshot.level door cannot open before its key is collected');
@@ -500,6 +505,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     robots,
     events: [],
     lastShotTick: integer(snapshotValue.lastShotTick, 'snapshot.lastShotTick', -1_000_000_000),
+    pulseBurstShots,
     shotSerial: integer(snapshotValue.shotSerial, 'snapshot.shotSerial'),
     victory,
     defeat,

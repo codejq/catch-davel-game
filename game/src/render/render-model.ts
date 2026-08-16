@@ -96,6 +96,8 @@ export interface RenderGameState {
   readonly laserActive: boolean;
   readonly laserBeamDistance: number;
   readonly laserFocusTicks: number;
+  readonly pulseBurstShots: number;
+  readonly pulseSpreadRadians: number;
   readonly victory: boolean;
   readonly defeat: boolean;
   readonly run: {

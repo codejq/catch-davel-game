@@ -47,6 +47,7 @@ import { difficultyProfile, isDifficultyId } from '../sim/difficulty';
 import { applyHumanAimAssist } from './human-aim-assist';
 import { DavelMovementAudioSequencer } from './davel-movement-audio';
 import { danceBeatPresentation, type DanceBeatPhase } from './dance-beat-presentation';
+import { PULSE_MAX_SPREAD_RADIANS } from '../sim/combat';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -743,6 +744,9 @@ export async function startBrowserGame(): Promise<void> {
     weaponStatus.textContent = `${ui(WEAPON_UI_KEYS[state.player.selectedWeapon])}${resource}`;
     touchWeapon.textContent = ui(WEAPON_UI_KEYS[state.player.selectedWeapon]);
     document.body.dataset.weapon = state.player.selectedWeapon;
+    const pulseBloom = state.player.selectedWeapon === 'pulse'
+      ? state.pulseSpreadRadians / PULSE_MAX_SPREAD_RADIANS : 0;
+    crosshair.style.setProperty('--pulse-spread-scale', String(1 + Math.max(0, Math.min(1, pulseBloom)) * 1.6));
   }
 
   const processEvent = (event: DecodedGameEvent): void => {
@@ -900,7 +904,8 @@ export async function startBrowserGame(): Promise<void> {
           + Math.min(0.2, state.projectiles.length * 0.025));
         const bossPhase = state.robots.reduce((phase, robot) => Math.max(phase, robot.bossPhase), 0);
         const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
-        const ambienceActive = audio !== null && !state.victory && !state.defeat
+        const presentationVisible = document.visibilityState !== 'hidden';
+        const ambienceActive = audio !== null && presentationVisible && !state.victory && !state.defeat
           && !pauseMenu.classList.contains('open') && !campaignMap.classList.contains('open');
         for (const request of davelMovementAudio.sample(state, ambienceActive && !frozen)) {
           sound(request.cue, request.robotId, request.gainScale);
@@ -909,7 +914,7 @@ export async function startBrowserGame(): Promise<void> {
         document.body.dataset.ambienceActive = String(ambienceActive);
         music?.update(
           state.tick, combatIntensity, frozen, bossPhase,
-          !state.victory && !state.defeat,
+          presentationVisible && !state.victory && !state.defeat,
         );
         document.body.dataset.snapshotTick = String(state.tick);
       },

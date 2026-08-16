@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_DAMAGE, fireLaser, firePulse,
+  BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_BURST_RESET_TICKS, PULSE_DAMAGE, PULSE_MAX_SPREAD_RADIANS,
+  SWORD_CHARGED_DAMAGE, SWORD_DAMAGE, effectivePulseBurstShots, fireLaser, firePulse, pulseSpreadOffset,
 } from '../src/sim/combat';
 import { GameSimulation } from '../src/sim/game';
 import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 import { PLAYER_EYE_HEIGHT } from '../src/sim/constants';
 import { ROBOT_DEFINITIONS } from '../src/sim/robots';
+import { cellCenter } from '../src/sim/level';
 import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition,
 } from '../src/sim/weak-point';
@@ -13,6 +15,44 @@ import {
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
 describe('pulse gun', () => {
+  it('keeps the first shot exact and grows a deterministic bounded rapid-fire pattern until recovery', () => {
+    expect(pulseSpreadOffset('spread-proof', 0, 0)).toEqual({ yaw: 0, pitch: 0, radians: 0 });
+    const first = [1, 2, 3, 4].map((burstShots) => pulseSpreadOffset('spread-proof', burstShots, burstShots));
+    const second = [1, 2, 3, 4].map((burstShots) => pulseSpreadOffset('spread-proof', burstShots, burstShots));
+    expect(first).toEqual(second);
+    first.map((spread) => spread.radians).forEach((radians, index) => {
+      expect(radians).toBeCloseTo([0.006, 0.012, 0.018, PULSE_MAX_SPREAD_RADIANS][index]!);
+    });
+    expect(effectivePulseBurstShots(PULSE_BURST_RESET_TICKS, 0, 4)).toBe(4);
+    expect(effectivePulseBurstShots(PULSE_BURST_RESET_TICKS + 1, 0, 4)).toBe(0);
+  });
+
+  it('applies rapid-fire spread to the authoritative ray instead of only the crosshair', () => {
+    const prepare = (): GameSimulation => {
+      const game = new GameSimulation('spread-ray-proof');
+      const target = game.state.robots[0]!;
+      for (const other of game.state.robots.slice(1)) other.active = false;
+      const playerPoint = cellCenter(1, 1);
+      const targetPoint = cellCenter(5, 1);
+      game.state.player.x = playerPoint.x;
+      game.state.player.z = playerPoint.z;
+      game.state.player.yaw = Math.PI / 2;
+      target.x = targetPoint.x;
+      target.z = targetPoint.z;
+      target.heading = -Math.PI / 2;
+      const core = weakPointPosition(target, ROBOT_DEFINITIONS[target.id]!);
+      game.state.player.pitch = Math.atan2(core.y - PLAYER_EYE_HEIGHT, target.x - game.state.player.x);
+      return game;
+    };
+    const recovered = prepare();
+    expect(firePulse(recovered.state.player, recovered.state.robots, 19, -1_000, 'level-001', recovered.state.seed, 0, 0).weakPoint).toBe(true);
+    const rapid = prepare();
+    const result = firePulse(rapid.state.player, rapid.state.robots, 19, -1_000, 'level-001', rapid.state.seed, 4, 4);
+    expect(result.hitRobotId).toBe(rapid.state.robots[0]!.id);
+    expect(result.weakPoint).toBe(false);
+    expect(result.spreadRadians).toBe(PULSE_MAX_SPREAD_RADIANS);
+  });
+
   it('hits the nearest visible Davel, awards coins, and unlocks the exit after the objective', () => {
     const game = new GameSimulation('combat-proof');
     const target = game.state.robots[0]!;

@@ -4,7 +4,7 @@ import {
   BOMB_COOLDOWN_TICKS, LASER_BASE_DAMAGE, LASER_ENERGY_PER_TICK, LASER_HEAT_COOL_PER_TICK,
   LASER_HEAT_PER_TICK, LASER_MAX_FOCUS_BONUS, LASER_OVERHEAT_RECOVERY, SWORD_HEAT_COOL_PER_TICK,
   createThrownBomb, fireLaser, firePulse, stepPlayerBombs, swingSword, type ShotResult, type WeaponHit,
-  LASER_HEAT_REDUCTION_PER_UPGRADE,
+  LASER_HEAT_REDUCTION_PER_UPGRADE, PULSE_MAX_BURST_SHOTS, effectivePulseBurstShots,
 } from './combat';
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
@@ -48,6 +48,7 @@ export interface GameState {
   readonly robots: RobotState[];
   readonly events: GameEvent[];
   lastShotTick: number;
+  pulseBurstShots: number;
   shotSerial: number;
   victory: boolean;
   defeat: boolean;
@@ -107,7 +108,7 @@ export class GameSimulation {
     const state: GameState = {
       tick: 0, seed, levelId, encounter, difficulty, player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId),
       robots: createRobots(encounter, levelId, difficulty), events: [],
-      lastShotTick: -1_000, shotSerial: 0, victory: false,
+      lastShotTick: -1_000, pulseBurstShots: 0, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
       laserFocusTicks: 0, laserTargetRobotId: null, laserActive: false, laserBeamDistance: 0,
@@ -200,7 +201,15 @@ export class GameSimulation {
     }
     const player = this.state.player;
     if (player.selectedWeapon === 'pulse') {
-      this.applyShot(firePulse(player, this.state.robots, this.state.tick, this.state.lastShotTick, this.state.levelId));
+      const burstShots = effectivePulseBurstShots(
+        this.state.tick, this.state.lastShotTick, this.state.pulseBurstShots,
+      );
+      const result = firePulse(
+        player, this.state.robots, this.state.tick, this.state.lastShotTick, this.state.levelId,
+        this.state.seed, this.state.shotSerial, burstShots,
+      );
+      if (result.fired) this.state.pulseBurstShots = Math.min(PULSE_MAX_BURST_SHOTS, burstShots + 1);
+      this.applyShot(result);
       return;
     }
     if (player.selectedWeapon === 'sword') {

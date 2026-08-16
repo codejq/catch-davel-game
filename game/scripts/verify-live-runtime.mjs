@@ -71,6 +71,16 @@ try {
       action: { forward: 0.7, strafe: -0.15, turn: -0.008, look: 0.002, fire: true },
       ticks: 30,
     });
+    const spreadDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.snapshotTick) < steppedObservation.tick
+      && performance.now() < spreadDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const pulseSpreadProof = {
+      burstShots: steppedObservation.player.pulseBurstShots,
+      radians: steppedObservation.player.pulseSpreadRadians,
+      crosshairScale: document.querySelector('#crosshair')?.style.getPropertyValue('--pulse-spread-scale'),
+    };
     const objectiveCompass = {
       hidden: document.querySelector('#objective-compass')?.hidden,
       target: document.querySelector('#objective-compass')?.dataset.target,
@@ -248,6 +258,7 @@ try {
       realtimeEndTick,
       resetTick: resetObservation.tick,
       steppedTick: steppedObservation.tick,
+      pulseSpreadProof,
       objectiveCompass,
       loadedTick: loadedObservation.tick,
       savedChecksum: savedMetrics.checksum,
@@ -304,8 +315,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 13
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v13 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 14
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v14 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -316,10 +327,13 @@ try {
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [result.weakPointProof.tick === 19 && result.weakPointProof.presentedTick >= 19
-      && result.weakPointProof.schemaVersion === 13 && result.weakPointProof.phase === 'vulnerable'
+      && result.weakPointProof.schemaVersion === 14 && result.weakPointProof.phase === 'vulnerable'
       && result.weakPointProof.active === true && result.weakPointProof.radius > 0
       && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
     'live Worker/presentation boundary did not expose the authored weak-point window'],
+    [result.pulseSpreadProof.burstShots >= 2 && result.pulseSpreadProof.radians > 0
+      && Number(result.pulseSpreadProof.crosshairScale) > 1,
+    'authoritative pulse spread did not reach the LLM observation and human crosshair'],
     [result.levelEightProof.levelId === 'level-008' && result.levelEightProof.replayLevelId === 'level-008'
       && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
     [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,

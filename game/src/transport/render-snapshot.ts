@@ -7,8 +7,9 @@ import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-id
 import type { GameState } from '../sim/game';
 import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
+import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const TRANSPORT_CONTRACT_VERSION = 11;
+export const TRANSPORT_CONTRACT_VERSION = 12;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -22,7 +23,7 @@ export const RENDER_PICKUP_FLOATS = 5;
 export const RENDER_HAZARD_FLOATS = 8;
 export const RENDER_LEVEL_FLOATS = 9;
 export const RENDER_PLAYER_BOMB_FLOATS = 8;
-export const RENDER_EFFECT_FLOATS = 2;
+export const RENDER_EFFECT_FLOATS = 4;
 export const RENDER_SNAPSHOT_BYTES = RENDER_SNAPSHOT_HEADER_BYTES + (
   RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS
@@ -255,7 +256,10 @@ export function writeRenderSnapshot(
     state.level.exit.x, state.level.exit.z, state.level.objectiveComplete ? 1 : 0,
   ], offset);
   offset += RENDER_LEVEL_FLOATS;
-  data.set([state.laserBeamDistance, state.laserFocusTicks], offset);
+  const pulseBurstShots = 'pulseSpreadRadians' in state
+    ? state.pulseBurstShots : effectivePulseBurstShots(state.tick, state.lastShotTick, state.pulseBurstShots);
+  const pulseSpread = 'pulseSpreadRadians' in state ? state.pulseSpreadRadians : pulseSpreadRadians(pulseBurstShots);
+  data.set([state.laserBeamDistance, state.laserFocusTicks, pulseBurstShots, pulseSpread], offset);
   return buffer;
 }
 
@@ -368,6 +372,8 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
       laserActive: (flags & 4) !== 0,
       laserBeamDistance: data[effectOffset]!,
       laserFocusTicks: data[effectOffset + 1]!,
+      pulseBurstShots: data[effectOffset + 2]!,
+      pulseSpreadRadians: data[effectOffset + 3]!,
       victory: (flags & 1) !== 0,
       defeat: (flags & 2) !== 0,
       run: {

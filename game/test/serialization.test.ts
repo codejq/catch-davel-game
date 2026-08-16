@@ -52,7 +52,7 @@ describe('canonical simulation serialization', () => {
   it('rejects unknown fields, incompatible schemas, and malformed bodies', () => {
     const snapshot = createSimulationSnapshot(new GameSimulation('validation-proof').state);
     expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, surprise: true }))).toThrow(/unknown or missing/);
-    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 16 }))).toThrow(/schema/);
+    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 17 }))).toThrow(/schema/);
     const malformed = structuredClone(snapshot);
     (malformed.robots[0]!.body.positions as number[]).pop();
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/33 numbers/);
@@ -60,6 +60,8 @@ describe('canonical simulation serialization', () => {
     impossibleAccuracy.metrics.rangedAttacksFired = 1;
     impossibleAccuracy.metrics.rangedAttacksHit = 2;
     expect(() => parseSimulationSnapshot(JSON.stringify(impossibleAccuracy))).toThrow(/hits exceed/);
+    const impossibleBurst = { ...structuredClone(snapshot), pulseBurstShots: 5 };
+    expect(() => parseSimulationSnapshot(JSON.stringify(impossibleBurst))).toThrow(/bounded maximum/);
   });
 
   it('round-trips the selected campaign level and rejects roster substitution', () => {

@@ -7,6 +7,7 @@ import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { isDanceWeakPointActive } from './dance-timing';
+import { decision, hashSeed } from './random';
 import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition, weakPointRadius,
 } from './weak-point';
@@ -17,6 +18,11 @@ export const PULSE_COOLDOWN_TICKS = 10;
 export const PULSE_ENERGY_COST = 4;
 export const PULSE_ENERGY_REDUCTION_PER_UPGRADE = 0.5;
 export const PULSE_MAX_RANGE = 42;
+export const PULSE_SPREAD_VERSION = 1;
+export const PULSE_BURST_RESET_TICKS = 30;
+export const PULSE_MAX_BURST_SHOTS = 4;
+export const PULSE_SPREAD_RADIANS_PER_SHOT = 0.006;
+export const PULSE_MAX_SPREAD_RADIANS = PULSE_MAX_BURST_SHOTS * PULSE_SPREAD_RADIANS_PER_SHOT;
 export const SWORD_DAMAGE = 50;
 export const SWORD_CHARGED_DAMAGE = 90;
 export const SWORD_RANGE = 2.65;
@@ -41,6 +47,7 @@ export interface ShotResult {
   readonly defeatedRobotId: number | null;
   readonly coinsAwarded: number;
   readonly weakPoint: boolean;
+  readonly spreadRadians: number;
 }
 
 export interface WeaponHit {
@@ -77,8 +84,26 @@ interface AimTrace {
 }
 
 const noShot: ShotResult = {
-  fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false,
+  fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false, spreadRadians: 0,
 };
+
+export function effectivePulseBurstShots(tick: number, lastShotTick: number, storedBurstShots: number): number {
+  return tick - lastShotTick > PULSE_BURST_RESET_TICKS ? 0 : Math.min(PULSE_MAX_BURST_SHOTS, storedBurstShots);
+}
+
+export function pulseSpreadRadians(burstShots: number): number {
+  return Math.min(PULSE_MAX_BURST_SHOTS, Math.max(0, burstShots)) * PULSE_SPREAD_RADIANS_PER_SHOT;
+}
+
+export function pulseSpreadOffset(
+  seedText: string, shotSerial: number, burstShots: number,
+): { readonly yaw: number; readonly pitch: number; readonly radians: number } {
+  const radians = pulseSpreadRadians(burstShots);
+  if (radians === 0) return { yaw: 0, pitch: 0, radians: 0 };
+  const roll = decision(hashSeed(seedText), 0x5055_4c53, shotSerial + 1);
+  const angle = roll / 0x1_0000_0000 * Math.PI * 2;
+  return { yaw: Math.cos(angle) * radians, pitch: Math.sin(angle) * radians, radians };
+}
 
 function clearLine(
   fromX: number, fromZ: number, toX: number, toZ: number, levelId: Chapter01LevelId,
@@ -124,11 +149,14 @@ function sphereDistance(
 
 function traceAim(
   player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: Chapter01LevelId, tick: number,
+  yawOffset = 0, pitchOffset = 0,
 ): AimTrace {
-  const cosPitch = Math.cos(player.pitch);
-  const directionX = Math.sin(player.yaw) * cosPitch;
-  const directionY = Math.sin(player.pitch);
-  const directionZ = -Math.cos(player.yaw) * cosPitch;
+  const yaw = player.yaw + yawOffset;
+  const pitch = Math.max(-1.25, Math.min(1.25, player.pitch + pitchOffset));
+  const cosPitch = Math.cos(pitch);
+  const directionX = Math.sin(yaw) * cosPitch;
+  const directionY = Math.sin(pitch);
+  const directionZ = -Math.cos(yaw) * cosPitch;
   const obstructionDistance = wallDistance(player.x, player.z, directionX, directionZ, maximumRange, levelId);
   let target: RobotState | null = null;
   let targetDistance = obstructionDistance;
@@ -184,14 +212,18 @@ export function damageRobot(
 
 export function firePulse(
   player: PlayerState, robots: RobotState[], tick: number, lastShotTick: number,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: Chapter01LevelId = 'level-001', seed = 'pulse-default', shotSerial = 0, burstShots = 0,
 ): ShotResult {
   const energyCost = Math.max(1, PULSE_ENERGY_COST - player.weaponUpgrades.pulseEfficiency * PULSE_ENERGY_REDUCTION_PER_UPGRADE);
   if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < energyCost) return noShot;
   player.energy -= energyCost;
-  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick);
+  const spread = pulseSpreadOffset(seed, shotSerial, burstShots);
+  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick, spread.yaw, spread.pitch);
   if (trace.robot === null) {
-    return { fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false };
+    return {
+      fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0,
+      weakPoint: false, spreadRadians: spread.radians,
+    };
   }
   const damage = PULSE_DAMAGE + player.weaponUpgrades.pulseDamage * PULSE_DAMAGE_PER_UPGRADE;
   const hit = damageRobot(
@@ -199,7 +231,7 @@ export function firePulse(
   );
   return {
     fired: true, hitRobotId: hit.robotId, defeatedRobotId: hit.defeated ? hit.robotId : null,
-    coinsAwarded: hit.coinsAwarded, weakPoint: hit.weakPoint,
+    coinsAwarded: hit.coinsAwarded, weakPoint: hit.weakPoint, spreadRadians: spread.radians,
   };
 }
 

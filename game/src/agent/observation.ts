@@ -14,8 +14,9 @@ import { authoritativeDanceTiming } from '../sim/dance-timing';
 import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition, weakPointRadius,
 } from '../sim/weak-point';
+import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 13;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 14;
 
 export interface RobotObservation {
   readonly id: number;
@@ -49,7 +50,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 13;
+  readonly schemaVersion: 14;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -70,6 +71,8 @@ export interface AgentObservation {
     readonly swordHeat: number;
     readonly laserHeat: number;
     readonly laserOverheated: boolean;
+    readonly pulseBurstShots: number;
+    readonly pulseSpreadRadians: number;
     readonly weaponUpgrades: {
       readonly pulseDamage: number;
       readonly pulseEfficiency: number;
@@ -217,6 +220,7 @@ export function createObservation(state: GameState): AgentObservation {
   const mechanicKind = levelMechanicKind(state.levelId);
   const freezeWindow = freezeDanceWindow(state.levelId, state.tick);
   const playerCell = worldCell(state.player.x, state.player.z);
+  const pulseBurstShots = effectivePulseBurstShots(state.tick, state.lastShotTick, state.pulseBurstShots);
   const robots = state.robots.filter((robot) => robot.active).map((robot): RobotObservation => {
     const definition = ROBOT_DEFINITIONS[robot.id]!;
     const deltaX = robot.x - state.player.x;
@@ -273,6 +277,8 @@ export function createObservation(state: GameState): AgentObservation {
       bombs: state.player.bombs,
       swordHeat: round(state.player.swordHeat), laserHeat: round(state.player.laserHeat),
       laserOverheated: state.player.laserOverheated,
+      pulseBurstShots,
+      pulseSpreadRadians: round(pulseSpreadRadians(pulseBurstShots)),
       weaponUpgrades: { ...state.player.weaponUpgrades },
     },
     robots,
