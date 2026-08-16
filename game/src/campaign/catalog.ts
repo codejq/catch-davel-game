@@ -13,6 +13,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-010': 'Chief Wobble',
   'level-011': 'Ticket Trouble',
   'level-012': 'Sliding Sideshow',
+  'level-013': "Spinner's Midway",
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

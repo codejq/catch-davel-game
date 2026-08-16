@@ -5,12 +5,13 @@ import { createLevelToolingReport } from '../src/tooling/tooling-model';
 describe('content workbench model', () => {
   it('reports every playable campaign level with current dependencies and bounded content', () => {
     const reports = PLAYABLE_LEVELS.map(createLevelToolingReport);
-    expect(reports).toHaveLength(12);
+    expect(reports).toHaveLength(13);
     expect(reports.every((report) => report.dependencyCurrent)).toBe(true);
-    expect(reports.map((report) => report.totalRobotCount)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1, 8, 9]);
+    expect(reports.map((report) => report.totalRobotCount)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1, 8, 9, 10]);
     expect(reports[7]).toMatchObject({ hazardCount: 3, waveCount: 1, peakRobotCount: 8 });
     expect(reports[8]).toMatchObject({ waveCount: 2, totalRobotCount: 10, peakRobotCount: 5 });
     expect(reports[11]).toMatchObject({ hazardCount: 2, waveCount: 2, totalRobotCount: 9, peakRobotCount: 5 });
+    expect(reports[12]).toMatchObject({ hazardCount: 3, waveCount: 2, totalRobotCount: 10, peakRobotCount: 5 });
   });
 
   it('accepts valid edits as stale and rejects structurally invalid edits', () => {

@@ -7,7 +7,7 @@ import { campaignWeaponMask, WEAPON_MASK } from '../src/sim/weapons';
 describe('scalable campaign level registry', () => {
   it('keeps the 100-ID numbering envelope separate from implemented content', () => {
     expect(CAMPAIGN_LEVEL_IDS).toHaveLength(100);
-    expect(PLAYABLE_LEVEL_IDS).toHaveLength(12);
+    expect(PLAYABLE_LEVEL_IDS).toHaveLength(13);
     expect(isCampaignLevelId('level-100')).toBe(true);
     expect(isPlayableLevelId('level-100')).toBe(false);
   });

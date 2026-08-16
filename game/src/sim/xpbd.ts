@@ -139,6 +139,13 @@ function targets(
     leftFootZ = alternate * 0.42; rightFootZ = -alternate * 0.3;
     leftFootY += Math.max(0, beat) * 0.08; rightFootY += Math.max(0, -beat) * 0.08;
     leftHand = [-0.84, 1.34 + alternate * 0.16, 0.18]; rightHand = [0.42, 1.58 - alternate * 0.2, 0.12];
+  } else if (performance.motif === 'carousel-kick') {
+    hipX = beat * 0.12 * intensity; chestX = -alternate * 0.2 * intensity; headX += beat * 0.2;
+    leftKneeX = -0.2 - Math.max(0, beat) * 0.12; rightKneeX = 0.2 + Math.max(0, -beat) * 0.12;
+    leftFootX = -0.26 - Math.max(0, beat) * 0.2; rightFootX = 0.26 + Math.max(0, -beat) * 0.2;
+    leftFootZ = Math.max(0, beat) * 0.58; rightFootZ = Math.max(0, -beat) * 0.58;
+    leftFootY += Math.max(0, beat) * 0.22; rightFootY += Math.max(0, -beat) * 0.22;
+    leftHand = [-0.9, 1.5 + alternate * 0.2, 0.04]; rightHand = [0.9, 1.5 - alternate * 0.2, 0.04];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

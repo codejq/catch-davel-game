@@ -4,7 +4,7 @@ import { CHAPTER_01_LEVELS, CHAPTER_01_LEVEL_IDS, chapter01Level } from '../src/
 import { levelDefinitionDependencyHash, levelDefinitionHash, serializeLevelDefinition, validateLevelDefinition } from '../src/content/validate-level';
 import { DEFAULT_LEVEL_SEED } from '../src/sim/constants';
 import { currentAgentValidationDependencies } from '../src/replay/replay';
-import { CHAPTER_02_LEVELS, LEVEL_011, LEVEL_012 } from '../src/content/levels/chapter-02';
+import { CHAPTER_02_LEVELS, LEVEL_011, LEVEL_012, LEVEL_013 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
 
 describe('Appendix A level-data contract', () => {
@@ -44,7 +44,7 @@ describe('Appendix A level-data contract', () => {
       .toBe(levelDefinitionDependencyHash(LEVEL_011));
     expect(LEVEL_011.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-011'));
-    expect(CHAPTER_02_LEVELS.map((level) => level.id)).toEqual(['level-011', 'level-012']);
+    expect(CHAPTER_02_LEVELS.map((level) => level.id)).toEqual(['level-011', 'level-012', 'level-013']);
     expect(validateLevelDefinition(LEVEL_012)).toBe(LEVEL_012);
     expect(campaignLevel('level-012')).toBe(LEVEL_012);
     expect(LEVEL_012.maze.hazards).toHaveLength(2);
@@ -52,6 +52,11 @@ describe('Appendix A level-data contract', () => {
       .toBe(levelDefinitionDependencyHash(LEVEL_012));
     expect(LEVEL_012.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-012'));
+    expect(validateLevelDefinition(LEVEL_013)).toBe(LEVEL_013);
+    expect(campaignLevel('level-013')).toBe(LEVEL_013);
+    expect(LEVEL_013.maze.hazards).toHaveLength(3);
+    expect(LEVEL_013.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-013'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

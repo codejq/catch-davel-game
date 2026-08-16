@@ -14,6 +14,13 @@
       "roomSize": 0.62,
       "wetMix": 0.22
     },
+    "audio-copper-carnival-013": {
+      "dampingHz": 3900,
+      "decaySeconds": 0.63,
+      "pitchScale": 1.06,
+      "roomSize": 0.76,
+      "wetMix": 0.28
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -86,6 +93,12 @@
     }
   },
   "danceGameplayProfiles": {
+    "carousel-kick": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "clockwork-charleston": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -160,6 +173,7 @@
     }
   },
   "danceMotifs": {
+    "carousel-kick": "carousel-kick",
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",
     "corner-peek-groove": "corner-peek",
@@ -211,6 +225,36 @@
       "halfDepth": 4.25,
       "halfWidth": 1.15,
       "kind": "conveyor",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    },
+    "roundabout-gate-center-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.35,
+      "halfWidth": 1.35,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 60,
+      "row": 7
+    },
+    "roundabout-gate-east-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.35,
+      "halfWidth": 1.35,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 120,
+      "row": 7
+    },
+    "roundabout-gate-west-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.35,
+      "halfWidth": 1.35,
+      "kind": "timed-door",
       "phaseOffsetTicks": 0,
       "row": 7
     },
@@ -322,6 +366,79 @@
         },
         {
           "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "carnival-spinners-midway": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 15,
+          "column": 7,
+          "row": 5
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 25,
+          "column": 5,
+          "row": 9
+        },
+        "health": {
+          "amount": 18,
+          "column": 3,
+          "row": 3
+        },
+        "key": {
+          "column": 11,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
           "row": 12
         }
       ]
@@ -863,6 +980,33 @@
     }
   },
   "musicProfiles": {
+    "carousel-kick": {
+      "bassPattern": [
+        0,
+        2,
+        4,
+        1
+      ],
+      "leadPattern": [
+        0,
+        4,
+        1,
+        3,
+        2,
+        4,
+        0,
+        3
+      ],
+      "rootMidi": 57,
+      "scale": [
+        0,
+        3,
+        5,
+        7,
+        10
+      ],
+      "swing": 0.16
+    },
     "clockwork-charleston": {
       "bassPattern": [
         0,
@@ -1254,6 +1398,40 @@
           0.94,
           0.45,
           0.12
+        ]
+      ]
+    },
+    "copper-carnival-13": {
+      "floor": [
+        0.9,
+        0.78,
+        0.22
+      ],
+      "sky": [
+        0.58,
+        0.84,
+        1
+      ],
+      "walls": [
+        [
+          0.98,
+          0.24,
+          0.3
+        ],
+        [
+          0.18,
+          0.42,
+          1
+        ],
+        [
+          0.14,
+          0.86,
+          0.58
+        ],
+        [
+          0.72,
+          0.26,
+          0.94
         ]
       ]
     },
