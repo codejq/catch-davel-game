@@ -166,6 +166,19 @@ try {
       healthStyle: document.querySelector('#boss-status')?.style.getPropertyValue('--boss-health'),
       aria: document.querySelector('#boss-status')?.getAttribute('aria-label'),
     };
+    const damageHealthStart = bossObservation.player.health;
+    const damageDeadlineTick = bossObservation.tick + 600;
+    while (bossObservation.player.health === damageHealthStart && !bossObservation.defeat
+      && bossObservation.tick < damageDeadlineTick) {
+      bossObservation = await api.act({}, 1);
+    }
+    const damageDirectionProof = {
+      healthStart: damageHealthStart,
+      healthEnd: bossObservation.player.health,
+      visible: document.querySelector('#damage-direction')?.classList.contains('show'),
+      bearing: document.querySelector('#damage-direction')?.style.getPropertyValue('--damage-bearing'),
+      sourceRobot: document.querySelector('#damage-direction')?.dataset.sourceRobot,
+    };
 
     let arsenalObservation = await api.reset({ seed: 'live-arsenal-proof', mode: 'agent', loadout: 'training' });
     arsenalObservation = await api.act({ weapon: 'sword', fire: true }, 1);
@@ -246,6 +259,7 @@ try {
       arsenalProof,
       bossProof,
       bossHudProof,
+      damageDirectionProof,
       difficultyProof,
     };
   });
@@ -322,6 +336,10 @@ try {
       && result.bossHudProof.healthStyle?.endsWith('%')
       && result.bossHudProof.aria?.includes('phase 2'),
     'Final Invoice phase two did not update the live boss presentation'],
+    [result.damageDirectionProof.healthEnd < result.damageDirectionProof.healthStart
+      && result.damageDirectionProof.visible && /^-?[0-9.]+rad$/.test(result.damageDirectionProof.bearing)
+      && result.damageDirectionProof.sourceRobot === '6',
+    'directional damage indicator did not track the live boss hit'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);

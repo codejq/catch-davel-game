@@ -23,6 +23,18 @@ export function relativeCaptionDirection(
   return 'center';
 }
 
+export function relativeThreatBearing(
+  playerX: number, playerZ: number, playerYaw: number, targetX: number, targetZ: number,
+): number {
+  const deltaX = targetX - playerX;
+  const deltaZ = targetZ - playerZ;
+  const distance = Math.hypot(deltaX, deltaZ);
+  if (distance < 0.001) return 0;
+  const rightDot = (Math.cos(playerYaw) * deltaX + Math.sin(playerYaw) * deltaZ) / distance;
+  const forwardDot = (Math.sin(playerYaw) * deltaX - Math.cos(playerYaw) * deltaZ) / distance;
+  return Math.atan2(rightDot, forwardDot);
+}
+
 export function captionForEvent(
   event: DecodedGameEvent, direction: CaptionDirection = 'center',
 ): CaptionRequest | null {

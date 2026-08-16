@@ -36,7 +36,9 @@ import {
   AutoQualityController, browserRenderCapabilities, initialRenderQuality, normalizeRenderQuality,
   type RenderQualityPreference, type RenderQualityTier,
 } from '../render/quality';
-import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type CaptionRequest } from './event-captions';
+import {
+  captionForEvent, relativeCaptionDirection, relativeThreatBearing, type CaptionDirection, type CaptionRequest,
+} from './event-captions';
 import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
 import { objectiveCompassReading, type ObjectiveCompassTarget } from './objective-compass';
 import { waveTransitionPresentation } from './wave-transition';
@@ -124,6 +126,7 @@ export async function startBrowserGame(): Promise<void> {
   const bossStatusHealth = requireElement<HTMLElement>('#boss-status-health');
   const bossStatusHp = requireElement<HTMLElement>('#boss-status-hp');
   const crosshair = requireElement<HTMLElement>('#crosshair');
+  const damageDirection = requireElement<HTMLElement>('#damage-direction');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const davelBark = requireElement<HTMLElement>('#davel-bark');
   const davelBarkSpeaker = requireElement<HTMLElement>('#davel-bark-speaker');
@@ -249,6 +252,7 @@ export async function startBrowserGame(): Promise<void> {
     motionScale: 1, flashScale: 1, qualityTier: resolvedQuality,
   };
   let messageTimeout = 0;
+  let damageDirectionTimeout = 0;
   let barkTimeout = 0;
   let lastBarkTick = -10_000;
   let lastWaveTransitionKey: string | null = null;
@@ -792,6 +796,16 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
+      const bearing = captionRobot === undefined || renderState === null ? 0 : relativeThreatBearing(
+        renderState.player.x, renderState.player.z, renderState.player.yaw, captionRobot.x, captionRobot.z,
+      );
+      damageDirection.style.setProperty('--damage-bearing', `${bearing}rad`);
+      damageDirection.dataset.sourceRobot = String(event.robotId ?? -1);
+      damageDirection.classList.remove('show');
+      void damageDirection.offsetWidth;
+      damageDirection.classList.add('show');
+      window.clearTimeout(damageDirectionTimeout);
+      damageDirectionTimeout = window.setTimeout(() => damageDirection.classList.remove('show'), 420);
       sound('player-hit', event.robotId);
     }
     if (event.type === 'key-collected') {
