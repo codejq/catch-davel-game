@@ -51,7 +51,7 @@ describe('canonical simulation serialization', () => {
   it('rejects unknown fields, incompatible schemas, and malformed bodies', () => {
     const snapshot = createSimulationSnapshot(new GameSimulation('validation-proof').state);
     expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, surprise: true }))).toThrow(/unknown or missing/);
-    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 2 }))).toThrow(/schema/);
+    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 3 }))).toThrow(/schema/);
     const malformed = structuredClone(snapshot);
     (malformed.robots[0]!.body.positions as number[]).pop();
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/33 numbers/);

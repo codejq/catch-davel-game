@@ -5,7 +5,7 @@ import { GameSimulation } from '../src/sim/game';
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
 describe('pulse gun', () => {
-  it('hits the nearest visible Davel, applies reactions, and awards coins on defeat', () => {
+  it('hits the nearest visible Davel, awards coins, and unlocks the exit after the objective', () => {
     const game = new GameSimulation('combat-proof');
     const target = game.state.robots[0]!;
     target.x = game.state.player.x;
@@ -23,6 +23,11 @@ describe('pulse gun', () => {
     }
     expect(target.active).toBe(false);
     expect(game.state.player.coins).toBe(10);
+    expect(game.state.level.objectiveComplete).toBe(true);
+    expect(game.state.victory).toBe(false);
+    game.state.player.x = game.state.level.exit.x;
+    game.state.player.z = game.state.level.exit.z;
+    game.step(idle);
     expect(game.state.victory).toBe(true);
   });
 

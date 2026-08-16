@@ -4,6 +4,7 @@ import type { GameState } from './game';
 import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
+import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -43,6 +44,7 @@ export interface SimulationSnapshotV1 {
   readonly defeat: boolean;
   readonly projectiles: readonly EnemyProjectile[];
   readonly nextProjectileId: number;
+  readonly level: LevelRuntimeState;
 }
 
 function copyPlayer(player: PlayerState): PlayerState {
@@ -88,6 +90,14 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     defeat: state.defeat,
     projectiles: state.projectiles.map((projectile) => ({ ...projectile })),
     nextProjectileId: state.nextProjectileId,
+    level: {
+      pickups: state.level.pickups.map((pickup) => ({ ...pickup })),
+      door: { ...state.level.door },
+      checkpoint: { ...state.level.checkpoint },
+      exit: { ...state.level.exit },
+      keyCollected: state.level.keyCollected,
+      objectiveComplete: state.level.objectiveComplete,
+    },
   };
 }
 
@@ -186,11 +196,58 @@ function validateProjectile(value: unknown, index: number): EnemyProjectile {
   };
 }
 
+function validateLevel(value: unknown): LevelRuntimeState {
+  assertRecord(value, 'snapshot.level');
+  assertExactKeys(value, ['pickups', 'door', 'checkpoint', 'exit', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
+  const expected = createLevelRuntime();
+  if (!Array.isArray(value.pickups) || value.pickups.length !== expected.pickups.length) {
+    throw new Error(`snapshot.level.pickups must contain ${expected.pickups.length} records`);
+  }
+  const pickups = value.pickups.map((pickupValue, index) => {
+    assertRecord(pickupValue, `snapshot.level.pickups[${index}]`);
+    assertExactKeys(pickupValue, ['id', 'kind', 'x', 'z', 'amount', 'active'], `snapshot.level.pickups[${index}]`);
+    const expectedPickup = expected.pickups[index]!;
+    if (pickupValue.id !== expectedPickup.id || pickupValue.kind !== expectedPickup.kind) {
+      throw new Error(`snapshot.level.pickups[${index}] has an invalid stable identity`);
+    }
+    const kind = pickupValue.kind as PickupKind;
+    const x = finite(pickupValue.x, `snapshot.level.pickups[${index}].x`);
+    const z = finite(pickupValue.z, `snapshot.level.pickups[${index}].z`);
+    const amount = integer(pickupValue.amount, `snapshot.level.pickups[${index}].amount`);
+    if (x !== expectedPickup.x || z !== expectedPickup.z || amount !== expectedPickup.amount) {
+      throw new Error(`snapshot.level.pickups[${index}] changed immutable level data`);
+    }
+    return { id: expectedPickup.id, kind, x, z, amount, active: booleanValue(pickupValue.active, `snapshot.level.pickups[${index}].active`) };
+  });
+  assertRecord(value.door, 'snapshot.level.door');
+  assertExactKeys(value.door, ['id', 'keyId', 'column', 'row', 'x', 'z', 'open'], 'snapshot.level.door');
+  assertRecord(value.checkpoint, 'snapshot.level.checkpoint');
+  assertExactKeys(value.checkpoint, ['id', 'x', 'z', 'activated'], 'snapshot.level.checkpoint');
+  assertRecord(value.exit, 'snapshot.level.exit');
+  assertExactKeys(value.exit, ['x', 'z'], 'snapshot.level.exit');
+  const doorStaticMatches = value.door.id === expected.door.id && value.door.keyId === expected.door.keyId
+    && value.door.column === expected.door.column && value.door.row === expected.door.row
+    && value.door.x === expected.door.x && value.door.z === expected.door.z;
+  if (!doorStaticMatches) throw new Error('snapshot.level.door changed immutable level data');
+  const checkpointStaticMatches = value.checkpoint.id === expected.checkpoint.id
+    && value.checkpoint.x === expected.checkpoint.x && value.checkpoint.z === expected.checkpoint.z;
+  if (!checkpointStaticMatches) throw new Error('snapshot.level.checkpoint changed immutable level data');
+  if (value.exit.x !== expected.exit.x || value.exit.z !== expected.exit.z) throw new Error('snapshot.level.exit changed immutable level data');
+  return {
+    pickups,
+    door: { ...expected.door, open: booleanValue(value.door.open, 'snapshot.level.door.open') },
+    checkpoint: { ...expected.checkpoint, activated: booleanValue(value.checkpoint.activated, 'snapshot.level.checkpoint.activated') },
+    exit: { ...expected.exit },
+    keyCollected: booleanValue(value.keyCollected, 'snapshot.level.keyCollected'),
+    objectiveComplete: booleanValue(value.objectiveComplete, 'snapshot.level.objectiveComplete'),
+  };
+}
+
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
     'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'player', 'robots', 'lastShotTick', 'shotSerial',
-    'victory', 'defeat', 'projectiles', 'nextProjectileId',
+    'victory', 'defeat', 'projectiles', 'nextProjectileId', 'level',
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
@@ -202,18 +259,29 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const projectiles = snapshotValue.projectiles.map(validateProjectile);
   const nextProjectileId = integer(snapshotValue.nextProjectileId, 'snapshot.nextProjectileId', 1);
   if (projectiles.some((projectile) => projectile.id >= nextProjectileId)) throw new Error('snapshot.nextProjectileId must exceed every projectile ID');
+  const robots = snapshotValue.robots.map(validateRobot);
+  const level = validateLevel(snapshotValue.level);
+  const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
+  const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
+  const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
+  if (level.keyCollected === key.active) throw new Error('snapshot.level key state is inconsistent');
+  if (level.door.open && !level.keyCollected) throw new Error('snapshot.level door cannot open before its key is collected');
+  if (level.objectiveComplete && robots.some((robot) => robot.active)) throw new Error('snapshot.level objective cannot complete with active Davels');
+  if (victory && !level.objectiveComplete) throw new Error('snapshot victory requires the primary objective');
+  if (victory && defeat) throw new Error('snapshot cannot be both victory and defeat');
   return {
     tick: integer(snapshotValue.tick, 'snapshot.tick'),
     seed: snapshotValue.seed,
     player: validatePlayer(snapshotValue.player),
-    robots: snapshotValue.robots.map(validateRobot),
+    robots,
     events: [],
     lastShotTick: integer(snapshotValue.lastShotTick, 'snapshot.lastShotTick', -1_000_000_000),
     shotSerial: integer(snapshotValue.shotSerial, 'snapshot.shotSerial'),
-    victory: booleanValue(snapshotValue.victory, 'snapshot.victory'),
-    defeat: booleanValue(snapshotValue.defeat, 'snapshot.defeat'),
+    victory,
+    defeat,
     projectiles,
     nextProjectileId,
+    level,
   };
 }
 

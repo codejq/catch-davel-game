@@ -29,11 +29,13 @@ Implementation is active. Missing physical devices do not block development; the
 - Ordered event transport uses fixed records, stable deduplicated IDs, tick correlation, acknowledgement only after presentation, one credited batch, presentation-first overflow eviction, and epoch/resync handling for critical overflow.
 - Human input, the LLM API, replay save/load, observations, and status queries now all use the same live Simulation Worker authority. Releasing agent control resets a clean human session from durable profile coins before realtime ticking resumes.
 - Capable browsers run the unchanged raw-WebGL2 `WorldRenderer` in a dedicated OffscreenCanvas Worker. Its host permits one render frame in flight and coalesces pending state to the newest immutable snapshot; capability/initialization failures use the main-thread renderer fallback.
+- Level 1 now has authoritative health/energy/key pickups, a closed workshop door that participates in player collision until its key opens it, a checkpoint with exact Worker-side snapshot capture, and an objective-gated exit. Deactivating every Davel unlocks the exit; victory occurs only when the player reaches it.
+- Simulation schema v2, RenderSnapshot transport v2, replay dependency hashes, and agent observation v2 include the complete interaction/objective state. Human checkpoint snapshots persist through the alternating-record profile repository and are restored before realtime play resumes; agent sessions cannot write them.
 
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 13 files, 28 tests passed.
+- Automated tests: 14 files, 30 tests passed.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 12-tick command advanced exactly from tick 0 to tick 12 and remained paused at tick 12 during a 300 ms model-think interval.
@@ -50,7 +52,8 @@ These are development/CI results, not physical-device release certification.
 
 ## Next implementation work
 
-1. Add richer combat AI states, pickups, and a complete exit/win flow.
-2. Add campaign level data, validators, automated agent scenarios, and the frozen checksum benchmark manifest.
-3. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.
-4. Expand the slice into Chapter 1 content before scaling campaign data toward 100 levels.
+1. Implement the Appendix A level-data contract, validators, canonical export, and generated JSON Schema.
+2. Add richer combat AI states and remaining weapons/archetypes for the combat slice.
+3. Add campaign data, automated agent scenarios, and the frozen checksum benchmark manifest.
+4. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.
+5. Expand the slice into Chapter 1 content before scaling campaign data toward 100 levels.

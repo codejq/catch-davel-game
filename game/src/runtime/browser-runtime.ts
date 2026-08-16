@@ -99,7 +99,9 @@ export async function startBrowserGame(): Promise<void> {
     energyHud.textContent = String(Math.floor(state.player.energy));
     coinsHud.textContent = String(state.player.coins);
     const remaining = state.robots.filter((robot) => robot.active).length;
-    remainingHud.textContent = state.victory ? 'maze clear!' : `${remaining} remain`;
+    remainingHud.textContent = state.victory ? 'maze clear!'
+      : state.level.objectiveComplete ? 'reach the green exit'
+      : `${remaining} Davels remain`;
   };
 
   const persistDurableState = (state: RenderGameState): void => {
@@ -126,6 +128,31 @@ export async function startBrowserGame(): Promise<void> {
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
       sound(68, 0.2, 0.075, 'sawtooth');
     }
+    if (event.type === 'key-collected') {
+      showMessage('WORKSHOP KEY ACQUIRED');
+      sound(620, 0.16, 0.045, 'square');
+    }
+    if (event.type === 'health-collected') {
+      showMessage(`REPAIR KIT  +${event.value ?? 0} HEALTH`);
+      sound(440, 0.18, 0.04, 'sine');
+    }
+    if (event.type === 'energy-collected') {
+      showMessage(`PULSE CELL  +${event.value ?? 0} ENERGY`);
+      sound(760, 0.15, 0.04, 'triangle');
+    }
+    if (event.type === 'door-opened') showMessage('WORKSHOP LOCK OPEN');
+    if (event.type === 'checkpoint-activated') {
+      showMessage('CHECKPOINT STABILIZED');
+      if (humanSessionStarted && !agentController.isAgentControlled()) {
+        void client.getCheckpoint().then((snapshot) => {
+          if (snapshot !== null && humanSessionStarted && !agentController.isAgentControlled()) {
+            persistProfile(updateProfile(activeProfile, { campaignCheckpoint: snapshot }));
+          }
+        }).catch((error: unknown) => console.warn('Catch Davel checkpoint save failed', error));
+      }
+    }
+    if (event.type === 'objective-complete') showMessage('ALL DAVELS DOWN');
+    if (event.type === 'exit-unlocked') showMessage('EXIT ONLINE — REACH THE GREEN PORTAL');
     if (event.type === 'robot-defeated') {
       showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
@@ -166,7 +193,7 @@ export async function startBrowserGame(): Promise<void> {
   const client = await SimulationWorkerClient.create({
     seed: 'first-playable-v1',
     initialCoins: activeProfile.spendableCoins,
-    mode: 'realtime',
+    mode: 'manual',
     callbacks: {
       onSnapshot: (state) => {
         renderState = state;
@@ -187,9 +214,11 @@ export async function startBrowserGame(): Promise<void> {
       },
     },
   });
-  await client.getStatus();
+  if (activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+  await client.setMode('realtime');
   agentController = new WorkerAgentController(client, async () => {
-    await client.reset('first-playable-v1', activeProfile.spendableCoins, false);
+    if (activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+    else await client.reset('first-playable-v1', activeProfile.spendableCoins, false);
     await client.setMode('realtime');
     humanSessionStarted = false;
   });

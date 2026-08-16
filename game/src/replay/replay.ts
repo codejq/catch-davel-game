@@ -2,6 +2,7 @@ import { PULSE_COOLDOWN_TICKS, PULSE_DAMAGE, PULSE_ENERGY_COST, PULSE_MAX_RANGE 
 import { GAME_SCHEMA_VERSION, TICK_HZ } from '../sim/constants';
 import { GameSimulation } from '../sim/game';
 import { LEVEL_ROWS } from '../sim/level';
+import { createLevelRuntime } from '../sim/interactions';
 import type { PlayerCommand } from '../sim/player';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import {
@@ -65,7 +66,7 @@ function robotBalanceData(): unknown {
 export function currentReplayDependencies(): ReplayDependencyHashes {
   return {
     simulationSchema: checksumCanonical({ GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS }),
-    levelData: checksumCanonical({ levelId: 'level-001', rows: LEVEL_ROWS }),
+    levelData: checksumCanonical({ levelId: 'level-001', rows: LEVEL_ROWS, interactions: createLevelRuntime() }),
     balanceData: checksumCanonical({
       pulse: {
         PULSE_DAMAGE, PULSE_COOLDOWN_TICKS, PULSE_ENERGY_COST, PULSE_MAX_RANGE,

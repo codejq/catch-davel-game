@@ -3,12 +3,19 @@ import { createRobots, stepRobots, type RobotState } from './robots';
 import { firePulse, type ShotResult } from './combat';
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
+import {
+  closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
+  openNearbyDoor, reachedUnlockedExit, type LevelRuntimeState,
+} from './interactions';
 
 export interface GameEvent {
   readonly tick: number;
-  readonly type: 'pulse-fired' | 'robot-hit' | 'robot-defeated' | 'robot-fired' | 'player-hit' | 'victory' | 'defeat';
+  readonly type: 'pulse-fired' | 'robot-hit' | 'robot-defeated' | 'robot-fired' | 'player-hit' | 'victory' | 'defeat'
+    | 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened' | 'checkpoint-activated'
+    | 'objective-complete' | 'exit-unlocked';
   readonly robotId?: number;
   readonly coins?: number;
+  readonly value?: number;
 }
 
 export interface GameState {
@@ -23,6 +30,7 @@ export interface GameState {
   defeat: boolean;
   readonly projectiles: EnemyProjectile[];
   nextProjectileId: number;
+  readonly level: LevelRuntimeState;
 }
 
 export class GameSimulation {
@@ -51,12 +59,28 @@ export class GameSimulation {
       tick: 0, seed, player: createPlayer(), robots: createRobots(), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
+      level: createLevelRuntime(),
     };
   }
 
   step(command: PlayerCommand): void {
     this.state.events.length = 0;
-    if (!this.state.defeat && !this.state.victory) stepPlayer(this.state.player, command);
+    if (this.state.defeat || this.state.victory) {
+      this.state.tick += 1;
+      return;
+    }
+    const doorEvent = openNearbyDoor(this.state.player, this.state.level);
+    if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
+    stepPlayer(this.state.player, command, closedDoorCells(this.state.level));
+    for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
+      this.state.events.push({ tick: this.state.tick, ...interaction });
+    }
+    if (reachedUnlockedExit(this.state.player, this.state.level)) {
+      this.state.victory = true;
+      this.state.events.push({ tick: this.state.tick, type: 'victory' });
+      this.state.tick += 1;
+      return;
+    }
     stepRobots(this.state.robots, this.state.seed);
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId,
@@ -86,8 +110,9 @@ export class GameSimulation {
         tick: this.state.tick, type: 'robot-defeated', robotId: result.defeatedRobotId, coins: result.coinsAwarded,
       });
       if (this.state.robots.every((robot) => !robot.active)) {
-        this.state.victory = true;
-        this.state.events.push({ tick: this.state.tick, type: 'victory' });
+        for (const interaction of completePrimaryObjective(this.state.level)) {
+          this.state.events.push({ tick: this.state.tick, ...interaction });
+        }
       }
     }
   }

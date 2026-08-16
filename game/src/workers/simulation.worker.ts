@@ -33,6 +33,7 @@ let pendingYawDelta = 0;
 let pendingPitchDelta = 0;
 let fireLatched = false;
 let recorder: ReplayRecorder | null = null;
+let checkpointSnapshot: ReturnType<typeof createSimulationSnapshot> | null = null;
 
 function post(message: SimulationWorkerResponse): void { scope.postMessage(message); }
 function realmTimestamp(): number { return performance.timeOrigin + performance.now(); }
@@ -120,6 +121,7 @@ function resetRuntime(seed: string, initialCoins = 0, agentRun = false): void {
   fireLatched = false;
   recorder = new ReplayRecorder(simulation);
   if (agentRun) recorder.markAgentRun();
+  checkpointSnapshot = null;
   stageSnapshot();
 }
 
@@ -127,6 +129,9 @@ function executeTick(command: PlayerCommand): void {
   if (simulation === null) throw new Error('Simulation Worker is not initialized');
   simulation.step(command);
   recorder?.record(command);
+  if (simulation.state.events.some((event) => event.type === 'checkpoint-activated')) {
+    checkpointSnapshot = createSimulationSnapshot(simulation.state);
+  }
   eventChannel.enqueue(simulation.state.events);
   stageSnapshot();
   publishEventBatches();
@@ -215,6 +220,10 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       post({ type: 'replay', requestId: request.requestId, replay: recorder!.finish() });
       return;
     }
+    if (request.type === 'get-checkpoint') {
+      post({ type: 'checkpoint', requestId: request.requestId, snapshot: checkpointSnapshot });
+      return;
+    }
     if (request.type === 'load-replay') {
       setMode('manual');
       const replay = typeof request.replay === 'string' ? parseReplay(request.replay) : request.replay;
@@ -227,6 +236,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       publishedTick = -1;
       recorder = new ReplayRecorder(simulation);
       recorder.markAgentRun();
+      checkpointSnapshot = simulation.state.level.checkpoint.activated ? createSimulationSnapshot(simulation.state) : null;
       stageSnapshot();
       postComplete(request.requestId);
       return;
@@ -245,6 +255,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       stagedTick = -1;
       publishedTick = -1;
       recorder = new ReplayRecorder(simulation);
+      checkpointSnapshot = simulation.state.level.checkpoint.activated ? createSimulationSnapshot(simulation.state) : null;
       stageSnapshot();
     } else if (request.type === 'step') {
       if (mode !== 'manual') throw new Error('Explicit Worker steps require manual mode');

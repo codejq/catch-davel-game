@@ -1,15 +1,21 @@
 import { BODY_POINT_COUNT } from '../sim/xpbd';
-import type { RenderGameState, RenderPlayerState, RenderProjectileState, RenderRobotState } from '../render/render-model';
+import type {
+  RenderGameState, RenderPickupState, RenderPlayerState, RenderProjectileState, RenderRobotState,
+} from '../render/render-model';
 
-export const TRANSPORT_CONTRACT_VERSION = 1;
+export const TRANSPORT_CONTRACT_VERSION = 2;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
+export const MAX_RENDER_PICKUPS = 8;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
 export const RENDER_PLAYER_FLOATS = 7;
 export const RENDER_ROBOT_FLOATS = 8 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 9;
+export const RENDER_PICKUP_FLOATS = 5;
+export const RENDER_LEVEL_FLOATS = 9;
 export const RENDER_SNAPSHOT_BYTES = RENDER_SNAPSHOT_HEADER_BYTES + (
   RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + RENDER_LEVEL_FLOATS
 ) * Float32Array.BYTES_PER_ELEMENT;
 
 const HEADER_VERSION = 0;
@@ -21,6 +27,21 @@ const HEADER_COINS = 20;
 const HEADER_EVENT_EPOCH = 24;
 const HEADER_EVENT_HIGH_WATERMARK = 28;
 const HEADER_RESYNC_REQUIRED = 32;
+const HEADER_PICKUP_COUNT = 36;
+const HEADER_LEVEL_FLAGS = 40;
+
+function pickupKindCode(kind: RenderPickupState['kind']): number {
+  if (kind === 'key') return 1;
+  if (kind === 'health') return 2;
+  return 3;
+}
+
+function decodePickupKind(code: number): RenderPickupState['kind'] {
+  if (code === 1) return 'key';
+  if (code === 2) return 'health';
+  if (code === 3) return 'energy';
+  throw new Error(`Unknown render pickup kind ${code}`);
+}
 
 export interface RenderSnapshotMetadata {
   readonly eventEpoch: number;
@@ -50,6 +71,7 @@ export function writeRenderSnapshot(
   if (buffer.byteLength !== RENDER_SNAPSHOT_BYTES) throw new Error(`RenderSnapshot buffer must be ${RENDER_SNAPSHOT_BYTES} bytes`);
   if (state.robots.length > MAX_RENDER_ROBOTS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_ROBOTS} robots`);
   if (state.projectiles.length > MAX_RENDER_PROJECTILES) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PROJECTILES} projectiles`);
+  if (state.level.pickups.length > MAX_RENDER_PICKUPS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PICKUPS} pickups`);
   new Uint8Array(buffer).fill(0);
   const header = new DataView(buffer, 0, RENDER_SNAPSHOT_HEADER_BYTES);
   header.setUint32(HEADER_VERSION, TRANSPORT_CONTRACT_VERSION, true);
@@ -61,6 +83,8 @@ export function writeRenderSnapshot(
   header.setUint32(HEADER_EVENT_EPOCH, uint32(metadata.eventEpoch, 'eventEpoch'), true);
   header.setUint32(HEADER_EVENT_HIGH_WATERMARK, uint32(metadata.eventHighWatermark, 'eventHighWatermark'), true);
   header.setUint32(HEADER_RESYNC_REQUIRED, metadata.resyncRequired ? 1 : 0, true);
+  header.setUint32(HEADER_PICKUP_COUNT, state.level.pickups.length, true);
+  header.setUint32(HEADER_LEVEL_FLAGS, (state.level.keyCollected ? 1 : 0) | (state.level.objectiveComplete ? 2 : 0), true);
   const data = new Float32Array(buffer, RENDER_SNAPSHOT_HEADER_BYTES);
   writePlayer(data, state.player);
   let offset = RENDER_PLAYER_FLOATS;
@@ -87,6 +111,18 @@ export function writeRenderSnapshot(
     ], offset);
     offset += RENDER_PROJECTILE_FLOATS;
   }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS;
+  for (const pickup of state.level.pickups) {
+    data.set([pickupKindCode(pickup.kind), pickup.active ? 1 : 0, pickup.x, pickup.z, pickup.amount], offset);
+    offset += RENDER_PICKUP_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  data.set([
+    state.level.door.x, state.level.door.z, state.level.door.open ? 1 : 0,
+    state.level.checkpoint.x, state.level.checkpoint.z, state.level.checkpoint.activated ? 1 : 0,
+    state.level.exit.x, state.level.exit.z, state.level.objectiveComplete ? 1 : 0,
+  ], offset);
   return buffer;
 }
 
@@ -107,7 +143,10 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   if (version !== TRANSPORT_CONTRACT_VERSION) throw new Error(`Unsupported transport contract version ${version}`);
   const robotCount = header.getUint32(HEADER_ROBOT_COUNT, true);
   const projectileCount = header.getUint32(HEADER_PROJECTILE_COUNT, true);
-  if (robotCount > MAX_RENDER_ROBOTS || projectileCount > MAX_RENDER_PROJECTILES) throw new Error('RenderSnapshot count exceeds fixed capacity');
+  const pickupCount = header.getUint32(HEADER_PICKUP_COUNT, true);
+  if (robotCount > MAX_RENDER_ROBOTS || projectileCount > MAX_RENDER_PROJECTILES || pickupCount > MAX_RENDER_PICKUPS) {
+    throw new Error('RenderSnapshot count exceeds fixed capacity');
+  }
   const data = new Float32Array(sourceBuffer, byteOffset + RENDER_SNAPSHOT_HEADER_BYTES, (byteLength - RENDER_SNAPSHOT_HEADER_BYTES) / 4);
   const robots: RenderRobotState[] = [];
   let offset = RENDER_PLAYER_FLOATS;
@@ -133,6 +172,21 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
     });
     offset += RENDER_PROJECTILE_FLOATS;
   }
+  const pickups: RenderPickupState[] = [];
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS;
+  for (let index = 0; index < pickupCount; index += 1) {
+    const kind = decodePickupKind(data[offset]!);
+    pickups.push({
+      id: `${kind}-${index}`,
+      kind,
+      active: data[offset + 1] === 1,
+      x: data[offset + 2]!, z: data[offset + 3]!, amount: data[offset + 4]!,
+    });
+    offset += RENDER_PICKUP_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  const levelFlags = header.getUint32(HEADER_LEVEL_FLAGS, true);
   const flags = header.getUint32(HEADER_FLAGS, true);
   return {
     state: {
@@ -142,6 +196,14 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
       projectiles,
       victory: (flags & 1) !== 0,
       defeat: (flags & 2) !== 0,
+      level: {
+        pickups,
+        door: { x: data[offset]!, z: data[offset + 1]!, open: data[offset + 2] === 1 },
+        checkpoint: { x: data[offset + 3]!, z: data[offset + 4]!, activated: data[offset + 5] === 1 },
+        exit: { x: data[offset + 6]!, z: data[offset + 7]! },
+        keyCollected: (levelFlags & 1) !== 0,
+        objectiveComplete: (levelFlags & 2) !== 0,
+      },
     },
     metadata: {
       eventEpoch: header.getUint32(HEADER_EVENT_EPOCH, true),

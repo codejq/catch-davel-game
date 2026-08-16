@@ -13,6 +13,7 @@ This document records the implemented production contract. It does not replace t
 - every Davel route, AI, attack, dance, health, reaction, and stable-ID field;
 - all Verlet current/previous particle arrays and XPBD rest constraints;
 - every hostile projectile, its stable ID/owner/position/velocity/lifetime, and the next-ID counter;
+- every pickup active flag, collected key, collision-door state, checkpoint activation, primary-objective completion, and exit state;
 - pulse cooldown/serial state and victory/defeat flags.
 
 Transient presentation events are deliberately excluded. Changing delivery, buffer capacity, transport epochs, particles, audio scheduling, or another presentation-only concern therefore cannot change the authoritative checksum.
@@ -47,7 +48,7 @@ Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browse
 
 ## Presentation snapshot and ownership
 
-`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 1 is a fixed 6,332-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
+`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 2 is a fixed 6,528-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, up to eight pickups, door/checkpoint/exit/objective state, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
 
 The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract, and capable browsers pass its decoded immutable copy through a bounded one-in-flight/latest-pending mailbox to the unchanged `WorldRenderer` in an OffscreenCanvas Worker. Unsupported or failed initialization uses the same renderer on the main thread, so the enhancement introduces neither another gameplay implementation nor an unbounded browser message queue.
 

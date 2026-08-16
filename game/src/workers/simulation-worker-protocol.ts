@@ -68,9 +68,14 @@ export interface GetStatusSimulationWorker {
   readonly requestId: number;
 }
 
+export interface GetCheckpointSimulationWorker {
+  readonly type: 'get-checkpoint';
+  readonly requestId: number;
+}
+
 export type SimulationWorkerRequest = InitializeSimulationWorker | StepSimulationWorker | ResetSimulationWorker
   | LoadSnapshotSimulationWorker | InputSimulationWorker | SetSimulationWorkerMode
-  | SaveReplaySimulationWorker | LoadReplaySimulationWorker | GetStatusSimulationWorker;
+  | SaveReplaySimulationWorker | LoadReplaySimulationWorker | GetStatusSimulationWorker | GetCheckpointSimulationWorker;
 
 export interface SimulationWorkerReady {
   readonly type: 'ready';
@@ -100,13 +105,20 @@ export interface SimulationWorkerReplay {
   readonly replay: ReplayFileV1;
 }
 
+export interface SimulationWorkerCheckpoint {
+  readonly type: 'checkpoint';
+  readonly requestId: number;
+  readonly snapshot: SimulationSnapshotV1 | null;
+}
+
 export interface SimulationWorkerFailure {
   readonly type: 'failure';
   readonly requestId: number | null;
   readonly message: string;
 }
 
-export type SimulationWorkerResponse = SimulationWorkerReady | SimulationWorkerComplete | SimulationWorkerReplay | SimulationWorkerFailure;
+export type SimulationWorkerResponse = SimulationWorkerReady | SimulationWorkerComplete | SimulationWorkerReplay
+  | SimulationWorkerCheckpoint | SimulationWorkerFailure;
 
 export interface WorkerSnapshotMessage {
   readonly type: 'snapshot';

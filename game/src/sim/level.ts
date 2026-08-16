@@ -65,10 +65,24 @@ export function isWallAtWorld(x: number, z: number): boolean {
 }
 
 export function isPlayerPositionValid(x: number, z: number, radius = PLAYER_RADIUS): boolean {
-  return !isWallAtWorld(x - radius, z - radius)
-    && !isWallAtWorld(x + radius, z - radius)
-    && !isWallAtWorld(x - radius, z + radius)
-    && !isWallAtWorld(x + radius, z + radius);
+  return isPlayerPositionValidWithBlockers(x, z, radius, []);
+}
+
+export function isPlayerPositionValidWithBlockers(
+  x: number,
+  z: number,
+  radius: number,
+  blockedCells: readonly CellCoordinate[],
+): boolean {
+  const validCorner = (cornerX: number, cornerZ: number): boolean => {
+    if (isWallAtWorld(cornerX, cornerZ)) return false;
+    const cell = worldCell(cornerX, cornerZ);
+    return !blockedCells.some((blocked) => blocked.column === cell.column && blocked.row === cell.row);
+  };
+  return validCorner(x - radius, z - radius)
+    && validCorner(x + radius, z - radius)
+    && validCorner(x - radius, z + radius)
+    && validCorner(x + radius, z + radius);
 }
 
 export function wallCells(): CellCoordinate[] {

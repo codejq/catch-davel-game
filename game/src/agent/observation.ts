@@ -17,7 +17,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 1;
+  readonly schemaVersion: 2;
   readonly tick: number;
   readonly seed: string;
   readonly player: {
@@ -35,6 +35,36 @@ export interface AgentObservation {
   readonly remainingRobots: number;
   readonly victory: boolean;
   readonly defeat: boolean;
+  readonly objective: {
+    readonly id: 'deactivate-davels';
+    readonly complete: boolean;
+    readonly exitUnlocked: boolean;
+  };
+  readonly pickups: readonly {
+    readonly id: string;
+    readonly kind: 'key' | 'health' | 'energy';
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly active: boolean;
+  }[];
+  readonly door: {
+    readonly id: 'workshop-lock';
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly open: boolean;
+    readonly requiresKey: boolean;
+  };
+  readonly checkpoint: {
+    readonly id: 'checkpoint-before-exit';
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly activated: boolean;
+  };
+  readonly exit: {
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly unlocked: boolean;
+  };
   readonly hostileProjectiles: readonly {
     readonly id: number;
     readonly ownerRobotId: number;
@@ -88,7 +118,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     tick: state.tick,
     seed: state.seed,
     player: {
@@ -101,6 +131,32 @@ export function createObservation(state: GameState): AgentObservation {
     remainingRobots: robots.length,
     victory: state.victory,
     defeat: state.defeat,
+    objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
+    pickups: state.level.pickups.map((pickup) => ({
+      id: pickup.id,
+      kind: pickup.kind,
+      relativeX: round(pickup.x - state.player.x),
+      relativeZ: round(pickup.z - state.player.z),
+      active: pickup.active,
+    })),
+    door: {
+      id: state.level.door.id,
+      relativeX: round(state.level.door.x - state.player.x),
+      relativeZ: round(state.level.door.z - state.player.z),
+      open: state.level.door.open,
+      requiresKey: !state.level.keyCollected,
+    },
+    checkpoint: {
+      id: state.level.checkpoint.id,
+      relativeX: round(state.level.checkpoint.x - state.player.x),
+      relativeZ: round(state.level.checkpoint.z - state.player.z),
+      activated: state.level.checkpoint.activated,
+    },
+    exit: {
+      relativeX: round(state.level.exit.x - state.player.x),
+      relativeZ: round(state.level.exit.z - state.player.z),
+      unlocked: state.level.objectiveComplete,
+    },
     hostileProjectiles: state.projectiles.map((projectile) => ({
       id: projectile.id,
       ownerRobotId: projectile.ownerRobotId,

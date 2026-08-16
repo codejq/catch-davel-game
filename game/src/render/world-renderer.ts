@@ -1,5 +1,5 @@
 import { CELL_SIZE, PLAYER_EYE_HEIGHT } from '../sim/constants';
-import { cellCenter, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells } from '../sim/level';
+import { cellCenter, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells } from '../sim/level';
 import type { RenderGameState } from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
@@ -88,6 +88,7 @@ export class WorldRenderer {
   private readonly indexCount: number;
   private readonly davels: DavelRenderer;
   private instanceCount = 0;
+  private staticInstanceCount = 0;
 
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
     this.program = program(gl);
@@ -145,6 +146,7 @@ export class WorldRenderer {
 
   render(state: RenderGameState): void {
     const { gl } = this;
+    this.buildDynamicInstances(state);
     const player = state.player;
     const eyeY = PLAYER_EYE_HEIGHT + Math.sin(player.bobPhase) * 0.025;
     const cosPitch = Math.cos(player.pitch);
@@ -166,27 +168,73 @@ export class WorldRenderer {
 
   private buildWorldInstances(): void {
     let instance = 0;
-    const write = (x: number, y: number, z: number, sx: number, sy: number, sz: number, color: readonly [number, number, number]): void => {
-      if (instance >= MAX_INSTANCES) throw new Error('World instance capacity exceeded');
-      writeTranslationScale(this.matrices, instance * 16, x, y, z, sx, sy, sz);
-      this.colors.set(color, instance * 3);
-      instance += 1;
-    };
-    write(0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE, [1, 0.74, 0.27]);
+    instance = this.writeInstance(instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE, [1, 0.74, 0.27]);
     const palette = [
       [1, 0.31, 0.48], [0.2, 0.84, 0.76], [0.57, 0.38, 0.96], [1, 0.49, 0.2],
     ] as const;
     for (const wall of wallCells()) {
       const center = cellCenter(wall.column, wall.row);
-      write(center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE, palette[(wall.column + wall.row * 3) % palette.length]!);
+      instance = this.writeInstance(instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE, palette[(wall.column + wall.row * 3) % palette.length]!);
     }
-    const exit = findCell('E');
-    const exitCenter = cellCenter(exit.column, exit.row);
-    write(exitCenter.x, 1.35, exitCenter.z, 1.25, 2.7, 1.25, [0.22, 1, 0.48]);
+    this.staticInstanceCount = instance;
+    this.uploadInstances(instance);
+  }
+
+  private buildDynamicInstances(state: RenderGameState): void {
+    let instance = this.staticInstanceCount;
+    const bob = Math.sin(state.tick * 0.08) * 0.12;
+    for (const pickup of state.level.pickups) {
+      if (!pickup.active) continue;
+      if (pickup.kind === 'key') {
+        instance = this.writeInstance(instance, pickup.x, 0.72 + bob, pickup.z, 0.18, 0.75, 0.18, [1, 0.92, 0.12]);
+        instance = this.writeInstance(instance, pickup.x + 0.28, 0.48 + bob, pickup.z, 0.55, 0.18, 0.18, [1, 0.66, 0.08]);
+      } else if (pickup.kind === 'health') {
+        instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.22, 0.9, 0.22, [0.3, 1, 0.36]);
+        instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.82, 0.22, 0.22, [0.3, 1, 0.36]);
+      } else {
+        instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.52, 0.9, 0.52, [0.12, 0.94, 1]);
+      }
+    }
+    const door = state.level.door;
+    if (!door.open) {
+      instance = this.writeInstance(instance, door.x, 1.25, door.z, 2.55, 2.5, 0.24, state.level.keyCollected ? [1, 0.78, 0.12] : [0.86, 0.12, 0.2]);
+    } else {
+      instance = this.writeInstance(instance, door.x - 1.16, 1.25, door.z, 0.22, 2.5, 0.28, [0.2, 1, 0.56]);
+      instance = this.writeInstance(instance, door.x + 1.16, 1.25, door.z, 0.22, 2.5, 0.28, [0.2, 1, 0.56]);
+    }
+    const checkpoint = state.level.checkpoint;
+    instance = this.writeInstance(
+      instance, checkpoint.x, 0.06, checkpoint.z, 1.2, 0.12, 1.2,
+      checkpoint.activated ? [0.2, 1, 0.72] : [0.18, 0.42, 0.72],
+    );
+    if (checkpoint.activated) {
+      instance = this.writeInstance(instance, checkpoint.x, 0.85, checkpoint.z, 0.1, 1.55, 0.1, [0.36, 1, 0.88]);
+    }
+    const exit = state.level.exit;
+    const exitColor: readonly [number, number, number] = state.level.objectiveComplete ? [0.22, 1, 0.48] : [0.28, 0.3, 0.42];
+    instance = this.writeInstance(instance, exit.x - 0.72, 1.2, exit.z, 0.22, 2.4, 0.28, exitColor);
+    instance = this.writeInstance(instance, exit.x + 0.72, 1.2, exit.z, 0.22, 2.4, 0.28, exitColor);
+    instance = this.writeInstance(instance, exit.x, 2.3, exit.z, 1.65, 0.22, 0.28, exitColor);
+    this.uploadInstances(instance);
+  }
+
+  private writeInstance(
+    instance: number,
+    x: number, y: number, z: number,
+    sx: number, sy: number, sz: number,
+    color: readonly [number, number, number],
+  ): number {
+    if (instance >= MAX_INSTANCES) throw new Error('World instance capacity exceeded');
+    writeTranslationScale(this.matrices, instance * 16, x, y, z, sx, sy, sz);
+    this.colors.set(color, instance * 3);
+    return instance + 1;
+  }
+
+  private uploadInstances(instance: number): void {
     this.instanceCount = instance;
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.matrixBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.matrices.subarray(0, instance * 16), this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.matrices.subarray(0, instance * 16), this.gl.DYNAMIC_DRAW);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorBuffer);
-    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.colors.subarray(0, instance * 3), this.gl.STATIC_DRAW);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.colors.subarray(0, instance * 3), this.gl.DYNAMIC_DRAW);
   }
 }

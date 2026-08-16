@@ -7,7 +7,7 @@ import { decodeRenderSnapshot } from '../transport/render-snapshot';
 import { EventConsumerQueue, type DecodedGameEvent } from '../transport/event-channel';
 import { SnapshotConsumerCopies } from '../transport/snapshot-pool';
 import type {
-  SimulationWorkerComplete, SimulationWorkerReady, SimulationWorkerReplay, SimulationWorkerRequest,
+  SimulationWorkerCheckpoint, SimulationWorkerComplete, SimulationWorkerReady, SimulationWorkerReplay, SimulationWorkerRequest,
   SimulationWorkerResponse, WorkerEventBatchMessage, WorkerEventConsumerMessage,
   WorkerReturnSnapshotMessage, WorkerSnapshotMessage,
 } from '../workers/simulation-worker-protocol';
@@ -26,7 +26,7 @@ export interface SimulationWorkerClientOptions {
   readonly callbacks: SimulationWorkerClientCallbacks;
 }
 
-type RequestResponse = SimulationWorkerComplete | SimulationWorkerReplay;
+type RequestResponse = SimulationWorkerComplete | SimulationWorkerReplay | SimulationWorkerCheckpoint;
 
 interface PendingRequest {
   readonly expectedType: RequestResponse['type'];
@@ -128,6 +128,12 @@ export class SimulationWorkerClient {
 
   async loadReplay(replay: ReplayFileV1 | string): Promise<SimulationWorkerComplete> {
     return this.requestComplete({ type: 'load-replay', requestId: 0, replay });
+  }
+
+  async getCheckpoint(): Promise<SimulationSnapshotV1 | null> {
+    const requestId = this.nextRequestId++;
+    const response = await this.request({ type: 'get-checkpoint', requestId }, 'checkpoint');
+    return (response as SimulationWorkerCheckpoint).snapshot;
   }
 
   terminate(): void {

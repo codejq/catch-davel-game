@@ -8,9 +8,12 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(1);
+    expect(observation.schemaVersion).toBe(2);
     expect(observation.robots).toHaveLength(6);
     expect(observation.robots.map((robot) => robot.id)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(observation.pickups.map((pickup) => pickup.id)).toEqual(['repair-kit', 'workshop-key', 'pulse-cell']);
+    expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
+    expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });
     expect(levelObservation().rows.every((row) => row.length === 15)).toBe(true);
   });
 });

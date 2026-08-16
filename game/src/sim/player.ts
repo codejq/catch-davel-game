@@ -1,5 +1,5 @@
-import { FIXED_DT_SECONDS, PLAYER_SPEED } from './constants';
-import { cellCenter, findCell, isPlayerPositionValid } from './level';
+import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED } from './constants';
+import { cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
 
 export interface PlayerState {
   x: number;
@@ -26,7 +26,7 @@ export function createPlayer(): PlayerState {
   return { x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0 };
 }
 
-export function stepPlayer(player: PlayerState, command: PlayerCommand): void {
+export function stepPlayer(player: PlayerState, command: PlayerCommand, blockedCells: readonly CellCoordinate[] = []): void {
   player.yaw += command.yawDelta;
   player.pitch = Math.max(-1.25, Math.min(1.25, player.pitch + command.pitchDelta));
   const inputLength = Math.hypot(command.forward, command.strafe);
@@ -37,8 +37,8 @@ export function stepPlayer(player: PlayerState, command: PlayerCommand): void {
   const distance = PLAYER_SPEED * FIXED_DT_SECONDS;
   const deltaX = (sinYaw * forward + cosYaw * strafe) * distance;
   const deltaZ = (-cosYaw * forward + sinYaw * strafe) * distance;
-  if (isPlayerPositionValid(player.x + deltaX, player.z)) player.x += deltaX;
-  if (isPlayerPositionValid(player.x, player.z + deltaZ)) player.z += deltaZ;
+  if (isPlayerPositionValidWithBlockers(player.x + deltaX, player.z, PLAYER_RADIUS, blockedCells)) player.x += deltaX;
+  if (isPlayerPositionValidWithBlockers(player.x, player.z + deltaZ, PLAYER_RADIUS, blockedCells)) player.z += deltaZ;
   const movement = Math.hypot(deltaX, deltaZ);
   if (movement > 0.0001) player.bobPhase += movement * 2.8;
 }

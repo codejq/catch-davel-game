@@ -14,6 +14,13 @@ export const EVENT_KIND = {
   playerHit: 5,
   victory: 6,
   defeat: 7,
+  keyCollected: 8,
+  healthCollected: 9,
+  energyCollected: 10,
+  doorOpened: 11,
+  checkpointActivated: 12,
+  objectiveComplete: 13,
+  exitUnlocked: 14,
 } as const;
 
 export interface EventTransportConfig {
@@ -74,6 +81,13 @@ function encodeKind(event: GameEvent): { readonly kind: number; readonly eventCl
     case 'player-hit': return { kind: EVENT_KIND.playerHit, eventClass: EVENT_CLASS.stateCritical };
     case 'victory': return { kind: EVENT_KIND.victory, eventClass: EVENT_CLASS.stateCritical };
     case 'defeat': return { kind: EVENT_KIND.defeat, eventClass: EVENT_CLASS.stateCritical };
+    case 'key-collected': return { kind: EVENT_KIND.keyCollected, eventClass: EVENT_CLASS.stateCritical };
+    case 'health-collected': return { kind: EVENT_KIND.healthCollected, eventClass: EVENT_CLASS.stateCritical };
+    case 'energy-collected': return { kind: EVENT_KIND.energyCollected, eventClass: EVENT_CLASS.stateCritical };
+    case 'door-opened': return { kind: EVENT_KIND.doorOpened, eventClass: EVENT_CLASS.stateCritical };
+    case 'checkpoint-activated': return { kind: EVENT_KIND.checkpointActivated, eventClass: EVENT_CLASS.stateCritical };
+    case 'objective-complete': return { kind: EVENT_KIND.objectiveComplete, eventClass: EVENT_CLASS.stateCritical };
+    case 'exit-unlocked': return { kind: EVENT_KIND.exitUnlocked, eventClass: EVENT_CLASS.stateCritical };
   }
 }
 
@@ -86,6 +100,13 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.playerHit: return 'player-hit';
     case EVENT_KIND.victory: return 'victory';
     case EVENT_KIND.defeat: return 'defeat';
+    case EVENT_KIND.keyCollected: return 'key-collected';
+    case EVENT_KIND.healthCollected: return 'health-collected';
+    case EVENT_KIND.energyCollected: return 'energy-collected';
+    case EVENT_KIND.doorOpened: return 'door-opened';
+    case EVENT_KIND.checkpointActivated: return 'checkpoint-activated';
+    case EVENT_KIND.objectiveComplete: return 'objective-complete';
+    case EVENT_KIND.exitUnlocked: return 'exit-unlocked';
     default: throw new Error(`Unknown event kind ${kind}`);
   }
 }
@@ -120,7 +141,7 @@ export class EventProducerChannel {
         eventClass: encoded.eventClass,
         kind: encoded.kind,
         robotId: event.robotId ?? -1,
-        value: event.coins ?? 0,
+        value: event.coins ?? event.value ?? 0,
       });
     }
   }
@@ -245,11 +266,12 @@ export class EventConsumerQueue {
       const eventClass = view.getUint8(offset) as EventClass;
       const robotId = view.getInt16(offset + 2, true);
       const value = view.getInt32(offset + 12, true);
+      const type = decodeKind(view.getUint8(offset + 1));
       const event: DecodedGameEvent = {
         tick: view.getUint32(offset + 4, true),
-        type: decodeKind(view.getUint8(offset + 1)),
+        type,
         ...(robotId < 0 ? {} : { robotId }),
-        ...(value === 0 ? {} : { coins: value }),
+        ...(value === 0 ? {} : type === 'robot-defeated' ? { coins: value } : { value }),
         eventId,
         eventClass,
         batchSequence,
