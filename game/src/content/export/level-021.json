@@ -1,0 +1,493 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "d01bef29b479bda7",
+          "policyOrReplay": "5ee9cddff43270b2",
+          "simulationLevel": "ae7edbfccd2b01e7",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 14000,
+        "mode": "live-agent",
+        "parTicks": 9500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 2,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-pipework-promenade"
+        ],
+        "seed": "campaign-level-021-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-021"
+  },
+  "briefingKey": "levels.021.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-021"
+    }
+  ],
+  "dance": {
+    "armPatternId": "pipe-tap-tango-arms-v1",
+    "attackBeats": [
+      2,
+      6,
+      10,
+      14
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 126,
+    "footPatternId": "pipe-tap-tango-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "pipe-tap-tango-head-v1",
+    "pathPatternId": "pipe-tap-tango-path-v1",
+    "presetId": "pipe-tap-tango",
+    "reducedMotionPresetId": "pipe-tap-tango-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "pipe-tap-tango-torso-v1",
+    "transitionIds": [
+      "steamline-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.86,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-021"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-021"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "pipe-tap-crews",
+      "rewardId": "chapter-03-clear-021",
+      "roomNodeId": "pipework-promenade",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "pressure-rehearsal",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "pipe-wobblers",
+              "modifierIds": [
+                "pipe-knocker"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-1.wobblers",
+              "spawnPointSetId": "level-021-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "pipe-firemouth",
+              "modifierIds": [
+                "boiler-belch"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-1.firemouth",
+              "spawnPointSetId": "level-021-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "pipe-spinner",
+              "modifierIds": [
+                "valve-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-1.spinner",
+              "spawnPointSetId": "level-021-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "steamline-encore",
+          "id": "steamline-encore",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "vent-sliders",
+              "modifierIds": [
+                "vent-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-2.sliders",
+              "spawnPointSetId": "level-021-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "boiler-foreman",
+              "modifierIds": [
+                "pressure-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-2.foreman",
+              "spawnPointSetId": "level-021-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-21",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "pipe-tap-tango",
+              "id": "boiler-dj",
+              "modifierIds": [
+                "steam-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-21",
+              "rngStream": "encounter.level-021.wave-2.dj",
+              "spawnPointSetId": "level-021-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 24
+        }
+      ]
+    }
+  ],
+  "id": "level-021",
+  "mastery": [
+    {
+      "presetId": "level-021-par-time"
+    },
+    {
+      "presetId": "level-021-one-bomb"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "boiler-entry",
+        "id": "entry-wrench",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "service-wrench-room",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "service-wrench-room",
+        "id": "wrench-lock",
+        "requiredKeyId": "service-wrench",
+        "stateTrigger": "key-collected",
+        "to": "demolition-lock",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "demolition-lock",
+        "id": "lock-promenade",
+        "requiredKeyId": null,
+        "stateTrigger": "bomb-detonated",
+        "to": "pipework-promenade",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "pipework-promenade",
+        "id": "promenade-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "boiler-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "boiler-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "steamworks-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "service-wrench-room",
+        "id": "wrench-vent",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "maintenance-vent",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "maintenance-vent",
+        "id": "vent-promenade",
+        "requiredKeyId": "service-wrench",
+        "stateTrigger": "key-collected",
+        "to": "pipework-promenade",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "boiler-entry",
+    "exitNodeId": "steamworks-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "promenade-bomb-seal-v1",
+        "id": "promenade-bomb-seal",
+        "nodeId": "demolition-lock",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 135,
+        "collisionProfileId": "promenade-steam-west-v1",
+        "id": "promenade-steam-west",
+        "nodeId": "pipework-promenade",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 135,
+        "collisionProfileId": "promenade-steam-east-v1",
+        "id": "promenade-steam-east",
+        "nodeId": "pipework-promenade",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "service-wrench",
+        "placementNodeId": "service-wrench-room"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "boiler-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "bomb-locker"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "service-wrench-room",
+        "pickupIds": [
+          "service-wrench"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "service-wrench"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "demolition-lock",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "bomb-tutorial",
+          "pressure-seal"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "pipe-tap-crews"
+        ],
+        "id": "pipework-promenade",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "vent-routes",
+          "steam-lanes"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "maintenance-vent",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-vent"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-021",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "boiler-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "steamworks-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-pipework-promenade",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.021.name",
+  "number": 21,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-pipework-promenade",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 8,
+      "targetIds": [
+        "pressure-rehearsal",
+        "steamline-encore"
+      ],
+      "titleKey": "objectives.level_021",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-21"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-021-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 48,
+    "maxActiveRobots": 4,
+    "maxHazards": 3,
+    "maxMazeNodes": 9,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-021-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "bomb-tutorial",
+    "bomb-seal",
+    "vent-routes",
+    "pipe-tap-tango"
+  ]
+}

@@ -65,10 +65,34 @@ function worldTarget(observation: AgentObservation, relativeX: number, relativeZ
 
 export class BaselineCampaignAgent {
   private level = levelObservation();
+  private bombSealPrimed = false;
 
   next(observation: AgentObservation): AgentAction {
-    if (this.level.levelId !== observation.levelId) this.level = levelObservation(observation.levelId);
+    if (this.level.levelId !== observation.levelId) {
+      this.level = levelObservation(observation.levelId);
+      this.bombSealPrimed = false;
+    }
     if (observation.victory || observation.defeat) return {};
+    const bombSeal = observation.levelId === 'level-021'
+      ? observation.hazards.find((hazard) => hazard.id === 'promenade-bomb-seal' && hazard.active)
+      : undefined;
+    if (bombSeal !== undefined) {
+      const target = worldTarget(observation, bombSeal.relativeX, bombSeal.relativeZ);
+      const distance = Math.hypot(bombSeal.relativeX, bombSeal.relativeZ);
+      if (distance > 2.8) return this.navigate(observation, target);
+      const bearing = normalizeAngle(Math.atan2(bombSeal.relativeX, -bombSeal.relativeZ) - observation.player.yaw);
+      const aimedDown = observation.player.pitch < -0.34;
+      const aligned = Math.abs(bearing) < 0.07 && aimedDown;
+      if (aligned && !this.bombSealPrimed) this.bombSealPrimed = true;
+      return {
+        forward: distance < 1.8 ? -0.3 : 0,
+        strafe: 0,
+        turn: clamp(bearing * 0.72, -0.2, 0.2),
+        look: clamp(-0.5 - observation.player.pitch, -0.12, 0.12),
+        weapon: 'bomb',
+        fire: aligned && this.bombSealPrimed && observation.playerBombs.length === 0,
+      };
+    }
     const defenseThreats = new Set(observation.defense?.threatenedByRobotIds ?? []);
     const visible = observation.robots.filter((robot) => robot.visible)
       .sort((first, second) => Number(defenseThreats.has(second.id)) - Number(defenseThreats.has(first.id))
@@ -86,6 +110,7 @@ export class BaselineCampaignAgent {
         strafe: dodge,
         turn: clamp(targetBearing * 0.72, -0.2, 0.2),
         look: clamp(targetElevation * 0.72, -0.12, 0.12),
+        ...(observation.levelId === 'level-021' ? { weapon: 'pulse' as const } : {}),
         fire: aligned,
       };
     }

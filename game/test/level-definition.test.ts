@@ -9,6 +9,7 @@ import {
   LEVEL_018, LEVEL_019, LEVEL_020,
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
+import { CHAPTER_03_LEVELS, LEVEL_021 } from '../src/content/levels/chapter-03';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -99,6 +100,17 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_020.objectives[0]).toMatchObject({ type: 'boss', targetCount: 1 });
     expect(LEVEL_020.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-020'));
+  });
+
+  it('admits Pipework Promenade as the first Chapter 3 bomb tutorial', () => {
+    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021]);
+    expect(validateLevelDefinition(LEVEL_021)).toBe(LEVEL_021);
+    expect(campaignLevel('level-021')).toBe(LEVEL_021);
+    expect(LEVEL_021.chapterId).toBe('chapter-03');
+    expect(LEVEL_021.tags).toEqual(expect.arrayContaining(['bomb-tutorial', 'bomb-seal', 'vent-routes']));
+    expect(LEVEL_021.maze.hazards).toHaveLength(3);
+    expect(LEVEL_021.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-021'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

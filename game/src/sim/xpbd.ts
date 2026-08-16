@@ -209,6 +209,16 @@ function targets(
     leftFootY += Math.max(0, beat) * 0.12; rightFootY += bow * 0.12;
     leftHand = [-1.02, 1.42 + flourish * 0.36, 0.08];
     rightHand = [0.42 + flourish * 0.32, 1.94 - bow * 0.48, 0.22];
+  } else if (performance.motif === 'pipe-tap') {
+    const tap = Math.max(0, beat); const answer = Math.max(0, -beat);
+    bounce += (tap + answer) * 0.07 * intensity;
+    hipX = alternate * 0.18 * intensity; chestX = -alternate * 0.25 * intensity;
+    chestZ = tap * 0.1; headX += -alternate * 0.18; headZ = answer * 0.08;
+    leftFootX = -0.28 - tap * 0.12; rightFootX = 0.28 + answer * 0.12;
+    leftFootZ = tap * 0.36 - answer * 0.18; rightFootZ = answer * 0.36 - tap * 0.18;
+    leftFootY += tap * 0.16; rightFootY += answer * 0.16;
+    leftHand = [-0.58 - answer * 0.28, 1.14 + tap * 0.48, 0.38];
+    rightHand = [0.58 + tap * 0.28, 1.14 + answer * 0.48, 0.38];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

@@ -139,6 +139,13 @@
       "pitchScale": 0.88,
       "roomSize": 0.86,
       "wetMix": 0.33
+    },
+    "audio-toxic-boiler-021": {
+      "dampingHz": 3300,
+      "decaySeconds": 0.62,
+      "pitchScale": 0.94,
+      "roomSize": 0.74,
+      "wetMix": 0.29
     }
   },
   "danceGameplayProfiles": {
@@ -214,6 +221,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "pipe-tap-tango": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "pocket-robot-pop": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -276,6 +289,7 @@
     "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
     "moonlit-swing-off": "moonlit-swing",
+    "pipe-tap-tango": "pipe-tap",
     "pocket-robot-pop": "robot-pop",
     "reverse-circus-strut": "reverse-strut",
     "side-to-side-shuffle": "side-shuffle",
@@ -448,6 +462,37 @@
       "phaseOffsetTicks": 140,
       "row": 10
     },
+    "promenade-bomb-seal-v1": {
+      "activation": "until-bomb",
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "promenade-steam-east-v1": {
+      "column": 11,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.4,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 60,
+      "row": 7
+    },
+    "promenade-steam-west-v1": {
+      "column": 5,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.4,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    },
     "ringmaster-curtain-east-v1": {
       "column": 10,
       "directionX": 0,
@@ -601,6 +646,103 @@
   },
   "manifestId": "campaign-runtime-v1",
   "mazeProfiles": {
+    "boiler-pipework-promenade": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 23,
+          "column": 5,
+          "row": 5
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 24,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 18,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "carnival-big-top-backtrack": {
       "interactions": {
         "checkpoint": {
@@ -2243,6 +2385,33 @@
       ],
       "swing": 0.24
     },
+    "pipe-tap-tango": {
+      "bassPattern": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "leadPattern": [
+        0,
+        2,
+        1,
+        4,
+        3,
+        1,
+        4,
+        2
+      ],
+      "rootMidi": 47,
+      "scale": [
+        0,
+        2,
+        3,
+        7,
+        9
+      ],
+      "swing": 0.18
+    },
     "pocket-robot-pop": {
       "bassPattern": [
         0,
@@ -3138,6 +3307,40 @@
           1,
           0.68,
           0.08
+        ]
+      ]
+    },
+    "toxic-boiler-21": {
+      "floor": [
+        0.86,
+        0.9,
+        0.38
+      ],
+      "sky": [
+        0.48,
+        0.88,
+        0.72
+      ],
+      "walls": [
+        [
+          0.1,
+          0.58,
+          0.46
+        ],
+        [
+          1,
+          0.46,
+          0.12
+        ],
+        [
+          0.18,
+          0.82,
+          0.9
+        ],
+        [
+          0.72,
+          0.24,
+          0.86
         ]
       ]
     }

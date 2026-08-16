@@ -1,10 +1,10 @@
 # Catch Davel: Game Design and Implementation Plan
 
-Status: **Implementation active; release certification pending**
+Status: **Implementation active; physical-device evidence waived for this implementation goal**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **35 — playable Level 20 Ringmaster Davel and Copper Carnival chapter finale implemented**
+Revision: **36 — playable Level 21 Pipework Promenade and Chapter 3 bomb tutorial implemented**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -63,6 +63,8 @@ Revision 33 records playable Level 18, **Big Top Backtrack**, and its planned ke
 Revision 34 records playable Level 19, **Midnight Matinee**. Two long opposing conveyor lanes and two 80-tick-offset curtain gates combine the chapter's movement and timing lessons in a three-act, ten-Davel gauntlet. “Midnight” is thematic rather than unreadably dark: the distinct palette uses a bright blue moonlit sky, pale reflective floor, saturated neon walls, and emissive crescent-marquee landmarks so the maze boundary and routes remain clear. The 154 BPM `moonlit-swing-off` adds deep dips, sweeping head and arm motion, alternating traveling steps, and a distinct XPBD pose signature. Standard clears deterministically at tick 1,903 with checksum `c149d0d0b6905a1d`; its simulation-level dependency hash is `2a11ddf526e2aca1`. The campaign now contains nineteen playable levels, 57 localized strings per release locale, 190 provenance-resolved assets, and a first-clear economy of 725 guaranteed plus 259 optional coins. Levels 20–100 remain reserved. Physical-device availability is not an implementation blocker; optional certification evidence can be collected later when hardware exists.
 
 Revision 35 records playable Level 20, **Ringmaster Davel**, completing the Copper Carnival chapter. A golden-ticket route leads into a bright magenta/gold/teal big top where four 45-tick-offset curtain barriers rotate around a single three-phase boss. The encounter reuses the stable authoritative boss combat identity and its readable one-, two-, and three-fireball escalation while giving the carnival persona a localized Ringmaster HUD, a distinct crown landmark, and the 160 BPM `evil-ringmaster-revue` with deep bows, wide flourishes, and traveling steps. Standard clears deterministically at tick 1,040 with checksum `51e6cae114e3745a`; the simulation-level dependency hash is `2b66b71ee1b11f7e`. The campaign now contains twenty playable levels, 60 localized strings per release locale, 200 provenance-resolved assets, and a first-clear economy of 775 guaranteed plus 281 optional coins. Levels 21–100 remain reserved. Physical-device evidence remains optional future certification and does not block implementation.
+
+Revision 36 records playable Level 21, **Pipework Promenade**, opening the Toxic Boiler chapter. The shared campaign loadout unlocks bombs at the chapter boundary, and a new authoritative pressure seal remains solid until a bomb detonates within the fixed 6.5-unit break radius. The seal state survives snapshots and replays, participates in collision and pathfinding, and is exposed to LLMs through the existing complete hazard observation. Two opposing steam lanes, a bright green/teal/orange/violet boiler palette, emissive pipe-valve landmarks, two four-Davel acts, and the 126 BPM `pipe-tap-tango` introduce the chapter without changing earlier level checksums. The public-observation baseline clears Standard at tick 2,968 with checksum `257ae8405cd95837`; the simulation-level dependency hash is `ae7edbfccd2b01e7`. The campaign now contains twenty-one playable levels, 63 localized strings per release locale, 210 provenance-resolved assets, and a first-clear economy of 819 guaranteed plus 304 optional coins. Levels 22–100 remain reserved. By owner direction, unavailable physical devices are removed from this implementation goal and may contribute optional platform evidence later.
 
 ## 1. Executive summary
 
@@ -1288,7 +1290,7 @@ The current profile contract is v13. It stores `sprintMode: "hold" | "toggle"`, 
 - Android requires Android Studio/SDK/NDK and signing.
 - iOS requires macOS, Xcode, provisioning, and Apple signing.
 - OffscreenCanvas/WebGL2 worker rendering remains capability-detected; fallback rendering is mandatory.
-- Real-device testing is a release gate, not replaced by responsive desktop emulation.
+- Real-device testing is optional future certification evidence and is not part of the active implementation goal; emulator, simulator, browser, and CI evidence remain the current gates.
 
 Tauri documentation references:
 
@@ -1300,7 +1302,7 @@ Tauri documentation references:
 
 ### 19.1 Provisional minimum device matrix
 
-These named floors make release performance requirements falsifiable. When the devices are unavailable, development and later implementation phases continue using clearly labeled development/CI evidence. Missing physical-device evidence blocks a release claim for that platform, not implementation progress.
+These named floors remain useful future certification targets. For the active implementation goal, development and release-candidate checks use clearly labeled development/CI, emulator, and simulator evidence; missing physical-device evidence blocks neither progress nor goal completion and only prevents an optional “physically certified on this baseline” label.
 
 | Target | Concrete baseline | Runtime floor | Required result |
 |---|---|---|---|
@@ -1419,8 +1421,8 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 
 - Desktop launch and offline play.
 - Installer launch/uninstall smoke tests.
-- Android emulator and physical-device play.
-- iOS simulator and physical-device play when signing hardware is available.
+- Android emulator play; physical-device play is optional later evidence.
+- iOS simulator play when signing hardware is available; physical-device play is optional later evidence.
 - Suspend/resume, rotation, audio interruption, low-memory recovery.
 - Save compatibility across web and packaged builds where export/import is supported.
 
@@ -1428,9 +1430,9 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 
 - `perf:sim` runs the authoritative simulation without rendering using a fixed stress seed, 24 active robots, two substeps, eight solver iterations, and 6,000 measured ticks after warm-up.
 - Phase -1 runs the identical frozen `perf:sim` scenario on both the named baseline desktop and the pinned CI runner, but records independent distributions rather than assuming one scalar converts different workload shapes between CPUs. The checked-in benchmark manifest stores hardware/runtime metadata, workload and simulation schema hashes, warm-up/sample counts, whole-tick and named-component median/p95 costs, total duration, and approved runner margins.
-- The baseline desktop is the absolute certification: at Phase -1 approval and each required recertification, its measured whole-tick p95 must remain at or below 4 ms and its XPBD/collision p95 at or below 2 ms. The Android and iOS devices similarly certify their declared absolute budgets. Real-device certification results are release evidence, not values inferred from CI hardware.
+- When available, the baseline desktop can provide optional absolute certification: its measured whole-tick p95 must remain at or below 4 ms and its XPBD/collision p95 at or below 2 ms. Android and iOS hardware can similarly certify their declared absolute budgets. These optional labels are never inferred from CI hardware and are not required by the active implementation goal.
 - The pinned runner is a regression gate against its own Phase -1 reference. CI fails if whole-tick or named-component median regresses by more than 20%, if a p95 exceeds that runner component's recorded p95 plus its reviewed noise margin, or if total duration exceeds the runner-specific hard threshold. No cross-machine calibration factor is used.
-- Changing runner or baseline hardware, OS/runtime version, power policy, frozen workload, or benchmark instrumentation invalidates the affected reference. Implementation phases may proceed when named devices are unavailable, provided every result remains labeled development-only and no unsupported certification claim is made. The applicable absolute certification suite is required before a release candidate claims support for that platform. Performance-sensitive simulation/serialization changes and release candidates add runs rather than replacing that cadence. Reference or margin changes require a pull-request explanation and before/after measurements.
+- Changing runner or baseline hardware, OS/runtime version, power policy, frozen workload, or benchmark instrumentation invalidates the affected reference. Implementation and release-candidate work proceed when named devices are unavailable, provided results identify their actual environment and no optional physical-certification claim is made. Performance-sensitive simulation/serialization changes add runner-local runs rather than replacing that cadence. Reference or margin changes require a pull-request explanation and before/after measurements.
 - Ordinary hosted CI also runs a shorter regression smoke but does not pretend noisy shared-runner timing is a hardware certification.
 - Separate browser smoke records render FPS, GPU time where available, worker snapshot latency, memory, and draw calls on the device matrix.
 - Performance-baseline changes require a pull-request explanation and before/after measurements; developers may not silently raise thresholds.
@@ -1454,12 +1456,12 @@ Deliverables:
 - bounded-event transport stress covering the worst-case pulse-bomb-plus-coordinated-squad burst, peak/p99 event records and bytes per tick, acknowledgement round-trip, candidate one-to-four-batch credit windows, presentation drops, state-critical epoch resync, and long consumer stalls without simulation blockage or memory growth; the report selects fixed approved caps/window with measured headroom;
 - same-event audio onset versus rendered pose/beat-indicator measurements proving at most 15 ms p95 separation, alongside the absolute audio and render timings;
 - measurements on all three provisional baseline devices where hardware is available;
-- the identical frozen workload run separately on the baseline desktop and pinned CI runner, producing absolute device certification plus runner-local whole-tick/component reference distributions, noise margins, and hard thresholds;
+- the identical frozen workload on the pinned CI runner, plus the baseline desktop when optionally available, producing runner-local whole-tick/component reference distributions, noise margins, and hard thresholds;
 - benchmark report covering tick median/p95 and component breakdown, render frame time, worker messaging, snapshot fan-out, event transport, absolute and relative audio-visual timing, memory, thermal behavior, and failure modes.
 
 Exit gate:
 
-- the representative fixed 24-robot workload must meet deterministic, bounded-transport, and development regression checks before Phase 0; unavailable physical-device measurements remain open release-certification work, and production must not rely on adaptive solver iterations.
+- the representative fixed 24-robot workload must meet deterministic, bounded-transport, and development regression checks before Phase 0; unavailable physical-device measurements create no open implementation work, and production must not rely on adaptive solver iterations.
 
 ### Phase 0: approval and repository foundation
 
@@ -1738,7 +1740,7 @@ Phase 8 implements save continuity and stable ID reservations through Level 100 
 - Tauri packages for the selected release platforms.
 - LLM reset/observe/act/step/replay API and sample harness.
 - Accessibility baseline and approved locales.
-- Performance budgets met on the declared device matrix.
+- Performance budgets met in the declared reproducible development/CI matrix; physical-device certification remains optional evidence.
 - All assets have recorded provenance and compatible licenses.
 - Open-source license, contribution documentation, credits, and trademark policy approved.
 - No copied commercial-game assets or runtime network dependencies.

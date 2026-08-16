@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
 import { isPlayerPositionValidWithBlockers } from '../src/sim/level';
 import {
-  closedDoorCells, hazardTicksUntilToggle, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
+  closedDoorCells, completePrimaryObjective, hazardTicksUntilToggle, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
   stepDefenseTarget, stepLevelHazardPhases,
 } from '../src/sim/interactions';
 import { createSimulationSnapshot, parseSimulationSnapshot } from '../src/sim/serialization';
@@ -291,5 +291,28 @@ describe('authoritative Level 1 interactions', () => {
     expect(closedDoorCells(game.state.level)).toEqual(expect.arrayContaining([
       { column: 6, row: 11 }, { column: 13, row: 11 },
     ]));
+  });
+
+  it('breaks the Level 21 pressure seal only with a nearby bomb and preserves that state', () => {
+    const game = new GameSimulation('pipework-bomb-seal-proof', undefined, undefined, 'campaign', 'level-021');
+    const seal = game.state.level.hazards.find((hazard) => hazard.id === 'promenade-bomb-seal')!;
+    expect(seal).toMatchObject({ kind: 'timed-door', active: true });
+    expect(closedDoorCells(game.state.level)).toContainEqual({ column: 8, row: 6 });
+    expect(completePrimaryObjective(structuredClone(game.state.level), game.state.levelId)).toEqual([]);
+    expect(game.state.level.objectiveComplete).toBe(false);
+    game.state.playerBombs.push({
+      id: 1, x: seal.x, y: 0.15, z: seal.z,
+      velocityX: 0, velocityY: 0, velocityZ: 0, fuseTicks: 1,
+    });
+    game.state.nextPlayerBombId = 2;
+    game.step(idle);
+    expect(seal.active).toBe(false);
+    expect(completePrimaryObjective(structuredClone(game.state.level), game.state.levelId).map((event) => event.type))
+      .toEqual(['objective-complete', 'exit-unlocked']);
+    expect(closedDoorCells(game.state.level)).not.toContainEqual({ column: 8, row: 6 });
+    stepLevelHazardPhases(game.state.level, game.state.tick + 120, game.state.levelId);
+    expect(seal.active).toBe(false);
+    const restored = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+    expect(restored.level.hazards.find((hazard) => hazard.id === seal.id)?.active).toBe(false);
   });
 });

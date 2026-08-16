@@ -7,7 +7,7 @@ import { campaignWeaponMask, WEAPON_MASK } from '../src/sim/weapons';
 describe('scalable campaign level registry', () => {
   it('keeps the 100-ID numbering envelope separate from implemented content', () => {
     expect(CAMPAIGN_LEVEL_IDS).toHaveLength(100);
-    expect(PLAYABLE_LEVEL_IDS).toHaveLength(20);
+    expect(PLAYABLE_LEVEL_IDS).toHaveLength(21);
     expect(isCampaignLevelId('level-100')).toBe(true);
     expect(isPlayableLevelId('level-100')).toBe(false);
   });
@@ -19,6 +19,12 @@ describe('scalable campaign level registry', () => {
       'level-011-loadout-proof', undefined, undefined, 'campaign', 'level-011',
     );
     expect(simulation.state.player.unlockedWeaponMask).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword);
+    expect(campaignWeaponMask('level-021')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
+    const chapterThree = new GameSimulation(
+      'level-021-loadout-proof', undefined, undefined, 'campaign', 'level-021',
+    );
+    expect(chapterThree.state.player.unlockedWeaponMask)
+      .toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
   });
 
   it('maps every playable ID to exactly one ordered authored definition', () => {

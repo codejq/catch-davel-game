@@ -70,6 +70,7 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
   { level: '018', palette: 'copper-carnival-18', mazeTemplate: 'carnival-big-top-backtrack', audio: 'audio-copper-carnival-018', dance: 'reverse-circus-strut', sourcePath: 'game/src/content/levels/level-018.ts' },
   { level: '019', palette: 'copper-carnival-19', mazeTemplate: 'carnival-midnight-matinee', audio: 'audio-copper-carnival-019', dance: 'moonlit-swing-off', sourcePath: 'game/src/content/levels/level-019.ts' },
   { level: '020', palette: 'copper-carnival-20', mazeTemplate: 'carnival-ringmaster-davel', audio: 'audio-copper-carnival-020', dance: 'evil-ringmaster-revue', sourcePath: 'game/src/content/levels/level-020.ts' },
+  { level: '021', palette: 'toxic-boiler-21', mazeTemplate: 'boiler-pipework-promenade', audio: 'audio-toxic-boiler-021', dance: 'pipe-tap-tango', sourcePath: 'game/src/content/levels/level-021.ts' },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {

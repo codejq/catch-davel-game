@@ -9,6 +9,8 @@ export interface FreezeDanceWindow {
   readonly ticksUntilToggle: number;
 }
 
+export const BOMB_SEAL_BREAK_RADIUS = 6.5;
+
 export function levelMechanicKind(levelId: PlayableLevelId): LevelMechanicKind {
   const level = campaignLevel(levelId);
   if (level.tags.includes('ambush')) return 'key-ambush';
@@ -47,6 +49,10 @@ export function freezeDanceWindow(levelId: PlayableLevelId, tick: number): Freez
 }
 
 export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Record<string, unknown>> | null {
+  if (campaignLevel(levelId).tags.includes('bomb-seal')) return {
+    kind: 'bomb-seal', trigger: 'bomb-detonated', activation: 'until-bomb',
+    breakRadius: BOMB_SEAL_BREAK_RADIUS,
+  };
   const kind = levelMechanicKind(levelId);
   if (kind === 'standard') return null;
   if (kind === 'branch-route') return isMazeReversalLevel(levelId) ? {

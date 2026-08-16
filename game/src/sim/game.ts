@@ -9,7 +9,7 @@ import {
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
 import {
-  closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
+  breakBombSeals, closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
   openNearbyDoor, queueNextEncounterWave, reachedUnlockedExit, stepEncounterWaves, stepLevelHazards,
   stepDefenseTarget, stepLevelHazardPhases,
   type LevelRuntimeState,
@@ -203,6 +203,14 @@ export class GameSimulation {
       y: detonation.y,
       z: detonation.z,
     });
+    const brokenBombSeals = breakBombSeals(this.state.level, detonatedBombs.detonations, this.state.levelId);
+    if (brokenBombSeals.length > 0 && this.state.robots.every((robot) => !robot.active)
+      && this.state.level.encounter.waveIndex === this.state.level.encounter.waveCount - 1
+      && this.state.level.encounter.pendingTicks === 0) {
+      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId)) {
+        this.state.events.push({ tick: this.state.tick, ...interaction });
+      }
+    }
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
     stepLevelHazardPhases(this.state.level, this.state.tick + 1, this.state.levelId);
     quantizeSimulationState(this.state);
@@ -320,7 +328,9 @@ export class GameSimulation {
     if (this.state.robots.every((robot) => !robot.active)) {
       if (this.state.level.encounter.pendingTicks > 0) return;
       if (queueNextEncounterWave(this.state.level, this.state.difficulty)) return;
-      for (const interaction of completePrimaryObjective(this.state.level)) this.state.events.push({ tick: this.state.tick, ...interaction });
+      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId)) {
+        this.state.events.push({ tick: this.state.tick, ...interaction });
+      }
     }
   }
 }

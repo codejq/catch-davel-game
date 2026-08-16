@@ -18,7 +18,7 @@ Gate: Phase -1 may not begin until Decisions 16–20 are resolved.
 
 Approval of this packet authorizes the disposable Phase -1 feasibility spike only. It does not silently resolve later decisions whose gates are Phase 0 or beyond.
 
-## Required certification devices
+## Optional future certification devices
 
 | Target | Plan baseline | Availability |
 |---|---|---|
@@ -40,7 +40,7 @@ Approval date: **2026-08-16**
 
 Approved decisions or replacements: **Decisions 16–20 approved as recommended; no replacements**
 
-Available certification hardware/owners: **Pending**
+Available certification hardware/owners: **Not required for the active implementation goal; optional later evidence**
 
 ## Continuation decision
 

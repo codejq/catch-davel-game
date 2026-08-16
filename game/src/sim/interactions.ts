@@ -1,4 +1,5 @@
 import type { PlayerState } from './player';
+import { BOMB_SEAL_BREAK_RADIUS } from './level-mechanics';
 import { cellAt, cellCenter, findCell, isPlayerPositionValidWithBlockers, worldCell, type CellCoordinate } from './level';
 import { FIXED_DT_SECONDS, PLAYER_RADIUS } from './constants';
 import { campaignRobotWaves, type EncounterId, type RobotState } from './robots';
@@ -150,7 +151,8 @@ export function createLevelRuntime(
       directionX: profile.directionX, directionZ: profile.directionZ,
       periodTicks: hazard.periodTicks, activeTicks: hazard.activeTicks,
       phaseOffsetTicks: profile.phaseOffsetTicks,
-      active: profile.activation === 'before-key' || (profile.activation !== 'after-key' && phase < hazard.activeTicks),
+      active: profile.activation === 'before-key' || profile.activation === 'until-bomb'
+        || (profile.activation !== 'after-key' && phase < hazard.activeTicks),
     };
   });
   const defense = definition.defense === undefined || encounter !== 'campaign' ? null : (() => {
@@ -265,7 +267,7 @@ export function stepLevelHazardPhases(
 
 function hazardActivation(
   levelId: PlayableLevelId, hazardId: string,
-): 'periodic' | 'before-key' | 'after-key' {
+): 'periodic' | 'before-key' | 'after-key' | 'until-bomb' {
   const authored = campaignLevel(levelId).maze.hazards.find((hazard) => hazard.id === hazardId);
   if (authored === undefined) return 'periodic';
   return hazardRuntimeProfile(authored.collisionProfileId).activation ?? 'periodic';
@@ -277,6 +279,7 @@ export function hazardActiveAtTick(
   const activation = hazardActivation(levelId, hazard.id);
   if (activation === 'before-key') return !keyCollected;
   if (activation === 'after-key') return keyCollected;
+  if (activation === 'until-bomb') return hazard.active;
   return (tick + hazard.phaseOffsetTicks) % hazard.periodTicks < hazard.activeTicks;
 }
 
@@ -286,6 +289,22 @@ export function hazardTicksUntilToggle(
   if (hazardActivation(levelId, hazard.id) !== 'periodic') return 0;
   const phase = (tick + hazard.phaseOffsetTicks) % hazard.periodTicks;
   return phase < hazard.activeTicks ? hazard.activeTicks - phase : hazard.periodTicks - phase;
+}
+
+export function breakBombSeals(
+  level: LevelRuntimeState,
+  detonations: readonly { readonly x: number; readonly z: number }[],
+  levelId: PlayableLevelId,
+): readonly string[] {
+  if (detonations.length === 0) return [];
+  const broken: string[] = [];
+  for (const hazard of level.hazards) {
+    if (!hazard.active || hazardActivation(levelId, hazard.id) !== 'until-bomb') continue;
+    if (!detonations.some((detonation) => Math.hypot(detonation.x - hazard.x, detonation.z - hazard.z) <= BOMB_SEAL_BREAK_RADIUS)) continue;
+    hazard.active = false;
+    broken.push(hazard.id);
+  }
+  return broken;
 }
 
 export function closedDoorCells(level: LevelRuntimeState, player?: Pick<PlayerState, 'x' | 'z'>): readonly CellCoordinate[] {
@@ -347,8 +366,12 @@ export function collectLevelInteractions(
   return events;
 }
 
-export function completePrimaryObjective(level: LevelRuntimeState): LevelInteractionEvent[] {
-  if (level.objectiveComplete) return [];
+export function completePrimaryObjective(
+  level: LevelRuntimeState, levelId: PlayableLevelId = 'level-001',
+): LevelInteractionEvent[] {
+  if (level.objectiveComplete || level.hazards.some(
+    (hazard) => hazard.active && hazardActivation(levelId, hazard.id) === 'until-bomb',
+  )) return [];
   level.objectiveComplete = true;
   return [{ type: 'objective-complete' }, { type: 'exit-unlocked' }];
 }
