@@ -6,6 +6,7 @@ import type { GameEvent } from './sim/game';
 import { AgentController } from './agent/api';
 import { createBrowserProfileRepository } from './storage/indexeddb';
 import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from './storage/profile';
+import { decodeRenderSnapshot, RENDER_SNAPSHOT_BYTES, writeRenderSnapshot } from './transport/render-snapshot';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -36,6 +37,8 @@ const combatMessage = requireElement<HTMLElement>('#combat-message');
 
 const renderer = new WorldRenderer(gl, canvas);
 const simulation = new GameSimulation();
+const localRenderBuffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
+let renderState = decodeRenderSnapshot(writeRenderSnapshot(localRenderBuffer, simulation.state)).state;
 const agentController = new AgentController(simulation);
 if (import.meta.env.DEV || import.meta.env.VITE_AGENT_API === '1') agentController.install();
 const profileRepository = createBrowserProfileRepository();
@@ -222,7 +225,10 @@ function frame(now: number): void {
     catchupSteps += 1;
   }
   updateHud();
-  renderer.render(simulation.state);
+  if (renderState.tick !== simulation.state.tick) {
+    renderState = decodeRenderSnapshot(writeRenderSnapshot(localRenderBuffer, simulation.state)).state;
+  }
+  renderer.render(renderState);
   requestAnimationFrame(frame);
 }
 

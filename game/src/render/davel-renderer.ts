@@ -1,8 +1,8 @@
 import type { MeshData } from './geometry';
 import { createCapsule, createSphere } from './geometry';
-import { ROBOT_DEFINITIONS, type RobotDefinition, type RobotState } from '../sim/robots';
-import { BODY_POINT, readBodyPoint } from '../sim/xpbd';
-import type { EnemyProjectile } from '../sim/enemy-combat';
+import { ROBOT_DEFINITIONS, type RobotDefinition } from '../sim/robots';
+import { BODY_POINT } from '../sim/xpbd';
+import type { RenderProjectileState, RenderRobotState } from './render-model';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -163,7 +163,7 @@ function capsuleMatrix(start: Point, end: Point, radius: number): number[] {
   ];
 }
 
-function localPoint(robot: RobotState, localX: number, localY: number, localZ: number): Point {
+function localPoint(robot: RenderRobotState, localX: number, localY: number, localZ: number): Point {
   const rightX = Math.cos(robot.heading);
   const rightZ = -Math.sin(robot.heading);
   const forwardX = Math.sin(robot.heading);
@@ -189,19 +189,28 @@ interface Pose {
   readonly rightFoot: Point;
 }
 
-function pose(robot: RobotState): Pose {
+function bodyPoint(robot: RenderRobotState, point: number): Point {
+  const offset = point * 3;
   return {
-    hip: readBodyPoint(robot.body, BODY_POINT.hip),
-    chest: readBodyPoint(robot.body, BODY_POINT.chest),
-    head: readBodyPoint(robot.body, BODY_POINT.head),
-    leftElbow: readBodyPoint(robot.body, BODY_POINT.leftElbow),
-    rightElbow: readBodyPoint(robot.body, BODY_POINT.rightElbow),
-    leftHand: readBodyPoint(robot.body, BODY_POINT.leftHand),
-    rightHand: readBodyPoint(robot.body, BODY_POINT.rightHand),
-    leftKnee: readBodyPoint(robot.body, BODY_POINT.leftKnee),
-    rightKnee: readBodyPoint(robot.body, BODY_POINT.rightKnee),
-    leftFoot: readBodyPoint(robot.body, BODY_POINT.leftFoot),
-    rightFoot: readBodyPoint(robot.body, BODY_POINT.rightFoot),
+    x: robot.body.positions[offset]!,
+    y: robot.body.positions[offset + 1]!,
+    z: robot.body.positions[offset + 2]!,
+  };
+}
+
+function pose(robot: RenderRobotState): Pose {
+  return {
+    hip: bodyPoint(robot, BODY_POINT.hip),
+    chest: bodyPoint(robot, BODY_POINT.chest),
+    head: bodyPoint(robot, BODY_POINT.head),
+    leftElbow: bodyPoint(robot, BODY_POINT.leftElbow),
+    rightElbow: bodyPoint(robot, BODY_POINT.rightElbow),
+    leftHand: bodyPoint(robot, BODY_POINT.leftHand),
+    rightHand: bodyPoint(robot, BODY_POINT.rightHand),
+    leftKnee: bodyPoint(robot, BODY_POINT.leftKnee),
+    rightKnee: bodyPoint(robot, BODY_POINT.rightKnee),
+    leftFoot: bodyPoint(robot, BODY_POINT.leftFoot),
+    rightFoot: bodyPoint(robot, BODY_POINT.rightFoot),
   };
 }
 
@@ -220,7 +229,7 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 192);
   }
 
-  render(robots: readonly RobotState[], projectiles: readonly EnemyProjectile[], viewProjection: Float32Array): void {
+  render(robots: readonly RenderRobotState[], projectiles: readonly RenderProjectileState[], viewProjection: Float32Array): void {
     this.spheres.reset();
     this.capsules.reset();
     for (const robot of robots) {
@@ -251,7 +260,7 @@ export class DavelRenderer {
     this.capsules.addMatrix(capsuleMatrix(start, end, radius), color);
   }
 
-  private addRobot(robot: RobotState, definition: RobotDefinition): void {
+  private addRobot(robot: RenderRobotState, definition: RobotDefinition): void {
     const p = pose(robot);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];

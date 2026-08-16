@@ -45,6 +45,14 @@ IndexedDB stores alternating `a` and `b` envelopes plus an active pointer. Savin
 
 Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browser implementation does not claim to satisfy packaged-file durability.
 
+## Presentation snapshot and ownership
+
+`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 1 is a fixed 6,332-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
+
+The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. During the current topology transition, the main thread creates and immediately decodes the same contract. Moving its producer to the simulation Worker and its consumer to OffscreenCanvas therefore does not introduce another renderer or gameplay implementation.
+
+The production three-slot pool uses one staging slot, up to two in-flight transfers, and any remaining free slots. It will not publish when doing so would transfer the final producer-owned buffer; newer ticks overwrite staging and increment coalescing until a transfer returns.
+
 ## Agent isolation
 
 Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.

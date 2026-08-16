@@ -21,11 +21,14 @@ Implementation is active. Missing physical devices do not block development; the
 - Versioned replay recording/playback with compressed contiguous commands, initial/60-tick/final checksums, and simulation/level/balance/policy dependency hashes.
 - Versioned IndexedDB profiles with human-readable JSON, integrity checking, alternating verified records, active-pointer switching, and previous-record recovery.
 - Agent sessions are replay-marked and isolated from human campaign persistence.
+- Fixed 6,332-byte self-contained `RenderSnapshot` v1 with capacity for 24 Davels and 64 projectiles, transport epoch/high-watermark metadata, and a renderer-facing model decoupled from mutable authority.
+- Bounded three-buffer snapshot ownership with tested `producerOwned >= 1`, `inFlight <= 2`, coalescing, newest-state delivery, and independent consumer copies.
+- The live main-thread renderer now consumes the decoded immutable snapshot contract; simulation/render Worker hosting remains the next topology step.
 
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 10 files, 20 tests passed.
+- Automated tests: 12 files, 24 tests passed.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 12-tick command advanced exactly from tick 0 to tick 12 and remained paused at tick 12 during a 300 ms model-think interval.

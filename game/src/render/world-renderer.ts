@@ -1,6 +1,6 @@
 import { CELL_SIZE, PLAYER_EYE_HEIGHT } from '../sim/constants';
 import { cellCenter, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells } from '../sim/level';
-import type { GameState } from '../sim/game';
+import type { RenderGameState } from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
@@ -139,7 +139,7 @@ export class WorldRenderer {
     this.canvas.height = Math.max(1, Math.floor(this.canvas.clientHeight * pixelRatio));
   }
 
-  render(state: GameState): void {
+  render(state: RenderGameState): void {
     const { gl } = this;
     const player = state.player;
     const eyeY = PLAYER_EYE_HEIGHT + Math.sin(player.bobPhase) * 0.025;
