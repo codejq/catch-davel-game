@@ -1,9 +1,10 @@
 import { FIXED_DT_SECONDS, PARTICLES_PER_ROBOT, ROBOT_COUNT } from './constants';
+import { NavigationWorkspace } from './pathfinding';
 import { BASE_POSE } from './scenario';
 import type { SimulationState } from './state';
 
-const WAYPOINT_X = new Float64Array([-0.72, 0.72, 0.72, -0.72]);
-const WAYPOINT_Z = new Float64Array([-0.72, -0.72, 0.72, 0.72]);
+const WAYPOINT_X = new Float64Array([-7.8, 7.8, 7.8, -7.8]);
+const WAYPOINT_Z = new Float64Array([-7.2, -7.2, 7.2, 7.2]);
 
 function triangleWave(phase: number, period: number): number {
   const wrapped = ((phase % period) + period) % period;
@@ -11,22 +12,36 @@ function triangleWave(phase: number, period: number): number {
   return normalized < 0.5 ? normalized * 4 - 1 : 3 - normalized * 4;
 }
 
-export function updateNavigationAndPoseTargets(state: SimulationState): void {
+export function updateNavigationAndPoseTargets(
+  state: SimulationState,
+  workspace: NavigationWorkspace,
+): void {
   const { particles, robots, tick } = state;
   const speed = 0.48 * FIXED_DT_SECONDS;
 
   for (let robotId = 0; robotId < ROBOT_COUNT; robotId += 1) {
     let waypoint = robots.waypointIndex[robotId]!;
-    const targetRootX = robots.homeX[robotId]! + WAYPOINT_X[waypoint]!;
-    const targetRootZ = robots.homeZ[robotId]! + WAYPOINT_Z[waypoint]!;
-    const deltaX = targetRootX - robots.rootX[robotId]!;
-    const deltaZ = targetRootZ - robots.rootZ[robotId]!;
-    const distance = Math.hypot(deltaX, deltaZ);
-    if (distance < 0.035) {
+    const formationX = ((robotId % 6) - 2.5) * 0.08;
+    const formationZ = (Math.floor(robotId / 6) - 1.5) * 0.08;
+    const targetRootX = WAYPOINT_X[waypoint]! + formationX;
+    const targetRootZ = WAYPOINT_Z[waypoint]! + formationZ;
+    const goalDeltaX = targetRootX - robots.rootX[robotId]!;
+    const goalDeltaZ = targetRootZ - robots.rootZ[robotId]!;
+    const goalDistance = Math.hypot(goalDeltaX, goalDeltaZ);
+    if (goalDistance < 0.45) {
       waypoint = (waypoint + 1) & 3;
       robots.waypointIndex[robotId] = waypoint;
     } else {
-      const scale = Math.min(speed / distance, 1);
+      const next = workspace.findNextStep(
+        robots.rootX[robotId]!,
+        robots.rootZ[robotId]!,
+        targetRootX,
+        targetRootZ,
+      );
+      const deltaX = next.x - robots.rootX[robotId]!;
+      const deltaZ = next.z - robots.rootZ[robotId]!;
+      const distance = Math.hypot(deltaX, deltaZ);
+      const scale = distance > 1e-9 ? Math.min(speed / distance, 1) : 0;
       robots.rootX[robotId] = robots.rootX[robotId]! + deltaX * scale;
       robots.rootZ[robotId] = robots.rootZ[robotId]! + deltaZ * scale;
     }

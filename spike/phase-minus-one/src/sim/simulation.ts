@@ -2,7 +2,9 @@ import { assertApprovedScenarioConstants } from './constants';
 import { checksumState } from './checksum';
 import { stepCombatAndEconomy } from './combat';
 import { EventBuffer } from './events';
+import { stepHazards } from './hazards';
 import { updateNavigationAndPoseTargets } from './navigation';
+import { NavigationWorkspace } from './pathfinding';
 import { stepPhysics } from './physics/xpbd';
 import { stepProjectiles } from './projectiles';
 import { createScenario } from './scenario';
@@ -35,6 +37,7 @@ export class Simulation {
   readonly state: SimulationState;
   readonly events = new EventBuffer();
   readonly snapshotWriter = new SnapshotWriter();
+  private readonly navigationWorkspace = new NavigationWorkspace();
   private readonly clock: MonotonicClock;
 
   constructor(seed = 'phase-minus-one-v1', clock: MonotonicClock = disabledInstrumentationClock) {
@@ -49,11 +52,12 @@ export class Simulation {
     this.events.reset();
 
     const navigationStart = this.clock();
-    updateNavigationAndPoseTargets(this.state);
+    updateNavigationAndPoseTargets(this.state, this.navigationWorkspace);
     const physicsStart = this.clock();
     stepPhysics(this.state);
     const combatStart = this.clock();
     stepProjectiles(this.state, this.events);
+    stepHazards(this.state, this.events);
     const eventStart = this.clock();
     stepCombatAndEconomy(this.state, this.events);
     const snapshotStart = this.clock();

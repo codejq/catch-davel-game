@@ -1,10 +1,10 @@
 # Phase -1 feasibility spike specification
 
-Status: **Prepared; execution is gated by Decisions 16–20**
+Status: **Execution authorized; Decisions 16–20 approved on 2026-08-16**
 
 Source of truth: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6
 
-This specification turns the Phase -1 gate into a reproducible experiment. It does not approve the pending decisions and does not authorize production architecture. The spike is disposable evidence: if it passes, its measured budgets inform Phase 0; its code is not silently promoted into the production engine.
+This specification turns the Phase -1 gate into a reproducible experiment. The approval is recorded in `docs/decisions/PHASE_MINUS_ONE_APPROVAL.md`; it authorizes this disposable spike, not production architecture. If the spike passes, its measured budgets inform Phase 0; its code is not silently promoted into the production engine.
 
 ## 1. Approval precondition
 

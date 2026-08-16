@@ -10,16 +10,17 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "perf:sim": "tsx src/bench/cli.ts perf:sim",
+    "preperf:browser": "npm run build",
     "perf:browser": "tsx src/bench/browser-cli.ts",
     "report": "tsx src/bench/report.ts",
     "verify": "npm run build && npm run test && tsx src/bench/cli.ts determinism:smoke"
   },
   "devDependencies": {
     "@types/node": "26.2.0",
+    "playwright-core": "1.62.1",
     "tsx": "4.23.12",
     "typescript": "7.0.2",
     "vite": "8.2.1",
     "vitest": "4.1.10"
   }
 }
-
