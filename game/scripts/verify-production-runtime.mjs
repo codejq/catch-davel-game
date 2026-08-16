@@ -319,6 +319,12 @@ try {
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
   await page.click('#game');
+  await page.waitForFunction(() => document.body.dataset.ambienceSources === '2'
+    && document.body.dataset.ambienceActive === 'true');
+  const ambienceStarted = await page.evaluate(() => ({
+    sources: Number(document.body.dataset.ambienceSources),
+    active: document.body.dataset.ambienceActive,
+  }));
   await page.mouse.down();
   await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
   const captionProof = await page.locator('#sound-captions span').first().textContent();
@@ -332,6 +338,7 @@ try {
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.waitForFunction(() => document.body.dataset.suspended === 'true');
+  const ambienceSuspended = await page.evaluate(() => document.body.dataset.ambienceActive);
   await page.waitForTimeout(100);
   const suspendedStartTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
   await page.waitForTimeout(250);
@@ -343,6 +350,8 @@ try {
   });
   await page.waitForFunction((tick) => document.body.dataset.suspended === 'false'
     && Number(document.body.dataset.snapshotTick) > tick, suspendedEndTick);
+  await page.waitForFunction(() => document.body.dataset.ambienceActive === 'true');
+  const ambienceResumed = await page.evaluate(() => document.body.dataset.ambienceActive);
   await page.keyboard.up('ArrowUp');
   const resumedAfterVisibilityTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
   await page.waitForTimeout(100);
@@ -376,6 +385,11 @@ try {
     restartPointClean: restartPointProfile.profile.lastCleanShutdown,
     lastCleanShutdown: restartedProfile.profile.lastCleanShutdown,
   };
+  const ambienceProof = { ...ambienceStarted, suspended: ambienceSuspended, resumed: ambienceResumed };
+  if (ambienceProof.sources !== 2 || ambienceProof.active !== 'true'
+    || ambienceProof.suspended !== 'false' || ambienceProof.resumed !== 'true') {
+    throw new Error(`Procedural ambience did not follow the production lifecycle: ${JSON.stringify(ambienceProof)}`);
+  }
   if (suspendedStartTick !== suspendedEndTick || resumedAfterVisibilityTick <= suspendedEndTick
     || lifecycle.attemptsAfter !== lifecycle.attemptsBefore + 1
     || lifecycle.coinsAfter !== lifecycle.coinsBefore || !lifecycle.lastCleanShutdown
@@ -572,7 +586,8 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, profileTransfer, lifecycle, browserErrors: errors,
+    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, profileTransfer,
+    ambienceProof, lifecycle, browserErrors: errors,
     fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

@@ -7,6 +7,9 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
 
 export type AudioBus = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
+export const TRANSIENT_AUDIO_SOURCE_CAP = 48;
+export const AMBIENCE_SOURCE_CAP = 2;
+export const TOTAL_AUDIO_SOURCE_CAP = TRANSIENT_AUDIO_SOURCE_CAP + AMBIENCE_SOURCE_CAP;
 
 export interface AudioMixSettings {
   readonly combat: number;
@@ -137,6 +140,24 @@ function nextNoise(state: number): number {
   return value | 0;
 }
 
+export interface ProceduralAmbienceProfile {
+  readonly primaryFrequency: number;
+  readonly secondaryFrequency: number;
+  readonly filterFrequency: number;
+}
+
+export function proceduralAmbienceProfile(
+  profileId: string, profile: AudioRuntimeProfile,
+): ProceduralAmbienceProfile {
+  const identity = seedText(`${profileId}:ambience`);
+  const primaryFrequency = (42 + identity % 19) * profile.pitchScale;
+  return {
+    primaryFrequency,
+    secondaryFrequency: primaryFrequency * (1.49 + ((identity >>> 8) % 9) * 0.006),
+    filterFrequency: Math.min(profile.dampingHz, 420 + ((identity >>> 16) % 13) * 38),
+  };
+}
+
 export class ProceduralAudio {
   private readonly master: GainNode;
   private readonly compressor: DynamicsCompressorNode;
@@ -144,6 +165,9 @@ export class ProceduralAudio {
   private readonly reverbInput: GainNode;
   private readonly buses: Readonly<Record<AudioBus, GainNode>>;
   private readonly noiseBuffer: AudioBuffer;
+  private readonly ambienceGain: GainNode;
+  private readonly ambienceFilter: BiquadFilterNode;
+  private readonly ambienceSources: readonly OscillatorNode[];
   private outputGain: number;
   private dynamicRange: DynamicRangePreset;
   private activeSources = 0;
@@ -177,6 +201,18 @@ export class ProceduralAudio {
       bus.connect(this.dry);
       bus.connect(this.reverbInput);
     }
+    const ambience = proceduralAmbienceProfile(profileId, profile);
+    this.ambienceGain = context.createGain();
+    this.ambienceGain.gain.value = 0.0001;
+    this.ambienceFilter = context.createBiquadFilter();
+    this.ambienceFilter.type = 'lowpass';
+    this.ambienceFilter.frequency.value = ambience.filterFrequency;
+    this.ambienceFilter.Q.value = 0.72;
+    this.ambienceFilter.connect(this.ambienceGain).connect(this.buses.world);
+    this.ambienceSources = [
+      this.createAmbienceOscillator('sine', ambience.primaryFrequency, 0.62),
+      this.createAmbienceOscillator('triangle', ambience.secondaryFrequency, 0.24),
+    ];
     this.setMix(mix, true);
     this.noiseBuffer = this.createNoiseBuffer(profileId);
   }
@@ -206,9 +242,19 @@ export class ProceduralAudio {
     this.applyOutputGain(immediate);
   }
 
+  setAmbience(active: boolean, combatIntensity: number, frozen: boolean): void {
+    const intensity = Math.max(0, Math.min(1, combatIntensity));
+    const target = active ? (0.018 + intensity * 0.012) * (frozen ? 0.58 : 1) : 0.0001;
+    this.ambienceGain.gain.setTargetAtTime(target, this.context.currentTime, active ? 0.35 : 0.08);
+    const filterTarget = 440 + intensity * 520;
+    this.ambienceFilter.frequency.setTargetAtTime(filterTarget, this.context.currentTime, 0.22);
+  }
+
+  get ambienceSourceCount(): number { return this.ambienceSources.length; }
+
   play(cue: AudioCue, pan = 0): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
-    if (this.activeSources + layers.length > 48) return;
+    if (this.activeSources + layers.length > TRANSIENT_AUDIO_SOURCE_CAP) return;
     for (const layer of layers) this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue]);
   }
 
@@ -247,6 +293,17 @@ export class ProceduralAudio {
     const value = DYNAMIC_RANGE_PRESETS[this.dynamicRange].outputScale * this.outputGain;
     if (immediate) this.master.gain.value = value;
     else this.master.gain.setTargetAtTime(value, this.context.currentTime, 0.04);
+  }
+
+  private createAmbienceOscillator(wave: OscillatorType, frequency: number, gainValue: number): OscillatorNode {
+    const oscillator = this.context.createOscillator();
+    const gain = this.context.createGain();
+    oscillator.type = wave;
+    oscillator.frequency.value = frequency;
+    gain.gain.value = gainValue;
+    oscillator.connect(gain).connect(this.ambienceFilter);
+    oscillator.start();
+    return oscillator;
   }
 
   private createNoiseBuffer(profileId: string): AudioBuffer {

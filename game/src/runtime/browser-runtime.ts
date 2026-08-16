@@ -548,6 +548,9 @@ export async function startBrowserGame(): Promise<void> {
         context, activeLevel.dance.bpm, musicRuntimeProfile(activeLevel.dance.presetId),
         activeProfile.settings.masterVolume * activeProfile.settings.musicVolume,
       );
+      audio.setAmbience(true, 0.22, false);
+      document.body.dataset.ambienceSources = String(audio.ambienceSourceCount);
+      document.body.dataset.ambienceActive = 'true';
     }
     return audio;
   };
@@ -795,8 +798,13 @@ export async function startBrowserGame(): Promise<void> {
         const combatIntensity = Math.min(1, 0.22 + activeRobots / Math.max(1, state.robots.length) * 0.58
           + Math.min(0.2, state.projectiles.length * 0.025));
         const bossPhase = state.robots.reduce((phase, robot) => Math.max(phase, robot.bossPhase), 0);
+        const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
+        const ambienceActive = audio !== null && !state.victory && !state.defeat
+          && !pauseMenu.classList.contains('open') && !campaignMap.classList.contains('open');
+        audio?.setAmbience(ambienceActive, combatIntensity, frozen);
+        document.body.dataset.ambienceActive = String(ambienceActive);
         music?.update(
-          state.tick, combatIntensity, freezeDanceWindow(state.levelId, state.tick).frozen, bossPhase,
+          state.tick, combatIntensity, frozen, bossPhase,
           !state.victory && !state.defeat,
         );
         document.body.dataset.snapshotTick = String(state.tick);
@@ -844,6 +852,8 @@ export async function startBrowserGame(): Promise<void> {
     campaignMap.classList.toggle('open', open);
     campaignMap.setAttribute('aria-hidden', String(!open));
     if (open) {
+      audio?.setAmbience(false, 0, false);
+      document.body.dataset.ambienceActive = 'false';
       resumeAfterCampaignMap = !renderState?.victory && !renderState?.defeat;
       shop.classList.remove('open');
       document.exitPointerLock();
@@ -1110,6 +1120,8 @@ export async function startBrowserGame(): Promise<void> {
     pauseMenu.setAttribute('aria-hidden', String(!open));
     document.body.dataset.paused = String(open);
     if (open) {
+      audio?.setAmbience(false, 0, false);
+      document.body.dataset.ambienceActive = 'false';
       clearHumanInput();
       pauseLevelName.textContent = localized(activeLevel.nameKey);
       document.exitPointerLock();
@@ -1137,6 +1149,8 @@ export async function startBrowserGame(): Promise<void> {
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
+      audio?.setAmbience(false, 0, false);
+      document.body.dataset.ambienceActive = 'false';
       clearHumanInput();
       resumeAfterVisibility = !agentController.isAgentControlled()
         && !campaignMap.classList.contains('open') && !pauseMenu.classList.contains('open')
