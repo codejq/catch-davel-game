@@ -979,12 +979,15 @@ export async function startBrowserGame(): Promise<void> {
     if (boss !== null) {
       const health = Math.ceil(boss.health);
       const ringmaster = state.levelId === 'level-020';
+      const furnace = state.levelId === 'level-030';
+      const bossTitleKey = furnace ? 'furnaceBossTitle' : ringmaster ? 'ringmasterBossTitle' : 'bossTitle';
+      const bossAriaKey = furnace ? 'furnaceBossAria' : ringmaster ? 'ringmasterBossAria' : 'bossAria';
       bossStatus.dataset.phase = String(boss.phase);
       bossStatus.style.setProperty('--boss-health', `${boss.healthRatio * 100}%`);
-      bossStatusTitle.textContent = ui(ringmaster ? 'ringmasterBossTitle' : 'bossTitle');
+      bossStatusTitle.textContent = ui(bossTitleKey);
       bossStatusPhase.textContent = ui('bossPhaseLabel', { phase: boss.phase });
       bossStatusHp.textContent = ui('bossHp', { health, max: boss.maxHealth });
-      bossStatus.setAttribute('aria-label', ui(ringmaster ? 'ringmasterBossAria' : 'bossAria', {
+      bossStatus.setAttribute('aria-label', ui(bossAriaKey, {
         phase: boss.phase, health, max: boss.maxHealth,
       }));
       bossStatusHealth.dataset.health = String(health);
@@ -1121,7 +1124,9 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-melee') eventSound('robot-melee', event.robotId);
     if (event.type === 'robot-buff') { showMessage(ui('djBeat')); eventSound('dj-buff', event.robotId); }
     if (event.type === 'boss-phase') {
-      showMessage(ui(activeLevelId === 'level-020' ? 'ringmasterBossPhase' : 'bossPhase', { phase: event.value ?? 1 }));
+      const bossPhaseKey = activeLevelId === 'level-030' ? 'furnaceBossPhase'
+        : activeLevelId === 'level-020' ? 'ringmasterBossPhase' : 'bossPhase';
+      showMessage(ui(bossPhaseKey, { phase: event.value ?? 1 }));
       eventSound('boss-phase', event.robotId);
       showDavelBark(event, 'boss-phase', 0);
     }

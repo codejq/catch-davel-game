@@ -1,0 +1,438 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "846df8227f5b4b8f",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "e2789398020900b3",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 12000,
+        "mode": "live-agent",
+        "parTicks": 7000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "defeat-furnace-mouth"
+        ],
+        "seed": "campaign-level-030-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "boss"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-030"
+  },
+  "briefingKey": "levels.030.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-030"
+    }
+  ],
+  "dance": {
+    "armPatternId": "inferno-flamenco-finale-arms-v1",
+    "attackBeats": [
+      0,
+      3,
+      6,
+      9,
+      12,
+      15
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 164,
+    "footPatternId": "inferno-flamenco-finale-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "inferno-flamenco-finale-head-v1",
+    "pathPatternId": "inferno-flamenco-finale-path-v1",
+    "presetId": "inferno-flamenco-finale",
+    "reducedMotionPresetId": "inferno-flamenco-finale-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "inferno-flamenco-finale-torso-v1",
+    "transitionIds": [
+      "boss-phase",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      2,
+      5,
+      8,
+      11,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-030"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-030"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "target-defeated",
+      "id": "furnace-mouth-finale",
+      "rewardId": "chapter-03-clear-030",
+      "roomNodeId": "furnace-mouth-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "target-defeated",
+          "danceTransitionId": "boss-phase",
+          "id": "inferno-finale",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 1,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-invoice-overlord-v1",
+              "aiProfileId": "chapter-03-boss-30",
+              "archetypeId": "invoice-overlord",
+              "count": 1,
+              "dancePresetId": "inferno-flamenco-finale",
+              "id": "furnace-mouth",
+              "modifierIds": [
+                "furnace-crown",
+                "three-stage-inferno"
+              ],
+              "rank": "boss",
+              "rewardProfileId": "chapter-03-boss-coins-30",
+              "rngStream": "encounter.level-030.boss.furnace-mouth",
+              "spawnPointSetId": "level-030-boss"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-030",
+  "mastery": [
+    {
+      "presetId": "level-030-par-time"
+    },
+    {
+      "presetId": "level-030-no-fireball-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "furnace-entry",
+        "id": "entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "ignition-key-lane",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "ignition-key-lane",
+        "id": "key-arena",
+        "requiredKeyId": "ignition-key",
+        "stateTrigger": "key-collected",
+        "to": "furnace-mouth-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "furnace-mouth-arena",
+        "id": "arena-crossing",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "slag-crossing",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "slag-crossing",
+        "id": "crossing-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "furnace-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "furnace-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "boiler-victory-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ignition-key-lane",
+        "id": "key-coolant-west",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "coolant-west",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "coolant-west",
+        "id": "coolant-link",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "coolant-east",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "coolant-east",
+        "id": "coolant-crossing",
+        "requiredKeyId": "ignition-key",
+        "stateTrigger": "key-collected",
+        "to": "slag-crossing",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "furnace-entry",
+    "exitNodeId": "boiler-victory-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "furnace-jaw-west-v1",
+        "id": "furnace-jaw-west",
+        "nodeId": "furnace-mouth-arena",
+        "periodTicks": 160
+      },
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "furnace-jaw-east-v1",
+        "id": "furnace-jaw-east",
+        "nodeId": "furnace-mouth-arena",
+        "periodTicks": 160
+      },
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "furnace-jaw-north-v1",
+        "id": "furnace-jaw-north",
+        "nodeId": "furnace-mouth-arena",
+        "periodTicks": 160
+      },
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "furnace-jaw-south-v1",
+        "id": "furnace-jaw-south",
+        "nodeId": "furnace-mouth-arena",
+        "periodTicks": 160
+      }
+    ],
+    "keys": [
+      {
+        "id": "ignition-key",
+        "placementNodeId": "ignition-key-lane"
+      }
+    ],
+    "maxBranchDepth": 2,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "furnace-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "boss-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ignition-key-lane",
+        "pickupIds": [
+          "ignition-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "ignition-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "furnace-mouth-finale"
+        ],
+        "id": "furnace-mouth-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "chapter-boss",
+          "flame-jaws"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "coolant-west",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "coolant-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "coolant-east",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "coolant-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "slag-crossing",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "slag-crossing"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-030",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "furnace-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "boiler-victory-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "chapter-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 2,
+      "minimum": 2
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-furnace-mouth",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.030.name",
+  "number": 30,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "defeat-furnace-mouth",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 1,
+      "targetIds": [
+        "inferno-finale"
+      ],
+      "titleKey": "objectives.level_030",
+      "type": "boss"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-30"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-030-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 1,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-030-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "chapter-boss",
+    "fire-spitting-boss",
+    "inferno-flamenco-finale"
+  ]
+}

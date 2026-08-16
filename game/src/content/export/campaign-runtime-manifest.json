@@ -202,6 +202,13 @@
       "pitchScale": 1.12,
       "roomSize": 0.98,
       "wetMix": 0.42
+    },
+    "audio-toxic-boiler-030": {
+      "dampingHz": 1950,
+      "decaySeconds": 0.96,
+      "pitchScale": 0.9,
+      "roomSize": 1,
+      "wetMix": 0.44
     }
   },
   "danceGameplayProfiles": {
@@ -284,6 +291,12 @@
       "phaseOffsetTicks": 0
     },
     "heavy-boot-two-step": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "inferno-flamenco-finale": {
       "freezeTicks": 0,
       "kind": "ambient",
       "periodTicks": 0,
@@ -395,6 +408,7 @@
     "flashlight-freeze-dance": "freeze-dance",
     "giant-wobble-breakdown": "giant-breakdown",
     "heavy-boot-two-step": "heavy-two-step",
+    "inferno-flamenco-finale": "inferno-flamenco-finale",
     "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
     "moonlit-swing-off": "moonlit-swing",
@@ -656,6 +670,46 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 45,
       "row": 10
+    },
+    "furnace-jaw-east-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 40,
+      "row": 7
+    },
+    "furnace-jaw-north-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 80,
+      "row": 6
+    },
+    "furnace-jaw-south-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 120,
+      "row": 12
+    },
+    "furnace-jaw-west-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 7
     },
     "green-steam-north-v1": {
       "column": 7,
@@ -1470,6 +1524,103 @@
         },
         {
           "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "boiler-furnace-mouth": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 32,
+          "column": 9,
+          "row": 3
+        },
+        "door": {
+          "column": 8,
+          "row": 8
+        },
+        "energy": {
+          "amount": 40,
+          "column": 3,
+          "row": 11
+        },
+        "health": {
+          "amount": 30,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 8,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 8,
+          "row": 12
+        },
+        {
+          "column": 12,
           "row": 12
         }
       ]
@@ -3675,6 +3826,35 @@
       ],
       "swing": 0.02
     },
+    "inferno-flamenco-finale": {
+      "bassPattern": [
+        0,
+        0,
+        5,
+        6
+      ],
+      "leadPattern": [
+        0,
+        6,
+        1,
+        5,
+        2,
+        4,
+        6,
+        3
+      ],
+      "rootMidi": 40,
+      "scale": [
+        0,
+        1,
+        4,
+        5,
+        7,
+        8,
+        11
+      ],
+      "swing": 0.14
+    },
     "jackpot-jitterbug": {
       "bassPattern": [
         0,
@@ -5067,6 +5247,40 @@
           0.86,
           0.12,
           0.64
+        ]
+      ]
+    },
+    "toxic-boiler-30": {
+      "floor": [
+        0.92,
+        0.86,
+        0.6
+      ],
+      "sky": [
+        0.98,
+        0.44,
+        0.28
+      ],
+      "walls": [
+        [
+          0.54,
+          0.05,
+          0.08
+        ],
+        [
+          1,
+          0.28,
+          0.04
+        ],
+        [
+          0.08,
+          0.66,
+          0.78
+        ],
+        [
+          0.82,
+          0.12,
+          0.5
         ]
       ]
     }

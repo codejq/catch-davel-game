@@ -308,6 +308,18 @@ function targets(
     rightFootY += flare * 0.22 + Math.max(0, -fever) * 0.12;
     leftHand = [-1.02 - flare * 0.18, 1.2 + shiver * 0.62, 0.38];
     rightHand = [1.02 + shiver * 0.18, 1.84 - flare * 0.5, 0.22];
+  } else if (performance.motif === 'inferno-flamenco-finale') {
+    const blaze = Math.max(0, beat); const smolder = Math.max(0, -beat);
+    const castanet = Math.sin(performanceTime * Math.PI * 10);
+    bounce += (blaze * 0.13 + Math.abs(castanet) * 0.035) * intensity;
+    hipX = (alternate * 0.42 + castanet * 0.08) * intensity;
+    chestX = (-alternate * 0.48 - castanet * 0.1) * intensity;
+    chestZ = blaze * 0.26 - smolder * 0.16; headX += alternate * 0.36; headZ = -blaze * 0.1;
+    leftFootX = -0.46 - blaze * 0.18; rightFootX = 0.46 + smolder * 0.18;
+    leftFootZ = smolder * 0.52; rightFootZ = blaze * 0.62;
+    leftFootY += smolder * 0.22; rightFootY += blaze * 0.3;
+    leftHand = [-1.18 - blaze * 0.22, 1.9 + smolder * 0.18, 0.16];
+    rightHand = [1.18 + smolder * 0.22, 1.08 + blaze * 0.78, 0.4];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

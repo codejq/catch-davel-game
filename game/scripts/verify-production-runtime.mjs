@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 29 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 30 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-029`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-030`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-029'
+    && document.body.dataset.levelId === 'level-030'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   await chapterPage.keyboard.press('Digit3');
@@ -669,24 +669,30 @@ try {
     dashHidden: document.querySelector('#touch-dash')?.hidden,
     defenseHealth: document.body.dataset.defenseHealth ?? '',
     defenseMaxHealth: document.body.dataset.defenseMaxHealth ?? '',
+    bossTitle: document.querySelector('#boss-status [data-ui-text="bossTitle"]')?.textContent ?? '',
+    bossHidden: document.querySelector('#boss-status')?.hidden,
     agentApiExposed: window.CatchDavelAgent !== undefined,
   }));
-  const expectedChapterRemaining = chapterLevel.language === 'ar' ? '3 دافل متبقٍ' : '3 Davels remain';
+  const expectedChapterRemaining = chapterLevel.language === 'ar' ? '1 دافل متبقٍ' : '1 Davel remains';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
-    throw new Error('Production Level 29 did not render its opening three-Davel act in the active locale');
+    throw new Error('Production Level 30 did not render its Furnace Mouth boss in the active locale');
   }
-  const expectedLevelName = chapterLevel.language === 'ar' ? 'أنفاق الحمى' : 'FEVER TUNNELS';
+  const expectedLevelName = chapterLevel.language === 'ar' ? 'فم الفرن' : 'FURNACE MOUTH';
   if (!chapterLevel.levelName.includes(expectedLevelName)) {
-    throw new Error(`Production Level 29 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
+    throw new Error(`Production Level 30 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
+  }
+  const expectedBossTitle = chapterLevel.language === 'ar' ? 'فم الفرن' : 'FURNACE MOUTH';
+  if (chapterLevel.bossHidden !== false || !chapterLevel.bossTitle.includes(expectedBossTitle)) {
+    throw new Error(`Production Level 30 did not expose the localized Furnace Mouth boss card: ${JSON.stringify(chapterLevel)}`);
   }
   if (chapterLevel.defenseHealth !== '0' || chapterLevel.defenseMaxHealth !== '0') {
-    throw new Error('Production Level 29 inherited the prior level defense target');
+    throw new Error('Production Level 30 inherited the prior level defense target');
   }
   if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
-    throw new Error('Production Level 29 did not retain the Chapter 2 dash control');
+    throw new Error('Production Level 30 did not retain the Chapter 2 dash control');
   }
   if (chapterLevel.weapon !== 'bomb' || chapterLevel.weaponStatus.length === 0) {
-    throw new Error('Production Level 29 did not expose the Chapter 3 bomb control');
+    throw new Error('Production Level 30 did not expose the Chapter 3 bomb control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -808,11 +814,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 29 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 30 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 29
-    || !toolingProof.balanceSummary.includes('Guaranteed 1232 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 30
+    || !toolingProof.balanceSummary.includes('Guaranteed 1282 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {
