@@ -8,6 +8,7 @@ import {
   openNearbyDoor, reachedUnlockedExit, type LevelRuntimeState,
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
+import { quantizeSimulationState } from './quantization';
 
 export interface GameEvent {
   readonly tick: number;
@@ -56,12 +57,14 @@ export class GameSimulation {
   }
 
   private static initialState(seed: string): GameState {
-    return {
+    const state: GameState = {
       tick: 0, seed, player: createPlayer(), robots: createRobots(), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       level: createLevelRuntime(),
     };
+    quantizeSimulationState(state);
+    return state;
   }
 
   step(command: PlayerCommand): void {
@@ -79,6 +82,7 @@ export class GameSimulation {
     if (reachedUnlockedExit(this.state.player, this.state.level)) {
       this.state.victory = true;
       this.state.events.push({ tick: this.state.tick, type: 'victory' });
+      quantizeSimulationState(this.state);
       this.state.tick += 1;
       return;
     }
@@ -97,6 +101,7 @@ export class GameSimulation {
     if (command.fire && !this.state.defeat && !this.state.victory) {
       this.applyShot(firePulse(this.state.player, this.state.robots, this.state.tick, this.state.lastShotTick));
     }
+    quantizeSimulationState(this.state);
     this.state.tick += 1;
   }
 

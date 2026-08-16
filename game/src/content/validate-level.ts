@@ -422,3 +422,20 @@ export function serializeLevelDefinition(level: LevelDefinition): string {
 export function levelDefinitionHash(level: LevelDefinition): string {
   return checksumCanonical(validateLevelDefinition(level));
 }
+
+export function levelDefinitionDependencyHash(level: LevelDefinition): string {
+  const normalized: LevelDefinition = {
+    ...level,
+    agentValidation: {
+      ...level.agentValidation,
+      runs: level.agentValidation.runs.map((run) => ({
+        ...run,
+        dependencyHashes: {
+          simulationSchema: '0000000000000000', effectiveLevel: '0000000000000000',
+          simulationLevel: '0000000000000000', balanceData: '0000000000000000', policyOrReplay: '0000000000000000',
+        },
+      })),
+    },
+  };
+  return checksumCanonical(validateLevelDefinition(normalized));
+}

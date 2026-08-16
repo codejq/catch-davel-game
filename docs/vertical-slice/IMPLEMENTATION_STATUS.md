@@ -32,11 +32,13 @@ Implementation is active. Missing physical devices do not block development; the
 - Level 1 now has authoritative health/energy/key pickups, a closed workshop door that participates in player collision until its key opens it, a checkpoint with exact Worker-side snapshot capture, and an objective-gated exit. Deactivating every Davel unlocks the exit; victory occurs only when the player reaches it.
 - Simulation schema v2, RenderSnapshot transport v2, replay dependency hashes, and agent observation v2 include the complete interaction/objective state. Human checkpoint snapshots persist through the alternating-record profile repository and are restored before realtime play resumes; agent sessions cannot write them.
 - Appendix A now has a strict TypeScript `LevelDefinition`, authored Level 1 record, generated Draft 2020-12 JSON Schema, canonical sorted JSON export, and validator shared by tests and replay dependency hashing. It rejects unknown fields, stale references, objective cycles, impossible key ordering, invalid encounter ownership, missing ordinary-level Standard agent coverage, and content budgets above fixed caps.
+- Authoritative numeric state is quantized to eight decimal places after each fixed tick. Simulation schema v3 includes that precision in replay dependencies, eliminating the long-run Node/Chromium XPBD checksum drift found by the campaign agent gate.
+- The deterministic `BaselineCampaignAgent` uses only public observation v3 and level metadata. Both the headless simulation and live Worker API complete Standard Level 1 at tick 4,554 with frozen checksum `398139d935ff9a2f`, below the declared 6,000-tick limit; generated content embeds current simulation/effective-level/runtime-level/balance/policy hashes.
 
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 15 files, 33 tests passed.
+- Automated tests: 17 files, 35 tests passed.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 12-tick command advanced exactly from tick 0 to tick 12 and remained paused at tick 12 during a 300 ms model-think interval.

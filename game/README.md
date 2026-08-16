@@ -53,7 +53,9 @@ await api.releaseControl(); // starts a clean human session from durable profile
 
 Calling `act` or `step` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty. Agent sessions are marked in replays and never write campaign coins, medals, attempts, or other human profile progress.
 
-The version-2 observation includes the tick/seed, player pose and resources, stable robot IDs, names, dances, relative positions, range, bearing, heading, health, line of sight, fireball trajectories, pickups, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Inputs are bounded and normalized before they enter the fixed-step simulation. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
+The version-3 observation includes the tick/seed, player pose and resources, stable robot IDs, names, dances, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, fireball trajectories, pickups, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Level metadata supplies grid rows, cell size, world origin, and coordinate conventions. Inputs are bounded and normalized before they enter the fixed-step simulation. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
+
+`BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,554—below the 6,000-tick hard budget.
 
 ## Persistence and replay guarantees
 

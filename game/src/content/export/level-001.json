@@ -5,20 +5,20 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "0000000000000000",
-          "effectiveLevel": "0000000000000000",
-          "policyOrReplay": "0000000000000000",
-          "simulationLevel": "0000000000000000",
-          "simulationSchema": "0000000000000000"
+          "balanceData": "2e54e1074f66e4bd",
+          "effectiveLevel": "8189e6fa151a38e5",
+          "policyOrReplay": "d3d7c87fc057d2d4",
+          "simulationLevel": "ca2195b229d1f939",
+          "simulationSchema": "0cb9654402bf45a6"
         },
         "difficulty": "Standard",
-        "expectedChecksum": null,
+        "expectedChecksum": "398139d935ff9a2f",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
-        "maxTicks": 18000,
+        "maxTicks": 6000,
         "mode": "live-agent",
-        "parTicks": 9000,
+        "parTicks": 5000,
         "policyId": "baseline-campaign-agent",
         "policyVersion": 1,
         "referenceReplayId": null,

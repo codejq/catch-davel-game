@@ -79,6 +79,18 @@ try {
     const pausedTick = Number(document.body.dataset.snapshotTick);
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pausedTickAfterWait = Number(document.body.dataset.snapshotTick);
+
+    const [{ BaselineCampaignAgent }, { LEVEL_001 }] = await Promise.all([
+      import('/src/agent/baseline-policy.ts'),
+      import('/src/content/levels/level-001.ts'),
+    ]);
+    const policy = new BaselineCampaignAgent();
+    let baselineObservation = await api.reset({ mode: 'agent' });
+    const baselineRun = LEVEL_001.agentValidation.runs[0];
+    while (!baselineObservation.victory && !baselineObservation.defeat && baselineObservation.tick < baselineRun.maxTicks) {
+      baselineObservation = await api.act(policy.next(baselineObservation), 1);
+    }
+    const baselineMetrics = api.getMetrics();
     const profilesAfterAgent = await readProfileRecords();
 
     await api.releaseControl();
@@ -101,6 +113,12 @@ try {
       releasedTick,
       resumedTick,
       replayFinalTick: replay.checksums.at(-1)?.tick,
+      baselineTick: baselineObservation.tick,
+      baselineVictory: baselineObservation.victory,
+      baselineDefeat: baselineObservation.defeat,
+      baselineChecksum: baselineMetrics.checksum,
+      baselineExpectedChecksum: baselineRun.expectedChecksum,
+      baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
     };
@@ -115,13 +133,16 @@ try {
     [result.loadedTick === 30, 'loaded replay did not restore its final tick'],
     [result.savedChecksum === result.loadedChecksum, 'loaded replay checksum differs from the saved run'],
     [result.pausedTickAfterWait === result.pausedTick, 'manual agent simulation advanced without an action'],
+    [result.baselineVictory && !result.baselineDefeat, 'public Worker agent did not complete Level 1'],
+    [result.baselineTick < result.baselineMaxTicks, 'public Worker agent exceeded the Level 1 tick budget'],
+    [result.baselineChecksum === result.baselineExpectedChecksum, 'public Worker agent missed the frozen Level 1 checksum'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);
-  if (failed.length > 0) throw new Error(failed.join('\n'));
+  if (failed.length > 0) throw new Error(`${failed.join('\n')}\n${JSON.stringify(result, null, 2)}`);
   console.log(JSON.stringify({ passed: true, ...result, browserErrors: errors }, null, 2));
 } finally {
   await browser?.close();

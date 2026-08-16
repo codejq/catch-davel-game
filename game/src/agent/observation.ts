@@ -1,6 +1,7 @@
 import { PLAYER_EYE_HEIGHT } from '../sim/constants';
 import type { GameState } from '../sim/game';
-import { isWallAtWorld, LEVEL_ROWS, worldCell } from '../sim/level';
+import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, LEVEL_ROWS, worldCell } from '../sim/level';
+import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 
 export interface RobotObservation {
@@ -11,13 +12,14 @@ export interface RobotObservation {
   readonly relativeZ: number;
   readonly distance: number;
   readonly bearing: number;
+  readonly elevation: number;
   readonly heading: number;
   readonly health: number;
   readonly visible: boolean;
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 2;
+  readonly schemaVersion: 3;
   readonly tick: number;
   readonly seed: string;
   readonly player: {
@@ -112,13 +114,14 @@ export function createObservation(state: GameState): AgentObservation {
       relativeZ: round(deltaZ),
       distance: round(Math.hypot(deltaX, deltaZ)),
       bearing: round(normalizeAngle(absoluteBearing - state.player.yaw)),
+      elevation: round(Math.atan2(ROBOT_DEFINITIONS[robot.id]!.scale * 1.16 - PLAYER_EYE_HEIGHT, Math.hypot(deltaX, deltaZ)) - state.player.pitch),
       heading: round(robot.heading),
       health: robot.health,
       visible: hasLineOfSight(state.player.x, state.player.z, robot.x, robot.z),
     };
   });
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     tick: state.tick,
     seed: state.seed,
     player: {
@@ -170,6 +173,15 @@ export function createObservation(state: GameState): AgentObservation {
   };
 }
 
-export function levelObservation(): { readonly rows: readonly string[]; readonly coordinateSystem: string } {
-  return { rows: LEVEL_ROWS, coordinateSystem: `row/column grid; player eye y=${PLAYER_EYE_HEIGHT}` };
+export function levelObservation(): {
+  readonly rows: readonly string[];
+  readonly cellSize: number;
+  readonly originX: number;
+  readonly originZ: number;
+  readonly coordinateSystem: string;
+} {
+  return {
+    rows: LEVEL_ROWS, cellSize: CELL_SIZE, originX: LEVEL_ORIGIN_X, originZ: LEVEL_ORIGIN_Z,
+    coordinateSystem: `right-handed world; +x east, +z south, yaw 0 faces -z; player eye y=${PLAYER_EYE_HEIGHT}`,
+  };
 }

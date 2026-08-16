@@ -4,7 +4,9 @@ import { GameSimulation } from '../sim/game';
 import { LEVEL_ROWS } from '../sim/level';
 import { createLevelRuntime } from '../sim/interactions';
 import { LEVEL_001 } from '../content/levels/level-001';
-import { levelDefinitionHash } from '../content/validate-level';
+import type { AgentValidationRunSpec } from '../content/level-definition';
+import { levelDefinitionDependencyHash } from '../content/validate-level';
+import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
 import type { PlayerCommand } from '../sim/player';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import {
@@ -66,11 +68,13 @@ function robotBalanceData(): unknown {
 }
 
 export function currentReplayDependencies(): ReplayDependencyHashes {
+  const effectiveLevel = levelDefinitionDependencyHash(LEVEL_001);
+  const simulationLevel = checksumCanonical({ rows: LEVEL_ROWS, interactions: createLevelRuntime() });
   return {
-    simulationSchema: checksumCanonical({ GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS }),
-    levelData: checksumCanonical({
-      effectiveDefinition: levelDefinitionHash(LEVEL_001), rows: LEVEL_ROWS, interactions: createLevelRuntime(),
+    simulationSchema: checksumCanonical({
+      GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
     }),
+    levelData: checksumCanonical({ effectiveLevel, simulationLevel }),
     balanceData: checksumCanonical({
       pulse: {
         PULSE_DAMAGE, PULSE_COOLDOWN_TICKS, PULSE_ENERGY_COST, PULSE_MAX_RANGE,
@@ -85,6 +89,17 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
       robots: robotBalanceData(),
     }),
     replayPolicy: checksumCanonical({ replayFormatVersion: REPLAY_FORMAT_VERSION, checksumInterval: REPLAY_CHECKSUM_INTERVAL_TICKS }),
+  };
+}
+
+export function currentAgentValidationDependencies(): AgentValidationRunSpec['dependencyHashes'] {
+  const replay = currentReplayDependencies();
+  return {
+    simulationSchema: replay.simulationSchema,
+    effectiveLevel: levelDefinitionDependencyHash(LEVEL_001),
+    simulationLevel: checksumCanonical({ rows: LEVEL_ROWS, interactions: createLevelRuntime() }),
+    balanceData: replay.balanceData,
+    policyOrReplay: replay.replayPolicy,
   };
 }
 

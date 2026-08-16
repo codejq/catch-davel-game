@@ -13,9 +13,9 @@ export interface EnemyProjectile {
   x: number;
   y: number;
   z: number;
-  readonly velocityX: number;
-  readonly velocityY: number;
-  readonly velocityZ: number;
+  velocityX: number;
+  velocityY: number;
+  velocityZ: number;
   lifeTicks: number;
 }
 

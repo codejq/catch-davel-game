@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { LEVEL_001 } from '../src/content/levels/level-001';
 import { levelDefinitionHash, serializeLevelDefinition, validateLevelDefinition } from '../src/content/validate-level';
 import { DEFAULT_LEVEL_SEED } from '../src/sim/constants';
+import { currentAgentValidationDependencies } from '../src/replay/replay';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -10,6 +11,7 @@ describe('Appendix A level-data contract', () => {
     const serialized = serializeLevelDefinition(LEVEL_001);
     expect(serializeLevelDefinition(JSON.parse(serialized))).toBe(serialized);
     expect(levelDefinitionHash(LEVEL_001)).toMatch(/^[0-9a-f]{16}$/);
+    expect(LEVEL_001.agentValidation.runs[0].dependencyHashes).toEqual(currentAgentValidationDependencies());
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {
