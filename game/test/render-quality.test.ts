@@ -16,6 +16,8 @@ describe('presentation-only render quality', () => {
     expect(RENDER_QUALITY_PROFILES.low.bombSparkCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.bombSparkCount);
     expect(RENDER_QUALITY_PROFILES.low.laserContactSparkCount)
       .toBeLessThan(RENDER_QUALITY_PROFILES.high.laserContactSparkCount);
+    expect(RENDER_QUALITY_PROFILES.low.swordArcSegmentCount)
+      .toBeLessThan(RENDER_QUALITY_PROFILES.high.swordArcSegmentCount);
     expect(() => normalizeRenderQuality('ultra')).toThrow(/quality/);
   });
 

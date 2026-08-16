@@ -52,6 +52,9 @@ import {
   PULSE_ENERGY_CELL_DURATION_TICKS, createPulseEnergyCellEffect,
 } from '../render/presentation-particles';
 import { LaserAudioSequencer, type LaserAudioRequest } from './laser-audio';
+import {
+  CHARGED_SWORD_ARC_DURATION_TICKS, SWORD_ARC_DURATION_TICKS, createSwordArcEffect,
+} from '../render/sword-arc';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -271,6 +274,7 @@ export async function startBrowserGame(): Promise<void> {
   const feedbackTimers = new Map<string, number>();
   const captionTimers = new Map<string, number>();
   const pendingPulseEffectTicks: number[] = [];
+  const pendingSwordArcEvents: { readonly tick: number; readonly charged: boolean }[] = [];
 
   const emitPulseEffect = (tick: number, state: RenderGameState): void => {
     if (state.tick - tick >= PULSE_ENERGY_CELL_DURATION_TICKS) return;
@@ -290,6 +294,32 @@ export async function startBrowserGame(): Promise<void> {
   const flushPulseEffects = (state: RenderGameState): void => {
     while (pendingPulseEffectTicks.length > 0 && pendingPulseEffectTicks[0]! <= state.tick) {
       emitPulseEffect(pendingPulseEffectTicks.shift()!, state);
+    }
+  };
+
+  const emitSwordArc = (tick: number, charged: boolean, state: RenderGameState): void => {
+    const duration = charged ? CHARGED_SWORD_ARC_DURATION_TICKS : SWORD_ARC_DURATION_TICKS;
+    if (state.tick - tick >= duration) return;
+    renderer.emitSwordArc(createSwordArcEffect(tick, charged, state.player));
+    document.body.dataset.swordArcTick = String(tick);
+    document.body.dataset.swordArcCharged = String(charged);
+  };
+
+  const queueSwordArc = (tick: number, charged: boolean): void => {
+    if (renderState !== null && renderState.tick >= tick) {
+      emitSwordArc(tick, charged, renderState);
+      return;
+    }
+    if (!pendingSwordArcEvents.some((event) => event.tick === tick && event.charged === charged)) {
+      pendingSwordArcEvents.push({ tick, charged });
+    }
+    if (pendingSwordArcEvents.length > 4) pendingSwordArcEvents.shift();
+  };
+
+  const flushSwordArcs = (state: RenderGameState): void => {
+    while (pendingSwordArcEvents.length > 0 && pendingSwordArcEvents[0]!.tick <= state.tick) {
+      const event = pendingSwordArcEvents.shift()!;
+      emitSwordArc(event.tick, event.charged, state);
     }
   };
 
@@ -809,7 +839,10 @@ export async function startBrowserGame(): Promise<void> {
       }
     }
     if (event.type === 'pulse-fired') { queuePulseEffect(event.tick); sound('pulse'); }
-    if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
+    if (event.type === 'sword-swung' || event.type === 'sword-charged') {
+      queueSwordArc(event.tick, event.type === 'sword-charged');
+      sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
+    }
     if (event.type === 'projectile-deflected') sound('deflect');
     if (event.type === 'bomb-thrown') sound('bomb-throw');
     if (event.type === 'bomb-detonated') {
@@ -955,11 +988,13 @@ export async function startBrowserGame(): Promise<void> {
       onSnapshot: (state) => {
         if (renderState !== null && (state.tick < renderState.tick || state.levelId !== renderState.levelId)) {
           pendingPulseEffectTicks.length = 0;
+          pendingSwordArcEvents.length = 0;
           laserAudio.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
         flushPulseEffects(state);
+        flushSwordArcs(state);
         playLaserAudio(laserAudio.sample({
           tick: state.tick, heat: state.player.laserHeat, overheated: state.player.laserOverheated,
         }));
@@ -988,6 +1023,7 @@ export async function startBrowserGame(): Promise<void> {
         davelMovementAudio.reset();
         laserAudio.reset();
         pendingPulseEffectTicks.length = 0;
+        pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();
         renderState = state;
         updateHud(state);

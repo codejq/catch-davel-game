@@ -55,6 +55,10 @@ scope.onmessage = (event: MessageEvent<RenderWorkerRequest>) => {
       if (!contextLost) renderer.emitBombDetonation(request.effect);
       return;
     }
+    if (request.type === 'sword-arc') {
+      if (!contextLost) renderer.emitSwordArc(request.effect);
+      return;
+    }
     if (request.type === 'clear-presentation-effects') {
       renderer.clearPresentationEffects();
       return;

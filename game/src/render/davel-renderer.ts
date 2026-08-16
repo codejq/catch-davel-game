@@ -19,6 +19,7 @@ import {
   type BombDetonationEffect,
 } from './bomb-detonation';
 import { laserContactSparkSegment } from './laser-contact';
+import { SwordArcTracker, swordArcSegment, type SwordArcEffect } from './sword-arc';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -307,6 +308,7 @@ export class DavelRenderer {
   private readonly coinBursts = new CoinBurstTracker();
   private readonly pulseEnergyCells = new PulseEnergyCellTracker();
   private readonly bombDetonations = new BombDetonationTracker();
+  private readonly swordArcs = new SwordArcTracker();
 
   constructor(private readonly gl: WebGL2RenderingContext) {
     this.program = createProgram(gl);
@@ -321,9 +323,12 @@ export class DavelRenderer {
 
   emitBombDetonation(effect: BombDetonationEffect): void { this.bombDetonations.emit(effect); }
 
+  emitSwordArc(effect: SwordArcEffect): void { this.swordArcs.emit(effect); }
+
   clearPresentationEffects(): void {
     this.pulseEnergyCells.clear();
     this.bombDetonations.clear();
+    this.swordArcs.clear();
   }
 
   render(
@@ -377,6 +382,22 @@ export class DavelRenderer {
       const flashRadius = bombFlashRadius(effect, state.tick, flashScale);
       if (flashRadius !== null) {
         this.addSphere({ x: effect.x, y: Math.max(0.2, effect.y), z: effect.z }, flashRadius, [1, 0.92, 0.42]);
+      }
+    }
+    for (const effect of this.swordArcs.update(state.tick)) {
+      for (let segmentIndex = 0; segmentIndex < quality.swordArcSegmentCount; segmentIndex += 1) {
+        const segment = swordArcSegment(
+          effect, state.tick, segmentIndex, quality.swordArcSegmentCount, motionScale,
+        );
+        if (segment === null) continue;
+        const colorProgress = segmentIndex / Math.max(1, quality.swordArcSegmentCount - 1);
+        const color: Color = effect.charged
+          ? [1, 0.22 + colorProgress * 0.64, 0.7 - colorProgress * 0.42]
+          : [0.3 + colorProgress * 0.62, 1, 1];
+        this.addCapsule(segment.start, segment.end, segment.radius, color);
+        if (segmentIndex === quality.swordArcSegmentCount - 1) {
+          this.addSphere(segment.end, segment.radius, color);
+        }
       }
     }
     for (const robot of state.robots) {

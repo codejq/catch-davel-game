@@ -212,6 +212,22 @@ try {
     let arsenalObservation = await api.reset({ seed: 'live-arsenal-proof', mode: 'agent', loadout: 'training' });
     arsenalObservation = await api.act({ weapon: 'sword', fire: true }, 1);
     const swordHeat = arsenalObservation.player.swordHeat;
+    const swordArcDeadline = performance.now() + 2_000;
+    while (!Number.isFinite(Number(document.body.dataset.swordArcTick))) {
+      if (performance.now() >= swordArcDeadline) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const swordArcTick = Number(document.body.dataset.swordArcTick);
+    const swordArcCharged = document.body.dataset.swordArcCharged;
+    arsenalObservation = await api.act({}, 39);
+    arsenalObservation = await api.act({ weapon: 'sword', fire: true, altFire: true }, 1);
+    const chargedSwordArcDeadline = performance.now() + 2_000;
+    while (document.body.dataset.swordArcCharged !== 'true') {
+      if (performance.now() >= chargedSwordArcDeadline) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const chargedSwordArcTick = Number(document.body.dataset.swordArcTick);
+    const chargedSwordArcCharged = document.body.dataset.swordArcCharged;
     arsenalObservation = await api.act({ weapon: 'bomb', fire: true }, 1);
     const bombCount = arsenalObservation.player.bombs;
     const liveBombs = arsenalObservation.playerBombs.length;
@@ -220,6 +236,10 @@ try {
       selectedWeapon: arsenalObservation.player.selectedWeapon,
       unlockedWeapons: arsenalObservation.player.unlockedWeapons,
       swordHeat,
+      swordArcTick,
+      swordArcCharged,
+      chargedSwordArcTick,
+      chargedSwordArcCharged,
       bombCount,
       liveBombs,
       laserHeat: arsenalObservation.player.laserHeat,
@@ -405,6 +425,11 @@ try {
     [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
     [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
+    [Number.isFinite(result.arsenalProof.swordArcTick) && result.arsenalProof.swordArcCharged === 'false',
+      'tick-correlated fast sword event did not reach the Offscreen raw-WebGL2 arc path'],
+    [result.arsenalProof.chargedSwordArcTick > result.arsenalProof.swordArcTick
+      && result.arsenalProof.chargedSwordArcCharged === 'true',
+    'tick-correlated charged sword event did not reach the distinct Offscreen raw-WebGL2 arc path'],
     [result.arsenalProof.bombCount === 2 && result.arsenalProof.liveBombs === 1, 'Worker bomb action did not create a thrown bomb'],
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
     [Number.isFinite(result.laserAudioProof.cold.pitchScale)

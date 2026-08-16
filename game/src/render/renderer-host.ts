@@ -8,6 +8,7 @@ import type { RenderWorkerRequest, RenderWorkerResponse } from '../workers/rende
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
+import type { SwordArcEffect } from './sword-arc';
 
 export type RendererMode = 'offscreen-worker' | 'main-thread-fallback';
 
@@ -18,6 +19,7 @@ export interface RendererHost {
   setQuality(quality: RenderQualityTier): void;
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void;
   emitBombDetonation(effect: BombDetonationEffect): void;
+  emitSwordArc(effect: SwordArcEffect): void;
   clearPresentationEffects(): void;
   present(state: RenderGameState, settings?: RenderPresentationSettings): void;
   dispose(): void;
@@ -72,6 +74,11 @@ class MainThreadRendererHost implements RendererHost {
 
   emitBombDetonation(effect: BombDetonationEffect): void {
     this.renderer.emitBombDetonation(effect);
+    if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
+  }
+
+  emitSwordArc(effect: SwordArcEffect): void {
+    this.renderer.emitSwordArc(effect);
     if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
   }
 
@@ -159,6 +166,13 @@ class OffscreenRendererHost implements RendererHost {
   emitBombDetonation(effect: BombDetonationEffect): void {
     if (this.disposed) return;
     this.worker.postMessage({ type: 'bomb-detonation', effect } satisfies RenderWorkerRequest);
+    this.pending = this.latest;
+    this.flush();
+  }
+
+  emitSwordArc(effect: SwordArcEffect): void {
+    if (this.disposed) return;
+    this.worker.postMessage({ type: 'sword-arc', effect } satisfies RenderWorkerRequest);
     this.pending = this.latest;
     this.flush();
   }

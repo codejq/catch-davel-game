@@ -452,6 +452,18 @@ try {
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
   await fallbackPage.click('#game');
+  await fallbackPage.keyboard.press('Digit2');
+  await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'sword');
+  await fallbackPage.mouse.down();
+  await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.swordArcTick)));
+  await fallbackPage.mouse.up();
+  const fallbackSwordArc = await fallbackPage.evaluate(() => ({
+    tick: Number(document.body.dataset.swordArcTick),
+    charged: document.body.dataset.swordArcCharged,
+  }));
+  if (!Number.isFinite(fallbackSwordArc.tick) || fallbackSwordArc.charged !== 'false') {
+    throw new Error(`Main-thread sword event did not create its raw-WebGL2 arc: ${JSON.stringify(fallbackSwordArc)}`);
+  }
   await fallbackPage.keyboard.press('Digit3');
   await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'bomb');
   await fallbackPage.mouse.down();
@@ -643,7 +655,7 @@ try {
     pulseEnergyCellProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
     fallback: {
-      ...fallback, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
+      ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
       bombDetonation: fallbackBombDetonation, contextRecovery, browserErrors: fallbackErrors,
     },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },

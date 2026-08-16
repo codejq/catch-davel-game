@@ -1,6 +1,7 @@
 import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
 import type { PulseEnergyCellEffect } from '../render/presentation-particles';
 import type { BombDetonationEffect } from '../render/bomb-detonation';
+import type { SwordArcEffect } from '../render/sword-arc';
 
 export type RenderWorkerRequest = {
   readonly type: 'initialize';
@@ -24,6 +25,9 @@ export type RenderWorkerRequest = {
 } | {
   readonly type: 'bomb-detonation';
   readonly effect: BombDetonationEffect;
+} | {
+  readonly type: 'sword-arc';
+  readonly effect: SwordArcEffect;
 } | {
   readonly type: 'clear-presentation-effects';
 };
