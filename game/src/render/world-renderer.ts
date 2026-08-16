@@ -3,6 +3,7 @@ import { cellCenter, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells } from '../s
 import type { GameState } from '../sim/game';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
+import { DavelRenderer } from './davel-renderer';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -85,10 +86,12 @@ export class WorldRenderer {
   private readonly view = new Float32Array(16);
   private readonly viewProjection = new Float32Array(16);
   private readonly indexCount: number;
+  private readonly davels: DavelRenderer;
   private instanceCount = 0;
 
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement) {
     this.program = program(gl);
+    this.davels = new DavelRenderer(gl);
     const vao = gl.createVertexArray();
     const vertexBuffer = gl.createBuffer();
     const indexBuffer = gl.createBuffer();
@@ -154,6 +157,7 @@ export class WorldRenderer {
     gl.uniformMatrix4fv(this.viewProjectionLocation, false, this.viewProjection);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
+    this.davels.render(state.robots, this.viewProjection);
   }
 
   private buildWorldInstances(): void {
