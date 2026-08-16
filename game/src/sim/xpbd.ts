@@ -146,6 +146,12 @@ function targets(
     leftFootZ = Math.max(0, beat) * 0.58; rightFootZ = Math.max(0, -beat) * 0.58;
     leftFootY += Math.max(0, beat) * 0.22; rightFootY += Math.max(0, -beat) * 0.22;
     leftHand = [-0.9, 1.5 + alternate * 0.2, 0.04]; rightHand = [0.9, 1.5 - alternate * 0.2, 0.04];
+  } else if (performance.motif === 'flame-fandango') {
+    hipX = alternate * 0.16 * intensity; chestX = -alternate * 0.3 * intensity; chestZ = Math.max(0, beat) * 0.1;
+    headX += -alternate * 0.24; headZ = 0.08 + Math.max(0, beat) * 0.08;
+    leftFootX = -0.3 - Math.max(0, alternate) * 0.1; rightFootX = 0.3 + Math.max(0, -alternate) * 0.1;
+    leftFootZ = alternate * 0.38; rightFootZ = alternate * 0.38;
+    leftHand = [-0.96, 1.7 + beat * 0.18, 0.16]; rightHand = [0.96, 1.18 - beat * 0.12, 0.3];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

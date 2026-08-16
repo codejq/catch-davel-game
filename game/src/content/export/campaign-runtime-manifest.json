@@ -21,6 +21,13 @@
       "roomSize": 0.76,
       "wetMix": 0.28
     },
+    "audio-copper-carnival-014": {
+      "dampingHz": 3100,
+      "decaySeconds": 0.7,
+      "pitchScale": 0.95,
+      "roomSize": 0.82,
+      "wetMix": 0.31
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -117,6 +124,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "flame-fan-fandango": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "flashlight-freeze-dance": {
       "freezeTicks": 60,
       "kind": "freeze-window",
@@ -177,6 +190,7 @@
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",
     "corner-peek-groove": "corner-peek",
+    "flame-fan-fandango": "flame-fandango",
     "flashlight-freeze-dance": "freeze-dance",
     "giant-wobble-breakdown": "giant-breakdown",
     "heavy-boot-two-step": "heavy-two-step",
@@ -227,6 +241,36 @@
       "kind": "conveyor",
       "phaseOffsetTicks": 0,
       "row": 7
+    },
+    "fire-belt-east-v1": {
+      "column": 11,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 4.25,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 90,
+      "row": 7
+    },
+    "fire-belt-west-v1": {
+      "column": 5,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 4.25,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    },
+    "fire-ring-gate-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.4,
+      "halfWidth": 1.4,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 45,
+      "row": 10
     },
     "roundabout-gate-center-v1": {
       "column": 8,
@@ -301,6 +345,79 @@
   },
   "manifestId": "campaign-runtime-v1",
   "mazeProfiles": {
+    "carnival-firebreather-funhouse": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 16,
+          "column": 9,
+          "row": 5
+        },
+        "door": {
+          "column": 6,
+          "row": 8
+        },
+        "energy": {
+          "amount": 24,
+          "column": 9,
+          "row": 9
+        },
+        "health": {
+          "amount": 17,
+          "column": 3,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 2
+        },
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 12
+        }
+      ]
+    },
     "carnival-sliding-sideshow": {
       "interactions": {
         "checkpoint": {
@@ -1088,6 +1205,33 @@
       ],
       "swing": 0.14
     },
+    "flame-fan-fandango": {
+      "bassPattern": [
+        0,
+        4,
+        2,
+        3
+      ],
+      "leadPattern": [
+        0,
+        3,
+        1,
+        4,
+        2,
+        4,
+        1,
+        3
+      ],
+      "rootMidi": 44,
+      "scale": [
+        0,
+        1,
+        5,
+        7,
+        8
+      ],
+      "swing": 0.12
+    },
     "flashlight-freeze-dance": {
       "bassPattern": [
         0,
@@ -1432,6 +1576,40 @@
           0.72,
           0.26,
           0.94
+        ]
+      ]
+    },
+    "copper-carnival-14": {
+      "floor": [
+        0.98,
+        0.72,
+        0.18
+      ],
+      "sky": [
+        0.9,
+        0.48,
+        0.28
+      ],
+      "walls": [
+        [
+          1,
+          0.16,
+          0.12
+        ],
+        [
+          0.96,
+          0.42,
+          0.08
+        ],
+        [
+          0.16,
+          0.62,
+          0.94
+        ],
+        [
+          0.68,
+          0.16,
+          0.72
         ]
       ]
     },

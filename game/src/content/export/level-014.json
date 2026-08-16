@@ -1,0 +1,499 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "8059336090bffb3e",
+          "policyOrReplay": "ab8c698b5dea6c13",
+          "simulationLevel": "97e5dc3922cdd6f6",
+          "simulationSchema": "9f5cdf6817cd80cd"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 12000,
+        "mode": "live-agent",
+        "parTicks": 9000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-firebreather-funhouse"
+        ],
+        "seed": "campaign-level-014-v1",
+        "stuckTimeoutTicks": 1600
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-014"
+  },
+  "briefingKey": "levels.014.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-014"
+    }
+  ],
+  "dance": {
+    "armPatternId": "flame-fan-fandango-arms-v1",
+    "attackBeats": [
+      0,
+      4,
+      8,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 132,
+    "footPatternId": "flame-fan-fandango-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "flame-fan-fandango-head-v1",
+    "pathPatternId": "flame-fan-fandango-path-v1",
+    "presetId": "flame-fan-fandango",
+    "reducedMotionPresetId": "flame-fan-fandango-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "flame-fan-fandango-torso-v1",
+    "transitionIds": [
+      "fire-ring-open",
+      "ringmaster-flare",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.92,
+    "vulnerableBeats": [
+      2,
+      6,
+      10,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-014"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-014"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "firebreather-funhouse-crew",
+      "rewardId": "chapter-02-clear-014",
+      "roomNodeId": "fire-ring-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "funhouse-welcome-wave",
+          "interGroupDelayTicks": 12,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "welcome-wobblers",
+              "modifierIds": [
+                "funhouse-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-1.wobblers",
+              "spawnPointSetId": "level-014-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "welcome-sliders",
+              "modifierIds": [
+                "funhouse-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-1.sliders",
+              "spawnPointSetId": "level-014-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "fire-ring-open",
+          "id": "fire-ring-wave",
+          "interGroupDelayTicks": 10,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "fire-ring-spinners",
+              "modifierIds": [
+                "spark-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-2.spinners",
+              "spawnPointSetId": "level-014-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "fire-ring-firemouth",
+              "modifierIds": [
+                "firebreather"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-2.firemouth",
+              "spawnPointSetId": "level-014-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "fire-ring-heckler",
+              "modifierIds": [
+                "smoke-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-2.heckler",
+              "spawnPointSetId": "level-014-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 38
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "ringmaster-flare",
+          "id": "ringmaster-flare-wave",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 2,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "flare-foreman",
+              "modifierIds": [
+                "fire-ringmaster"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-3.foreman",
+              "spawnPointSetId": "level-014-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-14",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "flame-fan-fandango",
+              "id": "flare-dj",
+              "modifierIds": [
+                "flare-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-14",
+              "rngStream": "encounter.level-014.wave-3.dj",
+              "spawnPointSetId": "level-014-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 34
+        }
+      ]
+    }
+  ],
+  "id": "level-014",
+  "mastery": [
+    {
+      "presetId": "level-014-par-time"
+    },
+    {
+      "presetId": "level-014-fireproof"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "funhouse-entry",
+        "id": "entry-match",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "match-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "match-booth",
+        "id": "match-arena",
+        "requiredKeyId": "brass-match",
+        "stateTrigger": "key-collected",
+        "to": "fire-ring-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "fire-ring-arena",
+        "id": "arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "funhouse-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "funhouse-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "firework-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "match-booth",
+        "id": "match-mirrors",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "smoke-mirror-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "smoke-mirror-loop",
+        "id": "mirrors-checkpoint",
+        "requiredKeyId": "brass-match",
+        "stateTrigger": "key-collected",
+        "to": "funhouse-checkpoint",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "funhouse-entry",
+    "exitNodeId": "firework-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 120,
+        "collisionProfileId": "fire-belt-west-v1",
+        "id": "fire-belt-west",
+        "nodeId": "fire-ring-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 120,
+        "collisionProfileId": "fire-belt-east-v1",
+        "id": "fire-belt-east",
+        "nodeId": "fire-ring-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 84,
+        "collisionProfileId": "fire-ring-gate-v1",
+        "id": "fire-ring-gate",
+        "nodeId": "fire-ring-arena",
+        "periodTicks": 150
+      }
+    ],
+    "keys": [
+      {
+        "id": "brass-match",
+        "placementNodeId": "match-booth"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "funhouse-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "funhouse-entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "match-booth",
+        "pickupIds": [
+          "brass-match"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "brass-match"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "firebreather-funhouse-crew"
+        ],
+        "id": "fire-ring-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "red-firemouth",
+          "crossing-belts",
+          "timed-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "smoke-mirror-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "smoke-mirrors",
+          "coin-cache"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-014",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "funhouse-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "firework-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-firebreather-funhouse",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.014.name",
+  "number": 14,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-firebreather-funhouse",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "funhouse-welcome-wave",
+        "fire-ring-wave",
+        "ringmaster-flare-wave"
+      ],
+      "titleKey": "objectives.level_014",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-14"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-014-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 48,
+    "maxActiveRobots": 4,
+    "maxHazards": 3,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-014-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "red-firemouth",
+    "crossing-belts",
+    "timed-gate",
+    "flame-fan-fandango"
+  ]
+}

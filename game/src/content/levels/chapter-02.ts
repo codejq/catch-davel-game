@@ -2,6 +2,7 @@ import { checksumCanonicalContent } from '../content-hash.ts';
 import type { LevelDefinition } from '../level-definition.ts';
 import { LEVEL_012 } from './level-012.ts';
 import { LEVEL_013 } from './level-013.ts';
+import { LEVEL_014 } from './level-014.ts';
 
 const ZERO_HASH = '0000000000000000';
 
@@ -181,5 +182,6 @@ export const LEVEL_011: LevelDefinition = {
 
 export { LEVEL_012 } from './level-012.ts';
 export { LEVEL_013 } from './level-013.ts';
+export { LEVEL_014 } from './level-014.ts';
 
-export const CHAPTER_02_LEVELS = [LEVEL_011, LEVEL_012, LEVEL_013] as const satisfies readonly LevelDefinition[];
+export const CHAPTER_02_LEVELS = [LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014] as const satisfies readonly LevelDefinition[];

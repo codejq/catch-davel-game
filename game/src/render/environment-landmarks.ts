@@ -34,7 +34,8 @@ export type LandmarkMotif =
   | 'invoice-crown'
   | 'ticket-booth'
   | 'slider-canopy'
-  | 'carousel-sign';
+  | 'carousel-sign'
+  | 'flame-marquee';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -50,6 +51,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-011': 'ticket-booth',
   'level-012': 'slider-canopy',
   'level-013': 'carousel-sign',
+  'level-014': 'flame-marquee',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -186,6 +188,14 @@ function motifBoxes(
         box(anchorX, y + 0.72, anchorZ - 0.12, 1.05, 0.18, 0.12, accent, 0.65),
         box(anchorX - 0.58, y + 1.3, anchorZ, 0.22, 0.46, 0.22, accent, 0.5),
         box(anchorX + 0.58, y + 1.3, anchorZ, 0.22, 0.46, 0.22, accent, 0.5),
+      ];
+    case 'flame-marquee':
+      return [
+        box(anchorX, y + 0.32, anchorZ, 1.55, 0.22, 0.28, primary, 0.45),
+        box(anchorX - 0.58, y + 0.82, anchorZ, 0.24, 1.0, 0.24, accent, 0.65),
+        box(anchorX, y + 0.98, anchorZ, 0.3, 1.34, 0.26, primary, 0.72),
+        box(anchorX + 0.58, y + 0.82, anchorZ, 0.24, 1.0, 0.24, accent, 0.65),
+        box(anchorX + shift, y + 1.62, anchorZ, 0.82, 0.18, 0.24, accent, 0.78),
       ];
   }
 }

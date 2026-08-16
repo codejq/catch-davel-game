@@ -16,7 +16,7 @@ Open the printed local URL with `/tooling.html`. The production build also conta
 
 ## Authoring loop
 
-1. Select one of the thirteen canonical playable levels and load it into the JSON editor.
+1. Select one of the fourteen canonical playable levels and load it into the JSON editor.
 2. Edit the level definition, then choose **Validate**. Unknown fields, invalid types/IDs, stale references, objective cycles, impossible key order, invalid encounter ownership, and exceeded content budgets fail explicitly.
 3. Review the deterministic 15×15 runtime grid and its pickups, lock, checkpoint, coin caches, conveyor, or timed gates. The preview comes from the production grid and runtime profile manifests, not a second mock implementation.
 4. Review the encounter graph. Critical rooms and optional rooms have distinct shapes; locked/triggered edges are labeled.
