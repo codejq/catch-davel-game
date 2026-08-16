@@ -138,6 +138,7 @@ try {
     direction: document.documentElement.dir,
     levelName: document.querySelector('#level-name')?.textContent ?? '',
     objective: document.querySelector('#objective')?.textContent ?? '',
+    briefing: document.querySelector('#prompt-briefing')?.textContent ?? '',
     campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
@@ -167,6 +168,7 @@ try {
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
     || !accessibilitySettings.levelName.includes('التمايل الأول')
     || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')
+    || !accessibilitySettings.briefing.includes('ادخل الورشة المتوهجة')
     || !accessibilitySettings.objective.includes('متبقٍ')
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'

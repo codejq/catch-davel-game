@@ -126,6 +126,8 @@ export async function startBrowserGame(): Promise<void> {
   const inputBindingGrid = requireElement<HTMLElement>('#input-binding-grid');
   const inputBindingReset = requireElement<HTMLButtonElement>('#input-binding-reset');
   const levelName = requireElement<HTMLElement>('#level-name');
+  const promptMission = requireElement<HTMLElement>('#prompt-mission');
+  const promptBriefing = requireElement<HTMLElement>('#prompt-briefing');
   const movePad = requireElement<HTMLElement>('#move-pad');
   const moveStick = requireElement<HTMLElement>('#move-stick');
   const touchFire = requireElement<HTMLButtonElement>('#touch-fire');
@@ -221,6 +223,8 @@ export async function startBrowserGame(): Promise<void> {
     }
     levelName.textContent = `${ui('level')} ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
     objectiveTitle.textContent = localized(activeLevel.objectives[0]!.titleKey);
+    promptMission.textContent = localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale);
+    promptBriefing.textContent = localized(activeLevel.briefingKey);
     settingLanguage.value = catalog.locale;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
     settingCameraMotion.value = String(activeProfile.settings.cameraMotion);

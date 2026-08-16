@@ -275,7 +275,7 @@ export class DavelRenderer {
     const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
     if (uniform === null) throw new Error('Davel view projection uniform is unavailable');
     this.viewProjectionLocation = uniform;
-    this.spheres = new InstanceBatch(gl, createSphere(), 640);
+    this.spheres = new InstanceBatch(gl, createSphere(), 768);
     this.capsules = new InstanceBatch(gl, createCapsule(), 384);
   }
 
@@ -357,6 +357,7 @@ export class DavelRenderer {
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
+    this.addSphere({ x: robot.x, y: 0.045, z: robot.z }, 0.62 * scale, [0.035, 0.055, 0.09], 0.055, 0.76);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
     if (robot.hitFlashTicks > 0 && flashScale > 0) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
