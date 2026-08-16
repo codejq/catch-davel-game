@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 18 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 19 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-018`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-019`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-018'
+    && document.body.dataset.levelId === 'level-019'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   const chapterLevel = await chapterPage.evaluate(() => ({
@@ -667,16 +667,16 @@ try {
     agentApiExposed: window.CatchDavelAgent !== undefined,
   }));
   const expectedChapterRemaining = chapterLevel.language === 'ar'
-    ? 'متبقٍ 4 من دافل'
-    : '4 Davels remain';
+    ? 'متبقٍ 3 من دافل'
+    : '3 Davels remain';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
-    throw new Error('Production Level 18 did not render its opening reverse-circus act in the active locale');
+    throw new Error('Production Level 19 did not render its opening moonlit-swing act in the active locale');
   }
   if (chapterLevel.defenseHealth !== '0' || chapterLevel.defenseMaxHealth !== '0') {
-    throw new Error('Production Level 18 inherited the prior level defense target');
+    throw new Error('Production Level 19 inherited the prior level defense target');
   }
   if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
-    throw new Error('Production Level 18 did not expose the Chapter 2 dash control');
+    throw new Error('Production Level 19 did not expose the Chapter 2 dash control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -798,11 +798,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 18 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 19 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 18
-    || !toolingProof.balanceSummary.includes('Guaranteed 673 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 19
+    || !toolingProof.balanceSummary.includes('Guaranteed 725 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {

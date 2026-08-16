@@ -103,6 +103,22 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'timed-door', activation: 'before-key', column: 6, row: 7,
     halfWidth: 1.3, halfDepth: 1.3, directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
   },
+  'matinee-slide-west-v1': {
+    kind: 'conveyor', column: 5, row: 7, halfWidth: 1.15, halfDepth: 4.25,
+    directionX: 0, directionZ: 1, phaseOffsetTicks: 0,
+  },
+  'matinee-slide-east-v1': {
+    kind: 'conveyor', column: 11, row: 7, halfWidth: 1.15, halfDepth: 4.25,
+    directionX: 0, directionZ: -1, phaseOffsetTicks: 45,
+  },
+  'matinee-curtain-north-v1': {
+    kind: 'timed-door', column: 8, row: 6, halfWidth: 1.3, halfDepth: 1.3,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'matinee-curtain-south-v1': {
+    kind: 'timed-door', column: 8, row: 10, halfWidth: 1.3, halfDepth: 1.3,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 80,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -317,6 +333,24 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 5, row: 5, amount: 20 },
     },
   },
+  'carnival-midnight-matinee': {
+    openings: [
+      { column: 4, row: 2 }, { column: 10, row: 2 }, { column: 6, row: 4 },
+      { column: 12, row: 4 }, { column: 2, row: 6 }, { column: 8, row: 6 },
+      { column: 6, row: 7 }, { column: 10, row: 7 }, { column: 6, row: 8 },
+      { column: 10, row: 8 }, { column: 12, row: 8 }, { column: 4, row: 10 },
+      { column: 8, row: 10 }, { column: 12, row: 10 }, { column: 6, row: 12 },
+      { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 11, row: 3, amount: 17 },
+      key: { column: 3, row: 7 },
+      energy: { column: 3, row: 9, amount: 23 },
+      door: { column: 10, row: 8 },
+      checkpoint: { column: 11, row: 11 },
+      coin: { column: 9, row: 5, amount: 21 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -328,7 +362,8 @@ export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
 export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 'corner-peek'
   | 'heavy-two-step' | 'conveyor-conga' | 'freeze-dance' | 'clockwork-charleston'
   | 'turbo-shuffle' | 'giant-breakdown' | 'ticket-swing' | 'soft-shoe' | 'carousel-kick'
-  | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut';
+  | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut'
+  | 'moonlit-swing';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -349,6 +384,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'mirrorball-lindy': 'mirror-lindy',
   'jackpot-jitterbug': 'jackpot-jitter',
   'reverse-circus-strut': 'reverse-strut',
+  'moonlit-swing-off': 'moonlit-swing',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -383,6 +419,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'mirrorball-lindy': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'jackpot-jitterbug': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'reverse-circus-strut': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'moonlit-swing-off': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -418,6 +455,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-copper-carnival-016': { roomSize: 0.94, decaySeconds: 0.82, dampingHz: 5200, wetMix: 0.36, pitchScale: 1.12 },
   'audio-copper-carnival-017': { roomSize: 0.88, decaySeconds: 0.72, dampingHz: 4900, wetMix: 0.33, pitchScale: 1.06 },
   'audio-copper-carnival-018': { roomSize: 0.84, decaySeconds: 0.68, dampingHz: 4400, wetMix: 0.31, pitchScale: 1.03 },
+  'audio-copper-carnival-019': { roomSize: 0.96, decaySeconds: 0.86, dampingHz: 4000, wetMix: 0.37, pitchScale: 0.98 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -453,6 +491,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'mirrorball-lindy': { rootMidi: 61, scale: [0, 2, 3, 7, 9], leadPattern: [0, 3, 4, 1, 2, 4, 0, 3], bassPattern: [0, 4, 1, 3], swing: 0.25 },
   'jackpot-jitterbug': { rootMidi: 63, scale: [0, 2, 4, 7, 10], leadPattern: [0, 4, 2, 3, 1, 4, 0, 2], bassPattern: [0, 3, 1, 4], swing: 0.23 },
   'reverse-circus-strut': { rootMidi: 55, scale: [0, 2, 5, 7, 9], leadPattern: [4, 2, 3, 1, 4, 0, 2, 1], bassPattern: [4, 2, 0, 3], swing: 0.2 },
+  'moonlit-swing-off': { rootMidi: 50, scale: [0, 3, 5, 7, 10], leadPattern: [0, 3, 1, 4, 2, 3, 0, 4], bassPattern: [0, 2, 4, 1], swing: 0.24 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -487,6 +526,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'copper-carnival-16': { sky: [0.72, 0.88, 1], floor: [0.84, 0.9, 0.96], walls: [[0.18, 0.72, 1], [1, 0.3, 0.76], [0.5, 0.28, 0.98], [1, 0.74, 0.16]] },
   'copper-carnival-17': { sky: [0.42, 0.9, 0.92], floor: [0.96, 0.76, 0.2], walls: [[0.05, 0.74, 0.68], [1, 0.48, 0.08], [0.86, 0.16, 0.58], [0.32, 0.24, 0.94]] },
   'copper-carnival-18': { sky: [0.56, 0.86, 1], floor: [0.98, 0.66, 0.2], walls: [[0.92, 0.2, 0.38], [0.12, 0.68, 0.92], [0.98, 0.72, 0.12], [0.44, 0.22, 0.86]] },
+  'copper-carnival-19': { sky: [0.28, 0.4, 0.76], floor: [0.76, 0.84, 0.96], walls: [[0.18, 0.62, 1], [0.86, 0.28, 0.92], [1, 0.68, 0.16], [0.18, 0.82, 0.72]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {

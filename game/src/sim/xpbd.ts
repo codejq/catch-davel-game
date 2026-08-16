@@ -187,6 +187,16 @@ function targets(
     leftFootY += reverse * 0.17; rightFootY += forward * 0.17;
     leftHand = [-0.78 + forward * 0.32, 1.48 + reverse * 0.28, -0.18];
     rightHand = [0.78 - reverse * 0.32, 1.48 + forward * 0.28, -0.18];
+  } else if (performance.motif === 'moonlit-swing') {
+    const sweep = wave(performanceTime, 0.78, 0.2); const dip = Math.max(0, -beat);
+    bounce += Math.abs(beat) * 0.09 * intensity;
+    hipX = alternate * 0.22 * intensity; chestX = -alternate * 0.3 * intensity;
+    chestZ = dip * 0.14; headX += sweep * 0.18; headZ = -dip * 0.08;
+    leftFootX = -0.28 - alternate * 0.13; rightFootX = 0.28 - alternate * 0.13;
+    leftFootZ = Math.max(0, beat) * 0.54; rightFootZ = Math.max(0, -beat) * 0.54;
+    leftFootY += Math.max(0, beat) * 0.13; rightFootY += Math.max(0, -beat) * 0.13;
+    leftHand = [-0.72 - sweep * 0.22, 1.55 + dip * 0.22, 0.18];
+    rightHand = [0.72 - sweep * 0.22, 1.55 - dip * 0.18, 0.18];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

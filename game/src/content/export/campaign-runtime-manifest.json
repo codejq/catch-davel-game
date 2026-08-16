@@ -56,6 +56,13 @@
       "roomSize": 0.84,
       "wetMix": 0.31
     },
+    "audio-copper-carnival-019": {
+      "dampingHz": 4000,
+      "decaySeconds": 0.86,
+      "pitchScale": 0.98,
+      "roomSize": 0.96,
+      "wetMix": 0.37
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -188,6 +195,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "moonlit-swing-off": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "pocket-robot-pop": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -248,6 +261,7 @@
     "heavy-boot-two-step": "heavy-two-step",
     "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
+    "moonlit-swing-off": "moonlit-swing",
     "pocket-robot-pop": "robot-pop",
     "reverse-circus-strut": "reverse-strut",
     "side-to-side-shuffle": "side-shuffle",
@@ -349,6 +363,46 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 45,
       "row": 10
+    },
+    "matinee-curtain-north-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "matinee-curtain-south-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 80,
+      "row": 10
+    },
+    "matinee-slide-east-v1": {
+      "column": 11,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 4.25,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 45,
+      "row": 7
+    },
+    "matinee-slide-west-v1": {
+      "column": 5,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 4.25,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 0,
+      "row": 7
     },
     "mirror-shutter-center-v1": {
       "column": 8,
@@ -685,6 +739,103 @@
         },
         "health": {
           "amount": 18,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "carnival-midnight-matinee": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 21,
+          "column": 9,
+          "row": 5
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 23,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 17,
           "column": 11,
           "row": 3
         },
@@ -1887,6 +2038,33 @@
       ],
       "swing": 0.25
     },
+    "moonlit-swing-off": {
+      "bassPattern": [
+        0,
+        2,
+        4,
+        1
+      ],
+      "leadPattern": [
+        0,
+        3,
+        1,
+        4,
+        2,
+        3,
+        0,
+        4
+      ],
+      "rootMidi": 50,
+      "scale": [
+        0,
+        3,
+        5,
+        7,
+        10
+      ],
+      "swing": 0.24
+    },
     "pocket-robot-pop": {
       "bassPattern": [
         0,
@@ -2374,6 +2552,40 @@
           0.44,
           0.22,
           0.86
+        ]
+      ]
+    },
+    "copper-carnival-19": {
+      "floor": [
+        0.76,
+        0.84,
+        0.96
+      ],
+      "sky": [
+        0.28,
+        0.4,
+        0.76
+      ],
+      "walls": [
+        [
+          0.18,
+          0.62,
+          1
+        ],
+        [
+          0.86,
+          0.28,
+          0.92
+        ],
+        [
+          1,
+          0.68,
+          0.16
+        ],
+        [
+          0.18,
+          0.82,
+          0.72
         ]
       ]
     },

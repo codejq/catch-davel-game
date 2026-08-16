@@ -39,7 +39,8 @@ export type LandmarkMotif =
   | 'speaker-tent'
   | 'mirror-gallery'
   | 'prize-vault'
-  | 'backtrack-arrows';
+  | 'backtrack-arrows'
+  | 'moonlit-marquee';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -60,6 +61,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-016': 'mirror-gallery',
   'level-017': 'prize-vault',
   'level-018': 'backtrack-arrows',
+  'level-019': 'moonlit-marquee',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -238,6 +240,15 @@ function motifBoxes(
         box(anchorX - 0.65, y + 1.02, anchorZ - 0.14, 0.16, 0.54, 0.12, accent, 0.82),
         box(anchorX + 0.35, y + 0.54, anchorZ - 0.14, 0.72, 0.16, 0.12, accent, 0.82),
         box(anchorX + 0.65 + shift, y + 0.34, anchorZ - 0.14, 0.16, 0.54, 0.12, accent, 0.82),
+      ];
+    case 'moonlit-marquee':
+      return [
+        box(anchorX, y + 0.78, anchorZ, 1.55, 1.5, 0.18, primary, 0.36),
+        box(anchorX + 0.28 + shift, y + 0.88, anchorZ - 0.13, 0.98, 1.08, 0.12, accent, 0.78),
+        box(anchorX + 0.52 + shift, y + 0.88, anchorZ - 0.2, 0.7, 0.82, 0.08, primary, 0.88),
+        box(anchorX - 0.62, y + 1.48, anchorZ - 0.16, 0.16, 0.16, 0.1, accent, 0.95),
+        box(anchorX + 0.7, y + 1.35, anchorZ - 0.16, 0.12, 0.12, 0.1, accent, 0.95),
+        box(anchorX - 0.72, y + 0.38, anchorZ - 0.16, 0.12, 0.12, 0.1, accent, 0.95),
       ];
   }
 }

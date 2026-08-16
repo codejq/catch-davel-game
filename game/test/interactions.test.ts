@@ -271,4 +271,15 @@ describe('authoritative Level 1 interactions', () => {
     const restored = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
     expect(restored.level.hazards).toEqual(game.state.level.hazards);
   });
+
+  it('runs the Level 19 gauntlet with opposing motion lanes and alternating curtains', () => {
+    const game = new GameSimulation('midnight-matinee-proof', undefined, undefined, 'campaign', 'level-019');
+    const conveyors = game.state.level.hazards.filter((hazard) => hazard.kind === 'conveyor');
+    const curtains = game.state.level.hazards.filter((hazard) => hazard.kind === 'timed-door');
+    expect(conveyors.map(({ directionZ }) => directionZ)).toEqual([1, -1]);
+    expect(curtains.map(({ active }) => active)).toEqual([true, false]);
+    stepLevelHazardPhases(game.state.level, 80, game.state.levelId);
+    expect(curtains.map(({ active }) => active)).toEqual([false, true]);
+    expect(closedDoorCells(game.state.level)).toContainEqual({ column: 8, row: 10 });
+  });
 });

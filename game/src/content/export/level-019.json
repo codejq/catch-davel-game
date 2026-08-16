@@ -1,0 +1,567 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "765ae93d723e3c09",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "2a11ddf526e2aca1",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 16000,
+        "mode": "live-agent",
+        "parTicks": 11800,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-midnight-matinee"
+        ],
+        "seed": "campaign-level-019-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-019"
+  },
+  "briefingKey": "levels.019.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-019"
+    }
+  ],
+  "dance": {
+    "armPatternId": "moonlit-swing-off-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 154,
+    "footPatternId": "moonlit-swing-off-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "moonlit-swing-off-head-v1",
+    "pathPatternId": "moonlit-swing-off-path-v1",
+    "presetId": "moonlit-swing-off",
+    "reducedMotionPresetId": "moonlit-swing-off-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "moonlit-swing-off-torso-v1",
+    "transitionIds": [
+      "midnight-swing",
+      "curtain-call",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-019"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-019"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "midnight-company",
+      "rewardId": "chapter-02-clear-019",
+      "roomNodeId": "moonlit-gauntlet",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "moonrise-overture",
+          "interGroupDelayTicks": 9,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "overture-wobblers",
+              "modifierIds": [
+                "moon-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-1.wobblers",
+              "spawnPointSetId": "level-019-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "overture-slider",
+              "modifierIds": [
+                "spotlight-slide"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-1.slider",
+              "spawnPointSetId": "level-019-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "midnight-swing",
+          "id": "midnight-swing",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "swing-wobbler",
+              "modifierIds": [
+                "moon-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-2.wobbler",
+              "spawnPointSetId": "level-019-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "swing-slider",
+              "modifierIds": [
+                "spotlight-slide"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-2.slider",
+              "spawnPointSetId": "level-019-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "swing-spinners",
+              "modifierIds": [
+                "moon-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-2.spinners",
+              "spawnPointSetId": "level-019-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 24
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "curtain-call",
+          "id": "curtain-call",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "curtain-firemouth",
+              "modifierIds": [
+                "footlight-fire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-3.firemouth",
+              "spawnPointSetId": "level-019-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "curtain-foreman",
+              "modifierIds": [
+                "midnight-ringmaster"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-3.foreman",
+              "spawnPointSetId": "level-019-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-19",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "moonlit-swing-off",
+              "id": "curtain-dj",
+              "modifierIds": [
+                "moonlight-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-19",
+              "rngStream": "encounter.level-019.wave-3.dj",
+              "spawnPointSetId": "level-019-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 20
+        }
+      ]
+    }
+  ],
+  "id": "level-019",
+  "mastery": [
+    {
+      "presetId": "level-019-par-time"
+    },
+    {
+      "presetId": "level-019-no-curtain-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "moon-gate-entry",
+        "id": "entry-ticket",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "silver-ticket-lane",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "silver-ticket-lane",
+        "id": "ticket-gauntlet",
+        "requiredKeyId": "moon-ticket",
+        "stateTrigger": "key-collected",
+        "to": "moonlit-gauntlet",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "moonlit-gauntlet",
+        "id": "gauntlet-crossing",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "matinee-crossing",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "matinee-crossing",
+        "id": "crossing-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "midnight-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "midnight-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "curtain-call-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "silver-ticket-lane",
+        "id": "ticket-west",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "west-balcony",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "west-balcony",
+        "id": "west-east",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "east-balcony",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "east-balcony",
+        "id": "east-crossing",
+        "requiredKeyId": "moon-ticket",
+        "stateTrigger": "key-collected",
+        "to": "matinee-crossing",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "moon-gate-entry",
+    "exitNodeId": "curtain-call-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 135,
+        "collisionProfileId": "matinee-slide-west-v1",
+        "id": "matinee-slide-west",
+        "nodeId": "moonlit-gauntlet",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 135,
+        "collisionProfileId": "matinee-slide-east-v1",
+        "id": "matinee-slide-east",
+        "nodeId": "moonlit-gauntlet",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "matinee-curtain-north-v1",
+        "id": "matinee-curtain-north",
+        "nodeId": "moonlit-gauntlet",
+        "periodTicks": 160
+      },
+      {
+        "activeTicks": 64,
+        "collisionProfileId": "matinee-curtain-south-v1",
+        "id": "matinee-curtain-south",
+        "nodeId": "moonlit-gauntlet",
+        "periodTicks": 160
+      }
+    ],
+    "keys": [
+      {
+        "id": "moon-ticket",
+        "placementNodeId": "silver-ticket-lane"
+      }
+    ],
+    "maxBranchDepth": 2,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "moon-gate-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "moon-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "silver-ticket-lane",
+        "pickupIds": [
+          "moon-ticket"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "silver-ticket"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "midnight-company"
+        ],
+        "id": "moonlit-gauntlet",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "moonlit",
+          "moving-lanes",
+          "curtain-gates"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "west-balcony",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "balcony-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "east-balcony",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "balcony-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "matinee-crossing",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "curtain-crossing"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-019",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "midnight-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "curtain-call-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 2,
+      "minimum": 2
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-midnight-matinee",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.019.name",
+  "number": 19,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-midnight-matinee",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "moonrise-overture",
+        "midnight-swing",
+        "curtain-call"
+      ],
+      "titleKey": "objectives.level_019",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-19"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-019-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 60,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-019-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "moonlit-gauntlet",
+    "moving-lanes",
+    "moonlit-swing-off"
+  ]
+}

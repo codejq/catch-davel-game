@@ -7,6 +7,7 @@ import { LEVEL_015 } from './level-015.ts';
 import { LEVEL_016 } from './level-016.ts';
 import { LEVEL_017 } from './level-017.ts';
 import { LEVEL_018 } from './level-018.ts';
+import { LEVEL_019 } from './level-019.ts';
 
 const ZERO_HASH = '0000000000000000';
 
@@ -191,7 +192,8 @@ export { LEVEL_015 } from './level-015.ts';
 export { LEVEL_016 } from './level-016.ts';
 export { LEVEL_017 } from './level-017.ts';
 export { LEVEL_018 } from './level-018.ts';
+export { LEVEL_019 } from './level-019.ts';
 
 export const CHAPTER_02_LEVELS = [
-  LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016, LEVEL_017, LEVEL_018,
+  LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016, LEVEL_017, LEVEL_018, LEVEL_019,
 ] as const satisfies readonly LevelDefinition[];

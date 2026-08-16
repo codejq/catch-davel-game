@@ -6,7 +6,7 @@ import { DEFAULT_LEVEL_SEED } from '../src/sim/constants';
 import { currentAgentValidationDependencies } from '../src/replay/replay';
 import {
   CHAPTER_02_LEVELS, LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016, LEVEL_017,
-  LEVEL_018,
+  LEVEL_018, LEVEL_019,
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
 
@@ -49,7 +49,7 @@ describe('Appendix A level-data contract', () => {
       .toEqual(currentAgentValidationDependencies('level-011'));
     expect(CHAPTER_02_LEVELS.map((level) => level.id)).toEqual([
       'level-011', 'level-012', 'level-013', 'level-014', 'level-015', 'level-016', 'level-017',
-      'level-018',
+      'level-018', 'level-019',
     ]);
     expect(validateLevelDefinition(LEVEL_012)).toBe(LEVEL_012);
     expect(campaignLevel('level-012')).toBe(LEVEL_012);
@@ -88,6 +88,11 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_018.tags).toContain('maze-reversal');
     expect(LEVEL_018.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-018'));
+    expect(validateLevelDefinition(LEVEL_019)).toBe(LEVEL_019);
+    expect(campaignLevel('level-019')).toBe(LEVEL_019);
+    expect(LEVEL_019.tags).toContain('moonlit-gauntlet');
+    expect(LEVEL_019.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-019'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

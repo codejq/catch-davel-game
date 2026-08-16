@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **33 — playable Level 18 Big Top Backtrack and key-triggered maze reversal implemented**
+Revision: **34 — playable Level 19 Midnight Matinee and bright moonlit gauntlet implemented**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -59,6 +59,8 @@ Revision 31 records playable Level 16, **Laughing Mirrors**. A symmetric maze ad
 Revision 32 records playable Level 17, **Prize Booth Panic**, and the first real defense-objective contract. After the vault key is collected, every active Davel deterministically pathfinds toward a solid 360-health prize bank, stops inside its authored attack radius, and strikes on stable per-ID schedules; losing the bank causes authoritative defeat. The target crosses schema-v20 snapshots/checksums/replays, self-contained 9,896-byte RenderSnapshot v15, a raw-WebGL2 damage-colored prize-bank model, English/Arabic HUD, observation v17, API v4, baseline threat prioritization, and checksum-first profile v13 migration that clears only incompatible schema-v19 checkpoints. The 146 BPM `jackpot-jitterbug` adds exaggerated coin-grab and toss poses, while the bright teal/gold/pink/violet arena and prize-vault landmarks keep the target readable. Standard clears at tick 2,264 with checksum `23cec2a24827d6e3`, leaving the bank at 333/360 health. Frozen suite v13 re-records the six reference checksums and dependencies. The campaign now contains seventeen playable levels, 51 localized strings per release locale, and 170 provenance-resolved assets. Levels 18–100 remain reserved; physical-device availability is removed from implementation gating and remains only optional future platform-release certification evidence.
 
 Revision 33 records playable Level 18, **Big Top Backtrack**, and its planned key-triggered maze reversal. Two state-driven timed-door collision profiles begin in opposite states: the outbound lane is open and the return lane is solid; collecting the reverse key atomically closes the outbound lane and opens the alternate route. The active flags are authoritative existing hazard state, survive complete snapshot/replay restoration, steer player and Davel collision/pathfinding, render through the existing raw-WebGL2 gate path, and appear to LLMs as zero-timer state-driven gates under observation v17/API v4. A distinct sky-blue/orange/red/violet palette, backtrack-arrow landmarks, three-act ten-Davel roster, and 150 BPM `reverse-circus-strut` complete the level. Standard clears deterministically at tick 3,154 with checksum `079778d2c4903215`; its simulation-level dependency hash isolates the new behavior without changing prior level checksums or the global schema. The campaign now contains eighteen playable levels, 54 localized strings per release locale, and 180 provenance-resolved assets. Levels 19–100 remain reserved, and physical-device evidence remains outside implementation gating.
+
+Revision 34 records playable Level 19, **Midnight Matinee**. Two long opposing conveyor lanes and two 80-tick-offset curtain gates combine the chapter's movement and timing lessons in a three-act, ten-Davel gauntlet. “Midnight” is thematic rather than unreadably dark: the distinct palette uses a bright blue moonlit sky, pale reflective floor, saturated neon walls, and emissive crescent-marquee landmarks so the maze boundary and routes remain clear. The 154 BPM `moonlit-swing-off` adds deep dips, sweeping head and arm motion, alternating traveling steps, and a distinct XPBD pose signature. Standard clears deterministically at tick 1,903 with checksum `c149d0d0b6905a1d`; its simulation-level dependency hash is `2a11ddf526e2aca1`. The campaign now contains nineteen playable levels, 57 localized strings per release locale, 190 provenance-resolved assets, and a first-clear economy of 725 guaranteed plus 259 optional coins. Levels 20–100 remain reserved. Physical-device availability is not an implementation blocker; optional certification evidence can be collected later when hardware exists.
 
 ## 1. Executive summary
 
@@ -556,7 +558,7 @@ The names and scenarios below are working content specifications. Exact room cou
 | 16 | Laughing Mirrors | False corridors | Mirrorball Lindy |
 | 17 | Prize Booth Panic | Defend coin bank | Jackpot Jitterbug |
 | 18 | Big Top Backtrack | Maze changes after key pickup | Reverse Circus Strut |
-| 19 | Midnight Matinee | Dark carnival gauntlet | Moonlit Swing-Off |
+| 19 | Midnight Matinee | Bright moonlit carnival gauntlet | Moonlit Swing-Off |
 | 20 | Ringmaster Davel | Chapter boss | Evil Ringmaster Revue |
 | 21 | Pipework Promenade | Vent routes and bomb tutorial | Pipe-Tap Tango |
 | 22 | Green Steam | Visibility pulses | Toxic Toe Tango |
