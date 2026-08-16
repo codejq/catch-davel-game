@@ -14,7 +14,7 @@
     "preperf:browser": "npm run build",
     "perf:browser": "tsx src/bench/browser-cli.ts",
     "report": "tsx src/bench/report.ts",
-    "verify": "npm run build && npm run test && tsx src/bench/cli.ts determinism:smoke"
+    "verify": "npm run build && npm run test && tsx src/bench/cli.ts determinism:smoke && tsx src/bench/verify-cli.ts"
   },
   "devDependencies": {
     "@types/node": "26.2.0",

@@ -12,6 +12,12 @@ describe('authoritative simulation', () => {
     }
   });
 
+  it('matches the frozen schema-v1 smoke checksum', () => {
+    const simulation = new Simulation('phase-minus-one-determinism-smoke');
+    for (let tick = 0; tick < 600; tick += 1) simulation.step();
+    expect(simulation.checksum()).toBe('1f7b580c');
+  });
+
   it('produces different evolved state for a different seed', () => {
     const first = new Simulation('seed-a');
     const second = new Simulation('seed-b');

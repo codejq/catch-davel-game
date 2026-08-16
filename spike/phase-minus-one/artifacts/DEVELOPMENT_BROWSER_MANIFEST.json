@@ -1,0 +1,175 @@
+{
+  "status": "development-only",
+  "sourceRun": "perf-browser-2026-08-16T04-12-01-267Z",
+  "rawArtifactHashes": {
+    "run": "dd347b25b701f029fe0adbdfca8415dbc0f6424b6cac55a14b8a73b048a78bcd",
+    "samples": "314d85c84f1fbccf34b051a3daa9ab430eb4a00db4abeb0ae0b5fe1611b42122",
+    "summary": "d666a70fa40a4c53f65c41e8b18fdabdf0bf1af3ab3d2544886586d5f97e0436",
+    "errors": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "run": {
+    "label": "development-only",
+    "scenario": "perf:browser",
+    "scenarioVersion": 1,
+    "seed": "catch-davel-phase-minus-one-v1",
+    "gitCommit": "cbd1ffc3df13c33ea5db057384cde3f608282517",
+    "dirty": true,
+    "startedAt": "2026-08-16T04:11:56.466Z",
+    "endedAt": "2026-08-16T04:12:01.317Z",
+    "configuration": {
+      "simulationSchemaVersion": 1,
+      "transportContractVersion": 1,
+      "tickHz": 60,
+      "substeps": 2,
+      "iterations": 8,
+      "robots": 24,
+      "warmupSeconds": 1,
+      "measuredSeconds": 3
+    },
+    "runtime": {
+      "browserVersion": "151.0.4129.86",
+      "browserExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+      "node": "v24.16.0",
+      "platform": "win32",
+      "osRelease": "10.0.19045",
+      "architecture": "x64",
+      "cpu": "Intel(R) Core(TM) i9-14900K",
+      "logicalCpuCount": 12,
+      "totalMemoryBytes": 32060657664,
+      "freeMemoryBytesAtReport": 19829518336,
+      "viewport": {
+        "width": 1280,
+        "height": 720,
+        "pixelRatio": 1
+      },
+      "rendererMode": "OffscreenCanvas render Worker",
+      "renderer": {
+        "vendor": "Google Inc. (Microsoft)",
+        "renderer": "ANGLE (Microsoft, Microsoft Basic Render Driver (0x0000008C) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+        "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+        "shadingLanguageVersion": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+        "gpuTimerQueryAvailable": true
+      },
+      "powerPolicy": "not exposed by browser harness"
+    }
+  },
+  "summary": {
+    "label": "development-only",
+    "passedHarness": true,
+    "sampleCounts": {
+      "simulation": 181,
+      "render": 180
+    },
+    "simulation": {
+      "navigationMs": {
+        "samples": 181,
+        "minimum": 0,
+        "median": 0.10000002384185791,
+        "p95": 0.20000001788139343,
+        "p99": 0.30000001192092896,
+        "maximum": 0.30000001192092896,
+        "mean": 0.1403314912516768
+      },
+      "physicsMs": {
+        "samples": 181,
+        "minimum": 0,
+        "median": 0.19999998807907104,
+        "p95": 0.29999998211860657,
+        "p99": 0.4000000059604645,
+        "maximum": 0.4000000059604645,
+        "mean": 0.15745856386521903
+      },
+      "combatProjectilesHazardsMs": {
+        "samples": 181,
+        "minimum": 0,
+        "median": 0,
+        "p95": 0.09999999403953552,
+        "p99": 0.10000002384185791,
+        "maximum": 0.19999998807907104,
+        "mean": 0.011602210076474353
+      },
+      "eventsObjectivesEconomyMs": {
+        "samples": 181,
+        "minimum": 0,
+        "median": 0,
+        "p95": 0,
+        "p99": 0.09999999403953552,
+        "maximum": 0.09999999403953552,
+        "mean": 0.0027624307745728045
+      },
+      "snapshotMs": {
+        "samples": 181,
+        "minimum": 0,
+        "median": 0,
+        "p95": 0,
+        "p99": 0.09999999403953552,
+        "maximum": 0.10000002384185791,
+        "mean": 0.0038674032490556413
+      },
+      "wholeTickMs": {
+        "samples": 181,
+        "minimum": 0.19999998807907104,
+        "median": 0.30000001192092896,
+        "p95": 0.4000000059604645,
+        "p99": 0.5999999940395355,
+        "maximum": 0.6000000238418579,
+        "mean": 0.3165745853719132
+      }
+    },
+    "snapshotLatencyMs": {
+      "samples": 181,
+      "minimum": 0.099853515625,
+      "median": 0.199951171875,
+      "p95": 0.300048828125,
+      "p99": 0.499755859375,
+      "maximum": 0.5,
+      "mean": 0.2170288760359116
+    },
+    "queuedEvents": {
+      "samples": 181,
+      "minimum": 0,
+      "median": 0,
+      "p95": 0,
+      "p99": 0,
+      "maximum": 0,
+      "mean": 0
+    },
+    "renderCpuMs": {
+      "samples": 180,
+      "minimum": 0,
+      "median": 0.10000002384185791,
+      "p95": 0.20000001788139343,
+      "p99": 0.30000001192092896,
+      "maximum": 0.30000001192092896,
+      "mean": 0.13722222083144717
+    },
+    "drawCalls": {
+      "samples": 180,
+      "minimum": 3,
+      "median": 3,
+      "p95": 3,
+      "p99": 3,
+      "maximum": 3,
+      "mean": 3
+    },
+    "instances": {
+      "samples": 180,
+      "minimum": 697,
+      "median": 697,
+      "p95": 697,
+      "p99": 697,
+      "maximum": 697,
+      "mean": 697
+    },
+    "firstTick": 70,
+    "lastTick": 250,
+    "finalChecksum": "915fbbb7",
+    "determinism": {
+      "nodeReferenceChecksum": "915fbbb7",
+      "workerChecksum": "915fbbb7",
+      "matches": true
+    },
+    "errors": 0,
+    "certification": "incomplete: development VMware host is not an approved baseline device"
+  }
+}

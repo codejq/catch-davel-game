@@ -8,3 +8,5 @@
 - `errors.jsonl` — console, page, and captured runtime errors.
 
 Raw run directories are intentionally ignored because they can become large. Approved evidence is promoted by the report command as a compact manifest containing the source run's hashes; a run from development or virtual hardware must remain labeled `development-only` and cannot certify the baseline device matrix.
+
+`DEVELOPMENT_BROWSER_MANIFEST.json` and `DEVELOPMENT_REPORT.md` are the checked-in compact evidence for the latest successful development run. They intentionally retain the source run's dirty-state flag and do not convert diagnostic results into certification.
