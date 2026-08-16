@@ -14,6 +14,7 @@ import type {
 import type { WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { DifficultyId } from '../sim/difficulty';
 
 export interface SimulationWorkerClientCallbacks {
   readonly onSnapshot: (state: RenderGameState, latencyMs: number) => void;
@@ -30,6 +31,7 @@ export interface SimulationWorkerClientOptions {
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
   readonly encounter?: EncounterId;
+  readonly difficulty?: DifficultyId;
   readonly callbacks: SimulationWorkerClientCallbacks;
 }
 
@@ -78,6 +80,7 @@ export class SimulationWorkerClient {
       ...(options.unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask: options.unlockedWeaponMask }),
       ...(options.weaponUpgrades === undefined ? {} : { weaponUpgrades: options.weaponUpgrades }),
       ...(options.encounter === undefined ? {} : { encounter: options.encounter }),
+      ...(options.difficulty === undefined ? {} : { difficulty: options.difficulty }),
       snapshotPort: this.snapshotChannel.port1, eventPort: this.eventChannel.port1,
     } satisfies SimulationWorkerRequest, [this.snapshotChannel.port1, this.eventChannel.port1]);
   }
@@ -123,7 +126,7 @@ export class SimulationWorkerClient {
   reset(
     seed: string, initialCoins: number, agentRun: boolean,
     unlockedWeaponMask?: number, weaponUpgrades?: WeaponUpgradeLevels, encounter?: EncounterId,
-    levelId?: Chapter01LevelId,
+    levelId?: Chapter01LevelId, difficulty?: DifficultyId,
   ): Promise<SimulationWorkerComplete> {
     return this.requestComplete({
       type: 'reset', requestId: 0, seed, initialCoins, agentRun,
@@ -131,6 +134,7 @@ export class SimulationWorkerClient {
       ...(unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask }),
       ...(weaponUpgrades === undefined ? {} : { weaponUpgrades }),
       ...(encounter === undefined ? {} : { encounter }),
+      ...(difficulty === undefined ? {} : { difficulty }),
     });
   }
 

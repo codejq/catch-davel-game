@@ -8,7 +8,7 @@ This document records the implemented production contract. It does not replace t
 
 `SimulationSnapshotV1` is complete and self-contained. It contains:
 
-- simulation schema/snapshot format versions, authoritative campaign level, tick, and seed;
+- simulation schema/snapshot format versions, authoritative campaign level, difficulty, tick, and seed;
 - complete player pose, resources, coins, and camera/movement state;
 - every Davel route, AI, attack, dance, health, reaction, spawn/wave, and stable-ID field;
 - all Verlet current/previous particle arrays and XPBD rest constraints;
@@ -25,7 +25,7 @@ The strict parser rejects unknown/missing fields, non-finite numbers, malformed 
 
 Canonical JSON sorts every object key, preserves declared array order, normalizes negative zero, and rejects unsupported/non-finite values. The current deterministic drift checksum is FNV-1a 64 over UTF-8 canonical snapshot bytes. It is a regression/corruption checksum, not a security signature.
 
-Simulation schema v14 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, typed projectile position/velocity, and accumulated damage value to eight decimal places at initial-state creation and after every mutating fixed tick. Campaign state and run metrics are snapshotted and replayed. The precision and all authoritative selections are part of replay dependencies. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
+Simulation schema v15 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, typed projectile position/velocity, and accumulated damage value to eight decimal places at initial-state creation and after every mutating fixed tick. It also binds the selected Story/Standard/Hard profile and its explicit health, damage, movement, projectile, telegraph, wave-delay, resource, boss-phase, attack-token, AI, and human aim-assist defaults. Campaign state and run metrics are snapshotted and replayed. The precision and all authoritative selections are part of replay dependencies. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
 
 Snapshot tests prove that a checkpoint restored at tick 420 and continued to tick 900 has the same complete state and checksum as an uninterrupted run. Presentation events can differ without affecting it.
 
@@ -47,21 +47,21 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 ## Frozen campaign QA
 
-`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v11. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v11 exposes elapsed ticks, score, accuracy counters, damage, defeats, collected coins, secrets, and combo alongside the prior public mechanics; it does not grant hidden state or another simulation path.
+`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v12. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v12 adds the authoritative difficulty to elapsed ticks, score, accuracy counters, damage, defeats, collected coins, secrets, combo, and prior public mechanics; it does not grant hidden state or another simulation path.
 
-The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v4 contains the schema-v14 checksum re-freeze and binds live-agent runs to policy ID/version plus observation schema v11. All final ticks remained unchanged. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
+The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v5 contains the schema-v15 difficulty checksum re-freeze and binds live-agent runs to policy ID/version plus observation schema v12. All Standard final ticks remained unchanged. A separate all-level static report validates all 30 level/difficulty pairs, while declared Story/Hard live runs freeze exact outcomes for Levels 1, 9, and 10. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
 
-## Profile v7
+## Profile v8
 
-Profiles include schema/migration history, identity, unlocks, per-level best/last complete results and replay proof, total/spendable coins, upgrades, cosmetics, achievements, settings, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum. Frozen v1 through v6 profiles are checksum-verified before sequential migration to v7.
+Profiles include schema/migration history, identity, unlocks, per-level best/last complete results and replay proof, total/spendable coins, upgrades, cosmetics, achievements, Story/Standard/Hard setting, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum. Frozen v1 through v6 profiles are checksum-verified before sequential migration to v8; the v7→v8 boundary defaults to Standard and deliberately clears schema-v14 checkpoints that cannot be loaded under schema v15.
 
 IndexedDB stores alternating `a` and `b` envelopes plus an active pointer. Saving writes and reads back the inactive record first; only a fully parsed, checksum-valid record can become active. Loading prefers the active revision and then recovers the other known-good record. A newer unknown profile schema is never silently discarded.
 
-Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browser implementation does not claim to satisfy packaged-file durability.
+Packaged Tauri sessions use bounded, read-back-verified app-data persistence with a previous-file recovery copy. Browser and packaged builds share the same strict profile-v8 parser and 4 MiB import/export contract.
 
 ## Presentation snapshot and ownership
 
-`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 10 is a fixed 9,856-byte binary projection containing campaign-level identity, complete player/HUD state, live score/current/best combo, up to 24 articulated render bodies, 64 hostile projectiles, eight pickups, 64 hazards/gates, 16 player bombs, level/laser/terminal state, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
+`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 11 is a fixed 9,856-byte binary projection containing campaign-level/difficulty identity, complete player/HUD state, live score/current/best combo, up to 24 articulated render bodies, 64 hostile projectiles, eight pickups, 64 hazards/gates, 16 player bombs, level/laser/terminal state, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
 
 The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract, and capable browsers pass its decoded immutable copy through a bounded one-in-flight/latest-pending mailbox to the unchanged `WorldRenderer` in an OffscreenCanvas Worker. Unsupported or failed initialization uses the same renderer on the main thread, so the enhancement introduces neither another gameplay implementation nor an unbounded browser message queue.
 
@@ -77,4 +77,4 @@ Ordered events travel on a port independent from snapshots. The current provisio
 
 Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
 
-Agent action queues pause authoritative time between requests, and their replays carry `agentRun: true`. Human IndexedDB progress writes are suppressed while agent control is active. Reset, action batches, replay save/load, observations, and metrics are Worker RPCs; the metrics response includes a defensive copy of the same authoritative run counters used by human results. Releasing control creates a clean human simulation from durable profile state before resuming realtime mode.
+Agent action queues pause authoritative time between requests, and their replays carry `agentRun: true`. Human IndexedDB progress writes are suppressed while agent control is active. Reset—including explicit Story/Standard/Hard selection—action batches, replay save/load, observations, and metrics are Worker RPCs; the metrics response includes a defensive copy of the same authoritative run counters used by human results. Releasing control creates a clean human simulation from durable profile state before resuming realtime mode.

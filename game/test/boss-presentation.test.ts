@@ -18,6 +18,9 @@ describe('snapshot-derived boss presentation', () => {
     expect(bossPresentation([robot({ health: 210, bossPhase: 2 })])).toMatchObject({
       health: 210, healthRatio: 0.5, phase: 2,
     });
+    expect(bossPresentation([robot({ health: 496 })], 'hard')).toMatchObject({
+      health: 496, maxHealth: 496, healthRatio: 1,
+    });
   });
 
   it('hides for inactive bosses and ordinary Davels', () => {

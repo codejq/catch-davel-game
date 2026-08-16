@@ -8,6 +8,7 @@ import {
   ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP, ENEMY_SLIDER_BOLT_SPEED,
 } from './balance';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { difficultyProfile, difficultyRobotHealth, type DifficultyId, type DifficultyProfile } from './difficulty';
 
 export type EnemyProjectileKind = 'slider-bolt' | 'beat-bolt' | 'fireball';
 
@@ -50,13 +51,13 @@ function clearShot(
   return true;
 }
 
-function telegraphTicks(archetype: RobotArchetype, bossPhase = 0): number {
-  if (archetype === 'wobble-scout') return 24;
-  if (archetype === 'blue-slider') return 18;
-  if (archetype === 'yellow-spinner') return 30;
-  if (archetype === 'red-firemouth') return 38;
-  if (archetype === 'cyan-dj') return 34;
-  return 50 - bossPhase * 6;
+function telegraphTicks(archetype: RobotArchetype, profile: DifficultyProfile, bossPhase = 0): number {
+  const base = archetype === 'wobble-scout' ? 24
+    : archetype === 'blue-slider' ? 18
+      : archetype === 'yellow-spinner' ? 30
+        : archetype === 'red-firemouth' ? 38
+          : archetype === 'cyan-dj' ? 34 : 50 - bossPhase * 6;
+  return Math.max(10, Math.round(base * profile.telegraphTicksMultiplier));
 }
 
 function projectileKind(archetype: RobotArchetype): EnemyProjectileKind {
@@ -83,7 +84,9 @@ function canBeginAttack(robot: RobotState, player: PlayerState, levelId: Chapter
   return clearShot(robot.x, robot.z, player.x, player.z, ENEMY_ATTACK_RANGE, levelId);
 }
 
-function fireProjectile(robot: RobotState, player: PlayerState, id: number): EnemyProjectile {
+function fireProjectile(
+  robot: RobotState, player: PlayerState, id: number, projectileSpeedMultiplier: number,
+): EnemyProjectile {
   const definition = ROBOT_DEFINITIONS[robot.id]!;
   const kind = projectileKind(definition.archetype);
   const originY = definition.scale * 1.72;
@@ -91,7 +94,7 @@ function fireProjectile(robot: RobotState, player: PlayerState, id: number): Ene
   const deltaY = PLAYER_EYE_HEIGHT - 0.18 - originY;
   const deltaZ = player.z - robot.z;
   const distance = Math.max(0.001, Math.hypot(deltaX, deltaY, deltaZ));
-  const speed = projectileSpeed(kind);
+  const speed = projectileSpeed(kind) * projectileSpeedMultiplier;
   return {
     id, ownerRobotId: robot.id, kind, x: robot.x, y: originY, z: robot.z,
     velocityX: (deltaX / distance) * speed,
@@ -108,6 +111,7 @@ export function stepEnemyCombat(
   nextProjectileId: number,
   levelId: Chapter01LevelId = 'level-001',
   robotsFrozen = false,
+  difficulty: DifficultyId = 'standard',
 ): EnemyCombatResult {
   const firedRobotIds: number[] = [];
   const telegraphRobotIds: number[] = [];
@@ -115,14 +119,16 @@ export function stepEnemyCombat(
   const buffRobotIds: number[] = [];
   const bossPhaseRobotIds: number[] = [];
   const playerHitRobotIds: number[] = [];
+  const profile = difficultyProfile(difficulty);
   let nextId = nextProjectileId;
   if (player.health > 0 && !robotsFrozen) {
     for (const robot of robots) {
       if (!robot.active) continue;
       const definition = ROBOT_DEFINITIONS[robot.id]!;
       if (definition.rank === 'boss') {
-        const healthRatio = robot.health / definition.maxHealth;
-        const nextPhase: 1 | 2 | 3 = healthRatio <= 1 / 3 ? 3 : healthRatio <= 2 / 3 ? 2 : 1;
+        const healthRatio = robot.health / difficultyRobotHealth(definition.maxHealth, difficulty);
+        const nextPhase: 1 | 2 | 3 = healthRatio <= profile.bossPhaseThreeHealthRatio ? 3
+          : healthRatio <= profile.bossPhaseTwoHealthRatio ? 2 : 1;
         if (nextPhase > robot.bossPhase) {
           robot.bossPhase = nextPhase;
           robot.combatState = 'patrol';
@@ -142,7 +148,7 @@ export function stepEnemyCombat(
         if (robot.combatTicks > 0) continue;
         if (definition.archetype === 'wobble-scout') {
           if (canBeginAttack(robot, player, levelId)) {
-            player.health = Math.max(0, player.health - ENEMY_MELEE_DAMAGE);
+            player.health = Math.max(0, player.health - ENEMY_MELEE_DAMAGE * profile.incomingDamageMultiplier);
             meleeRobotIds.push(robot.id);
             playerHitRobotIds.push(robot.id);
           }
@@ -158,7 +164,7 @@ export function stepEnemyCombat(
             ? (robot.bossPhase === 1 ? [0] : robot.bossPhase === 2 ? [-0.11, 0.11] : [-0.18, 0, 0.18])
             : [0];
           for (const angle of offsets) {
-            const projectile = fireProjectile(robot, player, nextId);
+            const projectile = fireProjectile(robot, player, nextId, profile.projectileSpeedMultiplier);
             const cosine = Math.cos(angle);
             const sine = Math.sin(angle);
             const velocityX = projectile.velocityX * cosine - projectile.velocityZ * sine;
@@ -178,9 +184,11 @@ export function stepEnemyCombat(
         continue;
       }
       if (robot.attackCooldownTicks > 0) robot.attackCooldownTicks -= robot.tempoBuffTicks > 0 ? 2 : 1;
-      if (robot.attackCooldownTicks > 0 || !canBeginAttack(robot, player, levelId)) continue;
+      const activeAttackTokens = robots.filter((candidate) => candidate.active && candidate.combatState === 'telegraph').length;
+      if (robot.attackCooldownTicks > 0 || activeAttackTokens >= profile.maximumAttackTokens
+        || !canBeginAttack(robot, player, levelId)) continue;
       robot.combatState = 'telegraph';
-      robot.combatTicks = telegraphTicks(definition.archetype, robot.bossPhase);
+      robot.combatTicks = telegraphTicks(definition.archetype, profile, robot.bossPhase);
       telegraphRobotIds.push(robot.id);
     }
   }
@@ -195,7 +203,8 @@ export function stepEnemyCombat(
     const hitsPlayer = player.health > 0 && horizontalDistance < PLAYER_RADIUS + radius
       && projectile.y > 0.15 && projectile.y < PLAYER_EYE_HEIGHT + radius;
     if (hitsPlayer) {
-      player.health = Math.max(0, player.health - projectileDamage(projectile.kind));
+      player.health = Math.max(0,
+        player.health - projectileDamage(projectile.kind) * profile.incomingDamageMultiplier);
       playerHitRobotIds.push(projectile.ownerRobotId);
       projectiles.splice(index, 1);
     } else if (projectile.lifeTicks <= 0 || projectile.y < 0.05 || isWallAtWorld(projectile.x, projectile.z, levelId)) {

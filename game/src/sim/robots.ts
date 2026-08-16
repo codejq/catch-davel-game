@@ -7,6 +7,7 @@ import type { PlayerState } from './player';
 import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from './dance-performance';
 import { isKeyAmbushLevel } from './level-mechanics';
+import { difficultyProfile, difficultyRobotHealth, type DifficultyId } from './difficulty';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj' | 'invoice-overlord';
@@ -185,7 +186,9 @@ export function validateRobotDefinitions(): void {
   }
 }
 
-export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapter01LevelId = 'level-001'): RobotState[] {
+export function createRobots(
+  encounter: EncounterId = 'campaign', levelId: Chapter01LevelId = 'level-001', difficulty: DifficultyId = 'standard',
+): RobotState[] {
   validateRobotDefinitions();
   const performance = levelDancePerformance(levelId);
   const definitionIds = encounter === 'boss-training' ? [6] : campaignRobotIds(levelId);
@@ -200,7 +203,7 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
     const robot: Omit<RobotState, 'body'> = {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
-      health: definition.maxHealth, spawned, active: spawned,
+      health: difficultyRobotHealth(definition.maxHealth, difficulty), spawned, active: spawned,
       hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
       attackCooldownTicks: ENEMY_INITIAL_COOLDOWN_BASE + id * ENEMY_INITIAL_COOLDOWN_STEP,
       combatState: 'patrol', combatTicks: 0, strafeDirection: id % 2 === 0 ? 1 : -1, tempoBuffTicks: 0,
@@ -212,6 +215,7 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
 
 function tryCombatMovement(
   robot: RobotState, definition: RobotDefinition, player: PlayerState, levelId: Chapter01LevelId,
+  movementSpeedMultiplier: number,
 ): boolean {
   if (robot.combatState === 'telegraph') return true;
   const deltaX = player.x - robot.x;
@@ -230,7 +234,7 @@ function tryCombatMovement(
   } else if (definition.archetype === 'red-firemouth' && distance < 3.6) {
     directionX = -deltaX / distance; directionZ = -deltaZ / distance; speedScale = 0.55;
   } else return false;
-  const amount = definition.speed * speedScale * FIXED_DT_SECONDS;
+  const amount = definition.speed * speedScale * movementSpeedMultiplier * FIXED_DT_SECONDS;
   const nextX = robot.x + directionX * amount;
   const nextZ = robot.z + directionZ * amount;
   let moved = false;
@@ -243,9 +247,11 @@ function tryCombatMovement(
 
 export function stepRobots(
   robots: RobotState[], seedText: string, player?: PlayerState, levelId: Chapter01LevelId = 'level-001',
+  difficulty: DifficultyId = 'standard',
 ): void {
   const seed = hashSeed(seedText);
   const performance = levelDancePerformance(levelId);
+  const movementSpeedMultiplier = difficultyProfile(difficulty).robotMovementSpeedMultiplier;
   for (const robot of robots) {
     if (!robot.active) continue;
     const definition = ROBOT_DEFINITIONS[robot.id]!;
@@ -261,7 +267,7 @@ export function stepRobots(
       robot.knockbackX *= 0.82;
       robot.knockbackZ *= 0.82;
     }
-    if (player !== undefined && tryCombatMovement(robot, definition, player, levelId)) {
+    if (player !== undefined && tryCombatMovement(robot, definition, player, levelId, movementSpeedMultiplier)) {
       // Combat movement is bounded by the same maze collision field as patrols.
     } else if (robot.holdTicks > 0) {
       robot.holdTicks -= 1;
@@ -271,7 +277,7 @@ export function stepRobots(
       const deltaX = target.x - robot.x;
       const deltaZ = target.z - robot.z;
       const distance = Math.hypot(deltaX, deltaZ);
-      const stepDistance = definition.speed * FIXED_DT_SECONDS;
+      const stepDistance = definition.speed * movementSpeedMultiplier * FIXED_DT_SECONDS;
       if (distance > stepDistance) {
         robot.x += (deltaX / distance) * stepDistance;
         robot.z += (deltaZ / distance) * stepDistance;

@@ -67,10 +67,28 @@ export const LEVEL_001 = {
       id: 'standard-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
       referenceReplayId: null, seed: 'campaign-level-001-v1', difficulty: 'Standard', assistProfileId: null,
       maxTicks: 6_000, stuckTimeoutTicks: 900, maxIllegalActions: 0,
-      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '2fc12133dec4df02', parTicks: 5_000,
+      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '2bce58d5bf0c8785', parTicks: 5_000,
       dependencyHashes: {
-        simulationSchema: '572b496e43a67168', effectiveLevel: '40633774af0752bc', simulationLevel: '89024bcb436256c9',
-        balanceData: 'd06573c4b4825196', policyOrReplay: '715429b6b3e652e6',
+        simulationSchema: 'b03f2f88cc38d8fb', effectiveLevel: 'a1c3882588c18e71', simulationLevel: '89024bcb436256c9',
+        balanceData: 'd06573c4b4825196', policyOrReplay: '3ad3d50b71fe039f',
+      },
+    }, {
+      id: 'story-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
+      referenceReplayId: null, seed: 'campaign-level-001-v1', difficulty: 'Story', assistProfileId: null,
+      maxTicks: 7_000, stuckTimeoutTicks: 900, maxIllegalActions: 0,
+      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: 'd57bbb004be76eba', parTicks: 5_500,
+      dependencyHashes: {
+        simulationSchema: 'b03f2f88cc38d8fb', effectiveLevel: 'a1c3882588c18e71', simulationLevel: '89024bcb436256c9',
+        balanceData: 'd06573c4b4825196', policyOrReplay: '3ad3d50b71fe039f',
+      },
+    }, {
+      id: 'hard-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
+      referenceReplayId: null, seed: 'campaign-level-001-v1', difficulty: 'Hard', assistProfileId: null,
+      maxTicks: 9_000, stuckTimeoutTicks: 1_200, maxIllegalActions: 0,
+      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: 'ea0fe47c5d3ef92a', parTicks: 7_000,
+      dependencyHashes: {
+        simulationSchema: 'b03f2f88cc38d8fb', effectiveLevel: 'a1c3882588c18e71', simulationLevel: '89024bcb436256c9',
+        balanceData: 'd06573c4b4825196', policyOrReplay: '3ad3d50b71fe039f',
       },
     }],
   },

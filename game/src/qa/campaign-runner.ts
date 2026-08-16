@@ -5,6 +5,7 @@ import { chapter01Level, CHAPTER_01_LEVELS, type Chapter01LevelId } from '../con
 import { currentAgentValidationDependencies } from '../replay/replay';
 import { GameSimulation } from '../sim/game';
 import { stateChecksum } from '../sim/serialization';
+import type { DifficultyId } from '../sim/difficulty';
 
 export type CampaignQaFailure = 'defeat' | 'illegal-action' | 'stuck' | 'tick-budget' | null;
 
@@ -33,13 +34,14 @@ function progressSignature(simulation: GameSimulation): string {
   ].join('|');
 }
 
-export function runCampaignLevel(levelId: Chapter01LevelId): CampaignQaResult {
+export function runCampaignLevel(levelId: Chapter01LevelId, validationRunId = 'standard-live'): CampaignQaResult {
   const level = chapter01Level(levelId);
   const validation = level.agentValidation.runs.find(
-    (run) => run.mode === 'live-agent' && run.difficulty === 'Standard',
+    (run) => run.id === validationRunId && run.mode === 'live-agent',
   );
-  if (validation === undefined) throw new Error(`${levelId} has no live Standard validation run`);
-  const simulation = new GameSimulation(level.seed, undefined, undefined, 'campaign', levelId);
+  if (validation === undefined) throw new Error(`${levelId} has no live validation run ${validationRunId}`);
+  const difficulty = validation.difficulty.toLowerCase() as DifficultyId;
+  const simulation = new GameSimulation(validation.seed, undefined, undefined, 'campaign', levelId, difficulty);
   const policy = new BaselineCampaignAgent();
   let illegalActions = 0;
   let lastProgressTick = 0;
@@ -77,7 +79,7 @@ export function runCampaignLevel(levelId: Chapter01LevelId): CampaignQaResult {
     else if (!simulation.state.victory) failure = 'tick-budget';
   }
   return {
-    levelId, validationRunId: validation.id, seed: level.seed,
+    levelId, validationRunId: validation.id, seed: validation.seed,
     finalTick: simulation.state.tick, checksum: stateChecksum(simulation.state),
     victory: simulation.state.victory, defeat: simulation.state.defeat,
     remainingRobots: simulation.state.robots.filter((robot) => robot.active).length,

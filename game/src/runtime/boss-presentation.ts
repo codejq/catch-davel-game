@@ -1,5 +1,6 @@
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import type { RenderRobotState } from '../render/render-model';
+import { difficultyRobotHealth, type DifficultyId } from '../sim/difficulty';
 
 export interface BossPresentation {
   readonly robotId: number;
@@ -9,17 +10,20 @@ export interface BossPresentation {
   readonly phase: 1 | 2 | 3;
 }
 
-export function bossPresentation(robots: readonly RenderRobotState[]): BossPresentation | null {
+export function bossPresentation(
+  robots: readonly RenderRobotState[], difficulty: DifficultyId = 'standard',
+): BossPresentation | null {
   const boss = robots.find((robot) => robot.active && robot.bossPhase > 0);
   if (boss === undefined) return null;
   const definition = ROBOT_DEFINITIONS[boss.id];
   if (definition === undefined || definition.rank !== 'boss') return null;
-  const health = Math.max(0, Math.min(definition.maxHealth, boss.health));
+  const maxHealth = difficultyRobotHealth(definition.maxHealth, difficulty);
+  const health = Math.max(0, Math.min(maxHealth, boss.health));
   return {
     robotId: boss.id,
     health,
-    maxHealth: definition.maxHealth,
-    healthRatio: health / definition.maxHealth,
+    maxHealth,
+    healthRatio: health / maxHealth,
     phase: boss.bossPhase as 1 | 2 | 3,
   };
 }

@@ -30,9 +30,9 @@ interface Chapter01Recipe {
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: '572b496e43a67168',
+  simulationSchema: 'b03f2f88cc38d8fb',
   balanceData: 'd06573c4b4825196',
-  policyOrReplay: '715429b6b3e652e6',
+  policyOrReplay: '3ad3d50b71fe039f',
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
@@ -223,7 +223,29 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
           ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',
           simulationLevel: SIMULATION_LEVEL_HASHES[`level-${suffix}` as Chapter01LevelId],
         },
-      }],
+      }, ...([9, 10].includes(recipe.number) ? (['Story', 'Hard'] as const).map((difficulty) => ({
+        id: `${difficulty.toLowerCase()}-live`,
+        mode: 'live-agent' as const,
+        policyId: 'baseline-campaign-agent',
+        policyVersion: 1,
+        referenceReplayId: null,
+        seed: `campaign-level-${suffix}-v1`,
+        difficulty,
+        assistProfileId: null,
+        maxTicks: 9_000 + recipe.number * 500 + (difficulty === 'Hard' ? 3_000 : 0),
+        stuckTimeoutTicks: difficulty === 'Hard' ? 1_500 : 1_200,
+        maxIllegalActions: 0,
+        requiredObjectiveIds: [requiredObjectiveId],
+        expectedCompletion: true,
+        expectedChecksum: difficulty === 'Story'
+          ? (recipe.number === 9 ? 'f95abd051e3d0a4b' : '0672e827235a03ff')
+          : (recipe.number === 9 ? '4eda95027f5aea94' : 'b0b303b2c6345f89'),
+        parTicks: 7_000 + recipe.number * 350,
+        dependencyHashes: {
+          ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',
+          simulationLevel: SIMULATION_LEVEL_HASHES[`level-${suffix}` as Chapter01LevelId],
+        },
+      })) : [])],
     },
     performance: {
       maxActiveRobots: peakRobots,

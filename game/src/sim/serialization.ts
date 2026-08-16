@@ -11,6 +11,7 @@ import {
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import { isKeyAmbushLevel } from './level-mechanics';
 import type { RunMetrics } from './run-metrics';
+import { difficultyProfile, difficultyRobotHealth, isDifficultyId, type DifficultyId } from './difficulty';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -50,6 +51,7 @@ export interface SimulationSnapshotV1 {
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
   readonly encounter: EncounterId;
+  readonly difficulty: DifficultyId;
   readonly player: PlayerState;
   readonly robots: readonly RobotSnapshotV1[];
   readonly lastShotTick: number;
@@ -113,6 +115,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     seed: state.seed,
     levelId: state.levelId,
     encounter: state.encounter,
+    difficulty: state.difficulty,
     player: copyPlayer(state.player),
     robots: state.robots.map(snapshotRobot),
     lastShotTick: state.lastShotTick,
@@ -292,7 +295,9 @@ function validateProjectile(value: unknown, index: number): EnemyProjectile {
   };
 }
 
-function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: EncounterId): LevelRuntimeState {
+function validateLevel(
+  value: unknown, levelId: Chapter01LevelId, encounter: EncounterId, difficulty: DifficultyId,
+): LevelRuntimeState {
   assertRecord(value, 'snapshot.level');
   assertExactKeys(value, ['pickups', 'hazards', 'door', 'checkpoint', 'exit', 'encounter', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
   const expected = createLevelRuntime(levelId, encounter);
@@ -359,7 +364,9 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: Enc
   const pendingTicks = integer(value.encounter.pendingTicks, 'snapshot.level.encounter.pendingTicks');
   if (waveCount !== expected.encounter.waveCount) throw new Error('snapshot.level.encounter.waveCount changed immutable level data');
   if (waveIndex >= waveCount) throw new Error('snapshot.level.encounter.waveIndex is outside the encounter');
-  if (pendingTicks > 45) throw new Error('snapshot.level.encounter.pendingTicks exceeds the inter-wave delay');
+  if (pendingTicks > difficultyProfile(difficulty).interWaveDelayTicks) {
+    throw new Error('snapshot.level.encounter.pendingTicks exceeds the inter-wave delay');
+  }
   if (pendingTicks > 0 && waveIndex + 1 >= waveCount) throw new Error('snapshot.level.encounter cannot queue beyond its final wave');
   return {
     pickups,
@@ -421,7 +428,7 @@ function validateRunMetrics(
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
-    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'player', 'robots', 'lastShotTick', 'shotSerial',
+    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'difficulty', 'player', 'robots', 'lastShotTick', 'shotSerial',
     'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
     'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level', 'metrics',
   ], 'snapshot');
@@ -433,6 +440,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const levelId = snapshotValue.levelId;
   if (snapshotValue.encounter !== 'campaign' && snapshotValue.encounter !== 'boss-training') throw new Error('snapshot.encounter is invalid');
   const encounter = snapshotValue.encounter as EncounterId;
+  if (!isDifficultyId(snapshotValue.difficulty)) throw new Error('snapshot.difficulty is invalid');
+  const difficulty = snapshotValue.difficulty;
   if (!Array.isArray(snapshotValue.robots)) throw new Error('snapshot.robots must be an array');
   if (!Array.isArray(snapshotValue.projectiles)) throw new Error('snapshot.projectiles must be an array');
   const projectiles = snapshotValue.projectiles.map(validateProjectile);
@@ -443,11 +452,15 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const nextPlayerBombId = integer(snapshotValue.nextPlayerBombId, 'snapshot.nextPlayerBombId', 1);
   if (playerBombs.some((bomb) => bomb.id >= nextPlayerBombId)) throw new Error('snapshot.nextPlayerBombId must exceed every bomb ID');
   const robots = snapshotValue.robots.map(validateRobot);
+  if (robots.some((robot) => robot.health < 0
+    || robot.health > difficultyRobotHealth(ROBOT_DEFINITIONS[robot.id]!.maxHealth, difficulty))) {
+    throw new Error('snapshot robot health is outside the selected difficulty bounds');
+  }
   const expectedRobotIds = encounter === 'campaign' ? campaignRobotIds(levelId) : [6];
   if (robots.length !== expectedRobotIds.length || robots.some((robot, index) => robot.id !== expectedRobotIds[index])) {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
-  const level = validateLevel(snapshotValue.level, levelId, encounter);
+  const level = validateLevel(snapshotValue.level, levelId, encounter, difficulty);
   const player = validatePlayer(snapshotValue.player);
   const metrics = validateRunMetrics(snapshotValue.metrics, robots, level, player);
   if (level.hazards.some((hazard) => hazard.active !== hazardActiveAtTick(hazard, tick))) {
@@ -482,6 +495,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     seed: snapshotValue.seed,
     levelId,
     encounter,
+    difficulty,
     player,
     robots,
     events: [],

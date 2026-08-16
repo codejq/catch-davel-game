@@ -24,6 +24,7 @@ import { activateKeyAmbush, freezeDanceWindow } from './level-mechanics';
 import {
   createRunMetrics, recordDamageTaken, recordRangedAttack, recordRobotDefeat, type RunMetrics,
 } from './run-metrics';
+import { difficultyProfile, type DifficultyId } from './difficulty';
 
 export interface GameEvent {
   readonly tick: number;
@@ -42,6 +43,7 @@ export interface GameState {
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
   readonly encounter: EncounterId;
+  readonly difficulty: DifficultyId;
   readonly player: PlayerState;
   readonly robots: RobotState[];
   readonly events: GameEvent[];
@@ -72,8 +74,9 @@ export class GameSimulation {
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
     levelId: Chapter01LevelId = 'level-001',
+    difficulty: DifficultyId = 'standard',
   ) {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty);
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -88,8 +91,9 @@ export class GameSimulation {
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
     levelId: Chapter01LevelId = 'level-001',
+    difficulty: DifficultyId = 'standard',
   ): void {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty);
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
@@ -98,11 +102,11 @@ export class GameSimulation {
 
   private static initialState(
     seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels, encounter: EncounterId,
-    levelId: Chapter01LevelId,
+    levelId: Chapter01LevelId, difficulty: DifficultyId,
   ): GameState {
     const state: GameState = {
-      tick: 0, seed, levelId, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId),
-      robots: createRobots(encounter, levelId), events: [],
+      tick: 0, seed, levelId, encounter, difficulty, player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId),
+      robots: createRobots(encounter, levelId, difficulty), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
@@ -129,7 +133,7 @@ export class GameSimulation {
     stepPlayer(this.state.player, command, closedDoorCells(this.state.level, this.state.player), this.state.levelId);
     stepLevelHazards(this.state.player, this.state.level, this.state.tick, this.state.levelId);
     const secretWasActive = this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active);
-    for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
+    for (const interaction of collectLevelInteractions(this.state.player, this.state.level, this.state.difficulty)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
     }
     if (secretWasActive && !this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active)) {
@@ -147,12 +151,14 @@ export class GameSimulation {
       return;
     }
     const robotsFrozen = freezeDanceWindow(this.state.levelId, this.state.tick).frozen;
-    if (!robotsFrozen) stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId);
+    if (!robotsFrozen) {
+      stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId, this.state.difficulty);
+    }
     this.coolWeapons();
     const healthBeforeEnemyCombat = this.state.player.health;
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId, this.state.levelId,
-      robotsFrozen,
+      robotsFrozen, this.state.difficulty,
     );
     recordDamageTaken(this.state.metrics, healthBeforeEnemyCombat - this.state.player.health);
     this.state.nextProjectileId = enemyCombat.nextProjectileId;
@@ -261,11 +267,15 @@ export class GameSimulation {
   private applyWeaponHit(hit: WeaponHit): void {
     this.state.events.push({ tick: this.state.tick, type: 'robot-hit', robotId: hit.robotId });
     if (!hit.defeated) return;
+    const awardedCoins = Math.max(1, Math.round(
+      hit.coinsAwarded * difficultyProfile(this.state.difficulty).resourceMultiplier,
+    ));
+    this.state.player.coins += awardedCoins - hit.coinsAwarded;
     recordRobotDefeat(this.state.metrics, hit.robotId, this.state.tick);
-    this.state.events.push({ tick: this.state.tick, type: 'robot-defeated', robotId: hit.robotId, coins: hit.coinsAwarded });
+    this.state.events.push({ tick: this.state.tick, type: 'robot-defeated', robotId: hit.robotId, coins: awardedCoins });
     if (this.state.robots.every((robot) => !robot.active)) {
       if (this.state.level.encounter.pendingTicks > 0) return;
-      if (queueNextEncounterWave(this.state.level)) return;
+      if (queueNextEncounterWave(this.state.level, this.state.difficulty)) return;
       for (const interaction of completePrimaryObjective(this.state.level)) this.state.events.push({ tick: this.state.tick, ...interaction });
     }
   }

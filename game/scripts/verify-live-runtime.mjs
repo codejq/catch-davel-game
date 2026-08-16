@@ -125,8 +125,18 @@ try {
       barkVisibility: getComputedStyle(document.querySelector('#davel-bark')).visibility,
     };
 
+    const storyBoss = await api.reset({
+      seed: 'live-story-proof', mode: 'agent', encounter: 'boss-training', levelId: 'level-010', difficulty: 'story',
+    });
+    const hardBoss = await api.reset({
+      seed: 'live-hard-proof', mode: 'agent', encounter: 'boss-training', levelId: 'level-010', difficulty: 'hard',
+    });
+    const difficultyProof = {
+      story: { difficulty: storyBoss.difficulty, health: storyBoss.robots[0]?.health },
+      hard: { difficulty: hardBoss.difficulty, health: hardBoss.robots[0]?.health },
+    };
     let bossObservation = await api.reset({
-      seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training', levelId: 'level-010',
+      seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training', levelId: 'level-010', difficulty: 'standard',
     });
     const bossProof = {
       count: bossObservation.robots.length,
@@ -236,6 +246,7 @@ try {
       arsenalProof,
       bossProof,
       bossHudProof,
+      difficultyProof,
     };
   });
 
@@ -260,8 +271,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 11
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v11 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 12
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v12 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -300,6 +311,9 @@ try {
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
     [result.bossProof.count === 1 && result.bossProof.id === 6 && result.bossProof.name === 'The Final Invoice', 'boss training did not load the stable boss identity'],
     [result.bossProof.rank === 'boss' && result.bossProof.phase === 1 && result.bossProof.health === 420, 'boss training did not expose phase-one authoritative state'],
+    [result.difficultyProof.story.difficulty === 'story' && result.difficultyProof.story.health === 336
+      && result.difficultyProof.hard.difficulty === 'hard' && result.difficultyProof.hard.health === 496,
+    'Story/Hard difficulty did not cross the public Worker API and observation boundary'],
     [result.bossHudProof.tick < 2_000 && result.bossHudProof.observedPhase === 2
       && result.bossHudProof.observedHealth <= 280 && result.bossHudProof.observedHealth > 140
       && result.bossHudProof.hidden === false && result.bossHudProof.phase === '2'

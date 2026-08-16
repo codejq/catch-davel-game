@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV7 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV8 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -41,6 +41,8 @@ import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
 import { objectiveCompassReading, type ObjectiveCompassTarget } from './objective-compass';
 import { waveTransitionPresentation } from './wave-transition';
 import { bossPresentation } from './boss-presentation';
+import { difficultyProfile, isDifficultyId } from '../sim/difficulty';
+import { applyHumanAimAssist } from './human-aim-assist';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -168,6 +170,7 @@ export async function startBrowserGame(): Promise<void> {
   const pauseResume = requireElement<HTMLButtonElement>('#pause-resume');
   const pauseLevels = requireElement<HTMLButtonElement>('#pause-levels');
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
+  const settingDifficulty = requireElement<HTMLSelectElement>('#setting-difficulty');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
   const settingQuality = requireElement<HTMLSelectElement>('#setting-quality');
@@ -209,7 +212,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV7;
+  let activeProfile: ProfileV8;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -321,6 +324,7 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.touchFireMode = activeProfile.settings.touchFireMode;
     document.body.dataset.touchDeadZone = String(activeProfile.settings.touchDeadZone);
     document.body.dataset.audioDynamicRange = activeProfile.settings.dynamicRange;
+    document.body.dataset.difficulty = renderState?.difficulty ?? activeProfile.settings.difficulty;
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -328,11 +332,16 @@ export async function startBrowserGame(): Promise<void> {
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-aria]')) {
       element.setAttribute('aria-label', ui(element.dataset.uiAria as RuntimeUiKey));
     }
-    levelName.textContent = `${ui('level')} ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
+    const displayedDifficulty = renderState?.difficulty ?? activeProfile.settings.difficulty;
+    levelName.textContent = `${ui('level')} ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)} · ${ui('difficultyLabel', {
+      difficulty: ui(displayedDifficulty === 'story' ? 'difficultyStory'
+        : displayedDifficulty === 'hard' ? 'difficultyHard' : 'difficultyStandard'),
+    })}`;
     objectiveTitle.textContent = localized(activeLevel.objectives[0]!.titleKey);
     promptMission.textContent = localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale);
     promptBriefing.textContent = localized(activeLevel.briefingKey);
     settingLanguage.value = catalog.locale;
+    settingDifficulty.value = activeProfile.settings.difficulty;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
     settingQuality.value = activeProfile.settings.renderQuality;
     settingTextScale.value = String(activeProfile.settings.textScale);
@@ -438,7 +447,8 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const showMissionFailure = (state: RenderGameState): void => {
-    const checkpointAvailable = activeProfile.campaignCheckpoint?.levelId === activeLevelId;
+    const checkpointAvailable = activeProfile.campaignCheckpoint?.levelId === activeLevelId
+      && activeProfile.campaignCheckpoint.difficulty === activeProfile.settings.difficulty;
     missionResults.classList.remove('open');
     missionResults.setAttribute('aria-hidden', 'true');
     failureLevelName.textContent = localized(activeLevel.nameKey);
@@ -453,7 +463,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV7): void => {
+  const persistProfile = (profile: ProfileV8): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -463,6 +473,7 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   settingsPanel.addEventListener('change', (event) => {
+    const previousDifficulty = activeProfile.settings.difficulty;
     if (event.target === settingReducedMotion) {
       const presetValue = settingReducedMotion.checked ? '0' : '1';
       settingCameraMotion.value = presetValue;
@@ -475,6 +486,7 @@ export async function startBrowserGame(): Promise<void> {
     const reducedMotion = cameraMotion === 0 && recoilMotion === 0 && shakeMotion === 0;
     settingReducedMotion.checked = reducedMotion;
     const nextSettings = {
+      difficulty: isDifficultyId(settingDifficulty.value) ? settingDifficulty.value : 'standard',
       language: settingLanguage.value === 'ar' ? 'ar' : 'en',
       mouseSensitivity: Number(settingSensitivity.value),
       renderQuality: normalizeRenderQuality(settingQuality.value),
@@ -502,12 +514,15 @@ export async function startBrowserGame(): Promise<void> {
       touchDeadZone: Number(settingTouchDeadZone.value),
       touchFireMode: settingTouchFireMode.value === 'toggle' ? 'toggle' as const : 'hold' as const,
     };
-    persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
+    persistProfile(updateProfile(activeProfile, {
+      settings: nextSettings,
+      ...(nextSettings.difficulty === previousDifficulty ? {} : { campaignCheckpoint: null }),
+    }));
     applyProfileSettings();
     renderCampaignMap();
     renderShop();
     updateHud(renderState ?? undefined);
-    settingsStatus.textContent = ui('settingsSaved');
+    settingsStatus.textContent = ui(nextSettings.difficulty === previousDifficulty ? 'settingsSaved' : 'difficultyNextMission');
   });
 
   const commitInputBinding = (action: InputAction, code: string): void => {
@@ -629,6 +644,7 @@ export async function startBrowserGame(): Promise<void> {
 
   function updateHud(state?: RenderGameState): void {
     if (state === undefined) return;
+    document.body.dataset.difficulty = state.difficulty;
     healthHud.textContent = String(Math.ceil(state.player.health));
     energyHud.textContent = String(Math.floor(state.player.energy));
     coinsHud.textContent = String(state.player.coins);
@@ -663,7 +679,7 @@ export async function startBrowserGame(): Promise<void> {
     } else if (state.level.encounter.waveIndex === 0) {
       lastWaveTransitionKey = null;
     }
-    const boss = bossPresentation(state.robots);
+    const boss = bossPresentation(state.robots, state.difficulty);
     bossStatus.hidden = boss === null;
     document.body.dataset.bossPhase = String(boss?.phase ?? 0);
     if (boss !== null) {
@@ -832,6 +848,7 @@ export async function startBrowserGame(): Promise<void> {
     unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
     ...(trainingMode ? {} : { weaponUpgrades: normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades) }),
     encounter: bossTraining ? 'boss-training' : 'campaign',
+    difficulty: activeProfile.settings.difficulty,
     callbacks: {
       onSnapshot: (state) => {
         renderState = state;
@@ -864,16 +881,23 @@ export async function startBrowserGame(): Promise<void> {
       },
     },
   });
-  if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+  if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId
+    && activeProfile.campaignCheckpoint.difficulty === activeProfile.settings.difficulty) {
+    await client.loadSnapshot(activeProfile.campaignCheckpoint);
+  }
   await client.setMode('realtime');
   agentController = new WorkerAgentController(client, async () => {
-    if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+    if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId
+      && activeProfile.campaignCheckpoint.difficulty === activeProfile.settings.difficulty) {
+      await client.loadSnapshot(activeProfile.campaignCheckpoint);
+    }
     else await client.reset(
       activeLevel.seed, trainingMode ? 0 : activeProfile.spendableCoins, false,
       trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
       trainingMode ? undefined : normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades),
       bossTraining ? 'boss-training' : 'campaign',
       activeLevelId,
+      activeProfile.settings.difficulty,
     );
     await client.setMode('realtime');
     humanSessionStarted = false;
@@ -1030,6 +1054,7 @@ export async function startBrowserGame(): Promise<void> {
         activeLevel.seed, upgraded.spendableCoins, false, CAMPAIGN_LEVEL_1_WEAPON_MASK,
         normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
         'campaign', activeLevelId,
+        upgraded.settings.difficulty,
       ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
       showMessage(ui('upgradeInstalled', { name: ui(UPGRADE_UI_KEYS[id].name) }));
     } catch (error) {
@@ -1341,7 +1366,7 @@ export async function startBrowserGame(): Promise<void> {
         || Math.abs(gamepad.yawDelta) > 0 || Math.abs(gamepad.pitchDelta) > 0 || gamepad.fire || gamepad.altFire)) {
         beginHumanSession();
       }
-      const command: PlayerCommand = {
+      const rawCommand: PlayerCommand = {
         forward: Math.max(-1, Math.min(1,
           Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back))
           + touchForward + (gameInputAllowed ? gamepad.forward : 0))),
@@ -1354,6 +1379,11 @@ export async function startBrowserGame(): Promise<void> {
         altFire: altFireQueued,
         weapon: queuedWeapon,
       };
+      const command = applyHumanAimAssist(
+        rawCommand,
+        renderState,
+        difficultyProfile(renderState?.difficulty ?? activeProfile.settings.difficulty).aimAssistRadians,
+      );
       client.sendInput(command);
       yawDelta = 0;
       pitchDelta = 0;

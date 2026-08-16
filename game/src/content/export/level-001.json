@@ -6,13 +6,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "40633774af0752bc",
-          "policyOrReplay": "715429b6b3e652e6",
+          "effectiveLevel": "a1c3882588c18e71",
+          "policyOrReplay": "3ad3d50b71fe039f",
           "simulationLevel": "89024bcb436256c9",
-          "simulationSchema": "572b496e43a67168"
+          "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "2fc12133dec4df02",
+        "expectedChecksum": "2bce58d5bf0c8785",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
@@ -27,6 +27,58 @@
         ],
         "seed": "campaign-level-001-v1",
         "stuckTimeoutTicks": 900
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "a1c3882588c18e71",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "89024bcb436256c9",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Story",
+        "expectedChecksum": "d57bbb004be76eba",
+        "expectedCompletion": true,
+        "id": "story-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 7000,
+        "mode": "live-agent",
+        "parTicks": 5500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels"
+        ],
+        "seed": "campaign-level-001-v1",
+        "stuckTimeoutTicks": 900
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "a1c3882588c18e71",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "89024bcb436256c9",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Hard",
+        "expectedChecksum": "ea0fe47c5d3ef92a",
+        "expectedCompletion": true,
+        "id": "hard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 9000,
+        "mode": "live-agent",
+        "parTicks": 7000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels"
+        ],
+        "seed": "campaign-level-001-v1",
+        "stuckTimeoutTicks": 1200
       }
     ],
     "tier": "ordinary"

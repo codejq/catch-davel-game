@@ -7,6 +7,7 @@ import { chapter01Level } from '../content/levels/chapter-01';
 import {
   hazardRuntimeProfile, mazeRuntimeProfile, type LevelInteractionRuntimeProfile,
 } from '../content/runtime-manifests';
+import { difficultyProfile, type DifficultyId } from './difficulty';
 
 export type PickupKind = 'key' | 'health' | 'energy' | 'coin';
 
@@ -148,9 +149,9 @@ export function createLevelRuntime(
   };
 }
 
-export function queueNextEncounterWave(level: LevelRuntimeState): boolean {
+export function queueNextEncounterWave(level: LevelRuntimeState, difficulty: DifficultyId = 'standard'): boolean {
   if (level.encounter.pendingTicks > 0 || level.encounter.waveIndex + 1 >= level.encounter.waveCount) return false;
-  level.encounter.pendingTicks = 45;
+  level.encounter.pendingTicks = difficultyProfile(difficulty).interWaveDelayTicks;
   return true;
 }
 
@@ -223,8 +224,11 @@ export function openNearbyDoor(player: PlayerState, level: LevelRuntimeState): L
   return { type: 'door-opened' };
 }
 
-export function collectLevelInteractions(player: PlayerState, level: LevelRuntimeState): LevelInteractionEvent[] {
+export function collectLevelInteractions(
+  player: PlayerState, level: LevelRuntimeState, difficulty: DifficultyId = 'standard',
+): LevelInteractionEvent[] {
   const events: LevelInteractionEvent[] = [];
+  const resourceMultiplier = difficultyProfile(difficulty).resourceMultiplier;
   for (const pickup of level.pickups) {
     if (!pickup.active || !near(player, pickup.x, pickup.z, 0.82)) continue;
     if (pickup.kind === 'health' && player.health >= 100) continue;
@@ -234,16 +238,17 @@ export function collectLevelInteractions(player: PlayerState, level: LevelRuntim
       level.keyCollected = true;
       events.push({ type: 'key-collected' });
     } else if (pickup.kind === 'health') {
-      const recovered = Math.min(pickup.amount, 100 - player.health);
+      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), 100 - player.health);
       player.health += recovered;
       events.push({ type: 'health-collected', value: recovered });
     } else if (pickup.kind === 'energy') {
-      const recovered = Math.min(pickup.amount, 100 - player.energy);
+      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), 100 - player.energy);
       player.energy += recovered;
       events.push({ type: 'energy-collected', value: recovered });
     } else {
-      player.coins += pickup.amount;
-      events.push({ type: 'coin-collected', value: pickup.amount });
+      const awarded = Math.max(1, Math.round(pickup.amount * resourceMultiplier));
+      player.coins += awarded;
+      events.push({ type: 'coin-collected', value: awarded });
     }
   }
   if (!level.checkpoint.activated && near(player, level.checkpoint.x, level.checkpoint.z, 0.95)) {

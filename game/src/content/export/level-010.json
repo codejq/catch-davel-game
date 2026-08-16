@@ -6,10 +6,10 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "3637dc0e10443f7c",
-          "policyOrReplay": "715429b6b3e652e6",
+          "effectiveLevel": "0dc6813050d5d6c5",
+          "policyOrReplay": "3ad3d50b71fe039f",
           "simulationLevel": "7d360e3fbde5603b",
-          "simulationSchema": "572b496e43a67168"
+          "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Standard",
         "expectedChecksum": null,
@@ -27,6 +27,58 @@
         ],
         "seed": "campaign-level-010-v1",
         "stuckTimeoutTicks": 900
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "0dc6813050d5d6c5",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "7d360e3fbde5603b",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Story",
+        "expectedChecksum": "0672e827235a03ff",
+        "expectedCompletion": true,
+        "id": "story-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 14000,
+        "mode": "live-agent",
+        "parTicks": 10500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "defeat-chief-wobble"
+        ],
+        "seed": "campaign-level-010-v1",
+        "stuckTimeoutTicks": 1200
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "0dc6813050d5d6c5",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "7d360e3fbde5603b",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Hard",
+        "expectedChecksum": "b0b303b2c6345f89",
+        "expectedCompletion": true,
+        "id": "hard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 17000,
+        "mode": "live-agent",
+        "parTicks": 10500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "defeat-chief-wobble"
+        ],
+        "seed": "campaign-level-010-v1",
+        "stuckTimeoutTicks": 1500
       }
     ],
     "tier": "boss"

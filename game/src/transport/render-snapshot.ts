@@ -6,8 +6,9 @@ import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 import type { GameState } from '../sim/game';
 import { campaignRunScore } from '../sim/run-score';
+import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
 
-export const TRANSPORT_CONTRACT_VERSION = 10;
+export const TRANSPORT_CONTRACT_VERSION = 11;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -61,6 +62,13 @@ function decodeWeapon(code: number): WeaponId {
   const weapon = WEAPON_IDS[code];
   if (weapon === undefined) throw new Error(`Unknown render weapon code ${code}`);
   return weapon;
+}
+
+function difficultyCode(difficulty: DifficultyId): number { return DIFFICULTY_IDS.indexOf(difficulty); }
+function decodeDifficulty(code: number): DifficultyId {
+  const difficulty = DIFFICULTY_IDS[code];
+  if (difficulty === undefined) throw new Error(`Unknown render difficulty code ${code}`);
+  return difficulty;
 }
 
 function combatStateCode(state: RenderRobotState['combatState']): number {
@@ -158,7 +166,8 @@ export function writeRenderSnapshot(
   header.setUint32(HEADER_ROBOT_COUNT, state.robots.length, true);
   header.setUint32(HEADER_PROJECTILE_COUNT, state.projectiles.length, true);
   header.setUint32(HEADER_FLAGS, (state.victory ? 1 : 0) | (state.defeat ? 2 : 0)
-    | (state.laserActive ? 4 : 0) | (state.player.laserOverheated ? 8 : 0), true);
+    | (state.laserActive ? 4 : 0) | (state.player.laserOverheated ? 8 : 0)
+    | (difficultyCode(state.difficulty) << 4), true);
   header.setUint32(HEADER_COINS, uint32(state.player.coins, 'player.coins'), true);
   header.setUint32(HEADER_EVENT_EPOCH, uint32(metadata.eventEpoch, 'eventEpoch'), true);
   header.setUint32(HEADER_EVENT_HIGH_WATERMARK, uint32(metadata.eventHighWatermark, 'eventHighWatermark'), true);
@@ -350,6 +359,7 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   return {
     state: {
       levelId: decodeLevel(header.getUint32(HEADER_LEVEL_ID, true)),
+      difficulty: decodeDifficulty((flags >>> 4) & 0x3),
       tick: header.getUint32(HEADER_TICK, true),
       player: readPlayer(data, header, header.getUint32(HEADER_COINS, true)),
       robots,

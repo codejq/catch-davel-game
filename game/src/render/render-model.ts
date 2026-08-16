@@ -87,6 +87,7 @@ export interface RenderLevelState {
 
 export interface RenderGameState {
   readonly levelId: import('../content/level-ids').Chapter01LevelId;
+  readonly difficulty: import('../sim/difficulty').DifficultyId;
   readonly tick: number;
   readonly player: RenderPlayerState;
   readonly robots: readonly RenderRobotState[];

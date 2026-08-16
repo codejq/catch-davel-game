@@ -8,6 +8,7 @@ import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import type { RunMetrics } from '../sim/run-metrics';
+import type { DifficultyId } from '../sim/difficulty';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
@@ -20,6 +21,7 @@ export interface InitializeSimulationWorker {
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
   readonly encounter?: EncounterId;
+  readonly difficulty?: DifficultyId;
 }
 
 export interface StepSimulationWorker {
@@ -39,6 +41,7 @@ export interface ResetSimulationWorker {
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
   readonly encounter?: EncounterId;
+  readonly difficulty?: DifficultyId;
 }
 
 export interface LoadSnapshotSimulationWorker {

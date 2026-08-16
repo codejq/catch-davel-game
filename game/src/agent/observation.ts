@@ -9,8 +9,9 @@ import { levelDancePerformance } from '../sim/dance-performance';
 import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
 import { campaignRunScore, runAccuracyPermille } from '../sim/run-score';
+import type { DifficultyId } from '../sim/difficulty';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 11;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 12;
 
 export interface RobotObservation {
   readonly id: number;
@@ -33,10 +34,11 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 11;
+  readonly schemaVersion: 12;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
+  readonly difficulty: DifficultyId;
   readonly player: {
     readonly x: number;
     readonly z: number;
@@ -225,6 +227,7 @@ export function createObservation(state: GameState): AgentObservation {
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
+    difficulty: state.difficulty,
     player: {
       x: round(state.player.x), z: round(state.player.z),
       cellColumn: playerCell.column, cellRow: playerCell.row,

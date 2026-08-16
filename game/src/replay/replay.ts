@@ -32,6 +32,7 @@ import {
 import { levelDancePerformance } from '../sim/dance-performance';
 import { levelMechanicDependency } from '../sim/level-mechanics';
 import { AGENT_OBSERVATION_SCHEMA_VERSION } from '../agent/observation';
+import { DIFFICULTY_PROFILES } from '../sim/difficulty';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -99,6 +100,7 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
   return {
     simulationSchema: checksumCanonical({
       GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
+      difficultyProfiles: DIFFICULTY_PROFILES,
     }),
     levelData: checksumCanonical({ effectiveLevel, simulationLevel }),
     balanceData: checksumCanonical({

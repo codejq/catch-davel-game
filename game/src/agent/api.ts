@@ -10,8 +10,9 @@ import { isWeaponId, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons'
 import { chapter01Level } from '../content/levels/chapter-01';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import type { RunMetrics } from '../sim/run-metrics';
+import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
 
-export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
+export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: DifficultyId; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
 export interface AgentAction {
   readonly forward?: number;
@@ -194,7 +195,7 @@ export class AgentController {
   private resetSession(options: AgentResetOptions): AgentObservation {
     if (this.queue.length > 0) throw new Error('Cannot reset while agent actions are queued');
     if (options.levelId !== undefined && !isChapter01LevelId(options.levelId)) throw new Error('Agent levelId is invalid');
-    if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
+    if (options.difficulty !== undefined && !isDifficultyId(options.difficulty)) throw new Error('Agent difficulty is invalid');
     if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
     const levelId = options.levelId ?? 'level-001';
     const seed = options.seed ?? chapter01Level(levelId).seed;
@@ -203,7 +204,7 @@ export class AgentController {
     if (options.encounter !== undefined && options.encounter !== 'campaign' && options.encounter !== 'boss-training') throw new Error('Agent encounter is invalid');
     this.simulation.reset(
       seed, options.loadout === 'training' || options.encounter === 'boss-training' ? TRAINING_WEAPON_MASK : undefined,
-      undefined, options.encounter ?? 'campaign', levelId,
+      undefined, options.encounter ?? 'campaign', levelId, options.difficulty ?? 'standard',
     );
     this.controlled = true;
     this.replay.length = 0;

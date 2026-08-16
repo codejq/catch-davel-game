@@ -6,10 +6,10 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "5e2a51181b029bbd",
-          "policyOrReplay": "715429b6b3e652e6",
+          "effectiveLevel": "76d8ecd59edd1fa9",
+          "policyOrReplay": "3ad3d50b71fe039f",
           "simulationLevel": "9d07cf100bca26b2",
-          "simulationSchema": "572b496e43a67168"
+          "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Standard",
         "expectedChecksum": null,
@@ -27,6 +27,58 @@
         ],
         "seed": "campaign-level-009-v1",
         "stuckTimeoutTicks": 900
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "76d8ecd59edd1fa9",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "9d07cf100bca26b2",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Story",
+        "expectedChecksum": "f95abd051e3d0a4b",
+        "expectedCompletion": true,
+        "id": "story-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 13500,
+        "mode": "live-agent",
+        "parTicks": 10150,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels-009"
+        ],
+        "seed": "campaign-level-009-v1",
+        "stuckTimeoutTicks": 1200
+      },
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "d06573c4b4825196",
+          "effectiveLevel": "76d8ecd59edd1fa9",
+          "policyOrReplay": "3ad3d50b71fe039f",
+          "simulationLevel": "9d07cf100bca26b2",
+          "simulationSchema": "b03f2f88cc38d8fb"
+        },
+        "difficulty": "Hard",
+        "expectedChecksum": "4eda95027f5aea94",
+        "expectedCompletion": true,
+        "id": "hard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 16500,
+        "mode": "live-agent",
+        "parTicks": 10150,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels-009"
+        ],
+        "seed": "campaign-level-009-v1",
+        "stuckTimeoutTicks": 1500
       }
     ],
     "tier": "ordinary"

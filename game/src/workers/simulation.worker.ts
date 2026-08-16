@@ -15,6 +15,7 @@ import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 import { writeRenderSnapshot } from '../transport/render-snapshot';
 import { SnapshotProducerPool } from '../transport/snapshot-pool';
 import { EventProducerChannel } from '../transport/event-channel';
+import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
 import type {
   SimulationWorkerRequest, SimulationWorkerResponse, WorkerEventBatchMessage, WorkerEventConsumerMessage,
   WorkerReturnSnapshotMessage, WorkerSnapshotMessage,
@@ -119,6 +120,7 @@ function resetRuntime(
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
   encounter: EncounterId = 'campaign',
   levelId: Chapter01LevelId = 'level-001',
+  difficulty: DifficultyId = 'standard',
 ): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
@@ -127,7 +129,10 @@ function resetRuntime(
   }
   if (encounter !== 'campaign' && encounter !== 'boss-training') throw new Error('Worker encounter is invalid');
   if (!isChapter01LevelId(levelId)) throw new Error('Worker levelId is invalid');
-  simulation = new GameSimulation(seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId);
+  if (!isDifficultyId(difficulty)) throw new Error('Worker difficulty is invalid');
+  simulation = new GameSimulation(
+    seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId, difficulty,
+  );
   simulation.state.player.coins = initialCoins;
   simulation.state.metrics.startingCoins = initialCoins;
   generation += 1;
@@ -236,6 +241,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',
+        request.difficulty ?? 'standard',
       );
       setMode(request.mode ?? 'manual');
       post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
@@ -300,6 +306,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',
+        request.difficulty ?? 'standard',
       );
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);
