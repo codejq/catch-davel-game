@@ -20,6 +20,8 @@ import {
 } from '../campaign/progression';
 import { chapter01LevelTitle } from '../campaign/catalog';
 import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
+import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
+import { audioRuntimeProfile } from '../content/runtime-manifests';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -94,7 +96,7 @@ export async function startBrowserGame(): Promise<void> {
   levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${chapter01LevelTitle(activeLevelId).toUpperCase()}`;
   let renderState: RenderGameState | null = null;
   let messageTimeout = 0;
-  let audioContext: AudioContext | null = null;
+  let audio: ProceduralAudio | null = null;
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -136,18 +138,20 @@ export async function startBrowserGame(): Promise<void> {
     persistProfile(recordCampaignAttempt(activeProfile, activeLevelId));
   };
 
-  const sound = (frequency: number, duration: number, volume: number, wave: OscillatorType): void => {
-    if (audioContext === null) return;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = wave;
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(Math.max(45, frequency * 0.46), audioContext.currentTime + duration);
-    gain.gain.setValueAtTime(volume, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + duration);
-    oscillator.connect(gain).connect(audioContext.destination);
-    oscillator.start();
-    oscillator.stop(audioContext.currentTime + duration);
+  const ensureAudio = (): ProceduralAudio => {
+    audio ??= new ProceduralAudio(
+      new AudioContext(), audioRuntimeProfile(activeLevel.audio.presetId), activeLevel.audio.presetId,
+      activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume,
+    );
+    return audio;
+  };
+
+  const sound = (cue: AudioCue, robotId?: number): void => {
+    if (audio === null) return;
+    const robot = robotId === undefined ? undefined : renderState?.robots.find((candidate) => candidate.id === robotId);
+    const pan = robot === undefined || renderState === null
+      ? 0 : Math.max(-1, Math.min(1, (robot.x - renderState.player.x) / 9));
+    audio.play(cue, pan);
   };
 
   const showMessage = (text: string): void => {
@@ -189,50 +193,51 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const processEvent = (event: DecodedGameEvent): void => {
-    if (event.type === 'pulse-fired') sound(210, 0.11, 0.055, 'sawtooth');
-    if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 110 : 180, 0.14, 0.05, 'sawtooth');
-    if (event.type === 'projectile-deflected') sound(880, 0.08, 0.04, 'square');
-    if (event.type === 'bomb-thrown') sound(145, 0.11, 0.035, 'triangle');
-    if (event.type === 'bomb-detonated') { showMessage('PULSE BOMB DETONATED'); sound(58, 0.42, 0.1, 'sawtooth'); }
-    if (event.type === 'laser-fired' && event.tick % 4 === 0) sound(430, 0.05, 0.018, 'sine');
+    if (event.type === 'pulse-fired') sound('pulse');
+    if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
+    if (event.type === 'projectile-deflected') sound('deflect');
+    if (event.type === 'bomb-thrown') sound('bomb-throw');
+    if (event.type === 'bomb-detonated') { showMessage('PULSE BOMB DETONATED'); sound('bomb-detonate'); }
+    if (event.type === 'laser-fired' && event.tick % 4 === 0) sound('laser');
     if (event.type === 'robot-hit') {
       crosshair.classList.add('hit');
       window.setTimeout(() => crosshair.classList.remove('hit'), 90);
-      sound(92, 0.08, 0.04, 'square');
+      sound('robot-impact', event.robotId);
     }
-    if (event.type === 'robot-fired') sound(155, 0.18, 0.035, 'triangle');
-    if (event.type === 'robot-telegraph') sound(260, 0.22, 0.025, 'triangle');
-    if (event.type === 'robot-melee') sound(74, 0.14, 0.06, 'square');
-    if (event.type === 'robot-buff') { showMessage('DJ GRIN DROPPED THE EVIL BEAT'); sound(520, 0.35, 0.04, 'sawtooth'); }
-    if (event.type === 'boss-phase') { showMessage(`FINAL INVOICE · PHASE ${event.value ?? 1}`); sound(48, 0.7, 0.11, 'sawtooth'); }
+    if (event.type === 'robot-fired') sound('robot-shot', event.robotId);
+    if (event.type === 'robot-telegraph') sound('robot-telegraph', event.robotId);
+    if (event.type === 'robot-melee') sound('robot-melee', event.robotId);
+    if (event.type === 'robot-buff') { showMessage('DJ GRIN DROPPED THE EVIL BEAT'); sound('dj-buff', event.robotId); }
+    if (event.type === 'boss-phase') { showMessage(`FINAL INVOICE · PHASE ${event.value ?? 1}`); sound('boss-phase', event.robotId); }
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
-      sound(68, 0.2, 0.075, 'sawtooth');
+      sound('player-hit', event.robotId);
     }
     if (event.type === 'key-collected') {
       showMessage('WORKSHOP KEY ACQUIRED');
-      sound(620, 0.16, 0.045, 'square');
+      sound('key');
     }
     if (event.type === 'ambush-triggered') {
       showMessage('WRONG TURN — THE WALLS ARE LAUGHING!');
-      sound(82, 0.55, 0.085, 'sawtooth');
+      sound('ambush');
     }
     if (event.type === 'health-collected') {
       showMessage(`REPAIR KIT  +${event.value ?? 0} HEALTH`);
-      sound(440, 0.18, 0.04, 'sine');
+      sound('health');
     }
     if (event.type === 'energy-collected') {
       showMessage(`PULSE CELL  +${event.value ?? 0} ENERGY`);
-      sound(760, 0.15, 0.04, 'triangle');
+      sound('energy');
     }
     if (event.type === 'coin-collected') {
       showMessage(`QUANTUM CACHE  +${event.value ?? 0} COINS`);
-      sound(980, 0.2, 0.045, 'sine');
+      sound('coin');
     }
-    if (event.type === 'door-opened') showMessage('WORKSHOP LOCK OPEN');
+    if (event.type === 'door-opened') { showMessage('WORKSHOP LOCK OPEN'); sound('door'); }
     if (event.type === 'checkpoint-activated') {
       showMessage('CHECKPOINT STABILIZED');
+      sound('checkpoint');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         void client.getCheckpoint().then((snapshot) => {
           if (snapshot !== null && humanSessionStarted && !agentController.isAgentControlled()) {
@@ -241,10 +246,11 @@ export async function startBrowserGame(): Promise<void> {
         }).catch((error: unknown) => console.warn('Catch Davel checkpoint save failed', error));
       }
     }
-    if (event.type === 'objective-complete') showMessage('ALL DAVELS DOWN');
+    if (event.type === 'objective-complete') { showMessage('ALL DAVELS DOWN'); sound('objective'); }
     if (event.type === 'exit-unlocked') showMessage('EXIT ONLINE — REACH THE GREEN PORTAL');
     if (event.type === 'robot-defeated') {
       showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
+      sound('robot-defeat', event.robotId);
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
         const reward = event.coins ?? 0;
         persistProfile(updateProfile(activeProfile, {
@@ -256,6 +262,7 @@ export async function startBrowserGame(): Promise<void> {
     }
     if (event.type === 'victory') {
       showMessage('MAZE STABILIZED!');
+      sound('victory');
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
         persistProfile(completeCampaignLevel(activeProfile, activeLevelId, renderState.tick));
         renderCampaignMap();
@@ -268,6 +275,7 @@ export async function startBrowserGame(): Promise<void> {
     }
     if (event.type === 'defeat') {
       showMessage('SYSTEM DOWN — DAVELS WIN');
+      sound('defeat');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         persistProfile(recordCampaignDefeat(activeProfile, activeLevelId));
       }
@@ -451,8 +459,7 @@ export async function startBrowserGame(): Promise<void> {
   const beginTouchSession = (): void => {
     document.body.classList.add('touch-active');
     beginHumanSession();
-    audioContext ??= new AudioContext();
-    void audioContext.resume();
+    void ensureAudio().resume();
   };
 
   const updateMoveStick = (event: PointerEvent): void => {
@@ -580,8 +587,7 @@ export async function startBrowserGame(): Promise<void> {
   canvas.addEventListener('click', () => {
     if (agentController.isAgentControlled()) return;
     beginHumanSession();
-    audioContext ??= new AudioContext();
-    void audioContext.resume();
+    void ensureAudio().resume();
     if (performance.now() - lastTouchPointerAt > 500 && document.pointerLockElement !== canvas) void canvas.requestPointerLock();
   });
   canvas.addEventListener('mousedown', (event: MouseEvent) => {

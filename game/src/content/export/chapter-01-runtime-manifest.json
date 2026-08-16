@@ -1,4 +1,76 @@
 {
+  "audioProfiles": {
+    "audio-neon-workshop-001": {
+      "dampingHz": 4200,
+      "decaySeconds": 0.34,
+      "pitchScale": 1,
+      "roomSize": 0.42,
+      "wetMix": 0.16
+    },
+    "audio-neon-workshop-002": {
+      "dampingHz": 3800,
+      "decaySeconds": 0.43,
+      "pitchScale": 1.025,
+      "roomSize": 0.56,
+      "wetMix": 0.2
+    },
+    "audio-neon-workshop-003": {
+      "dampingHz": 4600,
+      "decaySeconds": 0.38,
+      "pitchScale": 1.05,
+      "roomSize": 0.48,
+      "wetMix": 0.18
+    },
+    "audio-neon-workshop-004": {
+      "dampingHz": 3200,
+      "decaySeconds": 0.56,
+      "pitchScale": 0.96,
+      "roomSize": 0.68,
+      "wetMix": 0.25
+    },
+    "audio-neon-workshop-005": {
+      "dampingHz": 2800,
+      "decaySeconds": 0.61,
+      "pitchScale": 0.93,
+      "roomSize": 0.72,
+      "wetMix": 0.27
+    },
+    "audio-neon-workshop-006": {
+      "dampingHz": 5000,
+      "decaySeconds": 0.48,
+      "pitchScale": 1.02,
+      "roomSize": 0.6,
+      "wetMix": 0.21
+    },
+    "audio-neon-workshop-007": {
+      "dampingHz": 3500,
+      "decaySeconds": 0.66,
+      "pitchScale": 1.07,
+      "roomSize": 0.78,
+      "wetMix": 0.3
+    },
+    "audio-neon-workshop-008": {
+      "dampingHz": 5400,
+      "decaySeconds": 0.4,
+      "pitchScale": 1.04,
+      "roomSize": 0.52,
+      "wetMix": 0.19
+    },
+    "audio-neon-workshop-009": {
+      "dampingHz": 4400,
+      "decaySeconds": 0.5,
+      "pitchScale": 1.09,
+      "roomSize": 0.64,
+      "wetMix": 0.23
+    },
+    "audio-neon-workshop-010": {
+      "dampingHz": 2400,
+      "decaySeconds": 0.74,
+      "pitchScale": 0.88,
+      "roomSize": 0.86,
+      "wetMix": 0.33
+    }
+  },
   "danceGameplayProfiles": {
     "clockwork-charleston": {
       "freezeTicks": 0,

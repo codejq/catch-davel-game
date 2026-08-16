@@ -153,6 +153,33 @@ export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRunt
   return profile;
 }
 
+export interface AudioRuntimeProfile {
+  readonly roomSize: number;
+  readonly decaySeconds: number;
+  readonly dampingHz: number;
+  readonly wetMix: number;
+  readonly pitchScale: number;
+}
+
+export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile>> = {
+  'audio-neon-workshop-001': { roomSize: 0.42, decaySeconds: 0.34, dampingHz: 4200, wetMix: 0.16, pitchScale: 1 },
+  'audio-neon-workshop-002': { roomSize: 0.56, decaySeconds: 0.43, dampingHz: 3800, wetMix: 0.2, pitchScale: 1.025 },
+  'audio-neon-workshop-003': { roomSize: 0.48, decaySeconds: 0.38, dampingHz: 4600, wetMix: 0.18, pitchScale: 1.05 },
+  'audio-neon-workshop-004': { roomSize: 0.68, decaySeconds: 0.56, dampingHz: 3200, wetMix: 0.25, pitchScale: 0.96 },
+  'audio-neon-workshop-005': { roomSize: 0.72, decaySeconds: 0.61, dampingHz: 2800, wetMix: 0.27, pitchScale: 0.93 },
+  'audio-neon-workshop-006': { roomSize: 0.6, decaySeconds: 0.48, dampingHz: 5000, wetMix: 0.21, pitchScale: 1.02 },
+  'audio-neon-workshop-007': { roomSize: 0.78, decaySeconds: 0.66, dampingHz: 3500, wetMix: 0.3, pitchScale: 1.07 },
+  'audio-neon-workshop-008': { roomSize: 0.52, decaySeconds: 0.4, dampingHz: 5400, wetMix: 0.19, pitchScale: 1.04 },
+  'audio-neon-workshop-009': { roomSize: 0.64, decaySeconds: 0.5, dampingHz: 4400, wetMix: 0.23, pitchScale: 1.09 },
+  'audio-neon-workshop-010': { roomSize: 0.86, decaySeconds: 0.74, dampingHz: 2400, wetMix: 0.33, pitchScale: 0.88 },
+};
+
+export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
+  const profile = AUDIO_RUNTIME_PROFILES[presetId];
+  if (profile === undefined) throw new Error(`Unknown audio runtime preset ${presetId}`);
+  return profile;
+}
+
 export type RuntimeRgb = readonly [number, number, number];
 export interface PaletteRuntimeProfile {
   readonly sky: RuntimeRgb;
@@ -186,5 +213,6 @@ export const CHAPTER_01_RUNTIME_MANIFEST = {
   mazeProfiles: MAZE_RUNTIME_PROFILES,
   danceMotifs: DANCE_RUNTIME_MOTIFS,
   danceGameplayProfiles: DANCE_GAMEPLAY_RUNTIME_PROFILES,
+  audioProfiles: AUDIO_RUNTIME_PROFILES,
   paletteProfiles: PALETTE_RUNTIME_PROFILES,
 } as const;

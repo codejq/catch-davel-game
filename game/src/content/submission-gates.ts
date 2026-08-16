@@ -5,7 +5,8 @@ import type { LocalizationCatalog, ReleaseLocale } from './localization/catalogs
 import { RELEASE_LOCALES, RELEASE_LOCALIZATION_CATALOGS } from './localization/catalogs.ts';
 import { validateLevelDefinition } from './validate-level.ts';
 import {
-  danceGameplayRuntimeProfile, danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile, paletteRuntimeProfile,
+  audioRuntimeProfile, danceGameplayRuntimeProfile, danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile,
+  paletteRuntimeProfile,
 } from './runtime-manifests.ts';
 
 const ID = /^[a-z0-9][a-z0-9._-]*$/;
@@ -60,6 +61,7 @@ function validateRuntimeBindings(level: LevelDefinition): void {
   const palette = paletteRuntimeProfile(level.palette.presetId);
   danceRuntimeMotif(level.dance.presetId);
   const danceGameplay = danceGameplayRuntimeProfile(level.dance.presetId);
+  const audio = audioRuntimeProfile(level.audio.presetId);
   for (const hazard of level.maze.hazards) hazardRuntimeProfile(hazard.collisionProfileId);
   const cells = [
     ...maze.openings,
@@ -86,6 +88,11 @@ function validateRuntimeBindings(level: LevelDefinition): void {
       || danceGameplay.periodTicks <= 0 || danceGameplay.freezeTicks <= 0
       || danceGameplay.freezeTicks >= danceGameplay.periodTicks)) {
     throw new Error(`Level ${level.id} has an invalid freeze-dance runtime profile`);
+  }
+  if (![audio.roomSize, audio.decaySeconds, audio.dampingHz, audio.wetMix, audio.pitchScale]
+    .every((value) => Number.isFinite(value) && value > 0)
+    || audio.roomSize > 1 || audio.decaySeconds > 1 || audio.wetMix > 0.5) {
+    throw new Error(`Level ${level.id} has an invalid audio runtime profile`);
   }
 }
 
