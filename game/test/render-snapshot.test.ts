@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v6', () => {
+describe('self-contained RenderSnapshot v7', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -15,8 +15,8 @@ describe('self-contained RenderSnapshot v6', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(7_792);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(6);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_584);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(7);
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
     expect(decoded.state.player.selectedWeapon).toBe('pulse');
@@ -26,6 +26,7 @@ describe('self-contained RenderSnapshot v6', () => {
     expect(decoded.state.level.pickups).toHaveLength(3);
     expect(decoded.state.level.door.open).toBe(false);
     expect(decoded.state.level.objectiveComplete).toBe(false);
+    expect(decoded.state.level.encounter).toEqual({ waveIndex: 0, waveCount: 1, pendingTicks: 0 });
     expect(decoded.state.robots[0]!.body.positions).toHaveLength(33);
     expect(decoded.state.robots[0]!.combatState).toBe(simulation.state.robots[0]!.combatState);
     expect(decoded.state.robots[0]!.body.positions[0]).toBeCloseTo(simulation.state.robots[0]!.body.positions[0]!, 4);
@@ -63,5 +64,19 @@ describe('self-contained RenderSnapshot v6', () => {
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
     expect(decoded.state.levelId).toBe('level-008');
     expect(decoded.state.robots).toHaveLength(8);
+  });
+
+  it('carries the Level 6 conveyor as self-contained presentation state', () => {
+    const simulation = new GameSimulation('render-conveyor', undefined, undefined, 'campaign', 'level-006');
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.level.hazards).toEqual([expect.objectContaining({ active: true, directionX: 0, directionZ: 1 })]);
+  });
+
+  it('carries staged-wave timing in the fixed header', () => {
+    const simulation = new GameSimulation('render-wave', undefined, undefined, 'campaign', 'level-009');
+    for (const robot of simulation.state.robots) robot.active = false;
+    simulation.state.level.encounter.pendingTicks = 45;
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.level.encounter).toEqual({ waveIndex: 0, waveCount: 2, pendingTicks: 45 });
   });
 });

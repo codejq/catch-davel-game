@@ -134,6 +134,8 @@ export async function startBrowserGame(): Promise<void> {
       : state.level.objectiveComplete ? 'reach the green exit'
       : bossTraining
         ? `THE FINAL INVOICE · ${Math.ceil(state.robots[0]?.health ?? 0)} HP · phase ${state.robots[0]?.bossPhase ?? 1}`
+        : state.level.encounter.pendingTicks > 0
+          ? `DAVEL SHIFT ${state.level.encounter.waveIndex + 2}/${state.level.encounter.waveCount} IN ${state.level.encounter.pendingTicks}`
         : `${remaining} Davels remain`;
     const resource = state.player.selectedWeapon === 'bomb' ? ` · ${state.player.bombs} BOMBS`
       : state.player.selectedWeapon === 'sword' ? ` · HEAT ${Math.ceil(state.player.swordHeat)}`

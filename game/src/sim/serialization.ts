@@ -2,7 +2,7 @@ import { GAME_SCHEMA_VERSION } from './constants';
 import type { EnemyProjectile, EnemyProjectileKind } from './enemy-combat';
 import type { GameState } from './game';
 import type { PlayerState } from './player';
-import { ROBOT_DEFINITIONS, campaignRobotIds, type EncounterId, type RobotState } from './robots';
+import { ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, type EncounterId, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
 import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
 import {
@@ -23,6 +23,7 @@ export interface RobotSnapshotV1 {
   readonly arrivalCount: number;
   readonly danceTime: number;
   readonly health: number;
+  readonly spawned: boolean;
   readonly active: boolean;
   readonly hitFlashTicks: number;
   readonly knockbackX: number;
@@ -82,6 +83,7 @@ function snapshotRobot(robot: RobotState): RobotSnapshotV1 {
     arrivalCount: robot.arrivalCount,
     danceTime: robot.danceTime,
     health: robot.health,
+    spawned: robot.spawned,
     active: robot.active,
     hitFlashTicks: robot.hitFlashTicks,
     knockbackX: robot.knockbackX,
@@ -126,9 +128,11 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     laserBeamDistance: state.laserBeamDistance,
     level: {
       pickups: state.level.pickups.map((pickup) => ({ ...pickup })),
+      hazards: state.level.hazards.map((hazard) => ({ ...hazard })),
       door: { ...state.level.door },
       checkpoint: { ...state.level.checkpoint },
       exit: { ...state.level.exit },
+      encounter: { ...state.level.encounter },
       keyCollected: state.level.keyCollected,
       objectiveComplete: state.level.objectiveComplete,
     },
@@ -215,7 +219,7 @@ function validateRobot(value: unknown, index: number): RobotState {
   assertRecord(value, `robots[${index}]`);
   assertExactKeys(value, [
     'id', 'x', 'z', 'heading', 'targetIndex', 'routeDirection', 'holdTicks', 'arrivalCount', 'danceTime', 'health',
-    'active', 'hitFlashTicks', 'knockbackX', 'knockbackZ', 'attackCooldownTicks', 'combatState', 'combatTicks',
+    'spawned', 'active', 'hitFlashTicks', 'knockbackX', 'knockbackZ', 'attackCooldownTicks', 'combatState', 'combatTicks',
     'strafeDirection', 'tempoBuffTicks', 'bossPhase', 'body',
   ], `robots[${index}]`);
   const id = integer(value.id, `robots[${index}].id`);
@@ -235,6 +239,9 @@ function validateRobot(value: unknown, index: number): RobotState {
   if ((ROBOT_DEFINITIONS[id]!.rank === 'boss') !== (bossPhase > 0)) throw new Error(`robots[${id}].bossPhase conflicts with rank`);
   assertRecord(value.body, `robots[${id}].body`);
   assertExactKeys(value.body, ['positions', 'previous', 'restLengths'], `robots[${id}].body`);
+  const spawned = booleanValue(value.spawned, `robots[${id}].spawned`);
+  const active = booleanValue(value.active, `robots[${id}].active`);
+  if (active && !spawned) throw new Error(`robots[${id}] cannot be active before it is spawned`);
   return {
     id,
     x: finite(value.x, `robots[${id}].x`), z: finite(value.z, `robots[${id}].z`),
@@ -244,7 +251,8 @@ function validateRobot(value: unknown, index: number): RobotState {
     arrivalCount: integer(value.arrivalCount, `robots[${id}].arrivalCount`),
     danceTime: finite(value.danceTime, `robots[${id}].danceTime`),
     health: finite(value.health, `robots[${id}].health`),
-    active: booleanValue(value.active, `robots[${id}].active`),
+    spawned,
+    active,
     hitFlashTicks: integer(value.hitFlashTicks, `robots[${id}].hitFlashTicks`),
     knockbackX: finite(value.knockbackX, `robots[${id}].knockbackX`),
     knockbackZ: finite(value.knockbackZ, `robots[${id}].knockbackZ`),
@@ -280,10 +288,10 @@ function validateProjectile(value: unknown, index: number): EnemyProjectile {
   };
 }
 
-function validateLevel(value: unknown, levelId: Chapter01LevelId): LevelRuntimeState {
+function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: EncounterId): LevelRuntimeState {
   assertRecord(value, 'snapshot.level');
-  assertExactKeys(value, ['pickups', 'door', 'checkpoint', 'exit', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
-  const expected = createLevelRuntime(levelId);
+  assertExactKeys(value, ['pickups', 'hazards', 'door', 'checkpoint', 'exit', 'encounter', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
+  const expected = createLevelRuntime(levelId, encounter);
   if (!Array.isArray(value.pickups) || value.pickups.length !== expected.pickups.length) {
     throw new Error(`snapshot.level.pickups must contain ${expected.pickups.length} records`);
   }
@@ -303,12 +311,37 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId): LevelRuntimeS
     }
     return { id: expectedPickup.id, kind, x, z, amount, active: booleanValue(pickupValue.active, `snapshot.level.pickups[${index}].active`) };
   });
+  if (!Array.isArray(value.hazards) || value.hazards.length !== expected.hazards.length) {
+    throw new Error(`snapshot.level.hazards must contain ${expected.hazards.length} records`);
+  }
+  const hazards = value.hazards.map((hazardValue, index) => {
+    assertRecord(hazardValue, `snapshot.level.hazards[${index}]`);
+    assertExactKeys(hazardValue, [
+      'id', 'kind', 'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
+      'periodTicks', 'activeTicks', 'phaseOffsetTicks', 'active',
+    ], `snapshot.level.hazards[${index}]`);
+    const expectedHazard = expected.hazards[index]!;
+    if (hazardValue.id !== expectedHazard.id || hazardValue.kind !== expectedHazard.kind) {
+      throw new Error(`snapshot.level.hazards[${index}] has an invalid stable identity`);
+    }
+    for (const field of [
+      'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
+      'periodTicks', 'activeTicks', 'phaseOffsetTicks',
+    ] as const) {
+      if (finite(hazardValue[field], `snapshot.level.hazards[${index}].${field}`) !== expectedHazard[field]) {
+        throw new Error(`snapshot.level.hazards[${index}].${field} changed immutable level data`);
+      }
+    }
+    return { ...expectedHazard, active: booleanValue(hazardValue.active, `snapshot.level.hazards[${index}].active`) };
+  });
   assertRecord(value.door, 'snapshot.level.door');
   assertExactKeys(value.door, ['id', 'keyId', 'column', 'row', 'x', 'z', 'open'], 'snapshot.level.door');
   assertRecord(value.checkpoint, 'snapshot.level.checkpoint');
   assertExactKeys(value.checkpoint, ['id', 'x', 'z', 'activated'], 'snapshot.level.checkpoint');
   assertRecord(value.exit, 'snapshot.level.exit');
   assertExactKeys(value.exit, ['x', 'z'], 'snapshot.level.exit');
+  assertRecord(value.encounter, 'snapshot.level.encounter');
+  assertExactKeys(value.encounter, ['waveIndex', 'waveCount', 'pendingTicks'], 'snapshot.level.encounter');
   const doorStaticMatches = value.door.id === expected.door.id && value.door.keyId === expected.door.keyId
     && value.door.column === expected.door.column && value.door.row === expected.door.row
     && value.door.x === expected.door.x && value.door.z === expected.door.z;
@@ -317,11 +350,20 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId): LevelRuntimeS
     && value.checkpoint.x === expected.checkpoint.x && value.checkpoint.z === expected.checkpoint.z;
   if (!checkpointStaticMatches) throw new Error('snapshot.level.checkpoint changed immutable level data');
   if (value.exit.x !== expected.exit.x || value.exit.z !== expected.exit.z) throw new Error('snapshot.level.exit changed immutable level data');
+  const waveIndex = integer(value.encounter.waveIndex, 'snapshot.level.encounter.waveIndex');
+  const waveCount = integer(value.encounter.waveCount, 'snapshot.level.encounter.waveCount', 1);
+  const pendingTicks = integer(value.encounter.pendingTicks, 'snapshot.level.encounter.pendingTicks');
+  if (waveCount !== expected.encounter.waveCount) throw new Error('snapshot.level.encounter.waveCount changed immutable level data');
+  if (waveIndex >= waveCount) throw new Error('snapshot.level.encounter.waveIndex is outside the encounter');
+  if (pendingTicks > 45) throw new Error('snapshot.level.encounter.pendingTicks exceeds the inter-wave delay');
+  if (pendingTicks > 0 && waveIndex + 1 >= waveCount) throw new Error('snapshot.level.encounter cannot queue beyond its final wave');
   return {
     pickups,
+    hazards,
     door: { ...expected.door, open: booleanValue(value.door.open, 'snapshot.level.door.open') },
     checkpoint: { ...expected.checkpoint, activated: booleanValue(value.checkpoint.activated, 'snapshot.level.checkpoint.activated') },
     exit: { ...expected.exit },
+    encounter: { waveIndex, waveCount, pendingTicks },
     keyCollected: booleanValue(value.keyCollected, 'snapshot.level.keyCollected'),
     objectiveComplete: booleanValue(value.objectiveComplete, 'snapshot.level.objectiveComplete'),
   };
@@ -355,13 +397,28 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (robots.length !== expectedRobotIds.length || robots.some((robot, index) => robot.id !== expectedRobotIds[index])) {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
-  const level = validateLevel(snapshotValue.level, levelId);
+  const level = validateLevel(snapshotValue.level, levelId, encounter);
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
   const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
   if (level.keyCollected === key.active) throw new Error('snapshot.level key state is inconsistent');
   if (level.door.open && !level.keyCollected) throw new Error('snapshot.level door cannot open before its key is collected');
-  if (level.objectiveComplete && robots.some((robot) => robot.active)) throw new Error('snapshot.level objective cannot complete with active Davels');
+  if (encounter === 'campaign') {
+    const waves = campaignRobotWaves(levelId);
+    for (let waveIndex = 0; waveIndex < waves.length; waveIndex += 1) {
+      const shouldBeSpawned = waveIndex <= level.encounter.waveIndex;
+      for (const id of waves[waveIndex]!) {
+        const robot = robots.find((candidate) => candidate.id === id)!;
+        if (robot.spawned !== shouldBeSpawned) throw new Error(`snapshot robot ${id} has an inconsistent wave state`);
+      }
+    }
+    if (level.encounter.pendingTicks > 0 && robots.some((robot) => robot.active)) {
+      throw new Error('snapshot.level encounter cannot count down while Davels remain active');
+    }
+  }
+  if (level.objectiveComplete && (robots.some((robot) => robot.active) || robots.some((robot) => !robot.spawned))) {
+    throw new Error('snapshot.level objective cannot complete before every Davel is spawned and inactive');
+  }
   if (victory && !level.objectiveComplete) throw new Error('snapshot victory requires the primary objective');
   if (victory && defeat) throw new Error('snapshot cannot be both victory and defeat');
   return {

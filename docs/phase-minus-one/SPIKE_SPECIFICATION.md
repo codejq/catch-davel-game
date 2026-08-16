@@ -2,13 +2,13 @@
 
 Status: **Execution authorized; Decisions 16–20 approved on 2026-08-16**
 
-Source of truth: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6
+Source of truth: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 7
 
 This specification turns the Phase -1 gate into a reproducible experiment. The approval is recorded in `docs/decisions/PHASE_MINUS_ONE_APPROVAL.md`; it authorizes this disposable spike, not production architecture. If the spike passes, its measured budgets inform Phase 0; its code is not silently promoted into the production engine.
 
 ## 1. Approval precondition
 
-Before executable spike files are created, `docs/decisions/PHASE_MINUS_ONE_APPROVAL.md` must record an approver, date, approved Decisions 16–20 or explicit replacements, and certification-device ownership.
+Before executable spike files are created, `docs/decisions/PHASE_MINUS_ONE_APPROVAL.md` must record an approver, date, and approved Decisions 16–20 or explicit replacements. Certification-device ownership may remain pending under `docs/decisions/IMPLEMENTATION_CONTINUATION.md`; that defers only the affected release-certification evidence and is not an implementation precondition.
 
 The experiment assumes the recommended inputs until approval:
 

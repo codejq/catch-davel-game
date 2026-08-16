@@ -6,13 +6,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "5c64b8b96a7a5b41",
+          "effectiveLevel": "43e9546044dc5c90",
           "policyOrReplay": "d3d7c87fc057d2d4",
-          "simulationLevel": "ca2195b229d1f939",
-          "simulationSchema": "778ba88614bc3d3c"
+          "simulationLevel": "45d14be36cb0b0ed",
+          "simulationSchema": "865ca5ebc8ad6804"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "fd1a3b4c32a99563",
+        "expectedChecksum": "58a7919008efc5f8",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,

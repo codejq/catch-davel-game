@@ -27,7 +27,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 5;
+  readonly schemaVersion: 6;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -64,6 +64,11 @@ export interface AgentObservation {
     readonly complete: boolean;
     readonly exitUnlocked: boolean;
   };
+  readonly encounter: {
+    readonly waveIndex: number;
+    readonly waveCount: number;
+    readonly pendingTicks: number;
+  };
   readonly pickups: readonly {
     readonly id: string;
     readonly kind: 'key' | 'health' | 'energy';
@@ -71,15 +76,28 @@ export interface AgentObservation {
     readonly relativeZ: number;
     readonly active: boolean;
   }[];
+  readonly hazards: readonly {
+    readonly id: string;
+    readonly kind: 'conveyor';
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly halfWidth: number;
+    readonly halfDepth: number;
+    readonly directionX: number;
+    readonly directionZ: number;
+    readonly active: boolean;
+    readonly periodTicks: number;
+    readonly activeTicks: number;
+  }[];
   readonly door: {
-    readonly id: 'workshop-lock';
+    readonly id: string;
     readonly relativeX: number;
     readonly relativeZ: number;
     readonly open: boolean;
     readonly requiresKey: boolean;
   };
   readonly checkpoint: {
-    readonly id: 'checkpoint-before-exit';
+    readonly id: string;
     readonly relativeX: number;
     readonly relativeZ: number;
     readonly activated: boolean;
@@ -168,7 +186,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
@@ -189,12 +207,26 @@ export function createObservation(state: GameState): AgentObservation {
     victory: state.victory,
     defeat: state.defeat,
     objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
+    encounter: { ...state.level.encounter },
     pickups: state.level.pickups.map((pickup) => ({
       id: pickup.id,
       kind: pickup.kind,
       relativeX: round(pickup.x - state.player.x),
       relativeZ: round(pickup.z - state.player.z),
       active: pickup.active,
+    })),
+    hazards: state.level.hazards.map((hazard) => ({
+      id: hazard.id,
+      kind: hazard.kind,
+      relativeX: round(hazard.x - state.player.x),
+      relativeZ: round(hazard.z - state.player.z),
+      halfWidth: hazard.halfWidth,
+      halfDepth: hazard.halfDepth,
+      directionX: hazard.directionX,
+      directionZ: hazard.directionZ,
+      active: hazard.active,
+      periodTicks: hazard.periodTicks,
+      activeTicks: hazard.activeTicks,
     })),
     door: {
       id: state.level.door.id,

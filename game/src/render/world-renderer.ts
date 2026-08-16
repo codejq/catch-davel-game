@@ -210,6 +210,21 @@ export class WorldRenderer {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.52, 0.9, 0.52, [0.12, 0.94, 1]);
       }
     }
+    for (const hazard of state.level.hazards) {
+      const color: readonly [number, number, number] = hazard.active ? [1, 0.22, 0.08] : [0.25, 0.32, 0.4];
+      instance = this.writeInstance(
+        instance, hazard.x, 0.035, hazard.z, hazard.halfWidth * 2, 0.07, hazard.halfDepth * 2, color,
+      );
+      const pulse = state.tick % 36 / 36;
+      instance = this.writeInstance(
+        instance,
+        hazard.x + hazard.directionX * (pulse - 0.5) * hazard.halfWidth * 1.4,
+        0.085,
+        hazard.z + hazard.directionZ * (pulse - 0.5) * hazard.halfDepth * 1.4,
+        0.3, 0.1, 0.3,
+        hazard.active ? [1, 0.92, 0.16] : [0.46, 0.5, 0.55],
+      );
+    }
     const door = state.level.door;
     if (!door.open) {
       instance = this.writeInstance(instance, door.x, 1.25, door.z, 2.55, 2.5, 0.24, state.level.keyCollected ? [1, 0.78, 0.12] : [0.86, 0.12, 0.2]);

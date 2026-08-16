@@ -5,22 +5,25 @@ import type {
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
-export const TRANSPORT_CONTRACT_VERSION = 6;
+export const TRANSPORT_CONTRACT_VERSION = 7;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
+export const MAX_RENDER_HAZARDS = 64;
 export const MAX_RENDER_PLAYER_BOMBS = 16;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
 export const RENDER_PLAYER_FLOATS = 9;
 export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
+export const RENDER_HAZARD_FLOATS = 7;
 export const RENDER_LEVEL_FLOATS = 9;
 export const RENDER_PLAYER_BOMB_FLOATS = 8;
 export const RENDER_EFFECT_FLOATS = 2;
 export const RENDER_SNAPSHOT_BYTES = RENDER_SNAPSHOT_HEADER_BYTES + (
   RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
-    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS
+    + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS
     + RENDER_LEVEL_FLOATS + RENDER_EFFECT_FLOATS
 ) * Float32Array.BYTES_PER_ELEMENT;
 
@@ -126,6 +129,10 @@ export function writeRenderSnapshot(
   if (state.robots.length > MAX_RENDER_ROBOTS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_ROBOTS} robots`);
   if (state.projectiles.length > MAX_RENDER_PROJECTILES) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PROJECTILES} projectiles`);
   if (state.level.pickups.length > MAX_RENDER_PICKUPS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PICKUPS} pickups`);
+  if (state.level.hazards.length > MAX_RENDER_HAZARDS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_HAZARDS} hazards`);
+  if (state.level.encounter.waveIndex > 15 || state.level.encounter.waveCount > 15 || state.level.encounter.pendingTicks > 255) {
+    throw new Error('RenderSnapshot encounter state exceeds fixed header capacity');
+  }
   if (state.playerBombs.length > MAX_RENDER_PLAYER_BOMBS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PLAYER_BOMBS} player bombs`);
   new Uint8Array(buffer).fill(0);
   const header = new DataView(buffer, 0, RENDER_SNAPSHOT_HEADER_BYTES);
@@ -140,7 +147,13 @@ export function writeRenderSnapshot(
   header.setUint32(HEADER_EVENT_HIGH_WATERMARK, uint32(metadata.eventHighWatermark, 'eventHighWatermark'), true);
   header.setUint32(HEADER_RESYNC_REQUIRED, metadata.resyncRequired ? 1 : 0, true);
   header.setUint32(HEADER_PICKUP_COUNT, state.level.pickups.length, true);
-  header.setUint32(HEADER_LEVEL_FLAGS, (state.level.keyCollected ? 1 : 0) | (state.level.objectiveComplete ? 2 : 0), true);
+  header.setUint32(
+    HEADER_LEVEL_FLAGS,
+    ((state.level.keyCollected ? 1 : 0) | (state.level.objectiveComplete ? 2 : 0) | (state.level.hazards.length << 8)
+      | (state.level.encounter.waveIndex << 16) | (state.level.encounter.waveCount << 20)
+      | (state.level.encounter.pendingTicks << 24)) >>> 0,
+    true,
+  );
   header.setUint32(HEADER_PLAYER_WEAPON, weaponCode(state.player.selectedWeapon), true);
   header.setUint32(HEADER_UNLOCKED_WEAPON_MASK, uint32(state.player.unlockedWeaponMask, 'player.unlockedWeaponMask'), true);
   header.setUint32(HEADER_PLAYER_BOMBS, uint32(state.player.bombs, 'player.bombs'), true);
@@ -184,6 +197,15 @@ export function writeRenderSnapshot(
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  for (const hazard of state.level.hazards) {
+    data.set([
+      hazard.x, hazard.z, hazard.halfWidth, hazard.halfDepth,
+      hazard.directionX, hazard.directionZ, hazard.active ? 1 : 0,
+    ], offset);
+    offset += RENDER_HAZARD_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS;
   for (const bomb of state.playerBombs) {
     data.set([
       bomb.id, bomb.x, bomb.y, bomb.z, bomb.velocityX, bomb.velocityY, bomb.velocityZ, bomb.fuseTicks,
@@ -191,7 +213,8 @@ export function writeRenderSnapshot(
     offset += RENDER_PLAYER_BOMB_FLOATS;
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
-    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS
+    + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
   data.set([
     state.level.door.x, state.level.door.z, state.level.door.open ? 1 : 0,
     state.level.checkpoint.x, state.level.checkpoint.z, state.level.checkpoint.activated ? 1 : 0,
@@ -225,8 +248,11 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   const robotCount = header.getUint32(HEADER_ROBOT_COUNT, true);
   const projectileCount = header.getUint32(HEADER_PROJECTILE_COUNT, true);
   const pickupCount = header.getUint32(HEADER_PICKUP_COUNT, true);
+  const levelFlags = header.getUint32(HEADER_LEVEL_FLAGS, true);
+  const hazardCount = (levelFlags >>> 8) & 0xff;
   const playerBombCount = header.getUint32(HEADER_PLAYER_BOMB_COUNT, true);
   if (robotCount > MAX_RENDER_ROBOTS || projectileCount > MAX_RENDER_PROJECTILES || pickupCount > MAX_RENDER_PICKUPS
+    || hazardCount > MAX_RENDER_HAZARDS
     || playerBombCount > MAX_RENDER_PLAYER_BOMBS) {
     throw new Error('RenderSnapshot count exceeds fixed capacity');
   }
@@ -272,6 +298,16 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  const hazards: RenderGameState['level']['hazards'][number][] = [];
+  for (let index = 0; index < hazardCount; index += 1) {
+    hazards.push({
+      x: data[offset]!, z: data[offset + 1]!, halfWidth: data[offset + 2]!, halfDepth: data[offset + 3]!,
+      directionX: data[offset + 4]!, directionZ: data[offset + 5]!, active: data[offset + 6] === 1,
+    });
+    offset += RENDER_HAZARD_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS;
   const playerBombs: RenderPlayerBombState[] = [];
   for (let index = 0; index < playerBombCount; index += 1) {
     playerBombs.push({
@@ -281,8 +317,8 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
     offset += RENDER_PLAYER_BOMB_FLOATS;
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
-    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
-  const levelFlags = header.getUint32(HEADER_LEVEL_FLAGS, true);
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_HAZARDS * RENDER_HAZARD_FLOATS
+    + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
   const flags = header.getUint32(HEADER_FLAGS, true);
   const effectOffset = offset + RENDER_LEVEL_FLOATS;
   return {
@@ -300,9 +336,15 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
       defeat: (flags & 2) !== 0,
       level: {
         pickups,
+        hazards,
         door: { x: data[offset]!, z: data[offset + 1]!, open: data[offset + 2] === 1 },
         checkpoint: { x: data[offset + 3]!, z: data[offset + 4]!, activated: data[offset + 5] === 1 },
         exit: { x: data[offset + 6]!, z: data[offset + 7]! },
+        encounter: {
+          waveIndex: (levelFlags >>> 16) & 0xf,
+          waveCount: (levelFlags >>> 20) & 0xf,
+          pendingTicks: (levelFlags >>> 24) & 0xff,
+        },
         keyCollected: (levelFlags & 1) !== 0,
         objectiveComplete: (levelFlags & 2) !== 0,
       },

@@ -33,6 +33,7 @@ export interface RobotDefinition {
 
 export interface RobotState {
   readonly id: number;
+  spawned: boolean;
   x: number;
   z: number;
   heading: number;
@@ -126,21 +127,25 @@ export const ROBOT_DEFINITIONS: readonly RobotDefinition[] = [
   },
 ] as const;
 
-const CHAPTER_01_ROBOTS: Readonly<Record<Chapter01LevelId, readonly number[]>> = {
-  'level-001': [0, 1, 2, 3, 4, 5],
-  'level-002': [0, 1, 2, 8, 9],
-  'level-003': [0, 1, 2, 4, 8, 9],
-  'level-004': [0, 1, 2, 3, 4, 8, 9],
-  'level-005': [0, 1, 2, 7, 8],
-  'level-006': [0, 1, 2, 4, 8, 9],
-  'level-007': [0, 1, 2, 3, 4, 8, 9],
-  'level-008': [0, 1, 2, 3, 4, 5, 8, 9],
-  'level-009': [0, 1, 2, 4, 8],
-  'level-010': [6],
+const CHAPTER_01_ROBOT_WAVES: Readonly<Record<Chapter01LevelId, readonly (readonly number[])[]>> = {
+  'level-001': [[0, 1, 2, 3, 4, 5]],
+  'level-002': [[0, 1, 2, 8, 9]],
+  'level-003': [[0, 1, 2, 4, 8, 9]],
+  'level-004': [[0, 1, 2, 3, 4, 8, 9]],
+  'level-005': [[0, 1, 2, 7, 8]],
+  'level-006': [[0, 1, 2, 4, 8, 9]],
+  'level-007': [[0, 1, 2, 3, 4, 8, 9]],
+  'level-008': [[0, 1, 2, 3, 4, 5, 8, 9]],
+  'level-009': [[0, 1, 2, 4, 8], [3, 5, 7, 9, 10]],
+  'level-010': [[6]],
 };
 
 export function campaignRobotIds(levelId: Chapter01LevelId): readonly number[] {
-  return CHAPTER_01_ROBOTS[levelId];
+  return CHAPTER_01_ROBOT_WAVES[levelId].flat();
+}
+
+export function campaignRobotWaves(levelId: Chapter01LevelId): readonly (readonly number[])[] {
+  return CHAPTER_01_ROBOT_WAVES[levelId];
 }
 
 export function validateRobotDefinitions(): void {
@@ -167,10 +172,13 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
     const startIndex = Math.min(definition.route.length - 2, 2 + (id % 3));
     const start = definition.route[startIndex]!;
     const position = cellCenter(start.column, start.row);
+    const waveIndex = encounter === 'boss-training'
+      ? 0 : campaignRobotWaves(levelId).findIndex((wave) => wave.includes(id));
+    const spawned = waveIndex === 0;
     const robot: Omit<RobotState, 'body'> = {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
-      health: definition.maxHealth, active: true,
+      health: definition.maxHealth, spawned, active: spawned,
       hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
       attackCooldownTicks: ENEMY_INITIAL_COOLDOWN_BASE + id * ENEMY_INITIAL_COOLDOWN_STEP,
       combatState: 'patrol', combatTicks: 0, strafeDirection: id % 2 === 0 ? 1 : -1, tempoBuffTicks: 0,

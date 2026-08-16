@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
 import { cellAt, worldCell } from '../src/sim/level';
-import { ROBOT_DEFINITIONS, campaignRobotIds, validateRobotDefinitions } from '../src/sim/robots';
+import { ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, validateRobotDefinitions } from '../src/sim/robots';
 import { CHAPTER_01_LEVEL_IDS } from '../src/content/levels/chapter-01';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
@@ -17,7 +17,8 @@ describe('Davel simulation', () => {
     expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'elite').map((robot) => robot.name)).toEqual(['DJ Grin', 'Foreman Stomp']);
     expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'boss').map((robot) => robot.name)).toEqual(['The Final Invoice']);
     expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.route.map((cell) => `${cell.column},${cell.row}`).join('|'))).size).toBeGreaterThanOrEqual(7);
-    expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotIds(levelId).length)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 5, 1]);
+    expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotIds(levelId).length)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1]);
+    expect(campaignRobotWaves('level-009').map((wave) => wave.length)).toEqual([5, 5]);
     expect(campaignRobotIds('level-005').map((id) => ROBOT_DEFINITIONS[id]!.name)).toContain('Foreman Stomp');
     expect(campaignRobotIds('level-010')).toEqual([6]);
   });

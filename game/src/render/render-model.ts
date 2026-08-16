@@ -67,9 +67,19 @@ export interface RenderPickupState {
 
 export interface RenderLevelState {
   readonly pickups: readonly RenderPickupState[];
+  readonly hazards: readonly {
+    readonly x: number;
+    readonly z: number;
+    readonly halfWidth: number;
+    readonly halfDepth: number;
+    readonly directionX: number;
+    readonly directionZ: number;
+    readonly active: boolean;
+  }[];
   readonly door: { readonly x: number; readonly z: number; readonly open: boolean };
   readonly checkpoint: { readonly x: number; readonly z: number; readonly activated: boolean };
   readonly exit: { readonly x: number; readonly z: number };
+  readonly encounter: { readonly waveIndex: number; readonly waveCount: number; readonly pendingTicks: number };
   readonly keyCollected: boolean;
   readonly objectiveComplete: boolean;
 }

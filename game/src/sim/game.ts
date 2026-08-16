@@ -10,7 +10,8 @@ import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
 import {
   closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
-  openNearbyDoor, reachedUnlockedExit, type LevelRuntimeState,
+  openNearbyDoor, queueNextEncounterWave, reachedUnlockedExit, stepEncounterWaves, stepLevelHazards,
+  type LevelRuntimeState,
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
 import { quantizeSimulationState } from './quantization';
@@ -100,7 +101,7 @@ export class GameSimulation {
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
       laserFocusTicks: 0, laserTargetRobotId: null, laserActive: false, laserBeamDistance: 0,
-      level: createLevelRuntime(levelId),
+      level: createLevelRuntime(levelId, encounter),
     };
     quantizeSimulationState(state);
     return state;
@@ -112,9 +113,11 @@ export class GameSimulation {
       this.state.tick += 1;
       return;
     }
+    stepEncounterWaves(this.state.robots, this.state.level, this.state.levelId);
     const doorEvent = openNearbyDoor(this.state.player, this.state.level);
     if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
     stepPlayer(this.state.player, command, closedDoorCells(this.state.level), this.state.levelId);
+    stepLevelHazards(this.state.player, this.state.level, this.state.tick, this.state.levelId);
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
     }
@@ -235,6 +238,8 @@ export class GameSimulation {
     if (!hit.defeated) return;
     this.state.events.push({ tick: this.state.tick, type: 'robot-defeated', robotId: hit.robotId, coins: hit.coinsAwarded });
     if (this.state.robots.every((robot) => !robot.active)) {
+      if (this.state.level.encounter.pendingTicks > 0) return;
+      if (queueNextEncounterWave(this.state.level)) return;
       for (const interaction of completePrimaryObjective(this.state.level)) this.state.events.push({ tick: this.state.tick, ...interaction });
     }
   }

@@ -17,7 +17,7 @@ import { levelDefinitionDependencyHash } from '../content/validate-level';
 import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
 import type { PlayerCommand } from '../sim/player';
 import { isWeaponId } from '../sim/weapons';
-import { ROBOT_DEFINITIONS } from '../sim/robots';
+import { ROBOT_DEFINITIONS, campaignRobotWaves } from '../sim/robots';
 import {
   canonicalJson, checksumCanonical, createSimulationSnapshot, parseSimulationSnapshot, stateChecksum,
   type SimulationSnapshotV1,
@@ -83,7 +83,9 @@ function robotBalanceData(): unknown {
 
 export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001'): ReplayDependencyHashes {
   const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
-  const simulationLevel = checksumCanonical({ rows: levelRows(levelId), interactions: createLevelRuntime(levelId) });
+  const simulationLevel = checksumCanonical({
+    rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
+  });
   return {
     simulationSchema: checksumCanonical({
       GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
@@ -122,7 +124,9 @@ export function currentAgentValidationDependencies(levelId: Chapter01LevelId = '
   return {
     simulationSchema: replay.simulationSchema,
     effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
-    simulationLevel: checksumCanonical({ rows: levelRows(levelId), interactions: createLevelRuntime(levelId) }),
+    simulationLevel: checksumCanonical({
+      rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
+    }),
     balanceData: replay.balanceData,
     policyOrReplay: replay.replayPolicy,
   };

@@ -27,22 +27,22 @@ interface Chapter01Recipe {
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: '778ba88614bc3d3c',
+  simulationSchema: '865ca5ebc8ad6804',
   balanceData: 'd06573c4b4825196',
   policyOrReplay: 'd3d7c87fc057d2d4',
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
-  'level-001': 'ca2195b229d1f939',
-  'level-002': '5e3c758e35a1da45',
-  'level-003': '1e31c1adf9fa22fc',
-  'level-004': '575aba989685f3b5',
-  'level-005': '3b3896eb25f8ff94',
-  'level-006': '898eb6ed40bc8ae5',
-  'level-007': '9682166c1dc1e3cc',
-  'level-008': '4984625ecb456c91',
-  'level-009': '0c1d3005514963a8',
-  'level-010': '71fa861fd8297d0d',
+  'level-001': '45d14be36cb0b0ed',
+  'level-002': '1ea92055299dc90c',
+  'level-003': '072f78018343b44c',
+  'level-004': '673be0542abb6788',
+  'level-005': 'a8817de765490c43',
+  'level-006': '5253f35318be6826',
+  'level-007': '06d0dae5bf8b3478',
+  'level-008': '2e6b2acf2d448a67',
+  'level-009': '3894e9a95f6ab1c2',
+  'level-010': '44e5da8d42f3c716',
 };
 
 function pad(number: number): string {
