@@ -1,7 +1,9 @@
 # Phase -1 approval packet
 
-Status: **Awaiting Quantum Billing approval**  
-Applies to: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6  
+Status: **Awaiting Quantum Billing approval**
+
+Applies to: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6
+
 Gate: Phase -1 may not begin until Decisions 16–20 are resolved.
 
 ## Requested decisions
@@ -32,8 +34,10 @@ The current workspace reports an Intel Core i9-14900K through a virtualized six-
 
 ## Approval record
 
-Approver: **Pending**  
-Approval date: **Pending**  
-Approved decisions or replacements: **Pending**  
-Available certification hardware/owners: **Pending**
+Approver: **Pending**
 
+Approval date: **Pending**
+
+Approved decisions or replacements: **Pending**
+
+Available certification hardware/owners: **Pending**
