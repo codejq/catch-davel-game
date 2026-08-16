@@ -1,7 +1,7 @@
 import type { GameEvent } from '../sim/game';
 
 export type FeedbackClass = 'feedback-weapon-kick' | 'feedback-sword-swing'
-  | 'feedback-shake-light' | 'feedback-shake-heavy';
+  | 'feedback-shake-light' | 'feedback-shake-heavy' | 'feedback-muzzle-flash';
 
 export interface PresentationFeedback {
   readonly classes: readonly FeedbackClass[];
@@ -10,7 +10,11 @@ export interface PresentationFeedback {
 }
 
 const FEEDBACK: Partial<Record<GameEvent['type'], PresentationFeedback>> = {
-  'pulse-fired': { classes: ['feedback-weapon-kick', 'feedback-shake-light'], durationMs: 130, vibration: 5 },
+  'pulse-fired': {
+    classes: ['feedback-weapon-kick', 'feedback-shake-light', 'feedback-muzzle-flash'],
+    durationMs: 130,
+    vibration: 5,
+  },
   'sword-swung': { classes: ['feedback-sword-swing'], durationMs: 180, vibration: 6 },
   'sword-charged': { classes: ['feedback-sword-swing', 'feedback-shake-light'], durationMs: 260, vibration: 12 },
   'projectile-deflected': { classes: ['feedback-shake-light'], durationMs: 110, vibration: 8 },

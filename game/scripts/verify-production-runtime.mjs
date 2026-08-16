@@ -350,8 +350,15 @@ try {
   await page.mouse.down();
   await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
   await page.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
+  await page.waitForFunction(() => document.body.classList.contains('feedback-muzzle-flash'));
   const captionProof = await page.locator('#sound-captions span').first().textContent();
   const pulseEnergyCellProof = await page.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  const safeMuzzleFlashDisplay = await page.locator('#weapon').evaluate((element) => (
+    getComputedStyle(element, '::after').display
+  ));
+  if (safeMuzzleFlashDisplay !== 'none') {
+    throw new Error(`Photosensitivity mode exposed the event-synchronized muzzle flash: ${safeMuzzleFlashDisplay}`);
+  }
   await page.mouse.up();
   await page.evaluate(() => {
     window.__catchDavelTestVisibility = 'hidden';
@@ -616,7 +623,7 @@ try {
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
     passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
-    pulseEnergyCellProof, danceBeatProof, profileTransfer,
+    pulseEnergyCellProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
     fallback: { ...fallback, pulseEnergyCellTick: fallbackPulseEnergyCellTick, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },

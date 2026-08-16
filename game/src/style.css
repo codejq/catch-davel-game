@@ -160,8 +160,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #weapon i { position: absolute; top: 8px; left: 73px; width: 24px; height: 55px; border-radius: 10px; background: #17294d; }
 #weapon b { position: absolute; left: 22px; right: 22px; top: 80px; height: 20px; border-radius: 10px; background: #63f2ff; box-shadow: 0 0 14px #63f2ff; }
 body.locked #prompt { display: none; }
-body.firing #weapon { translate: -50% 8px; }
-body.firing #weapon::after { content: ''; position: absolute; left: 62px; top: -56px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; }
+body.feedback-muzzle-flash[data-weapon='pulse'] #weapon::after { content: ''; position: absolute; left: 62px; top: -56px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; animation: muzzle-flash .13s ease-out forwards; }
 body[data-weapon='sword'] #weapon { width: 76px; height: 245px; bottom: -66px; border-radius: 18px; background: linear-gradient(90deg, #20304d, #f8fbff 46%, #5df5ff 54%, #20304d); transform: perspective(250px) rotateX(5deg) rotate(-18deg); }
 body[data-weapon='sword'] #weapon::before { top: -104px; left: 25px; width: 25px; height: 170px; border: 0; border-radius: 14px; background: #eaffff; box-shadow: 0 0 20px 8px #54efff; }
 body[data-weapon='bomb'] #weapon { width: 142px; height: 142px; bottom: -18px; border-radius: 50%; background: radial-gradient(circle at 40% 28%, #657089, #171d2d 62%); box-shadow: inset 0 0 0 9px #090d18, 0 0 28px #ff5f3888; }
@@ -170,7 +169,7 @@ body[data-weapon='laser'] #weapon { background: linear-gradient(90deg, #1e2347, 
 body[data-weapon='laser'] #weapon::before { background: #66fff3; box-shadow: inset 0 0 0 8px #ff4c93, 0 0 20px #60fff8; }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }
 body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
-body.photosensitivity-safe.firing #weapon::after { display: none; }
+body.photosensitivity-safe.feedback-muzzle-flash #weapon::after { display: none; }
 body.photosensitivity-safe #crosshair.hit::before, body.photosensitivity-safe #crosshair.hit::after { background: #ffe762; box-shadow: none; transform: none; }
 body.photosensitivity-safe #crosshair.weak-hit::before, body.photosensitivity-safe #crosshair.weak-hit::after { background: #7ffff4; box-shadow: none; transform: none; }
 body.photosensitivity-safe #damage-direction { transition: none; }
@@ -187,6 +186,7 @@ body.feedback-sword-swing #weapon { animation: sword-swing .24s ease-out; }
 body.feedback-shake-light #game { animation: camera-shake-light .12s linear; }
 body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
 @keyframes weapon-kick { 0% { translate: -50% 0; } 32% { translate: -50% var(--weapon-kick-y); } 100% { translate: -50% 0; } }
+@keyframes muzzle-flash { 0% { opacity: 1; scale: .55; } 38% { opacity: .82; scale: 1; } 100% { opacity: 0; scale: 1.38; } }
 @keyframes sword-swing { 0% { translate: -50% 0; rotate: 0deg; } 42% { translate: var(--sword-swing-x) var(--sword-swing-y); rotate: var(--sword-swing-angle); } 100% { translate: -50% 0; rotate: 0deg; } }
 @keyframes camera-shake-light { 0%, 100% { translate: 0 0; scale: 1; } 30% { translate: var(--shake-light-x1) var(--shake-light-y1); scale: var(--shake-light-s1); } 65% { translate: var(--shake-light-x2) var(--shake-light-y2); scale: var(--shake-light-s2); } }
 @keyframes camera-shake-heavy { 0%, 100% { translate: 0 0; scale: 1; } 18% { translate: var(--shake-heavy-x1) var(--shake-heavy-y1); scale: var(--shake-heavy-s1); } 38% { translate: var(--shake-heavy-x2) var(--shake-heavy-y2); scale: var(--shake-heavy-s2); } 58% { translate: var(--shake-heavy-x3) var(--shake-heavy-y3); scale: var(--shake-heavy-s3); } 78% { translate: var(--shake-heavy-x4) var(--shake-heavy-y4); scale: var(--shake-heavy-s4); } }
