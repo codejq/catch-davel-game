@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "suiteId": "chapter-01-frozen-checksums",
+  "suiteVersion": 1,
+  "policyId": "baseline-campaign-agent",
+  "policyVersion": 1,
+  "levels": [
+    {
+      "levelId": "level-001",
+      "seed": "campaign-level-001-v1",
+      "finalTick": 4526,
+      "checksum": "8080626a62a5996d",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "723ce91cf348e298",
+        "simulationLevel": "89024bcb436256c9",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    },
+    {
+      "levelId": "level-003",
+      "seed": "campaign-level-003-v1",
+      "finalTick": 4753,
+      "checksum": "e4bbed26e4cc4edc",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "33454ddccaa72ad4",
+        "simulationLevel": "fef54884b2088ec7",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    },
+    {
+      "levelId": "level-005",
+      "seed": "campaign-level-005-v1",
+      "finalTick": 5206,
+      "checksum": "ea089c24da1e493d",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "14c6851bf24f338e",
+        "simulationLevel": "39c81753967df734",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    },
+    {
+      "levelId": "level-006",
+      "seed": "campaign-level-006-v1",
+      "finalTick": 3771,
+      "checksum": "5a93216b7cee9668",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "aa548c1c5a5064a1",
+        "simulationLevel": "d01839d053094148",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    },
+    {
+      "levelId": "level-008",
+      "seed": "campaign-level-008-v1",
+      "finalTick": 2761,
+      "checksum": "5424d006d0e85051",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "691d851903b181ac",
+        "simulationLevel": "6bcbc1989e7abfeb",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    },
+    {
+      "levelId": "level-010",
+      "seed": "campaign-level-010-v1",
+      "finalTick": 1038,
+      "checksum": "e5a543c4d9acc465",
+      "dependencyHashes": {
+        "simulationSchema": "ef569d373ae5f8cd",
+        "effectiveLevel": "3637dc0e10443f7c",
+        "simulationLevel": "7d360e3fbde5603b",
+        "balanceData": "d06573c4b4825196",
+        "policyOrReplay": "d3d7c87fc057d2d4"
+      }
+    }
+  ]
+}

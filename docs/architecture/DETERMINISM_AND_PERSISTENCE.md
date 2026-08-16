@@ -42,6 +42,12 @@ The level dependency includes the selected canonical validated Appendix A `Level
 
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 
+## Frozen campaign QA
+
+`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v9. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.
+
+The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation. Reference changes therefore require an explicit manifest and suite-version edit rather than being re-recorded during a test run.
+
 ## Profile v1
 
 Browser profiles include schema/migration history, identity, unlocks, per-level progress/replay references/statistics, total/spendable coins, upgrades, cosmetics, achievements, settings, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum.

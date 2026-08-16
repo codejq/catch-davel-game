@@ -22,6 +22,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Deterministic Davel fire-spit projectiles with line-of-sight gating, maze collision, player damage, defeat state, audiovisual feedback, and structured agent observations.
 - Versioned browser-agent observation/action API using the same authoritative simulation as human play.
 - Frozen, capability-limited agent API with reset/observe/act/step/replay/metrics and agent-time pausing between action batches; default production builds keep mutation methods disabled.
+- A reusable one-command campaign QA runner drives the baseline policy only through public observation/action data, enforces each level's declared tick, stuck, illegal-action, defeat, and completion gates, repeats runs deterministically, and emits a canonical report. Its strict six-level frozen manifest spans Levels 1, 3, 5, 6, 8, and 10 and pins final ticks/checksums plus every replay dependency hash.
 - Complete canonical simulation snapshots and checksums covering authoritative player/weapon resources, live bombs, laser focus, robot, XPBD, AI, projectile, economy, ID-counter, and terminal state while excluding presentation events.
 - Versioned replay recording/playback with compressed contiguous commands, initial/60-tick/final checksums, and simulation/level/balance/policy dependency hashes.
 - Versioned IndexedDB profiles with human-readable JSON, integrity checking, alternating verified records, active-pointer switching, and previous-record recovery.
@@ -45,7 +46,7 @@ Implementation is active. Missing physical devices do not block development; the
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 18 files, 72 tests passed, including deterministic Standard completion of all ten Chapter 1 IDs twice each, nine distinct same-Davel motion signatures, durable sequential unlock/best-time progression, typed coin-cache rendering/event checks, Level 6 conveyor phase checks, Level 8 staggered-gate/crossing/snapshot checks, Level 9 wave/save/restore and multi-defeat checks, and boss-training wave isolation.
+- Automated tests: 19 files, 77 tests passed, including deterministic Standard completion of all ten Chapter 1 IDs twice each, strict six-level frozen checksum/dependency validation, declared tick/stuck/illegal-action gates, nine distinct same-Davel motion signatures, durable sequential unlock/best-time progression, typed coin-cache rendering/event checks, Level 6 conveyor phase checks, Level 8 staggered-gate/crossing/snapshot checks, Level 9 wave/save/restore and multi-defeat checks, and boss-training wave isolation.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 30-tick command advanced exactly from tick 0 to tick 30 and remained paused at tick 30 during a 250 ms model-think interval.
@@ -57,7 +58,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Autonomous-clock check: while the main browser thread was deliberately blocked for 300 ms, the simulation Worker advanced 18 fixed ticks, coalesced 17 snapshots, and delivered its newest tick 259 after recovery.
 - Live-runtime check: realtime advanced during its 300 ms windows, the agent reset and stepped exactly to tick 30, replay reload restored checksum `930e3ea621ef3068`, manual mode stayed paused during a 250 ms think interval, the human IndexedDB profile did not change, and releasing control resumed realtime ticking.
 - Boss Worker/API check: a boss-training reset delivered exactly stable robot ID 6, name `The Final Invoice`, rank `boss`, phase 1, and 420 health through the public observation contract before the zero-upgrade campaign checksum run.
-- Chapter campaign-agent check: every canonical Level 1–10 ID loaded its declared seed and deterministic roster, completed twice with identical final tick/checksum, avoided defeat, and stayed below its declared Standard tick budget.
+- Chapter campaign-agent check: `npm run game:qa:campaign` loaded every canonical Level 1–10 seed/roster, completed each twice with identical final tick/checksum, avoided defeat/stuck/illegal-action outcomes, stayed below its declared Standard tick budget, and matched the six-level frozen manifest.
 - Chapter browser/API check: Level 8 crossed browser selection, Worker reset, public observation, level metadata, and replay identity with canonical seed `campaign-level-008-v1`, exactly eight active Davels, and three typed gates with positive time-to-toggle values.
 - Full-arsenal Worker/API check: a training reset exposed exactly pulse/sword/bomb/laser; authoritative actions generated sword heat, consumed one of three bombs and retained its live trajectory, then selected an active heat-producing laser beam. The subsequent frozen campaign run remained pulse-only and checksum-identical to the Node policy run.
 - Render-topology check: the production artifact initialized the OffscreenCanvas Worker with no page/console errors; a separately forced main-thread fallback obtained WebGL2, rendered live Worker snapshots, and likewise kept the production agent API absent.
@@ -69,6 +70,6 @@ These are development/CI results, not physical-device release certification.
 
 1. Resolve the remaining preset manifests into materialized effective level data and remove residual hand-authored runtime mappings.
 2. Expand Chapter 1 level-specific mechanics beyond the Level 6 conveyor, Level 8 clockwork gates, and Level 9 staged encounter, then add pacing/route regression scenarios.
-3. Add the frozen multi-level checksum benchmark manifest and Phase 6.5 replay/LLM diagnostics.
+3. Build the remaining Phase 6.5 schema editor, graph/maze/dance previews, balance harness, and replay inspector around the completed campaign QA/checksum foundation.
 4. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.
 5. Finish the polished Chapter 1 slice before scaling campaign data toward 100 levels.

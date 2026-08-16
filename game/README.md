@@ -19,6 +19,7 @@ npm run game:build
 npm run game:test
 npm run game:test:worker
 npm run game:test:runtime
+npm run game:qa:campaign
 ```
 
 Content contract commands:
@@ -57,6 +58,8 @@ The version-9 observation includes the authoritative Chapter 1 level ID and chor
 
 `BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,526—below the 6,000-tick hard budget.
 
+`npm run game:qa:campaign` executes the same public-observation policy against all ten Chapter 1 levels, enforces each level's declared tick/stuck/illegal-action gates, repeats every run for determinism, and prints a canonical machine-readable report. The checked-in `qa/frozen-checksum-manifest.json` freezes Levels 1, 3, 5, 6, 8, and 10 with exact final ticks, checksums, seeds, and all replay dependency hashes; drift blocks the command rather than silently rewriting its reference.
+
 ## Persistence and replay guarantees
 
 - Complete v1 snapshots under simulation schema v13 include authoritative campaign-level/grid, level choreography, coin/resource pickups, typed hazard/gate identity and phase, staged encounter/spawn identity, and every player, weapon upgrade/resource, bomb, laser-focus, robot/boss, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
@@ -81,6 +84,7 @@ The version-9 observation includes the authoritative Chapter 1 level ID and chor
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
 - The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, and deterministic one/two/three-fireball spreads;
 - deterministic simulation/agent contracts covered by automated tests.
+- one-command Chapter 1 campaign QA with all-level completion gates and a strict six-level frozen checksum manifest spanning tutorial, economy, elite, conveyor, timed-gate, and boss content;
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
 - Worker-owned 60 Hz authority with bounded snapshot/event transport; the main thread handles only input, HUD/audio feedback, persistence, and raw-WebGL2 presentation.
 - OffscreenCanvas render Worker with one frame in flight and latest-frame coalescing; unsupported browsers retain the same renderer through the main-thread WebGL2 fallback.

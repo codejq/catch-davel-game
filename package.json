@@ -14,6 +14,7 @@
     "game:content:export": "npm run content:export --workspace @quantum-billing/catch-davel-game",
     "game:build": "npm run build --workspace @quantum-billing/catch-davel-game",
     "game:test": "npm run test --workspace @quantum-billing/catch-davel-game",
+    "game:qa:campaign": "npm run qa:campaign --workspace @quantum-billing/catch-davel-game",
     "game:test:worker": "npm run test:worker --workspace @quantum-billing/catch-davel-game",
     "game:test:runtime": "npm run test:runtime --workspace @quantum-billing/catch-davel-game",
     "spike:dev": "npm run dev --workspace @quantum-billing/catch-davel-phase-minus-one",
