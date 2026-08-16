@@ -23,6 +23,7 @@ export interface SimulationWorkerClientOptions {
   readonly seed: string;
   readonly initialCoins: number;
   readonly mode?: 'manual' | 'realtime';
+  readonly unlockedWeaponMask?: number;
   readonly callbacks: SimulationWorkerClientCallbacks;
 }
 
@@ -67,6 +68,7 @@ export class SimulationWorkerClient {
     this.eventChannel.port2.start();
     this.worker.postMessage({
       type: 'initialize', seed: options.seed, initialCoins: options.initialCoins, mode: this.modeValue,
+      ...(options.unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask: options.unlockedWeaponMask }),
       snapshotPort: this.snapshotChannel.port1, eventPort: this.eventChannel.port1,
     } satisfies SimulationWorkerRequest, [this.snapshotChannel.port1, this.eventChannel.port1]);
   }
@@ -95,6 +97,7 @@ export class SimulationWorkerClient {
       type: 'input', sequence: ++this.inputSequence,
       forward: command.forward, strafe: command.strafe,
       yawDelta: command.yawDelta, pitchDelta: command.pitchDelta, fire: command.fire,
+      altFire: command.altFire ?? false, weapon: command.weapon ?? null,
     } satisfies SimulationWorkerRequest);
   }
 
@@ -108,8 +111,11 @@ export class SimulationWorkerClient {
     return this.requestComplete({ type: 'step', requestId: 0, command, ticks });
   }
 
-  reset(seed: string, initialCoins: number, agentRun: boolean): Promise<SimulationWorkerComplete> {
-    return this.requestComplete({ type: 'reset', requestId: 0, seed, initialCoins, agentRun });
+  reset(seed: string, initialCoins: number, agentRun: boolean, unlockedWeaponMask?: number): Promise<SimulationWorkerComplete> {
+    return this.requestComplete({
+      type: 'reset', requestId: 0, seed, initialCoins, agentRun,
+      ...(unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask }),
+    });
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): Promise<SimulationWorkerComplete> {

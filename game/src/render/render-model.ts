@@ -7,6 +7,23 @@ export interface RenderPlayerState {
   readonly energy: number;
   readonly coins: number;
   readonly bobPhase: number;
+  readonly selectedWeapon: 'pulse' | 'sword' | 'bomb' | 'laser';
+  readonly unlockedWeaponMask: number;
+  readonly bombs: number;
+  readonly swordHeat: number;
+  readonly laserHeat: number;
+  readonly laserOverheated: boolean;
+}
+
+export interface RenderPlayerBombState {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly velocityX: number;
+  readonly velocityY: number;
+  readonly velocityZ: number;
+  readonly fuseTicks: number;
 }
 
 export interface RenderRobotState {
@@ -56,6 +73,10 @@ export interface RenderGameState {
   readonly player: RenderPlayerState;
   readonly robots: readonly RenderRobotState[];
   readonly projectiles: readonly RenderProjectileState[];
+  readonly playerBombs: readonly RenderPlayerBombState[];
+  readonly laserActive: boolean;
+  readonly laserBeamDistance: number;
+  readonly laserFocusTicks: number;
   readonly victory: boolean;
   readonly defeat: boolean;
   readonly level: RenderLevelState;

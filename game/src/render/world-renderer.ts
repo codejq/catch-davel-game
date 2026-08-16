@@ -163,7 +163,7 @@ export class WorldRenderer {
     gl.uniformMatrix4fv(this.viewProjectionLocation, false, this.viewProjection);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
-    this.davels.render(state.robots, state.projectiles, this.viewProjection);
+    this.davels.render(state, this.viewProjection);
   }
 
   private buildWorldInstances(): void {

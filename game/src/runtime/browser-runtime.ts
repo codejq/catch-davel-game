@@ -7,6 +7,7 @@ import { createBrowserProfileRepository } from '../storage/indexeddb';
 import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from '../storage/profile';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
+import { CAMPAIGN_LEVEL_1_WEAPON_MASK, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -21,6 +22,7 @@ function requireElement<T extends Element>(selector: string): T {
 }
 
 export async function startBrowserGame(): Promise<void> {
+  const trainingMode = new URLSearchParams(location.search).get('arsenal') === 'training';
   let canvas = requireCanvas();
   const renderer = await createRendererHost(canvas, {
     forceMainThread: new URLSearchParams(location.search).get('renderer') === 'main',
@@ -34,6 +36,8 @@ export async function startBrowserGame(): Promise<void> {
   const remainingHud = requireElement<HTMLElement>('#remaining');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
+  const weaponStatus = requireElement<HTMLElement>('#weapon-status');
+  document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
   const profileRepository = createBrowserProfileRepository();
   let activeProfile: ProfileV1;
   try {
@@ -59,6 +63,7 @@ export async function startBrowserGame(): Promise<void> {
 
   const persistProfile = (profile: ProfileV1): void => {
     activeProfile = profile;
+    if (trainingMode) return;
     profileWrite = profileWrite.then(() => profileRepository.save(profile)).catch((error: unknown) => {
       console.warn('Catch Davel profile save failed', error);
     });
@@ -102,6 +107,11 @@ export async function startBrowserGame(): Promise<void> {
     remainingHud.textContent = state.victory ? 'maze clear!'
       : state.level.objectiveComplete ? 'reach the green exit'
       : `${remaining} Davels remain`;
+    const resource = state.player.selectedWeapon === 'bomb' ? ` · ${state.player.bombs} BOMBS`
+      : state.player.selectedWeapon === 'sword' ? ` · HEAT ${Math.ceil(state.player.swordHeat)}`
+      : state.player.selectedWeapon === 'laser' ? ` · HEAT ${Math.ceil(state.player.laserHeat)}${state.player.laserOverheated ? ' OVERHEATED' : ''}` : '';
+    weaponStatus.textContent = `${state.player.selectedWeapon.toUpperCase()}${resource}`;
+    document.body.dataset.weapon = state.player.selectedWeapon;
   };
 
   const persistDurableState = (state: RenderGameState): void => {
@@ -117,6 +127,11 @@ export async function startBrowserGame(): Promise<void> {
 
   const processEvent = (event: DecodedGameEvent): void => {
     if (event.type === 'pulse-fired') sound(210, 0.11, 0.055, 'sawtooth');
+    if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 110 : 180, 0.14, 0.05, 'sawtooth');
+    if (event.type === 'projectile-deflected') sound(880, 0.08, 0.04, 'square');
+    if (event.type === 'bomb-thrown') sound(145, 0.11, 0.035, 'triangle');
+    if (event.type === 'bomb-detonated') { showMessage('PULSE BOMB DETONATED'); sound(58, 0.42, 0.1, 'sawtooth'); }
+    if (event.type === 'laser-fired' && event.tick % 4 === 0) sound(430, 0.05, 0.018, 'sine');
     if (event.type === 'robot-hit') {
       crosshair.classList.add('hit');
       window.setTimeout(() => crosshair.classList.remove('hit'), 90);
@@ -192,8 +207,9 @@ export async function startBrowserGame(): Promise<void> {
 
   const client = await SimulationWorkerClient.create({
     seed: DEFAULT_LEVEL_SEED,
-    initialCoins: activeProfile.spendableCoins,
+    initialCoins: trainingMode ? 0 : activeProfile.spendableCoins,
     mode: 'manual',
+    unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
     callbacks: {
       onSnapshot: (state) => {
         renderState = state;
@@ -214,11 +230,14 @@ export async function startBrowserGame(): Promise<void> {
       },
     },
   });
-  if (activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+  if (!trainingMode && activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
   await client.setMode('realtime');
   agentController = new WorkerAgentController(client, async () => {
-    if (activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
-    else await client.reset(DEFAULT_LEVEL_SEED, activeProfile.spendableCoins, false);
+    if (!trainingMode && activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+    else await client.reset(
+      DEFAULT_LEVEL_SEED, trainingMode ? 0 : activeProfile.spendableCoins, false,
+      trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    );
     await client.setMode('realtime');
     humanSessionStarted = false;
   });
@@ -231,9 +250,14 @@ export async function startBrowserGame(): Promise<void> {
   let yawDelta = 0;
   let pitchDelta = 0;
   let fireQueued = false;
+  let altFireQueued = false;
+  let fireHeld = false;
+  let queuedWeapon: WeaponId | null = null;
 
   window.addEventListener('keydown', (event: KeyboardEvent) => {
     pressed.add(event.code);
+    const weaponByCode: Partial<Record<string, WeaponId>> = { Digit1: 'pulse', Digit2: 'sword', Digit3: 'bomb', Digit4: 'laser' };
+    queuedWeapon = weaponByCode[event.code] ?? queuedWeapon;
     beginHumanSession();
   });
   window.addEventListener('keyup', (event: KeyboardEvent) => pressed.delete(event.code));
@@ -249,12 +273,18 @@ export async function startBrowserGame(): Promise<void> {
     audioContext ??= new AudioContext();
     void audioContext.resume();
     if (document.pointerLockElement !== canvas) void canvas.requestPointerLock();
-    else {
-      fireQueued = true;
-      document.body.classList.add('firing');
-      window.setTimeout(() => document.body.classList.remove('firing'), 80);
-    }
   });
+  canvas.addEventListener('mousedown', (event: MouseEvent) => {
+    if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
+    if (event.button === 0) fireHeld = true;
+    if (event.button === 2) { fireQueued = true; altFireQueued = true; }
+    document.body.classList.add('firing');
+  });
+  window.addEventListener('mouseup', (event: MouseEvent) => {
+    if (event.button === 0) fireHeld = false;
+    document.body.classList.remove('firing');
+  });
+  canvas.addEventListener('contextmenu', (event) => event.preventDefault());
   document.addEventListener('pointerlockchange', () => {
     document.body.classList.toggle('locked', document.pointerLockElement === canvas);
   });
@@ -271,12 +301,16 @@ export async function startBrowserGame(): Promise<void> {
         strafe: Number(pressed.has('KeyD') || pressed.has('ArrowRight')) - Number(pressed.has('KeyA') || pressed.has('ArrowLeft')),
         yawDelta,
         pitchDelta,
-        fire: fireQueued,
+        fire: fireQueued || fireHeld,
+        altFire: altFireQueued,
+        weapon: queuedWeapon,
       };
       client.sendInput(command);
       yawDelta = 0;
       pitchDelta = 0;
       fireQueued = false;
+      altFireQueued = false;
+      queuedWeapon = null;
     }
     if (renderState !== null) renderer.present(renderState);
     requestAnimationFrame(frame);

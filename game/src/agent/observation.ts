@@ -3,6 +3,7 @@ import type { GameState } from '../sim/game';
 import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, LEVEL_ROWS, worldCell } from '../sim/level';
 import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
+import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 
 export interface RobotObservation {
   readonly id: number;
@@ -19,7 +20,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 3;
+  readonly schemaVersion: 4;
   readonly tick: number;
   readonly seed: string;
   readonly player: {
@@ -32,6 +33,12 @@ export interface AgentObservation {
     readonly health: number;
     readonly energy: number;
     readonly coins: number;
+    readonly selectedWeapon: WeaponId;
+    readonly unlockedWeapons: readonly WeaponId[];
+    readonly bombs: number;
+    readonly swordHeat: number;
+    readonly laserHeat: number;
+    readonly laserOverheated: boolean;
   };
   readonly robots: readonly RobotObservation[];
   readonly remainingRobots: number;
@@ -77,6 +84,22 @@ export interface AgentObservation {
     readonly velocityY: number;
     readonly velocityZ: number;
   }[];
+  readonly playerBombs: readonly {
+    readonly id: number;
+    readonly relativeX: number;
+    readonly relativeY: number;
+    readonly relativeZ: number;
+    readonly velocityX: number;
+    readonly velocityY: number;
+    readonly velocityZ: number;
+    readonly fuseTicks: number;
+  }[];
+  readonly laser: {
+    readonly active: boolean;
+    readonly beamDistance: number;
+    readonly focusTicks: number;
+    readonly targetRobotId: number | null;
+  };
 }
 
 function round(value: number): number { return Math.round(value * 1_000) / 1_000; }
@@ -121,7 +144,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     tick: state.tick,
     seed: state.seed,
     player: {
@@ -129,6 +152,11 @@ export function createObservation(state: GameState): AgentObservation {
       cellColumn: playerCell.column, cellRow: playerCell.row,
       yaw: round(state.player.yaw), pitch: round(state.player.pitch),
       health: round(state.player.health), energy: round(state.player.energy), coins: state.player.coins,
+      selectedWeapon: state.player.selectedWeapon,
+      unlockedWeapons: WEAPON_IDS.filter((weapon) => weaponUnlocked(state.player.unlockedWeaponMask, weapon)),
+      bombs: state.player.bombs,
+      swordHeat: round(state.player.swordHeat), laserHeat: round(state.player.laserHeat),
+      laserOverheated: state.player.laserOverheated,
     },
     robots,
     remainingRobots: robots.length,
@@ -170,6 +198,16 @@ export function createObservation(state: GameState): AgentObservation {
       velocityY: round(projectile.velocityY),
       velocityZ: round(projectile.velocityZ),
     })),
+    playerBombs: state.playerBombs.map((bomb) => ({
+      id: bomb.id,
+      relativeX: round(bomb.x - state.player.x), relativeY: round(bomb.y - PLAYER_EYE_HEIGHT),
+      relativeZ: round(bomb.z - state.player.z), velocityX: round(bomb.velocityX),
+      velocityY: round(bomb.velocityY), velocityZ: round(bomb.velocityZ), fuseTicks: bomb.fuseTicks,
+    })),
+    laser: {
+      active: state.laserActive, beamDistance: round(state.laserBeamDistance), focusTicks: state.laserFocusTicks,
+      targetRobotId: state.laserTargetRobotId,
+    },
   };
 }
 

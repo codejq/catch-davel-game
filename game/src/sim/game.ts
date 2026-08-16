@@ -1,6 +1,10 @@
 import { createPlayer, stepPlayer, type PlayerCommand, type PlayerState } from './player';
 import { createRobots, stepRobots, type RobotState } from './robots';
-import { firePulse, type ShotResult } from './combat';
+import {
+  BOMB_COOLDOWN_TICKS, LASER_BASE_DAMAGE, LASER_ENERGY_PER_TICK, LASER_HEAT_COOL_PER_TICK,
+  LASER_HEAT_PER_TICK, LASER_MAX_FOCUS_BONUS, LASER_OVERHEAT_RECOVERY, SWORD_HEAT_COOL_PER_TICK,
+  createThrownBomb, fireLaser, firePulse, stepPlayerBombs, swingSword, type ShotResult, type WeaponHit,
+} from './combat';
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
 import {
@@ -9,10 +13,12 @@ import {
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
 import { quantizeSimulationState } from './quantization';
+import { CAMPAIGN_LEVEL_1_WEAPON_MASK, type PlayerBomb } from './weapons';
 
 export interface GameEvent {
   readonly tick: number;
-  readonly type: 'pulse-fired' | 'robot-hit' | 'robot-defeated' | 'robot-fired' | 'player-hit' | 'victory' | 'defeat'
+  readonly type: 'pulse-fired' | 'sword-swung' | 'sword-charged' | 'projectile-deflected'
+    | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-fired' | 'player-hit' | 'victory' | 'defeat'
     | 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened' | 'checkpoint-activated'
     | 'objective-complete' | 'exit-unlocked';
   readonly robotId?: number;
@@ -32,14 +38,22 @@ export interface GameState {
   defeat: boolean;
   readonly projectiles: EnemyProjectile[];
   nextProjectileId: number;
+  readonly playerBombs: PlayerBomb[];
+  nextPlayerBombId: number;
+  lastSwordTick: number;
+  lastBombTick: number;
+  laserFocusTicks: number;
+  laserTargetRobotId: number | null;
+  laserActive: boolean;
+  laserBeamDistance: number;
   readonly level: LevelRuntimeState;
 }
 
 export class GameSimulation {
   state: GameState;
 
-  constructor(seed = DEFAULT_LEVEL_SEED) {
-    this.state = GameSimulation.initialState(seed);
+  constructor(seed = DEFAULT_LEVEL_SEED, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK) {
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask);
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -48,19 +62,21 @@ export class GameSimulation {
     return simulation;
   }
 
-  reset(seed = DEFAULT_LEVEL_SEED): void {
-    this.state = GameSimulation.initialState(seed);
+  reset(seed = DEFAULT_LEVEL_SEED, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): void {
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask);
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
     this.state = restoreSimulationState(snapshot);
   }
 
-  private static initialState(seed: string): GameState {
+  private static initialState(seed: string, unlockedWeaponMask: number): GameState {
     const state: GameState = {
-      tick: 0, seed, player: createPlayer(), robots: createRobots(), events: [],
+      tick: 0, seed, player: createPlayer(unlockedWeaponMask), robots: createRobots(), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
+      playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
+      laserFocusTicks: 0, laserTargetRobotId: null, laserActive: false, laserBeamDistance: 0,
       level: createLevelRuntime(),
     };
     quantizeSimulationState(state);
@@ -87,6 +103,7 @@ export class GameSimulation {
       return;
     }
     stepRobots(this.state.robots, this.state.seed);
+    this.coolWeapons();
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId,
     );
@@ -98,11 +115,74 @@ export class GameSimulation {
       this.state.events.push({ tick: this.state.tick, type: 'defeat' });
     }
     this.state.player.energy = Math.min(100, this.state.player.energy + 0.12);
-    if (command.fire && !this.state.defeat && !this.state.victory) {
-      this.applyShot(firePulse(this.state.player, this.state.robots, this.state.tick, this.state.lastShotTick));
-    }
+    if (!this.state.defeat && !this.state.victory) this.stepSelectedWeapon(command);
+    const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs);
+    for (const bombId of detonatedBombs.detonatedBombIds) this.state.events.push({ tick: this.state.tick, type: 'bomb-detonated', value: bombId });
+    for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
     quantizeSimulationState(this.state);
     this.state.tick += 1;
+  }
+
+  private coolWeapons(): void {
+    const player = this.state.player;
+    player.swordHeat = Math.max(0, player.swordHeat - SWORD_HEAT_COOL_PER_TICK);
+    if (!this.state.laserActive) player.laserHeat = Math.max(0, player.laserHeat - LASER_HEAT_COOL_PER_TICK);
+    if (player.laserOverheated && player.laserHeat <= LASER_OVERHEAT_RECOVERY) player.laserOverheated = false;
+    this.state.laserActive = false;
+  }
+
+  private stepSelectedWeapon(command: PlayerCommand): void {
+    if (!command.fire) {
+      this.state.laserFocusTicks = 0;
+      this.state.laserTargetRobotId = null;
+      return;
+    }
+    const player = this.state.player;
+    if (player.selectedWeapon === 'pulse') {
+      this.applyShot(firePulse(player, this.state.robots, this.state.tick, this.state.lastShotTick));
+      return;
+    }
+    if (player.selectedWeapon === 'sword') {
+      const result = swingSword(player, this.state.robots, this.state.projectiles, this.state.tick, this.state.lastSwordTick, command.altFire === true);
+      if (!result.activated) return;
+      this.state.lastSwordTick = this.state.tick;
+      this.state.shotSerial += 1;
+      this.state.events.push({ tick: this.state.tick, type: result.charged ? 'sword-charged' : 'sword-swung' });
+      for (const projectileId of result.deflectedProjectileIds) this.state.events.push({ tick: this.state.tick, type: 'projectile-deflected', value: projectileId });
+      if (result.hit !== null) this.applyWeaponHit(result.hit);
+      return;
+    }
+    if (player.selectedWeapon === 'bomb') {
+      if (this.state.tick - this.state.lastBombTick < BOMB_COOLDOWN_TICKS || player.bombs <= 0) return;
+      const bomb = createThrownBomb(player, this.state.nextPlayerBombId);
+      this.state.nextPlayerBombId += 1;
+      this.state.lastBombTick = this.state.tick;
+      player.bombs -= 1;
+      this.state.playerBombs.push(bomb);
+      this.state.shotSerial += 1;
+      this.state.events.push({ tick: this.state.tick, type: 'bomb-thrown', value: bomb.id });
+      return;
+    }
+    if (player.laserOverheated || player.energy < LASER_ENERGY_PER_TICK) return;
+    player.energy -= LASER_ENERGY_PER_TICK;
+    player.laserHeat = Math.min(100, player.laserHeat + LASER_HEAT_PER_TICK);
+    if (player.laserHeat >= 100) player.laserOverheated = true;
+    const focus = Math.min(1, this.state.laserFocusTicks / 90);
+    const result = fireLaser(player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus);
+    this.state.laserActive = true;
+    this.state.laserBeamDistance = result.beamDistance;
+    this.state.shotSerial += 1;
+    this.state.events.push(result.hit === null
+      ? { tick: this.state.tick, type: 'laser-fired' }
+      : { tick: this.state.tick, type: 'laser-fired', robotId: result.hit.robotId });
+    if (result.hit === null) {
+      this.state.laserFocusTicks = 0;
+      this.state.laserTargetRobotId = null;
+    } else {
+      this.state.laserFocusTicks = this.state.laserTargetRobotId === result.hit.robotId ? this.state.laserFocusTicks + 1 : 1;
+      this.state.laserTargetRobotId = result.hit.robotId;
+      this.applyWeaponHit(result.hit);
+    }
   }
 
   private applyShot(result: ShotResult): void {
@@ -110,16 +190,17 @@ export class GameSimulation {
     this.state.lastShotTick = this.state.tick;
     this.state.shotSerial += 1;
     this.state.events.push({ tick: this.state.tick, type: 'pulse-fired' });
-    if (result.hitRobotId !== null) this.state.events.push({ tick: this.state.tick, type: 'robot-hit', robotId: result.hitRobotId });
-    if (result.defeatedRobotId !== null) {
-      this.state.events.push({
-        tick: this.state.tick, type: 'robot-defeated', robotId: result.defeatedRobotId, coins: result.coinsAwarded,
-      });
-      if (this.state.robots.every((robot) => !robot.active)) {
-        for (const interaction of completePrimaryObjective(this.state.level)) {
-          this.state.events.push({ tick: this.state.tick, ...interaction });
-        }
-      }
+    if (result.hitRobotId !== null) this.applyWeaponHit({
+      robotId: result.hitRobotId, defeated: result.defeatedRobotId === result.hitRobotId, coinsAwarded: result.coinsAwarded,
+    });
+  }
+
+  private applyWeaponHit(hit: WeaponHit): void {
+    this.state.events.push({ tick: this.state.tick, type: 'robot-hit', robotId: hit.robotId });
+    if (!hit.defeated) return;
+    this.state.events.push({ tick: this.state.tick, type: 'robot-defeated', robotId: hit.robotId, coins: hit.coinsAwarded });
+    if (this.state.robots.every((robot) => !robot.active)) {
+      for (const interaction of completePrimaryObjective(this.state.level)) this.state.events.push({ tick: this.state.tick, ...interaction });
     }
   }
 }

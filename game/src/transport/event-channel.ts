@@ -21,6 +21,12 @@ export const EVENT_KIND = {
   checkpointActivated: 12,
   objectiveComplete: 13,
   exitUnlocked: 14,
+  swordSwung: 15,
+  swordCharged: 16,
+  projectileDeflected: 17,
+  bombThrown: 18,
+  bombDetonated: 19,
+  laserFired: 20,
 } as const;
 
 export interface EventTransportConfig {
@@ -75,6 +81,12 @@ function capacity(records: number, bytes: number): number {
 function encodeKind(event: GameEvent): { readonly kind: number; readonly eventClass: EventClass } {
   switch (event.type) {
     case 'pulse-fired': return { kind: EVENT_KIND.pulseFired, eventClass: EVENT_CLASS.presentationOnly };
+    case 'sword-swung': return { kind: EVENT_KIND.swordSwung, eventClass: EVENT_CLASS.presentationOnly };
+    case 'sword-charged': return { kind: EVENT_KIND.swordCharged, eventClass: EVENT_CLASS.presentationOnly };
+    case 'projectile-deflected': return { kind: EVENT_KIND.projectileDeflected, eventClass: EVENT_CLASS.presentationOnly };
+    case 'bomb-thrown': return { kind: EVENT_KIND.bombThrown, eventClass: EVENT_CLASS.presentationOnly };
+    case 'bomb-detonated': return { kind: EVENT_KIND.bombDetonated, eventClass: EVENT_CLASS.presentationOnly };
+    case 'laser-fired': return { kind: EVENT_KIND.laserFired, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-fired': return { kind: EVENT_KIND.robotFired, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-hit': return { kind: EVENT_KIND.robotHit, eventClass: EVENT_CLASS.stateCritical };
     case 'robot-defeated': return { kind: EVENT_KIND.robotDefeated, eventClass: EVENT_CLASS.stateCritical };
@@ -107,6 +119,12 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.checkpointActivated: return 'checkpoint-activated';
     case EVENT_KIND.objectiveComplete: return 'objective-complete';
     case EVENT_KIND.exitUnlocked: return 'exit-unlocked';
+    case EVENT_KIND.swordSwung: return 'sword-swung';
+    case EVENT_KIND.swordCharged: return 'sword-charged';
+    case EVENT_KIND.projectileDeflected: return 'projectile-deflected';
+    case EVENT_KIND.bombThrown: return 'bomb-thrown';
+    case EVENT_KIND.bombDetonated: return 'bomb-detonated';
+    case EVENT_KIND.laserFired: return 'laser-fired';
     default: throw new Error(`Unknown event kind ${kind}`);
   }
 }

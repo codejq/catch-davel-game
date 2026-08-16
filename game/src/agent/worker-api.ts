@@ -6,8 +6,9 @@ import {
   agentActionSchema, normalizeAgentAction,
   type AgentAction, type CatchDavelAgentApi, type ReplayEntry,
 } from './api';
+import { TRAINING_WEAPON_MASK } from '../sim/weapons';
 
-type ResetOptions = { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' };
+type ResetOptions = { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training' };
 
 export class WorkerAgentController {
   private controlled = false;
@@ -58,10 +59,11 @@ export class WorkerAgentController {
       if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
       if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
       if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
+      if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
       const seed = options.seed ?? DEFAULT_LEVEL_SEED;
       if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
       await this.client.setMode('manual', true);
-      const response = await this.client.reset(seed, 0, true);
+      const response = await this.client.reset(seed, 0, true, options.loadout === 'training' ? TRAINING_WEAPON_MASK : undefined);
       this.controlled = true;
       this.replay.length = 0;
       return response.observation;
@@ -83,6 +85,8 @@ export class WorkerAgentController {
           yawDelta: normalized.turn,
           pitchDelta: normalized.look,
           fire: normalized.fire,
+          altFire: normalized.altFire,
+          weapon: normalized.weapon,
         }, ticks);
         return response.observation;
       } finally {

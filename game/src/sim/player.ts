@@ -1,5 +1,8 @@
 import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED } from './constants';
 import { cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
+import {
+  CAMPAIGN_LEVEL_1_WEAPON_MASK, weaponUnlocked, type WeaponId,
+} from './weapons';
 
 export interface PlayerState {
   x: number;
@@ -10,6 +13,12 @@ export interface PlayerState {
   energy: number;
   coins: number;
   bobPhase: number;
+  selectedWeapon: WeaponId;
+  unlockedWeaponMask: number;
+  bombs: number;
+  swordHeat: number;
+  laserHeat: number;
+  laserOverheated: boolean;
 }
 
 export interface PlayerCommand {
@@ -18,15 +27,21 @@ export interface PlayerCommand {
   readonly yawDelta: number;
   readonly pitchDelta: number;
   readonly fire: boolean;
+  readonly altFire?: boolean;
+  readonly weapon?: WeaponId | null;
 }
 
-export function createPlayer(): PlayerState {
+export function createPlayer(unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): PlayerState {
   const start = findCell('S');
   const point = cellCenter(start.column, start.row);
-  return { x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0 };
+  return {
+    x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0,
+    selectedWeapon: 'pulse', unlockedWeaponMask, bombs: 3, swordHeat: 0, laserHeat: 0, laserOverheated: false,
+  };
 }
 
 export function stepPlayer(player: PlayerState, command: PlayerCommand, blockedCells: readonly CellCoordinate[] = []): void {
+  if (command.weapon !== undefined && command.weapon !== null && weaponUnlocked(player.unlockedWeaponMask, command.weapon)) player.selectedWeapon = command.weapon;
   player.yaw += command.yawDelta;
   player.pitch = Math.max(-1.25, Math.min(1.25, player.pitch + command.pitchDelta));
   const inputLength = Math.hypot(command.forward, command.strafe);

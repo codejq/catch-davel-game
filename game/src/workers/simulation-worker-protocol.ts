@@ -4,6 +4,7 @@ import type { SnapshotPoolMetrics } from '../transport/snapshot-pool';
 import type { EventProducerChannel } from '../transport/event-channel';
 import type { AgentObservation } from '../agent/observation';
 import type { ReplayFileV1 } from '../replay/replay';
+import type { WeaponId } from '../sim/weapons';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
@@ -12,6 +13,7 @@ export interface InitializeSimulationWorker {
   readonly eventPort: MessagePort;
   readonly mode?: 'manual' | 'realtime';
   readonly initialCoins?: number;
+  readonly unlockedWeaponMask?: number;
 }
 
 export interface StepSimulationWorker {
@@ -27,6 +29,7 @@ export interface ResetSimulationWorker {
   readonly seed: string;
   readonly initialCoins?: number;
   readonly agentRun?: boolean;
+  readonly unlockedWeaponMask?: number;
 }
 
 export interface LoadSnapshotSimulationWorker {
@@ -43,6 +46,8 @@ export interface InputSimulationWorker {
   readonly yawDelta: number;
   readonly pitchDelta: number;
   readonly fire: boolean;
+  readonly altFire: boolean;
+  readonly weapon: WeaponId | null;
 }
 
 export interface SetSimulationWorkerMode {

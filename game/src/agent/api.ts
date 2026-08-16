@@ -6,6 +6,7 @@ import {
 } from '../replay/replay';
 import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
+import { isWeaponId, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
 
 export interface AgentAction {
   readonly forward?: number;
@@ -13,16 +14,28 @@ export interface AgentAction {
   readonly turn?: number;
   readonly look?: number;
   readonly fire?: boolean;
+  readonly altFire?: boolean;
+  readonly weapon?: WeaponId;
+}
+
+export interface NormalizedAgentAction {
+  readonly forward: number;
+  readonly strafe: number;
+  readonly turn: number;
+  readonly look: number;
+  readonly fire: boolean;
+  readonly altFire: boolean;
+  readonly weapon: WeaponId | null;
 }
 
 export interface ReplayEntry {
   readonly tick: number;
   readonly ticks: number;
-  readonly action: Required<AgentAction>;
+  readonly action: NormalizedAgentAction;
 }
 
 interface QueuedAction {
-  readonly action: Required<AgentAction>;
+  readonly action: NormalizedAgentAction;
   remaining: number;
   readonly resolve: (observation: AgentObservation) => void;
 }
@@ -31,7 +44,7 @@ export interface CatchDavelAgentApi {
   readonly version: 1;
   getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
-  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): Promise<AgentObservation>;
+  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training' }): Promise<AgentObservation>;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
@@ -56,13 +69,16 @@ function finiteBounded(value: number | undefined, minimum: number, maximum: numb
   return Math.max(minimum, Math.min(maximum, value));
 }
 
-export function normalizeAgentAction(action: AgentAction): Required<AgentAction> {
+export function normalizeAgentAction(action: AgentAction): NormalizedAgentAction {
+  if (action.weapon !== undefined && !isWeaponId(action.weapon)) throw new Error('Agent weapon is invalid');
   return {
     forward: finiteBounded(action.forward, -1, 1),
     strafe: finiteBounded(action.strafe, -1, 1),
     turn: finiteBounded(action.turn, -0.2, 0.2),
     look: finiteBounded(action.look, -0.12, 0.12),
     fire: action.fire === true,
+    altFire: action.altFire === true,
+    weapon: action.weapon ?? null,
   };
 }
 
@@ -76,6 +92,8 @@ export function agentActionSchema(): Readonly<Record<string, unknown>> {
       turn: Object.freeze({ type: 'number', minimum: -0.2, maximum: 0.2 }),
       look: Object.freeze({ type: 'number', minimum: -0.12, maximum: 0.12 }),
       fire: Object.freeze({ type: 'boolean' }),
+      altFire: Object.freeze({ type: 'boolean' }),
+      weapon: Object.freeze({ type: 'string', enum: Object.freeze(['pulse', 'sword', 'bomb', 'laser']) }),
     }),
   });
 }
@@ -133,6 +151,8 @@ export class AgentController {
       yawDelta: next.action.turn,
       pitchDelta: next.action.look,
       fire: next.action.fire,
+      altFire: next.action.altFire,
+      weapon: next.action.weapon,
     };
   }
 
@@ -161,14 +181,15 @@ export class AgentController {
     this.controlled = false;
   }
 
-  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): AgentObservation {
+  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training' }): AgentObservation {
     if (this.queue.length > 0) throw new Error('Cannot reset while agent actions are queued');
     if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
     if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
     if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
     const seed = options.seed ?? DEFAULT_LEVEL_SEED;
     if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
-    this.simulation.reset(seed);
+    if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
+    this.simulation.reset(seed, options.loadout === 'training' ? TRAINING_WEAPON_MASK : undefined);
     this.controlled = true;
     this.replay.length = 0;
     this.recorder = new ReplayRecorder(this.simulation);

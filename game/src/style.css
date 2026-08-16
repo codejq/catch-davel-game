@@ -8,6 +8,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #stats { position: absolute; top: 18px; right: 22px; display: flex; gap: 8px; }
 #stats span { padding: 8px 11px; border: 2px solid #fff8; border-radius: 8px; background: #14284ee6; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
 #stats b { color: #ffe56c; }
+#weapon-status { position: absolute; right: 22px; top: 61px; min-width: 140px; padding: 7px 10px; border-radius: 7px; background: #14284ed9; color: #8ff7ff; text-align: right; font-size: 12px; font-weight: 900; letter-spacing: .09em; }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; translate: -50% -50%; }
 #crosshair::before, #crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 4px #14284e; }
 #crosshair::before { left: 8px; width: 2px; height: 18px; }
@@ -24,4 +25,10 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 body.locked #prompt { display: none; }
 body.firing #weapon { translate: -50% 8px; }
 body.firing #weapon::after { content: ''; position: absolute; left: 62px; top: -56px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; }
+body[data-weapon='sword'] #weapon { width: 76px; height: 245px; bottom: -66px; border-radius: 18px; background: linear-gradient(90deg, #20304d, #f8fbff 46%, #5df5ff 54%, #20304d); transform: perspective(250px) rotateX(5deg) rotate(-18deg); }
+body[data-weapon='sword'] #weapon::before { top: -104px; left: 25px; width: 25px; height: 170px; border: 0; border-radius: 14px; background: #eaffff; box-shadow: 0 0 20px 8px #54efff; }
+body[data-weapon='bomb'] #weapon { width: 142px; height: 142px; bottom: -18px; border-radius: 50%; background: radial-gradient(circle at 40% 28%, #657089, #171d2d 62%); box-shadow: inset 0 0 0 9px #090d18, 0 0 28px #ff5f3888; }
+body[data-weapon='bomb'] #weapon::before { top: -19px; left: 54px; width: 34px; height: 38px; border: 5px solid #101526; border-radius: 8px; background: #ff6b27; box-shadow: 0 0 12px #ffb02e; }
+body[data-weapon='laser'] #weapon { background: linear-gradient(90deg, #1e2347, #ff4d8f 45%, #4df9f2 54%, #171c3a); box-shadow: inset 0 0 0 7px #152347, 0 0 35px #ff3e9588; }
+body[data-weapon='laser'] #weapon::before { background: #66fff3; box-shadow: inset 0 0 0 8px #ff4c93, 0 0 20px #60fff8; }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }

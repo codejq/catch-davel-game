@@ -1,21 +1,26 @@
 import { BODY_POINT_COUNT } from '../sim/xpbd';
 import type {
-  RenderGameState, RenderPickupState, RenderPlayerState, RenderProjectileState, RenderRobotState,
+  RenderGameState, RenderPickupState, RenderPlayerBombState, RenderPlayerState, RenderProjectileState, RenderRobotState,
 } from '../render/render-model';
+import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 
-export const TRANSPORT_CONTRACT_VERSION = 2;
+export const TRANSPORT_CONTRACT_VERSION = 3;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
+export const MAX_RENDER_PLAYER_BOMBS = 16;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
-export const RENDER_PLAYER_FLOATS = 7;
+export const RENDER_PLAYER_FLOATS = 9;
 export const RENDER_ROBOT_FLOATS = 8 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 9;
 export const RENDER_PICKUP_FLOATS = 5;
 export const RENDER_LEVEL_FLOATS = 9;
+export const RENDER_PLAYER_BOMB_FLOATS = 8;
+export const RENDER_EFFECT_FLOATS = 2;
 export const RENDER_SNAPSHOT_BYTES = RENDER_SNAPSHOT_HEADER_BYTES + (
   RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
-    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + RENDER_LEVEL_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS
+    + RENDER_LEVEL_FLOATS + RENDER_EFFECT_FLOATS
 ) * Float32Array.BYTES_PER_ELEMENT;
 
 const HEADER_VERSION = 0;
@@ -29,6 +34,17 @@ const HEADER_EVENT_HIGH_WATERMARK = 28;
 const HEADER_RESYNC_REQUIRED = 32;
 const HEADER_PICKUP_COUNT = 36;
 const HEADER_LEVEL_FLAGS = 40;
+const HEADER_PLAYER_WEAPON = 44;
+const HEADER_UNLOCKED_WEAPON_MASK = 48;
+const HEADER_PLAYER_BOMBS = 52;
+const HEADER_PLAYER_BOMB_COUNT = 56;
+
+function weaponCode(weapon: WeaponId): number { return WEAPON_IDS.indexOf(weapon); }
+function decodeWeapon(code: number): WeaponId {
+  const weapon = WEAPON_IDS[code];
+  if (weapon === undefined) throw new Error(`Unknown render weapon code ${code}`);
+  return weapon;
+}
 
 function pickupKindCode(kind: RenderPickupState['kind']): number {
   if (kind === 'key') return 1;
@@ -60,7 +76,10 @@ function uint32(value: number, label: string): number {
 }
 
 function writePlayer(data: Float32Array, player: RenderPlayerState): void {
-  data.set([player.x, player.z, player.yaw, player.pitch, player.health, player.energy, player.bobPhase], 0);
+  data.set([
+    player.x, player.z, player.yaw, player.pitch, player.health, player.energy, player.bobPhase,
+    player.swordHeat, player.laserHeat,
+  ], 0);
 }
 
 export function writeRenderSnapshot(
@@ -72,19 +91,25 @@ export function writeRenderSnapshot(
   if (state.robots.length > MAX_RENDER_ROBOTS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_ROBOTS} robots`);
   if (state.projectiles.length > MAX_RENDER_PROJECTILES) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PROJECTILES} projectiles`);
   if (state.level.pickups.length > MAX_RENDER_PICKUPS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PICKUPS} pickups`);
+  if (state.playerBombs.length > MAX_RENDER_PLAYER_BOMBS) throw new Error(`RenderSnapshot exceeds ${MAX_RENDER_PLAYER_BOMBS} player bombs`);
   new Uint8Array(buffer).fill(0);
   const header = new DataView(buffer, 0, RENDER_SNAPSHOT_HEADER_BYTES);
   header.setUint32(HEADER_VERSION, TRANSPORT_CONTRACT_VERSION, true);
   header.setUint32(HEADER_TICK, uint32(state.tick, 'state.tick'), true);
   header.setUint32(HEADER_ROBOT_COUNT, state.robots.length, true);
   header.setUint32(HEADER_PROJECTILE_COUNT, state.projectiles.length, true);
-  header.setUint32(HEADER_FLAGS, (state.victory ? 1 : 0) | (state.defeat ? 2 : 0), true);
+  header.setUint32(HEADER_FLAGS, (state.victory ? 1 : 0) | (state.defeat ? 2 : 0)
+    | (state.laserActive ? 4 : 0) | (state.player.laserOverheated ? 8 : 0), true);
   header.setUint32(HEADER_COINS, uint32(state.player.coins, 'player.coins'), true);
   header.setUint32(HEADER_EVENT_EPOCH, uint32(metadata.eventEpoch, 'eventEpoch'), true);
   header.setUint32(HEADER_EVENT_HIGH_WATERMARK, uint32(metadata.eventHighWatermark, 'eventHighWatermark'), true);
   header.setUint32(HEADER_RESYNC_REQUIRED, metadata.resyncRequired ? 1 : 0, true);
   header.setUint32(HEADER_PICKUP_COUNT, state.level.pickups.length, true);
   header.setUint32(HEADER_LEVEL_FLAGS, (state.level.keyCollected ? 1 : 0) | (state.level.objectiveComplete ? 2 : 0), true);
+  header.setUint32(HEADER_PLAYER_WEAPON, weaponCode(state.player.selectedWeapon), true);
+  header.setUint32(HEADER_UNLOCKED_WEAPON_MASK, uint32(state.player.unlockedWeaponMask, 'player.unlockedWeaponMask'), true);
+  header.setUint32(HEADER_PLAYER_BOMBS, uint32(state.player.bombs, 'player.bombs'), true);
+  header.setUint32(HEADER_PLAYER_BOMB_COUNT, state.playerBombs.length, true);
   const data = new Float32Array(buffer, RENDER_SNAPSHOT_HEADER_BYTES);
   writePlayer(data, state.player);
   let offset = RENDER_PLAYER_FLOATS;
@@ -118,18 +143,33 @@ export function writeRenderSnapshot(
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  for (const bomb of state.playerBombs) {
+    data.set([
+      bomb.id, bomb.x, bomb.y, bomb.z, bomb.velocityX, bomb.velocityY, bomb.velocityZ, bomb.fuseTicks,
+    ], offset);
+    offset += RENDER_PLAYER_BOMB_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
   data.set([
     state.level.door.x, state.level.door.z, state.level.door.open ? 1 : 0,
     state.level.checkpoint.x, state.level.checkpoint.z, state.level.checkpoint.activated ? 1 : 0,
     state.level.exit.x, state.level.exit.z, state.level.objectiveComplete ? 1 : 0,
   ], offset);
+  offset += RENDER_LEVEL_FLOATS;
+  data.set([state.laserBeamDistance, state.laserFocusTicks], offset);
   return buffer;
 }
 
-function readPlayer(data: Float32Array, coins: number): RenderPlayerState {
+function readPlayer(data: Float32Array, header: DataView, coins: number): RenderPlayerState {
   return {
     x: data[0]!, z: data[1]!, yaw: data[2]!, pitch: data[3]!,
     health: data[4]!, energy: data[5]!, coins, bobPhase: data[6]!,
+    selectedWeapon: decodeWeapon(header.getUint32(HEADER_PLAYER_WEAPON, true)),
+    unlockedWeaponMask: header.getUint32(HEADER_UNLOCKED_WEAPON_MASK, true),
+    bombs: header.getUint32(HEADER_PLAYER_BOMBS, true),
+    swordHeat: data[7]!, laserHeat: data[8]!,
+    laserOverheated: (header.getUint32(HEADER_FLAGS, true) & 8) !== 0,
   };
 }
 
@@ -144,7 +184,9 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   const robotCount = header.getUint32(HEADER_ROBOT_COUNT, true);
   const projectileCount = header.getUint32(HEADER_PROJECTILE_COUNT, true);
   const pickupCount = header.getUint32(HEADER_PICKUP_COUNT, true);
-  if (robotCount > MAX_RENDER_ROBOTS || projectileCount > MAX_RENDER_PROJECTILES || pickupCount > MAX_RENDER_PICKUPS) {
+  const playerBombCount = header.getUint32(HEADER_PLAYER_BOMB_COUNT, true);
+  if (robotCount > MAX_RENDER_ROBOTS || projectileCount > MAX_RENDER_PROJECTILES || pickupCount > MAX_RENDER_PICKUPS
+    || playerBombCount > MAX_RENDER_PLAYER_BOMBS) {
     throw new Error('RenderSnapshot count exceeds fixed capacity');
   }
   const data = new Float32Array(sourceBuffer, byteOffset + RENDER_SNAPSHOT_HEADER_BYTES, (byteLength - RENDER_SNAPSHOT_HEADER_BYTES) / 4);
@@ -186,14 +228,29 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
+  const playerBombs: RenderPlayerBombState[] = [];
+  for (let index = 0; index < playerBombCount; index += 1) {
+    playerBombs.push({
+      id: data[offset]!, x: data[offset + 1]!, y: data[offset + 2]!, z: data[offset + 3]!,
+      velocityX: data[offset + 4]!, velocityY: data[offset + 5]!, velocityZ: data[offset + 6]!, fuseTicks: data[offset + 7]!,
+    });
+    offset += RENDER_PLAYER_BOMB_FLOATS;
+  }
+  offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS + MAX_RENDER_PROJECTILES * RENDER_PROJECTILE_FLOATS
+    + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS + MAX_RENDER_PLAYER_BOMBS * RENDER_PLAYER_BOMB_FLOATS;
   const levelFlags = header.getUint32(HEADER_LEVEL_FLAGS, true);
   const flags = header.getUint32(HEADER_FLAGS, true);
+  const effectOffset = offset + RENDER_LEVEL_FLOATS;
   return {
     state: {
       tick: header.getUint32(HEADER_TICK, true),
-      player: readPlayer(data, header.getUint32(HEADER_COINS, true)),
+      player: readPlayer(data, header, header.getUint32(HEADER_COINS, true)),
       robots,
       projectiles,
+      playerBombs,
+      laserActive: (flags & 4) !== 0,
+      laserBeamDistance: data[effectOffset]!,
+      laserFocusTicks: data[effectOffset + 1]!,
       victory: (flags & 1) !== 0,
       defeat: (flags & 2) !== 0,
       level: {

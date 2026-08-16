@@ -80,6 +80,23 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pausedTickAfterWait = Number(document.body.dataset.snapshotTick);
 
+    let arsenalObservation = await api.reset({ seed: 'live-arsenal-proof', mode: 'agent', loadout: 'training' });
+    arsenalObservation = await api.act({ weapon: 'sword', fire: true }, 1);
+    const swordHeat = arsenalObservation.player.swordHeat;
+    arsenalObservation = await api.act({ weapon: 'bomb', fire: true }, 1);
+    const bombCount = arsenalObservation.player.bombs;
+    const liveBombs = arsenalObservation.playerBombs.length;
+    arsenalObservation = await api.act({ weapon: 'laser', fire: true }, 1);
+    const arsenalProof = {
+      selectedWeapon: arsenalObservation.player.selectedWeapon,
+      unlockedWeapons: arsenalObservation.player.unlockedWeapons,
+      swordHeat,
+      bombCount,
+      liveBombs,
+      laserHeat: arsenalObservation.player.laserHeat,
+      laserActive: arsenalObservation.laser.active,
+    };
+
     const [{ BaselineCampaignAgent }, { LEVEL_001 }] = await Promise.all([
       import('/src/agent/baseline-policy.ts'),
       import('/src/content/levels/level-001.ts'),
@@ -121,6 +138,7 @@ try {
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
+      arsenalProof,
     };
   });
 
@@ -139,6 +157,11 @@ try {
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
+    [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
+    [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
+    [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
+    [result.arsenalProof.bombCount === 2 && result.arsenalProof.liveBombs === 1, 'Worker bomb action did not create a thrown bomb'],
+    [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);

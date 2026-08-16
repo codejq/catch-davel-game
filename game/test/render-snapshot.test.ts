@@ -3,10 +3,11 @@ import { GameSimulation } from '../src/sim/game';
 import {
   decodeRenderSnapshot, MAX_RENDER_PROJECTILES, RENDER_SNAPSHOT_BYTES, TRANSPORT_CONTRACT_VERSION, writeRenderSnapshot,
 } from '../src/transport/render-snapshot';
+import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v2', () => {
+describe('self-contained RenderSnapshot v3', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -14,10 +15,12 @@ describe('self-contained RenderSnapshot v2', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(6_528);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(2);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(7_056);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(3);
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
+    expect(decoded.state.player.selectedWeapon).toBe('pulse');
+    expect(decoded.state.playerBombs).toEqual([]);
     expect(decoded.state.robots).toHaveLength(6);
     expect(decoded.state.projectiles).toHaveLength(simulation.state.projectiles.length);
     expect(decoded.state.level.pickups).toHaveLength(3);
@@ -40,5 +43,17 @@ describe('self-contained RenderSnapshot v2', () => {
     };
     simulation.state.projectiles.push(...Array.from({ length: MAX_RENDER_PROJECTILES + 1 }, (_, id) => ({ ...projectile, id: id + 1 })));
     expect(() => writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state)).toThrow(/projectiles/);
+  });
+
+  it('carries complete training-arsenal presentation state without deltas', () => {
+    const simulation = new GameSimulation('render-arsenal-proof', TRAINING_WEAPON_MASK);
+    simulation.step({ ...idle, weapon: 'bomb', fire: true });
+    simulation.step({ ...idle, weapon: 'laser', fire: true });
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.player.selectedWeapon).toBe('laser');
+    expect(decoded.state.player.bombs).toBe(2);
+    expect(decoded.state.player.laserHeat).toBeGreaterThan(0);
+    expect(decoded.state.playerBombs).toHaveLength(1);
+    expect(decoded.state.laserActive).toBe(true);
   });
 });

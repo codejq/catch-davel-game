@@ -3,6 +3,7 @@
 import { GameSimulation } from '../sim/game';
 import { FIXED_DT_SECONDS } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
+import { CAMPAIGN_LEVEL_1_WEAPON_MASK, isWeaponId, type WeaponId } from '../sim/weapons';
 import { createObservation } from '../agent/observation';
 import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
@@ -32,6 +33,8 @@ let movementStrafe = 0;
 let pendingYawDelta = 0;
 let pendingPitchDelta = 0;
 let fireLatched = false;
+let altFireLatched = false;
+let pendingWeapon: WeaponId | null = null;
 let recorder: ReplayRecorder | null = null;
 let checkpointSnapshot: ReturnType<typeof createSimulationSnapshot> | null = null;
 
@@ -103,10 +106,13 @@ function configurePorts(snapshotMessagePort: MessagePort, eventMessagePort: Mess
   eventMessagePort.start();
 }
 
-function resetRuntime(seed: string, initialCoins = 0, agentRun = false): void {
+function resetRuntime(seed: string, initialCoins = 0, agentRun = false, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
-  simulation = new GameSimulation(seed);
+  if (!Number.isSafeInteger(unlockedWeaponMask) || unlockedWeaponMask < 1 || unlockedWeaponMask > 15 || (unlockedWeaponMask & 1) === 0) {
+    throw new Error('Worker weapon mask must include pulse and contain only known weapons');
+  }
+  simulation = new GameSimulation(seed, unlockedWeaponMask);
   simulation.state.player.coins = initialCoins;
   generation += 1;
   snapshotPool = new SnapshotProducerPool();
@@ -119,6 +125,8 @@ function resetRuntime(seed: string, initialCoins = 0, agentRun = false): void {
   pendingYawDelta = 0;
   pendingPitchDelta = 0;
   fireLatched = false;
+  altFireLatched = false;
+  pendingWeapon = null;
   recorder = new ReplayRecorder(simulation);
   if (agentRun) recorder.markAgentRun();
   checkpointSnapshot = null;
@@ -144,10 +152,14 @@ function realtimeCommand(): PlayerCommand {
     yawDelta: pendingYawDelta,
     pitchDelta: pendingPitchDelta,
     fire: fireLatched,
+    altFire: altFireLatched,
+    weapon: pendingWeapon,
   };
   pendingYawDelta = 0;
   pendingPitchDelta = 0;
   fireLatched = false;
+  altFireLatched = false;
+  pendingWeapon = null;
   return command;
 }
 
@@ -193,7 +205,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
   try {
     if (request.type === 'initialize') {
       configurePorts(request.snapshotPort, request.eventPort);
-      resetRuntime(request.seed, request.initialCoins ?? 0);
+      resetRuntime(request.seed, request.initialCoins ?? 0, false, request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK);
       setMode(request.mode ?? 'manual');
       post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
       return;
@@ -208,6 +220,11 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       pendingYawDelta = bounded(pendingYawDelta + request.yawDelta, -2, 2, 'input.yawDelta');
       pendingPitchDelta = bounded(pendingPitchDelta + request.pitchDelta, -1, 1, 'input.pitchDelta');
       fireLatched ||= request.fire;
+      altFireLatched ||= request.altFire === true;
+      if (request.weapon !== undefined && request.weapon !== null) {
+        if (!isWeaponId(request.weapon)) throw new Error('input.weapon is invalid');
+        pendingWeapon = request.weapon;
+      }
       return;
     }
     if (request.type === 'set-mode') {
@@ -246,7 +263,10 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       return;
     }
     if (request.type === 'reset') {
-      resetRuntime(request.seed, request.initialCoins ?? 0, request.agentRun === true);
+      resetRuntime(
+        request.seed, request.initialCoins ?? 0, request.agentRun === true,
+        request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
+      );
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);
       generation += 1;

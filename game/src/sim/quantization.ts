@@ -21,6 +21,8 @@ export function quantizeSimulationState(state: GameState): void {
   player.health = quantizeAuthoritativeNumber(player.health);
   player.energy = quantizeAuthoritativeNumber(player.energy);
   player.bobPhase = quantizeAuthoritativeNumber(player.bobPhase);
+  player.swordHeat = quantizeAuthoritativeNumber(player.swordHeat);
+  player.laserHeat = quantizeAuthoritativeNumber(player.laserHeat);
   for (const robot of state.robots) {
     robot.x = quantizeAuthoritativeNumber(robot.x);
     robot.z = quantizeAuthoritativeNumber(robot.z);
@@ -41,4 +43,13 @@ export function quantizeSimulationState(state: GameState): void {
     projectile.velocityY = quantizeAuthoritativeNumber(projectile.velocityY);
     projectile.velocityZ = quantizeAuthoritativeNumber(projectile.velocityZ);
   }
+  for (const bomb of state.playerBombs) {
+    bomb.x = quantizeAuthoritativeNumber(bomb.x);
+    bomb.y = quantizeAuthoritativeNumber(bomb.y);
+    bomb.z = quantizeAuthoritativeNumber(bomb.z);
+    bomb.velocityX = quantizeAuthoritativeNumber(bomb.velocityX);
+    bomb.velocityY = quantizeAuthoritativeNumber(bomb.velocityY);
+    bomb.velocityZ = quantizeAuthoritativeNumber(bomb.velocityZ);
+  }
+  state.laserBeamDistance = quantizeAuthoritativeNumber(state.laserBeamDistance);
 }

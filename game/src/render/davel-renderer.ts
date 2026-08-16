@@ -2,7 +2,8 @@ import type { MeshData } from './geometry';
 import { createCapsule, createSphere } from './geometry';
 import { ROBOT_DEFINITIONS, type RobotDefinition } from '../sim/robots';
 import { BODY_POINT } from '../sim/xpbd';
-import type { RenderProjectileState, RenderRobotState } from './render-model';
+import { PLAYER_EYE_HEIGHT } from '../sim/constants';
+import type { RenderGameState, RenderRobotState } from './render-model';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -229,13 +230,13 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 192);
   }
 
-  render(robots: readonly RenderRobotState[], projectiles: readonly RenderProjectileState[], viewProjection: Float32Array): void {
+  render(state: RenderGameState, viewProjection: Float32Array): void {
     this.spheres.reset();
     this.capsules.reset();
-    for (const robot of robots) {
+    for (const robot of state.robots) {
       if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!);
     }
-    for (const projectile of projectiles) {
+    for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
       const trail = {
         x: projectile.x - projectile.velocityX * 0.055,
@@ -245,6 +246,30 @@ export class DavelRenderer {
       this.addCapsule(trail, center, 0.075, [1, 0.18, 0.035]);
       this.addSphere(center, 0.16, [1, 0.72, 0.08]);
       this.addSphere(center, 0.075, [1, 1, 0.72]);
+    }
+    for (const bomb of state.playerBombs) {
+      const center = { x: bomb.x, y: bomb.y, z: bomb.z };
+      const pulse = 0.19 + Math.sin(bomb.fuseTicks * 0.35) * 0.025;
+      this.addSphere(center, pulse, [0.08, 0.1, 0.16]);
+      this.addSphere(
+        { x: bomb.x, y: bomb.y + 0.15, z: bomb.z }, 0.07,
+        bomb.fuseTicks < 30 ? [1, 0.12, 0.04] : [1, 0.72, 0.08],
+      );
+    }
+    if (state.laserActive) {
+      const player = state.player;
+      const cosPitch = Math.cos(player.pitch);
+      const directionX = Math.sin(player.yaw) * cosPitch;
+      const directionY = Math.sin(player.pitch);
+      const directionZ = -Math.cos(player.yaw) * cosPitch;
+      const start = { x: player.x, y: PLAYER_EYE_HEIGHT - 0.09, z: player.z };
+      const end = {
+        x: start.x + directionX * state.laserBeamDistance,
+        y: start.y + directionY * state.laserBeamDistance,
+        z: start.z + directionZ * state.laserBeamDistance,
+      };
+      this.addCapsule(start, end, 0.035, state.laserFocusTicks > 45 ? [1, 0.22, 0.52] : [0.18, 1, 0.9]);
+      this.addSphere(end, 0.1, [0.8, 1, 1]);
     }
     this.gl.useProgram(this.program);
     this.gl.uniformMatrix4fv(this.viewProjectionLocation, false, viewProjection);

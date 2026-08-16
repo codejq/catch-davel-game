@@ -5,6 +5,7 @@ import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
 import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
+import { isWeaponId, type PlayerBomb } from './weapons';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -44,6 +45,14 @@ export interface SimulationSnapshotV1 {
   readonly defeat: boolean;
   readonly projectiles: readonly EnemyProjectile[];
   readonly nextProjectileId: number;
+  readonly playerBombs: readonly PlayerBomb[];
+  readonly nextPlayerBombId: number;
+  readonly lastSwordTick: number;
+  readonly lastBombTick: number;
+  readonly laserFocusTicks: number;
+  readonly laserTargetRobotId: number | null;
+  readonly laserActive: boolean;
+  readonly laserBeamDistance: number;
   readonly level: LevelRuntimeState;
 }
 
@@ -90,6 +99,14 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     defeat: state.defeat,
     projectiles: state.projectiles.map((projectile) => ({ ...projectile })),
     nextProjectileId: state.nextProjectileId,
+    playerBombs: state.playerBombs.map((bomb) => ({ ...bomb })),
+    nextPlayerBombId: state.nextPlayerBombId,
+    lastSwordTick: state.lastSwordTick,
+    lastBombTick: state.lastBombTick,
+    laserFocusTicks: state.laserFocusTicks,
+    laserTargetRobotId: state.laserTargetRobotId,
+    laserActive: state.laserActive,
+    laserBeamDistance: state.laserBeamDistance,
     level: {
       pickups: state.level.pickups.map((pickup) => ({ ...pickup })),
       door: { ...state.level.door },
@@ -136,12 +153,38 @@ function numberArray(value: unknown, length: number, label: string): number[] {
 
 function validatePlayer(value: unknown): PlayerState {
   assertRecord(value, 'snapshot.player');
-  assertExactKeys(value, ['x', 'z', 'yaw', 'pitch', 'health', 'energy', 'coins', 'bobPhase'], 'snapshot.player');
+  assertExactKeys(value, [
+    'x', 'z', 'yaw', 'pitch', 'health', 'energy', 'coins', 'bobPhase', 'selectedWeapon', 'unlockedWeaponMask',
+    'bombs', 'swordHeat', 'laserHeat', 'laserOverheated',
+  ], 'snapshot.player');
+  if (!isWeaponId(value.selectedWeapon)) throw new Error('player.selectedWeapon is invalid');
+  const unlockedWeaponMask = integer(value.unlockedWeaponMask, 'player.unlockedWeaponMask', 1);
+  if (unlockedWeaponMask > 15 || (unlockedWeaponMask & 1) === 0) throw new Error('player.unlockedWeaponMask is invalid');
+  const weaponBit = 1 << ['pulse', 'sword', 'bomb', 'laser'].indexOf(value.selectedWeapon);
+  if ((unlockedWeaponMask & weaponBit) === 0) throw new Error('player.selectedWeapon must be unlocked');
   return {
     x: finite(value.x, 'player.x'), z: finite(value.z, 'player.z'),
     yaw: finite(value.yaw, 'player.yaw'), pitch: finite(value.pitch, 'player.pitch'),
     health: finite(value.health, 'player.health'), energy: finite(value.energy, 'player.energy'),
     coins: integer(value.coins, 'player.coins'), bobPhase: finite(value.bobPhase, 'player.bobPhase'),
+    selectedWeapon: value.selectedWeapon, unlockedWeaponMask,
+    bombs: integer(value.bombs, 'player.bombs'), swordHeat: finite(value.swordHeat, 'player.swordHeat'),
+    laserHeat: finite(value.laserHeat, 'player.laserHeat'),
+    laserOverheated: booleanValue(value.laserOverheated, 'player.laserOverheated'),
+  };
+}
+
+function validatePlayerBomb(value: unknown, index: number): PlayerBomb {
+  assertRecord(value, `playerBombs[${index}]`);
+  assertExactKeys(value, ['id', 'x', 'y', 'z', 'velocityX', 'velocityY', 'velocityZ', 'fuseTicks'], `playerBombs[${index}]`);
+  return {
+    id: integer(value.id, `playerBombs[${index}].id`, 1),
+    x: finite(value.x, `playerBombs[${index}].x`), y: finite(value.y, `playerBombs[${index}].y`),
+    z: finite(value.z, `playerBombs[${index}].z`),
+    velocityX: finite(value.velocityX, `playerBombs[${index}].velocityX`),
+    velocityY: finite(value.velocityY, `playerBombs[${index}].velocityY`),
+    velocityZ: finite(value.velocityZ, `playerBombs[${index}].velocityZ`),
+    fuseTicks: integer(value.fuseTicks, `playerBombs[${index}].fuseTicks`, 1),
   };
 }
 
@@ -247,7 +290,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
     'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'player', 'robots', 'lastShotTick', 'shotSerial',
-    'victory', 'defeat', 'projectiles', 'nextProjectileId', 'level',
+    'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
+    'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level',
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
@@ -259,6 +303,10 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const projectiles = snapshotValue.projectiles.map(validateProjectile);
   const nextProjectileId = integer(snapshotValue.nextProjectileId, 'snapshot.nextProjectileId', 1);
   if (projectiles.some((projectile) => projectile.id >= nextProjectileId)) throw new Error('snapshot.nextProjectileId must exceed every projectile ID');
+  if (!Array.isArray(snapshotValue.playerBombs)) throw new Error('snapshot.playerBombs must be an array');
+  const playerBombs = snapshotValue.playerBombs.map(validatePlayerBomb);
+  const nextPlayerBombId = integer(snapshotValue.nextPlayerBombId, 'snapshot.nextPlayerBombId', 1);
+  if (playerBombs.some((bomb) => bomb.id >= nextPlayerBombId)) throw new Error('snapshot.nextPlayerBombId must exceed every bomb ID');
   const robots = snapshotValue.robots.map(validateRobot);
   const level = validateLevel(snapshotValue.level);
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
@@ -281,6 +329,14 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     defeat,
     projectiles,
     nextProjectileId,
+    playerBombs,
+    nextPlayerBombId,
+    lastSwordTick: integer(snapshotValue.lastSwordTick, 'snapshot.lastSwordTick', -1_000_000_000),
+    lastBombTick: integer(snapshotValue.lastBombTick, 'snapshot.lastBombTick', -1_000_000_000),
+    laserFocusTicks: integer(snapshotValue.laserFocusTicks, 'snapshot.laserFocusTicks'),
+    laserTargetRobotId: snapshotValue.laserTargetRobotId === null ? null : integer(snapshotValue.laserTargetRobotId, 'snapshot.laserTargetRobotId'),
+    laserActive: booleanValue(snapshotValue.laserActive, 'snapshot.laserActive'),
+    laserBeamDistance: finite(snapshotValue.laserBeamDistance, 'snapshot.laserBeamDistance'),
     level,
   };
 }

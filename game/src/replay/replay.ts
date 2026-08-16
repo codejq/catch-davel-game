@@ -1,4 +1,9 @@
-import { PULSE_COOLDOWN_TICKS, PULSE_DAMAGE, PULSE_ENERGY_COST, PULSE_MAX_RANGE } from '../sim/combat';
+import {
+  BOMB_BLAST_RADIUS, BOMB_COOLDOWN_TICKS, BOMB_DAMAGE, BOMB_FUSE_TICKS, LASER_BASE_DAMAGE,
+  LASER_ENERGY_PER_TICK, LASER_HEAT_COOL_PER_TICK, LASER_HEAT_PER_TICK, LASER_MAX_FOCUS_BONUS,
+  LASER_OVERHEAT_RECOVERY, PULSE_COOLDOWN_TICKS, PULSE_DAMAGE, PULSE_ENERGY_COST, PULSE_MAX_RANGE,
+  SWORD_CHARGED_DAMAGE, SWORD_CHARGED_RANGE, SWORD_DAMAGE, SWORD_HEAT_COOL_PER_TICK, SWORD_RANGE,
+} from '../sim/combat';
 import { GAME_SCHEMA_VERSION, TICK_HZ } from '../sim/constants';
 import { GameSimulation } from '../sim/game';
 import { LEVEL_ROWS } from '../sim/level';
@@ -8,6 +13,7 @@ import type { AgentValidationRunSpec } from '../content/level-definition';
 import { levelDefinitionDependencyHash } from '../content/validate-level';
 import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
 import type { PlayerCommand } from '../sim/player';
+import { isWeaponId } from '../sim/weapons';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import {
   canonicalJson, checksumCanonical, createSimulationSnapshot, parseSimulationSnapshot, stateChecksum,
@@ -80,6 +86,12 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
         PULSE_DAMAGE, PULSE_COOLDOWN_TICKS, PULSE_ENERGY_COST, PULSE_MAX_RANGE,
         ROBOT_BASE_COIN_REWARD, ROBOT_COIN_REWARD_PER_ID,
       },
+      sword: { SWORD_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_RANGE, SWORD_CHARGED_RANGE, SWORD_HEAT_COOL_PER_TICK },
+      bomb: { BOMB_FUSE_TICKS, BOMB_COOLDOWN_TICKS, BOMB_BLAST_RADIUS, BOMB_DAMAGE },
+      laser: {
+        LASER_ENERGY_PER_TICK, LASER_HEAT_PER_TICK, LASER_HEAT_COOL_PER_TICK,
+        LASER_OVERHEAT_RECOVERY, LASER_BASE_DAMAGE, LASER_MAX_FOCUS_BONUS,
+      },
       enemyProjectile: {
         ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_ATTACK_RANGE,
         ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP,
@@ -105,11 +117,12 @@ export function currentAgentValidationDependencies(): AgentValidationRunSpec['de
 
 function sameCommand(first: PlayerCommand, second: PlayerCommand): boolean {
   return first.forward === second.forward && first.strafe === second.strafe
-    && first.yawDelta === second.yawDelta && first.pitchDelta === second.pitchDelta && first.fire === second.fire;
+    && first.yawDelta === second.yawDelta && first.pitchDelta === second.pitchDelta && first.fire === second.fire
+    && (first.altFire ?? false) === (second.altFire ?? false) && (first.weapon ?? null) === (second.weapon ?? null);
 }
 
 function copyCommand(command: PlayerCommand): PlayerCommand {
-  return { ...command };
+  return { ...command, altFire: command.altFire ?? false, weapon: command.weapon ?? null };
 }
 
 export class ReplayRecorder {
@@ -184,7 +197,7 @@ function finite(value: unknown, label: string): number {
 
 function parseCommand(value: unknown, label: string): PlayerCommand {
   const command = record(value, label);
-  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire'], label);
+  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire', 'altFire', 'weapon'], label);
   const forward = finite(command.forward, `${label}.forward`);
   const strafe = finite(command.strafe, `${label}.strafe`);
   const yawDelta = finite(command.yawDelta, `${label}.yawDelta`);
@@ -192,7 +205,9 @@ function parseCommand(value: unknown, label: string): PlayerCommand {
   if (Math.abs(forward) > 1 || Math.abs(strafe) > 1) throw new Error(`${label} movement is outside [-1,1]`);
   if (Math.abs(yawDelta) > 10 || Math.abs(pitchDelta) > 10) throw new Error(`${label} look delta is outside replay bounds`);
   if (typeof command.fire !== 'boolean') throw new Error(`${label}.fire must be boolean`);
-  return { forward, strafe, yawDelta, pitchDelta, fire: command.fire };
+  if (typeof command.altFire !== 'boolean') throw new Error(`${label}.altFire must be boolean`);
+  if (command.weapon !== null && !isWeaponId(command.weapon)) throw new Error(`${label}.weapon is invalid`);
+  return { forward, strafe, yawDelta, pitchDelta, fire: command.fire, altFire: command.altFire, weapon: command.weapon };
 }
 
 function parseDependencies(value: unknown): ReplayDependencyHashes {
