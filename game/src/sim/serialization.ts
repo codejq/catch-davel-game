@@ -5,7 +5,9 @@ import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
 import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
-import { isWeaponId, type PlayerBomb } from './weapons';
+import {
+  isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
+} from './weapons';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -61,7 +63,7 @@ export interface SimulationSnapshotV1 {
 }
 
 function copyPlayer(player: PlayerState): PlayerState {
-  return { ...player };
+  return { ...player, weaponUpgrades: { ...player.weaponUpgrades } };
 }
 
 function snapshotRobot(robot: RobotState): RobotSnapshotV1 {
@@ -163,13 +165,18 @@ function validatePlayer(value: unknown): PlayerState {
   assertRecord(value, 'snapshot.player');
   assertExactKeys(value, [
     'x', 'z', 'yaw', 'pitch', 'health', 'energy', 'coins', 'bobPhase', 'selectedWeapon', 'unlockedWeaponMask',
-    'bombs', 'swordHeat', 'laserHeat', 'laserOverheated',
+    'bombs', 'swordHeat', 'laserHeat', 'laserOverheated', 'weaponUpgrades',
   ], 'snapshot.player');
   if (!isWeaponId(value.selectedWeapon)) throw new Error('player.selectedWeapon is invalid');
   const unlockedWeaponMask = integer(value.unlockedWeaponMask, 'player.unlockedWeaponMask', 1);
   if (unlockedWeaponMask > 15 || (unlockedWeaponMask & 1) === 0) throw new Error('player.unlockedWeaponMask is invalid');
   const weaponBit = 1 << ['pulse', 'sword', 'bomb', 'laser'].indexOf(value.selectedWeapon);
   if ((unlockedWeaponMask & weaponBit) === 0) throw new Error('player.selectedWeapon must be unlocked');
+  assertRecord(value.weaponUpgrades, 'player.weaponUpgrades');
+  assertExactKeys(value.weaponUpgrades, WEAPON_UPGRADE_IDS, 'player.weaponUpgrades');
+  const rawUpgrades: Record<string, number> = {};
+  for (const id of WEAPON_UPGRADE_IDS) rawUpgrades[id] = integer(value.weaponUpgrades[id], `player.weaponUpgrades.${id}`);
+  const weaponUpgrades: WeaponUpgradeLevels = normalizeWeaponUpgradeLevels(rawUpgrades);
   return {
     x: finite(value.x, 'player.x'), z: finite(value.z, 'player.z'),
     yaw: finite(value.yaw, 'player.yaw'), pitch: finite(value.pitch, 'player.pitch'),
@@ -179,6 +186,7 @@ function validatePlayer(value: unknown): PlayerState {
     bombs: integer(value.bombs, 'player.bombs'), swordHeat: finite(value.swordHeat, 'player.swordHeat'),
     laserHeat: finite(value.laserHeat, 'player.laserHeat'),
     laserOverheated: booleanValue(value.laserOverheated, 'player.laserOverheated'),
+    weaponUpgrades,
   };
 }
 

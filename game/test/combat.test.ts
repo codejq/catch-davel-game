@@ -98,4 +98,21 @@ describe('training arsenal', () => {
     expect(game.state.player.energy).toBeLessThan(100);
     expect(game.state.player.laserHeat).toBeGreaterThan(0);
   });
+
+  it('applies snapshotted weapon upgrades to damage, efficiency, capacity, and heat', () => {
+    const upgraded = new GameSimulation('upgrade-combat', TRAINING_WEAPON_MASK, {
+      pulseDamage: 1, pulseEfficiency: 1, swordCooling: 1, bombCapacity: 1, laserCooling: 1,
+    });
+    const target = isolatedTarget(upgraded)!;
+    upgraded.step({ ...idle, weapon: 'pulse', fire: true });
+    expect(target.health).toBe(54);
+    expect(upgraded.state.player.energy).toBeCloseTo(96.5, 5);
+    expect(upgraded.state.player.bombs).toBe(4);
+
+    target.health = 100;
+    upgraded.step({ ...idle, weapon: 'sword', fire: true });
+    expect(upgraded.state.player.swordHeat).toBeLessThan(18);
+    upgraded.step({ ...idle, weapon: 'laser', fire: true });
+    expect(upgraded.state.player.laserHeat).toBeLessThan(1.35);
+  });
 });

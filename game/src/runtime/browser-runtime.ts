@@ -7,7 +7,11 @@ import { createBrowserProfileRepository } from '../storage/indexeddb';
 import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from '../storage/profile';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
-import { CAMPAIGN_LEVEL_1_WEAPON_MASK, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
+import {
+  CAMPAIGN_LEVEL_1_WEAPON_MASK, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
+  type WeaponId, type WeaponUpgradeId,
+} from '../sim/weapons';
+import { purchaseWeaponUpgrade, weaponUpgradeCost, WEAPON_UPGRADE_CATALOG } from '../storage/economy';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -37,6 +41,8 @@ export async function startBrowserGame(): Promise<void> {
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
+  const shop = requireElement<HTMLElement>('#shop');
+  const shopCoins = requireElement<HTMLElement>('#shop-coins');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
   const profileRepository = createBrowserProfileRepository();
   let activeProfile: ProfileV1;
@@ -72,6 +78,7 @@ export async function startBrowserGame(): Promise<void> {
   const beginHumanSession = (): void => {
     if (humanSessionStarted || agentController?.isAgentControlled()) return;
     humanSessionStarted = true;
+    shop.classList.remove('open');
     persistProfile(updateProfile(activeProfile, {
       lastCleanShutdown: false,
       levelProgress: updateLevelProgress(activeProfile, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
@@ -213,6 +220,7 @@ export async function startBrowserGame(): Promise<void> {
     initialCoins: trainingMode ? 0 : activeProfile.spendableCoins,
     mode: 'manual',
     unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    ...(trainingMode ? {} : { weaponUpgrades: normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades) }),
     callbacks: {
       onSnapshot: (state) => {
         renderState = state;
@@ -240,12 +248,47 @@ export async function startBrowserGame(): Promise<void> {
     else await client.reset(
       DEFAULT_LEVEL_SEED, trainingMode ? 0 : activeProfile.spendableCoins, false,
       trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
+      trainingMode ? undefined : normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades),
     );
     await client.setMode('realtime');
     humanSessionStarted = false;
   });
   if (import.meta.env.DEV || import.meta.env.VITE_AGENT_API === '1') agentController.install();
   document.body.dataset.workerStatus = 'ready';
+
+  const renderShop = (): void => {
+    const levels = normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades);
+    shopCoins.textContent = String(activeProfile.spendableCoins);
+    for (const button of shop.querySelectorAll<HTMLButtonElement>('button[data-upgrade]')) {
+      const id = button.dataset.upgrade as WeaponUpgradeId;
+      const definition = WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id)!;
+      const level = levels[id];
+      button.disabled = level >= 3;
+      button.textContent = level >= 3
+        ? `${definition.name} · MAX`
+        : `${definition.name} · L${level} → L${level + 1} · ${weaponUpgradeCost(id, level)} coins`;
+      button.title = definition.description;
+    }
+  };
+  renderShop();
+  if (trainingMode) shop.hidden = true;
+  shop.addEventListener('click', (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>('button[data-upgrade]');
+    if (button === null || trainingMode || humanSessionStarted || agentController.isAgentControlled()) return;
+    const id = button.dataset.upgrade as WeaponUpgradeId;
+    try {
+      const upgraded = purchaseWeaponUpgrade(activeProfile, id);
+      persistProfile(upgraded);
+      renderShop();
+      void client.reset(
+        DEFAULT_LEVEL_SEED, upgraded.spendableCoins, false, CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
+      ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
+      showMessage(`${WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id)!.name.toUpperCase()} INSTALLED`);
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message.toUpperCase() : 'UPGRADE FAILED');
+    }
+  });
 
   new ResizeObserver(() => renderer.resize()).observe(canvas);
   renderer.resize();
@@ -258,6 +301,13 @@ export async function startBrowserGame(): Promise<void> {
   let queuedWeapon: WeaponId | null = null;
 
   window.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.code === 'KeyU' && !trainingMode && !humanSessionStarted && !agentController.isAgentControlled()) {
+      event.preventDefault();
+      shop.classList.toggle('open');
+      if (shop.classList.contains('open')) document.exitPointerLock();
+      return;
+    }
+    if (shop.classList.contains('open')) return;
     pressed.add(event.code);
     const weaponByCode: Partial<Record<string, WeaponId>> = { Digit1: 'pulse', Digit2: 'sword', Digit3: 'bomb', Digit4: 'laser' };
     queuedWeapon = weaponByCode[event.code] ?? queuedWeapon;

@@ -3,6 +3,7 @@ import { GameSimulation } from '../src/sim/game';
 import { createSimulationSnapshot } from '../src/sim/serialization';
 import { createDefaultProfile, parseProfile, serializeProfile, updateProfile, validateProfile } from '../src/storage/profile';
 import { MemoryKeyValueStore, ProfileRepository, profileStorageKeys } from '../src/storage/repository';
+import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../src/storage/economy';
 
 describe('versioned profile persistence', () => {
   it('exports human-readable canonical JSON with a verified checkpoint and integrity checksum', () => {
@@ -43,5 +44,21 @@ describe('versioned profile persistence', () => {
     expect(() => validateProfile({ ...profile, spendableCoins: 1 })).toThrow(/checksum mismatch/);
     expect(() => validateProfile({ ...profile, profileSchemaVersion: 2 })).toThrow(/newer than supported/);
     expect(() => updateProfile(profile, { spendableCoins: 5 })).toThrow(/cannot exceed/);
+    expect(() => updateProfile(profile, { weaponUpgrades: { ...profile.weaponUpgrades, laserCooling: 4 } })).toThrow(/0 to 3/);
+  });
+
+  it('spends coins on bounded weapon upgrades and invalidates stale checkpoints', () => {
+    const simulation = new GameSimulation('upgrade-checkpoint');
+    const funded = updateProfile(createDefaultProfile('upgrade-proof'), {
+      totalCoins: 40, spendableCoins: 40, campaignCheckpoint: createSimulationSnapshot(simulation.state),
+    });
+    const upgraded = purchaseWeaponUpgrade(funded, 'pulseDamage');
+    expect(weaponUpgradeCost('pulseDamage', 0)).toBe(5);
+    expect(upgraded.spendableCoins).toBe(35);
+    expect(upgraded.weaponUpgrades.pulseDamage).toBe(1);
+    expect(upgraded.campaignCheckpoint).toBeNull();
+    expect(() => purchaseWeaponUpgrade(updateProfile(upgraded, {
+      spendableCoins: 0, weaponUpgrades: { ...upgraded.weaponUpgrades, pulseDamage: 3 },
+    }), 'pulseDamage')).toThrow(/cannot be upgraded/);
   });
 });

@@ -4,6 +4,7 @@ import {
   BOMB_COOLDOWN_TICKS, LASER_BASE_DAMAGE, LASER_ENERGY_PER_TICK, LASER_HEAT_COOL_PER_TICK,
   LASER_HEAT_PER_TICK, LASER_MAX_FOCUS_BONUS, LASER_OVERHEAT_RECOVERY, SWORD_HEAT_COOL_PER_TICK,
   createThrownBomb, fireLaser, firePulse, stepPlayerBombs, swingSword, type ShotResult, type WeaponHit,
+  LASER_HEAT_REDUCTION_PER_UPGRADE,
 } from './combat';
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
 import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
@@ -13,7 +14,9 @@ import {
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
 import { quantizeSimulationState } from './quantization';
-import { CAMPAIGN_LEVEL_1_WEAPON_MASK, type PlayerBomb } from './weapons';
+import {
+  CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
+} from './weapons';
 
 export interface GameEvent {
   readonly tick: number;
@@ -53,8 +56,12 @@ export interface GameState {
 export class GameSimulation {
   state: GameState;
 
-  constructor(seed = DEFAULT_LEVEL_SEED, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK) {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask);
+  constructor(
+    seed = DEFAULT_LEVEL_SEED,
+    unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+  ) {
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades);
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -63,17 +70,21 @@ export class GameSimulation {
     return simulation;
   }
 
-  reset(seed = DEFAULT_LEVEL_SEED, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): void {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask);
+  reset(
+    seed = DEFAULT_LEVEL_SEED,
+    unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+  ): void {
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades);
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
     this.state = restoreSimulationState(snapshot);
   }
 
-  private static initialState(seed: string, unlockedWeaponMask: number): GameState {
+  private static initialState(seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels): GameState {
     const state: GameState = {
-      tick: 0, seed, player: createPlayer(unlockedWeaponMask), robots: createRobots(), events: [],
+      tick: 0, seed, player: createPlayer(unlockedWeaponMask, weaponUpgrades), robots: createRobots(), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
@@ -169,7 +180,8 @@ export class GameSimulation {
     }
     if (player.laserOverheated || player.energy < LASER_ENERGY_PER_TICK) return;
     player.energy -= LASER_ENERGY_PER_TICK;
-    player.laserHeat = Math.min(100, player.laserHeat + LASER_HEAT_PER_TICK);
+    const laserHeat = LASER_HEAT_PER_TICK * (1 - player.weaponUpgrades.laserCooling * LASER_HEAT_REDUCTION_PER_UPGRADE);
+    player.laserHeat = Math.min(100, player.laserHeat + laserHeat);
     if (player.laserHeat >= 100) player.laserOverheated = true;
     const focus = Math.min(1, this.state.laserFocusTicks / 90);
     const result = fireLaser(player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus);

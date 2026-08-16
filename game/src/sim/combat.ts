@@ -7,8 +7,10 @@ import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
 
 export const PULSE_DAMAGE = 40;
+export const PULSE_DAMAGE_PER_UPGRADE = 6;
 export const PULSE_COOLDOWN_TICKS = 10;
 export const PULSE_ENERGY_COST = 4;
+export const PULSE_ENERGY_REDUCTION_PER_UPGRADE = 0.5;
 export const PULSE_MAX_RANGE = 42;
 export const SWORD_DAMAGE = 50;
 export const SWORD_CHARGED_DAMAGE = 90;
@@ -19,10 +21,12 @@ export const BOMB_COOLDOWN_TICKS = 30;
 export const BOMB_BLAST_RADIUS = 5.25;
 export const BOMB_DAMAGE = 78;
 export const SWORD_HEAT_COOL_PER_TICK = 0.7;
+export const SWORD_HEAT_REDUCTION_PER_UPGRADE = 0.12;
 export const LASER_ENERGY_PER_TICK = 0.42;
 export const LASER_HEAT_PER_TICK = 1.35;
 export const LASER_HEAT_COOL_PER_TICK = 0.9;
 export const LASER_OVERHEAT_RECOVERY = 35;
+export const LASER_HEAT_REDUCTION_PER_UPGRADE = 0.12;
 export const LASER_BASE_DAMAGE = 2.4;
 export const LASER_MAX_FOCUS_BONUS = 3.6;
 
@@ -148,11 +152,13 @@ export function damageRobot(
 }
 
 export function firePulse(player: PlayerState, robots: RobotState[], tick: number, lastShotTick: number): ShotResult {
-  if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < PULSE_ENERGY_COST) return noShot;
-  player.energy -= PULSE_ENERGY_COST;
+  const energyCost = Math.max(1, PULSE_ENERGY_COST - player.weaponUpgrades.pulseEfficiency * PULSE_ENERGY_REDUCTION_PER_UPGRADE);
+  if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < energyCost) return noShot;
+  player.energy -= energyCost;
   const trace = traceAim(player, robots, PULSE_MAX_RANGE);
   if (trace.robot === null) return { fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0 };
-  const hit = damageRobot(player, trace.robot, PULSE_DAMAGE, trace.directionX * 0.075, 0.055, trace.directionZ * 0.075);
+  const damage = PULSE_DAMAGE + player.weaponUpgrades.pulseDamage * PULSE_DAMAGE_PER_UPGRADE;
+  const hit = damageRobot(player, trace.robot, damage, trace.directionX * 0.075, 0.055, trace.directionZ * 0.075);
   return { fired: true, hitRobotId: hit.robotId, defeatedRobotId: hit.defeated ? hit.robotId : null, coinsAwarded: hit.coinsAwarded };
 }
 
@@ -165,7 +171,8 @@ export function swingSword(
   charged: boolean,
 ): SwordResult {
   const cooldown = charged ? 40 : 14;
-  const heat = charged ? 44 : 18;
+  const baseHeat = charged ? 44 : 18;
+  const heat = baseHeat * (1 - player.weaponUpgrades.swordCooling * SWORD_HEAT_REDUCTION_PER_UPGRADE);
   if (tick - lastSwordTick < cooldown || player.swordHeat + heat > 100) {
     return { activated: false, charged, hit: null, deflectedProjectileIds: [] };
   }

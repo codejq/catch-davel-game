@@ -1,4 +1,5 @@
 import { canonicalJson, checksumCanonical, parseSimulationSnapshot, type SimulationSnapshotV1 } from '../sim/serialization';
+import { normalizeWeaponUpgradeLevels } from '../sim/weapons';
 
 export const PROFILE_SCHEMA_VERSION = 1;
 
@@ -66,7 +67,7 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
     }],
     totalCoins: 0,
     spendableCoins: 0,
-    weaponUpgrades: { pulseDamage: 0, pulseEfficiency: 0 },
+    weaponUpgrades: { pulseDamage: 0, pulseEfficiency: 0, swordCooling: 0, bombCapacity: 0, laserCooling: 0 },
     playerUpgrades: { maxHealth: 0, maxEnergy: 0 },
     cosmetics: [],
     achievements: [],
@@ -198,6 +199,7 @@ export function validateProfile(value: unknown): ProfileV1 {
     lastCleanShutdown: booleanValue(profile.lastCleanShutdown, 'profile.lastCleanShutdown'),
   });
   if (result.spendableCoins > result.totalCoins) throw new Error('Spendable coins cannot exceed total coins');
+  normalizeWeaponUpgradeLevels(result.weaponUpgrades);
   if (new Set(result.unlockedLevelIds).size !== result.unlockedLevelIds.length) throw new Error('Unlocked level IDs must be unique');
   return result;
 }

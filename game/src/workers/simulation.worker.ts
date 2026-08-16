@@ -3,7 +3,10 @@
 import { GameSimulation } from '../sim/game';
 import { FIXED_DT_SECONDS } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
-import { CAMPAIGN_LEVEL_1_WEAPON_MASK, isWeaponId, type WeaponId } from '../sim/weapons';
+import {
+  CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, isWeaponId, normalizeWeaponUpgradeLevels,
+  type WeaponId, type WeaponUpgradeLevels,
+} from '../sim/weapons';
 import { createObservation } from '../agent/observation';
 import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
@@ -106,13 +109,19 @@ function configurePorts(snapshotMessagePort: MessagePort, eventMessagePort: Mess
   eventMessagePort.start();
 }
 
-function resetRuntime(seed: string, initialCoins = 0, agentRun = false, unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): void {
+function resetRuntime(
+  seed: string,
+  initialCoins = 0,
+  agentRun = false,
+  unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+  weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
   if (!Number.isSafeInteger(unlockedWeaponMask) || unlockedWeaponMask < 1 || unlockedWeaponMask > 15 || (unlockedWeaponMask & 1) === 0) {
     throw new Error('Worker weapon mask must include pulse and contain only known weapons');
   }
-  simulation = new GameSimulation(seed, unlockedWeaponMask);
+  simulation = new GameSimulation(seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades));
   simulation.state.player.coins = initialCoins;
   generation += 1;
   snapshotPool = new SnapshotProducerPool();
@@ -205,7 +214,11 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
   try {
     if (request.type === 'initialize') {
       configurePorts(request.snapshotPort, request.eventPort);
-      resetRuntime(request.seed, request.initialCoins ?? 0, false, request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK);
+      resetRuntime(
+        request.seed, request.initialCoins ?? 0, false,
+        request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
+      );
       setMode(request.mode ?? 'manual');
       post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
       return;
@@ -266,6 +279,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       resetRuntime(
         request.seed, request.initialCoins ?? 0, request.agentRun === true,
         request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
       );
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);

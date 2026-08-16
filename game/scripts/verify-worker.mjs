@@ -111,6 +111,12 @@ try {
     }, [realtimeReturned.buffer]);
     await waitFor(() => snapshots.length > beforeRecoveryCount);
     const realtimeNewestTick = new DataView(snapshots.at(-1).buffer).getUint32(4, true);
+    worker.postMessage({
+      type: 'reset', requestId: 10, seed: 'worker-upgrade-proof', initialCoins: 12,
+      weaponUpgrades: { pulseDamage: 1, pulseEfficiency: 1, swordCooling: 1, bombCapacity: 2, laserCooling: 1 },
+    });
+    await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 10));
+    const upgraded = responses.find((message) => message.type === 'complete' && message.requestId === 10).observation;
     worker.terminate();
     return {
       directChecksum, workerChecksum: complete.checksum, transport: complete.transport, initialTicks, newestTick,
@@ -121,6 +127,7 @@ try {
         coalescedDuringStall: realtimeEnd.transport.coalesced - realtimeStart.transport.coalesced,
         newestTick: realtimeNewestTick,
       },
+      upgradeProof: { coins: upgraded.player.coins, bombs: upgraded.player.bombs, levels: upgraded.player.weaponUpgrades },
     };
   });
   const failures = [...errors];
@@ -131,6 +138,9 @@ try {
   if (result.realtime.ticksDuringMainStall < 10) failures.push('Simulation Worker did not continue through the main-thread stall');
   if (result.realtime.coalescedDuringStall < 1) failures.push('Realtime stall did not exercise snapshot coalescing');
   if (result.realtime.newestTick !== result.realtime.endTick) failures.push('Realtime recovery did not deliver the newest completed tick');
+  if (result.upgradeProof.coins !== 12 || result.upgradeProof.bombs !== 5 || result.upgradeProof.levels.bombCapacity !== 2) {
+    failures.push('Worker reset did not install authoritative profile upgrades');
+  }
   if (failures.length > 0) throw new Error(failures.join('; '));
   process.stdout.write(`${JSON.stringify({ passed: true, ...result }, null, 2)}\n`);
 } finally {

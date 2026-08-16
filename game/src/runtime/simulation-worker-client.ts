@@ -11,6 +11,7 @@ import type {
   SimulationWorkerResponse, WorkerEventBatchMessage, WorkerEventConsumerMessage,
   WorkerReturnSnapshotMessage, WorkerSnapshotMessage,
 } from '../workers/simulation-worker-protocol';
+import type { WeaponUpgradeLevels } from '../sim/weapons';
 
 export interface SimulationWorkerClientCallbacks {
   readonly onSnapshot: (state: RenderGameState, latencyMs: number) => void;
@@ -24,6 +25,7 @@ export interface SimulationWorkerClientOptions {
   readonly initialCoins: number;
   readonly mode?: 'manual' | 'realtime';
   readonly unlockedWeaponMask?: number;
+  readonly weaponUpgrades?: WeaponUpgradeLevels;
   readonly callbacks: SimulationWorkerClientCallbacks;
 }
 
@@ -69,6 +71,7 @@ export class SimulationWorkerClient {
     this.worker.postMessage({
       type: 'initialize', seed: options.seed, initialCoins: options.initialCoins, mode: this.modeValue,
       ...(options.unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask: options.unlockedWeaponMask }),
+      ...(options.weaponUpgrades === undefined ? {} : { weaponUpgrades: options.weaponUpgrades }),
       snapshotPort: this.snapshotChannel.port1, eventPort: this.eventChannel.port1,
     } satisfies SimulationWorkerRequest, [this.snapshotChannel.port1, this.eventChannel.port1]);
   }
@@ -111,10 +114,14 @@ export class SimulationWorkerClient {
     return this.requestComplete({ type: 'step', requestId: 0, command, ticks });
   }
 
-  reset(seed: string, initialCoins: number, agentRun: boolean, unlockedWeaponMask?: number): Promise<SimulationWorkerComplete> {
+  reset(
+    seed: string, initialCoins: number, agentRun: boolean,
+    unlockedWeaponMask?: number, weaponUpgrades?: WeaponUpgradeLevels,
+  ): Promise<SimulationWorkerComplete> {
     return this.requestComplete({
       type: 'reset', requestId: 0, seed, initialCoins, agentRun,
       ...(unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask }),
+      ...(weaponUpgrades === undefined ? {} : { weaponUpgrades }),
     });
   }
 

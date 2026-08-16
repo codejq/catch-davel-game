@@ -44,6 +44,13 @@ export interface AgentObservation {
     readonly swordHeat: number;
     readonly laserHeat: number;
     readonly laserOverheated: boolean;
+    readonly weaponUpgrades: {
+      readonly pulseDamage: number;
+      readonly pulseEfficiency: number;
+      readonly swordCooling: number;
+      readonly bombCapacity: number;
+      readonly laserCooling: number;
+    };
   };
   readonly robots: readonly RobotObservation[];
   readonly remainingRobots: number;
@@ -168,6 +175,7 @@ export function createObservation(state: GameState): AgentObservation {
       bombs: state.player.bombs,
       swordHeat: round(state.player.swordHeat), laserHeat: round(state.player.laserHeat),
       laserOverheated: state.player.laserOverheated,
+      weaponUpgrades: { ...state.player.weaponUpgrades },
     },
     robots,
     remainingRobots: robots.length,

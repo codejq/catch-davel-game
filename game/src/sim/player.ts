@@ -1,7 +1,8 @@
 import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED } from './constants';
 import { cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
 import {
-  CAMPAIGN_LEVEL_1_WEAPON_MASK, weaponUnlocked, type WeaponId,
+  CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, normalizeWeaponUpgradeLevels, weaponUnlocked,
+  type WeaponId, type WeaponUpgradeLevels,
 } from './weapons';
 
 export interface PlayerState {
@@ -19,6 +20,7 @@ export interface PlayerState {
   swordHeat: number;
   laserHeat: number;
   laserOverheated: boolean;
+  readonly weaponUpgrades: WeaponUpgradeLevels;
 }
 
 export interface PlayerCommand {
@@ -31,12 +33,17 @@ export interface PlayerCommand {
   readonly weapon?: WeaponId | null;
 }
 
-export function createPlayer(unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK): PlayerState {
+export function createPlayer(
+  unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+  weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+): PlayerState {
   const start = findCell('S');
   const point = cellCenter(start.column, start.row);
   return {
     x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0,
-    selectedWeapon: 'pulse', unlockedWeaponMask, bombs: 3, swordHeat: 0, laserHeat: 0, laserOverheated: false,
+    selectedWeapon: 'pulse', unlockedWeaponMask, bombs: 3 + weaponUpgrades.bombCapacity,
+    swordHeat: 0, laserHeat: 0, laserOverheated: false,
+    weaponUpgrades: normalizeWeaponUpgradeLevels(weaponUpgrades),
   };
 }
 
