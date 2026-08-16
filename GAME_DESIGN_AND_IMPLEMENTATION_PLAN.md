@@ -4,8 +4,11 @@ Status: **Pre-implementation design for review**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
+Revision: **2 — architecture and production-readiness review applied**
 
 > This document defines the proposed product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. It intentionally contains no gameplay implementation. Decisions marked **Review required** should be approved before production begins.
+
+Revision 2 fixes deterministic-simulation contradictions, separates simulation and rendering workers, reconciles the robot budget, selects hitscan for the pulse gun, adds content tooling and agent-driven campaign QA, defines a provisional device matrix, makes packaged saves file-backed, protects production progress from agent automation, and adds the level-data contract in Appendix A.
 
 ## 1. Executive summary
 
@@ -82,6 +85,24 @@ All Davel robot designs, maze themes, UI, story, shaders, physics behavior, and 
 - Every distributed asset must appear in `THIRD_PARTY_ASSETS.md` with creator, source URL, license, retrieval date, file hash, and modifications.
 
 **Review required:** Quantum Billing must approve the final code license, asset license, logo use, robot ownership statement, and trademark wording.
+
+### 3.5 Explicitly out of scope
+
+Unless a later design revision explicitly adds them, the initial 100-level campaign excludes:
+
+- online or local multiplayer;
+- competitive leaderboards or authoritative anti-cheat;
+- cloud accounts and cloud synchronization;
+- paid currency, loot boxes, advertisements, or in-app purchases;
+- user-authored mods and a public mod API;
+- a player-facing level editor or workshop;
+- procedural generation of an unbounded campaign;
+- virtual-reality support;
+- server-hosted gameplay;
+- photorealistic humans, gore, or dismemberment;
+- importing arbitrary 3D model formats at runtime.
+
+Internal content tools are required for the development team, but they are not a supported player-facing editor in the first release.
 
 ## 4. Game vision
 
@@ -225,10 +246,11 @@ Optional objectives provide medals but never block campaign progress:
 #### Pulse gun
 
 - Starting weapon.
-- Responsive hitscan or very fast projectile behavior.
+- Deterministic hitscan behavior: firing performs an authoritative ray query on that simulation tick; no player pulse projectile remains in flight.
 - Accurate first shot, increasing spread during uncontrolled rapid fire.
 - Strong recoil animation, muzzle flash, casing/energy-cell effect, impact sparks, near and distant sound layers.
 - Upgrade branches: precision, burst control, or coin-efficiency bonus for skill shots.
+- The sword deflects selected robot fireballs, bolts, and bombs; it does not deflect the player’s hitscan shots.
 
 #### Quantum sword
 
@@ -318,7 +340,7 @@ Faces use simple procedural geometry or a small generated texture atlas:
 Color is never the only identifying signal; each type also has a different head shape, icon, movement sound, and silhouette.
 
 | Archetype | Default color | Combat identity | Typical coins | Signature behavior |
-|---|---|---:|---:|---|
+|---|---|---|---:|---|
 | Wobble Scout | Green, round head | Basic melee | 1–2 | Simple approach, wide grin, slap attack |
 | Blue Slider | Blue, visor head | Fast flanker | 2–3 | Side-slides and attacks from angles |
 | Yellow Spinner | Yellow, disk antenna | Mobile ranged | 3–4 | Spins while firing beat-timed bolts |
@@ -559,7 +581,7 @@ The names and scenarios below are working content specifications. Exact room cou
 | 91 | Golden Gate | Citadel entry and mastery check | Royal Robot Procession |
 | 92 | Hall of Every Color | Color/archetype memory challenge | Spectrum Shuffle |
 | 93 | Weapon Trial | Four weapon-specific wings | Arsenal Alternation |
-| 94 | Gravity of the Beat | Modified jump/knockback rooms | Low-Gravity Groove |
+| 94 | Gravity of the Beat | Directional knockback and moving gravity-field rooms; no jump is required | Low-Gravity Groove |
 | 95 | Four Conductors | Coordinated elite encounter | Quartet of Chaos |
 | 96 | The Long Maze | Exploration and resource mastery | Marathon Moonwalk |
 | 97 | Prime’s Guards | Boss archetype remixes | Guarded Gavotte |
@@ -586,9 +608,10 @@ Initial balancing targets, subject to playtesting:
 - Levels 1–10: 4–10 active robots, one mechanic at a time.
 - Levels 11–30: 8–16 active robots, two-archetype combinations.
 - Levels 31–60: 10–22 active robots, support units, hazards, and weapon checks.
-- Levels 61–90: 12–26 active robots, deception and coordinated formations.
-- Levels 91–100: curated encounters; never increase counts merely to claim difficulty.
-- Simultaneously simulated robots may exceed visible robots, but rendering and AI use distance/visibility budgets.
+- Levels 61–90: 12–24 concurrently active robots, deception and coordinated formations.
+- Levels 91–100: curated encounters with no more than 24 concurrently active robots; additional enemies enter through deterministic staged waves.
+- All concurrently active robots receive the same full authoritative physics rules. The 24-robot cap is a simulation contract, not merely a rendering target.
+- Robots assigned to later waves do not exist as active physics entities until a deterministic encounter trigger spawns them.
 
 ## 12. Maze system
 
@@ -622,8 +645,8 @@ Before a maze is accepted, automated validation proves:
 - Local steering for separation, strafing, and obstacle avoidance.
 - Line-of-sight and hearing events.
 - Formation anchors for coordinated dancing groups.
-- AI update frequency scales by distance and relevance while authoritative decisions remain deterministic.
-- Robots outside combat may use simplified pose simulation until activated.
+- Authoritative AI uses a fixed, schema-versioned update schedule based on robot state/archetype. It never changes because of device speed, measured frame time, render quality, or camera visibility.
+- A robot may be dormant before its room is activated, but activation is a deterministic encounter-graph event. Every active robot receives the full simulation update and fixed solver iteration count.
 
 ## 13. Controls and accessibility
 
@@ -747,26 +770,34 @@ There must never be a second “demo physics,” “headless approximation,” o
 
 ### 15.3 Runtime topology
 
-Preferred browser path:
+The simulation always runs alone in its own Worker during browser/WebView play. Rendering never shares that Worker, so a GPU stall, shader compilation pause, or context loss cannot block authoritative ticks. Both rendering locations instantiate the same renderer module and consume the same immutable `RenderSnapshot` contract.
+
+OffscreenCanvas browser path:
 
 ```text
 Main thread
   DOM UI, input collection, audio scheduling, accessibility
-       |
-       | tick-tagged commands and UI/audio events
+       | tick-tagged commands
        v
-Game Worker
+Simulation Worker
   authoritative fixed-step simulation
   deterministic maze and AI
   XPBD robot physics
-  OffscreenCanvas WebGL2 renderer when supported
+       | immutable snapshots and ordered events
+       +--------------------------+
+       |                          |
+       v                          v
+Render Worker                  Main thread
+  shared renderer module         UI/audio event adapters
+  OffscreenCanvas WebGL2
 ```
 
 Fallback path:
 
 ```text
 Main thread
-  DOM UI + input + audio + WebGL2 renderer
+  DOM UI + input + audio
+  shared WebGL2 renderer module
        ^                 |
        | snapshots       | commands
        |                 v
@@ -785,19 +816,21 @@ Node test or harness
   -> observe/checksum
 ```
 
-OffscreenCanvas is an enhancement, not a separate game mode. If unsupported or unreliable on a target WebView, the renderer remains on the main thread while simulation stays isolated.
+OffscreenCanvas is an enhancement, not a separate game mode or renderer implementation. If unsupported or unreliable on a target WebView, the same renderer module runs on the main thread while simulation remains isolated. Snapshot serialization, interpolation, visual event deduplication, and camera behavior are shared and tested against both hosting locations.
 
 ### 15.4 Fixed timestep
 
 Initial target:
 
 - authoritative tick: 60 Hz;
-- up to two physics substeps for high-speed collisions;
-- 6–10 XPBD constraint iterations per substep, tuned by quality/performance testing;
+- two physics substeps per authoritative tick;
+- exactly eight XPBD constraint iterations per substep for simulation schema version 1;
 - render interpolation between the latest two completed snapshots;
 - frame-delta clamp to prevent a pause/debugger stall from creating a simulation explosion;
 - maximum catch-up steps followed by controlled time resynchronization;
 - pause means no simulation ticks.
+
+The substep and solver-iteration counts are part of the replay/simulation schema. Changing either requires a new schema version and explicit replay compatibility policy. They are never render-quality settings.
 
 XPBD is selected because it makes articulated compliant motion practical while reducing stiffness dependence on timestep and solver iteration count. Technical basis: Macklin, Müller, and Chentanez, [“XPBD: Position-Based Simulation of Compliant Constrained Dynamics”](https://matthias-research.github.io/pages/publications/XPBD.pdf), MIG 2016.
 
@@ -806,6 +839,9 @@ XPBD is selected because it makes articulated compliant motion practical while r
 - One documented seeded PRNG; never use `Math.random()` in gameplay.
 - Stable numeric IDs assigned by deterministic creation order.
 - Fixed iteration order for entities, constraints, collision pairs, AI, and events.
+- Solver substeps and iteration counts are fixed by simulation schema version and are identical on every device and quality tier.
+- Any simulation LOD, dormancy, activation, or AI scheduling decision must be a pure function of authoritative simulation state and fixed level data. It may never depend on measured frame time, GPU/CPU performance, display refresh rate, render quality, or camera visibility.
+- Adaptive quality may change only presentation: pixel ratio, shadows, particles, post-processing, mesh detail, and other effects that cannot feed back into gameplay.
 - Avoid wall-clock time inside simulation.
 - Avoid GPU results as gameplay inputs.
 - Avoid locale-dependent parsing/sorting.
@@ -828,7 +864,7 @@ The custom solver supports only what this game needs:
 - player capsule collision;
 - projectile sweeps to prevent tunneling;
 - robot knockback and recovery;
-- sleep/simplification for distant inactive robots.
+- deterministic dormancy only before encounter activation or after a schema-defined exact sleep condition; no distance- or quality-based reduction for an active robot.
 
 It does not initially attempt general convex rigid-body stacking, vehicles, cloth, fluids, or arbitrary imported mesh collision.
 
@@ -999,6 +1035,11 @@ quantum-catch-davel/
     determinism/
     browser/
     visual/
+  tools/
+    level-editor/
+    encounter-graph/
+    dance-preview/
+    balance-harness/
   scripts/
   src-tauri/
   GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md
@@ -1015,7 +1056,7 @@ quantum-catch-davel/
 
 ### 16.1 Public API
 
-The browser exposes a frozen, capability-limited object:
+Agent-enabled builds expose a frozen, capability-limited object:
 
 ```text
 window.CatchDavelAgent
@@ -1031,6 +1072,10 @@ window.CatchDavelAgent
 ```
 
 This API controls only the game. It cannot invoke arbitrary Tauri commands, read the filesystem, execute shell commands, or access user data outside the selected game profile.
+
+Normal production builds do not expose mutation-capable agent methods by default. The API is enabled only in a declared agent build (`VITE_AGENT_API=1`) or an explicitly allowed local evaluation session. An agent-enabled web artifact may be published separately for research and automation.
+
+Agent sessions always use an isolated, clearly labeled sandbox profile. They cannot write campaign medals, best times, achievements, spendable coins, or ranked statistics. Replays produced by agent mode carry an `agentRun: true` marker. This is not anti-cheat for a single-player open-source game; it prevents accidental mixing of automated and human progress.
 
 ### 16.2 Observation design
 
@@ -1112,9 +1157,11 @@ High-level actions are translated into the same low-level command stream and obe
 
 ### 17.1 Storage
 
-- IndexedDB for profiles, campaign progress, replays, and larger structured data.
+- Browser build: IndexedDB is the primary store for profiles, campaign progress, replays, and larger structured data.
 - `localStorage` only for small bootstrap preferences when useful.
-- Optional Tauri file export/import through a narrowly scoped command or dialog after the web version is stable.
+- Packaged Tauri builds: a versioned, atomic save file in the platform app-data directory becomes the primary store in Phase 9; IndexedDB may remain a cache/fallback but is not the only durable copy.
+- Tauri file access is restricted to the game’s app-data/save directory through narrowly scoped commands; the web/agent API receives no arbitrary path access.
+- Export/import is available through a user-selected file dialog and the same validated cross-platform schema.
 - No cloud account required.
 - Future cloud sync is explicitly out of scope for the initial release.
 
@@ -1175,7 +1222,21 @@ Tauri documentation references:
 
 ## 19. Performance budgets
 
-Initial budgets are targets to validate, not promises:
+### 19.1 Provisional minimum device matrix
+
+These named floors make performance requirements falsifiable. Phase -1 must benchmark them or formally replace them before the budgets are approved.
+
+| Target | Concrete baseline | Runtime floor | Required result |
+|---|---|---|---|
+| Windows desktop | Intel Core i5-8250U, Intel UHD 620, 8 GB RAM, Windows 11 | Edge/WebView2 124 or newer | 60 Hz simulation; 60 FPS at Low/720p-equivalent internal resolution |
+| Android mobile | Google Pixel 6a, 6 GB RAM, Android 14 | Chrome/System WebView 124 or newer | 60 Hz simulation; 60 FPS Low, with declared 30 FPS render fallback if sustained thermal testing requires it |
+| iOS mobile | iPhone 12, 4 GB RAM, iOS 17.4 | Safari/WKWebView 17.4 or newer | 60 Hz simulation; 60 FPS Low, with declared 30 FPS render fallback if sustained thermal testing requires it |
+
+Public web browser floors are Chromium-family 124+, Firefox 125+, and Safari 17.4+. Tauri packages use the platform WebView floors above. These are provisional product-support decisions, not statements that older browsers cannot run the game.
+
+### 19.2 Frame, simulation, and memory budgets
+
+Initial budgets are targets to validate in Phase -1, not promises:
 
 - Desktop target: stable 60 FPS minimum; optional 120 FPS rendering while simulation remains 60 Hz.
 - Mobile target: stable 60 FPS on supported mid-range devices; 30 FPS quality fallback only if required.
@@ -1183,18 +1244,23 @@ Initial budgets are targets to validate, not promises:
 - Main-thread UI/input/audio scheduling: under 3 ms typical frame.
 - GPU frame: under 12 ms at selected resolution for 60 FPS headroom.
 - Draw calls: target under 80, preferably under 40 through instancing.
-- Active detailed XPBD robots: initial target 24; distant robots use reduced update/render detail.
+- Concurrent active XPBD robots: hard campaign cap of 24, all using two substeps and eight constraint iterations per substep.
+- Render detail may decrease with distance or quality because it cannot affect authoritative state; physics/AI detail may not.
 - Particle pool: hard capacity with graceful dropping.
 - Initial download: target under 50 MB, dominated by approved audio and fonts.
 - Runtime memory: target under 250 MB desktop and under 180 MB mobile after a chapter transition.
 - Zero unbounded arrays, timers, audio nodes, GPU buffers, or event listeners across level reloads.
 
-Quality tiers:
+### 19.3 Quality tiers
+
+Quality tiers control presentation only:
 
 - Low: reduced pixel ratio, blob shadows only, fewer particles, fewer dynamic lights, reduced robot visual detail.
 - Medium: full resolution cap, richer particles, selected shadows.
 - High: higher pixel ratio cap, optional shadow maps/bloom, maximum effects.
 - Auto: chooses initial tier from capabilities and measured frame time, then changes conservatively.
+
+No quality tier changes simulation tick rate, substeps, solver iterations, active-robot cap, collision shapes, AI schedule, attack timing, spawn timing, or replay state.
 
 ## 20. Testing strategy
 
@@ -1241,6 +1307,9 @@ Quality tiers:
 ### 20.5 Gameplay tests
 
 - Every level can start, checkpoint, complete, replay, and unload.
+- Every campaign level has an agent-validation policy and maximum tick budget in its level data.
+- CI runs the production simulation with the fixed baseline agent/reference policy for all released levels; failure to complete within the declared tick budget, checksum drift, an illegal action, or a stuck-state timeout fails the build.
+- Agent completion proves reachability and regression safety, not human fun or balance; human playtesting remains required for pacing, clarity, and enjoyment.
 - Every boss phase is reachable and defeatable.
 - Every weapon can damage intended targets.
 - Difficulty/assist settings affect only declared variables.
@@ -1256,7 +1325,7 @@ Quality tiers:
 - Raw movement/look/fire control.
 - High-level actions translate through normal rules.
 - Deterministic stepping and maximum-step limit.
-- A scripted baseline agent completes tutorial levels.
+- A scripted baseline agent completes tutorial levels and the campaign-validation harness can execute every released level without rendering.
 - Agent API cannot access arbitrary browser, OS, filesystem, or Tauri capabilities.
 
 ### 20.7 Tauri/release tests
@@ -1268,9 +1337,35 @@ Quality tiers:
 - Suspend/resume, rotation, audio interruption, low-memory recovery.
 - Save compatibility across web and packaged builds where export/import is supported.
 
+### 20.8 CI performance gates
+
+- `perf:sim` runs the authoritative simulation without rendering using a fixed stress seed, 24 active robots, two substeps, eight solver iterations, and 6,000 measured ticks after warm-up.
+- Phase -1 records the reference distribution on the named baseline desktop and a pinned CI runner. The checked-in benchmark manifest stores hardware/runtime metadata, median tick cost, p95 tick cost, and total duration.
+- Pinned performance CI fails if p95 simulation cost exceeds 4 ms, if total time exceeds the approved hard threshold, or if the median regresses by more than 20% from the approved baseline without a reviewed benchmark update.
+- Ordinary hosted CI also runs a shorter regression smoke but does not pretend noisy shared-runner timing is a hardware certification.
+- Separate browser smoke records render FPS, GPU time where available, worker snapshot latency, memory, and draw calls on the device matrix.
+- Performance-baseline changes require a pull-request explanation and before/after measurements; developers may not silently raise thresholds.
+
 ## 21. Implementation phases and gates
 
 No phase should begin by building all 100 levels. Prove the engine and a representative vertical slice first.
+
+### Phase -1: 24-robot feasibility spike
+
+This disposable spike happens before performance budgets or production architecture are approved. It may be kept on a separate branch and is not the production engine.
+
+Deliverables:
+
+- bare-page TypeScript prototype with 24 articulated XPBD robots;
+- 60 Hz fixed simulation, two substeps, and eight iterations per substep;
+- raw WebGL2 sphere/capsule instancing sufficient only to measure cost;
+- simulation-only and combined simulation/render measurements;
+- measurements on all three provisional baseline devices where hardware is available;
+- benchmark report covering tick median/p95, render frame time, worker messaging, memory, thermal behavior, and failure modes.
+
+Exit gate:
+
+- either the fixed 24-robot budget meets the targets and becomes approved, or the campaign/design budget is revised before Phase 0; production must not rely on adaptive solver iterations.
 
 ### Phase 0: approval and repository foundation
 
@@ -1373,6 +1468,25 @@ Exit gate:
 
 - Levels 1–10 form a coherent, balanced first chapter.
 
+### Phase 6.5: content-production tooling
+
+Deliverables:
+
+- schema-aware level editor for internal use;
+- encounter-graph visualizer with keys, locks, checkpoints, triggers, and critical path;
+- deterministic maze preview and validation report;
+- dance-preset previewer with beat/attack/vulnerability timeline;
+- robot-wave and coin-economy balance harness;
+- one-command agent solvability run with replay inspection;
+- diff-friendly canonical level serialization;
+- documentation and templates for content designers;
+- assigned ownership for choreography/music systems and an audio/dance production schedule.
+
+Exit gate:
+
+- after training, a content designer can author, validate, agent-test, and submit a normal Chapter 1-quality level in less than one working day, excluding new bespoke art/audio;
+- invalid schemas, unreachable graphs, missing localization, missing provenance, or failed agent tick budgets block export.
+
 ### Phase 7: LLM interface
 
 Deliverables:
@@ -1380,6 +1494,7 @@ Deliverables:
 - public API, schema, observations, low/high-level actions;
 - headless and real-time modes;
 - sample harness and baseline scripted agent;
+- campaign QA runner that validates every released level against its declared agent policy and maximum tick budget;
 - visibility/security tests and evaluation metrics.
 
 Exit gate:
@@ -1407,11 +1522,12 @@ Deliverables:
 - Windows/Linux/macOS builds where hardware permits;
 - Android project and test build;
 - iOS project/build when Mac signing environment is available;
-- suspend/resume and fullscreen behavior.
+- suspend/resume and fullscreen behavior;
+- atomic file-backed saves in the platform app-data directory, migration fixtures, corruption recovery, and user-driven export/import.
 
 Exit gate:
 
-- same offline web assets run correctly in selected packaged targets.
+- same offline web assets run correctly in selected packaged targets, and progress survives restart and WebView-storage clearing because the packaged save file is authoritative.
 
 ### Phase 10: Chapters 2–5
 
@@ -1454,11 +1570,13 @@ Exit gate:
 
 ## 22. Estimated scope
 
-Very rough planning range after design approval:
+Very rough planning range after design approval. The estimates assume a small focused team, not one person doing every discipline sequentially:
 
 - Vertical slice through Level 10: approximately 10–16 person-months depending on developer graphics/audio experience and target-device requirements.
 - Full polished 100-level release: approximately 24–40 person-months, including content, testing, audio, localization, and packaging.
-- A focused team of gameplay/graphics, content/design, and QA/audio specialists can work in parallel after the deterministic core stabilizes.
+- Planning team assumption: 3–5 contributors covering gameplay/graphics, tools/content design, choreography/music/audio, and QA/release, with roles combined only where experience supports it.
+- A solo full-time developer should interpret 24–40 person-months literally as roughly 2–3.5 years before contingency, platform certification, and part-time specialist help.
+- Choreography/procedural music is an explicitly staffed content discipline. Ownership includes the dance grammar, 100 presets, beat/attack timelines, procedural sequencer, mix review, and accessibility equivalents.
 
 The 100-level goal is primarily a content-production challenge. Data-driven room templates, dance grammar, robot modifiers, and automated validation are required to keep it feasible.
 
@@ -1470,7 +1588,7 @@ The 100-level goal is primarily a content-production challenge. Data-driven room
 | 100 levels become repetitive | Player retention | Ten distinct chapters, objective variety, modifiers, secrets, bosses, unique dance presets |
 | 100 levels take too long to author | Release delay | Data schemas, reusable encounter grammar, automated validation, ship chapters only when polished |
 | XPBD robots become unreadable | Combat fairness | Pose constraints, silhouette tests, capped impulses, recovery states |
-| Physics cost is high on mobile | Frame drops | Detail budgets, sleeping, fewer iterations at distance, instancing, profiling early |
+| Physics cost is high on mobile | Frame drops | Phase -1 spike, hard 24-active-robot cap, staged waves, fixed solver budget, render-only LOD, instancing |
 | Worker/WebView behavior differs | Platform bugs | Capability detection, main-thread renderer fallback, real-device gates |
 | “Realistic” sounds conflict with funny tone | Inconsistent identity | Realistic physical layers plus stylized robot/music layers; review audio bible |
 | Third-party audio license is unclear | Distribution/legal risk | CC0-first policy, provenance manifest, hash every source, reject ambiguous assets |
@@ -1493,7 +1611,18 @@ If telemetry is considered later:
 - easy disable/delete controls;
 - separate design and privacy review before implementation.
 
-## 25. Definition of done for version 1.0
+## 25. Release scope and definition of done
+
+### 25.1 Release-scope decision
+
+The final game remains a 100-level campaign. Two release strategies are possible:
+
+- **Option A — monolithic 1.0:** version 1.0 waits for all 100 levels. This preserves the original promise but carries the greatest schedule and quality risk.
+- **Option B — staged public release (recommended):** version 1.0 contains polished Chapters 1–3 (30 levels) and all foundational systems; Chapters 4–10 arrive as free, open-source campaign updates on a published schedule. “Campaign Complete” is declared only when all 100 levels ship.
+
+No chapter may be marketed as complete until it passes the same automated, agent, performance, accessibility, asset, and human-playtest gates. The selected option must be approved in Section 26 before external release promises are made.
+
+### 25.2 Definition of done for the complete 100-level campaign
 
 - 100 completable, reviewed campaign levels.
 - Four polished weapons with distinct roles.
@@ -1513,6 +1642,16 @@ If telemetry is considered later:
 - Open-source license, contribution documentation, credits, and trademark policy approved.
 - No copied commercial-game assets or runtime network dependencies.
 
+### 25.3 Additional definition of done for a staged 30-level version 1.0
+
+If Option B is approved:
+
+- Levels 1–30 and Chapters 1–3 are complete and polished.
+- All architectural systems needed by later chapters are production-ready; future chapters add data/content rather than parallel engines.
+- The pulse gun, sword, and bombs are campaign-unlocked; the laser is playable in a versioned challenge/training arena and remains campaign-unlocked in Chapter 5.
+- The public roadmap clearly labels Chapters 4–10 as planned free updates without promising unverified dates.
+- Save schema and level IDs reserve seamless continuation through Level 100.
+
 ## 26. Review decisions required before implementation
 
 1. Approve the title/subtitle.
@@ -1530,6 +1669,15 @@ If telemetry is considered later:
 13. Identify the official Quantum Billing logo, robot references, colors, and permission owner.
 14. Approve use of shortlisted CC0 sound sources or commission original replacements.
 15. Decide whether alternate endings are version 1.0 or a later update.
+16. Confirm deterministic hitscan for the pulse gun rather than a player projectile.
+17. Confirm simulation schema version 1 uses 60 Hz, two substeps, and exactly eight XPBD iterations per substep on every device.
+18. Confirm the simulation-only Worker topology, with the shared renderer hosted either on the main thread or a separate render Worker.
+19. Approve the hard cap of 24 concurrently active full-physics robots and deterministic staged waves for larger encounters.
+20. Approve the provisional minimum device/browser matrix in Section 19 or supply replacement hardware before Phase -1.
+21. Approve Phase 6.5 internal content tooling and its one-working-day authoring gate.
+22. Choose monolithic 100-level version 1.0 or the recommended 30-level version 1.0 followed by free chapter updates.
+23. Confirm agent-enabled builds use isolated progress and normal production builds do not expose mutation-capable agent methods.
+24. Assign named ownership or contracted support for choreography, procedural music, sound design, content tools, and device QA.
 
 ## 27. References and lessons used
 
@@ -1574,5 +1722,308 @@ If telemetry is considered later:
 
 ## 28. Immediate next step after approval
 
-After this plan is reviewed and decisions in Section 26 are resolved, implementation should begin only with Phase 0 and Phase 1. The first visual milestone should be one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone should be a polished ten-level Chapter 1—not a rushed generation of all 100 levels.
+After this plan is reviewed and decisions in Section 26 are resolved, technical work begins with the disposable Phase -1 feasibility spike. Only after its measurements reconcile the 24-robot target and device budgets should Phase 0 and the production implementation begin. The first production visual milestone is one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone is a polished ten-level Chapter 1—not a rushed generation of all 100 levels.
 
+## Appendix A. Level data schema contract
+
+This appendix defines the content/engine boundary that must be approved before Phase 5. It is a design contract, not an implementation. The eventual TypeScript types, JSON Schema, editor forms, validators, canonical serializer, campaign tests, and agent harness must all represent the same fields and invariants.
+
+### A.1 Schema principles
+
+- Level data is declarative; it cannot contain executable JavaScript callbacks.
+- Every record declares `schemaVersion` and uses explicit stable IDs.
+- Campaign content is serialized canonically so code review shows meaningful diffs.
+- Unknown fields fail validation during development instead of being silently ignored.
+- Runtime defaults are permitted only when declared in the schema documentation and materialized by the editor before release export.
+- Every random choice is derived from the declared level seed and a named deterministic RNG stream.
+- Localized text is referenced by keys; level data does not duplicate visible prose across languages.
+- Asset references use manifest IDs, never arbitrary URLs or filesystem paths.
+- Simulation-affecting values are finite numbers with declared units and bounds.
+- Quality-tier or device-specific simulation overrides are forbidden.
+
+### A.2 Root `LevelDefinition`
+
+| Field | Type | Required | Constraints and meaning |
+|---|---|---:|---|
+| `schemaVersion` | integer | Yes | Starts at `1`; controls validation and migration |
+| `id` | string | Yes | Stable pattern `level-001` through `level-100`; never reused |
+| `number` | integer | Yes | `1..100`; must agree with `id` |
+| `chapterId` | string | Yes | Stable chapter reference such as `chapter-01` |
+| `nameKey` | string | Yes | Localization key for the level name |
+| `briefingKey` | string | Yes | Localization key for the short briefing |
+| `seed` | string | Yes | Fixed campaign seed; custom/replay seed may override only in declared modes |
+| `palette` | `PaletteSpec` | Yes | Visual colors and accessibility identifiers only |
+| `maze` | `MazeSpec` | Yes | Encounter graph and generation limits |
+| `objectives` | `ObjectiveSpec[]` | Yes | At least one primary objective; stable order |
+| `encounters` | `EncounterSpec[]` | Yes | Spawn triggers, waves, room ownership, completion rules |
+| `dance` | `DanceLevelSpec` | Yes | Default choreography/beat contract for the level |
+| `difficulty` | `DifficultySpec` | Yes | Explicit bounded multipliers and timing values |
+| `economy` | `EconomySpec` | Yes | Pickup and reward budgets |
+| `checkpoints` | `CheckpointSpec[]` | Yes | May be empty only for an approved short level |
+| `audio` | `AudioLevelSpec` | Yes | Music graph, ambience, and reverb IDs |
+| `mastery` | `MasterySpec[]` | Yes | Optional medal/challenge rules; may be empty |
+| `agentValidation` | `AgentValidationSpec` | Yes | Baseline policy, tick limit, stuck timeout, expected result |
+| `performance` | `PerformanceSpec` | Yes | Hard content budgets, including active robot cap |
+| `story` | `StorySpec` | No | Intro/outro/log references with skippable flags |
+| `tags` | string array | Yes | Search/filter tags from a controlled vocabulary |
+
+### A.3 `PaletteSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `id` | string | Stable palette preset ID |
+| `background` | RGB hex string | Opaque six-digit color |
+| `fog` | RGB hex string | Opaque six-digit color |
+| `floor` | RGB hex string | Opaque six-digit color |
+| `walls` | RGB hex array | One to eight colors |
+| `accents` | RGB hex array | One to eight colors |
+| `hazard` | RGB hex string | Must pass contrast/readability validation |
+| `objective` | RGB hex string | Must remain distinguishable from hazard |
+| `colorBlindProfile` | enum | Approved profile such as `shape-first`, `deuteranopia-safe` |
+
+Palette values affect presentation only. Robot archetypes retain shape/icon/audio identifiers even when level palette treatment shifts their shades.
+
+### A.4 `MazeSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `templateSetId` | string | References an approved room/corridor template set |
+| `generatorVersion` | integer | Pins deterministic generator behavior |
+| `criticalPathRooms` | integer range | Minimum/maximum inclusive, positive |
+| `optionalRooms` | integer range | Includes secrets and reward rooms |
+| `maxBranchDepth` | integer | Bounded by chapter complexity |
+| `secretCount` | integer | Must agree with mastery rules that count all secrets |
+| `entranceNodeId` | string | Existing graph node |
+| `exitNodeId` | string | Existing graph node and not the entrance |
+| `nodes` | `MazeNodeSpec[]` | Stable node IDs, room template roles, encounter references |
+| `edges` | `MazeEdgeSpec[]` | Directed/undirected links, locks, phase state, traversal rules |
+| `keys` | `KeySpec[]` | Stable IDs and placement nodes |
+| `hazards` | `HazardSpec[]` | Deterministic timing and collision references |
+| `generationAttempts` | integer | Fixed upper bound; failure is explicit |
+| `validationProfile` | string | Selects approved solvability rules, never arbitrary code |
+
+`MazeNodeSpec` declares node ID, role, allowed template tags, size class, encounter IDs, pickup IDs, checkpoint ID, story IDs, and whether it belongs to the critical path. `MazeEdgeSpec` declares its endpoints, directionality, lock/key requirement, door type, traversal cost, and state-transition trigger.
+
+### A.5 `ObjectiveSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `id` | string | Unique within level |
+| `type` | enum | `deactivate`, `recover-keys`, `shutdown`, `survive`, `hunt`, `defend`, `escape`, `boss` |
+| `required` | boolean | At least one required objective per level |
+| `titleKey` | string | Localized HUD label |
+| `targetIds` | string array | References encounters/entities/nodes as appropriate |
+| `targetCount` | integer or null | Required for count objectives |
+| `durationTicks` | integer or null | Required for timed objectives; never seconds/floats |
+| `dependsOn` | string array | Objective IDs forming an acyclic dependency graph |
+| `completionMode` | enum | `all`, `any`, `count`, `timer`, `reach` |
+| `markerPolicy` | enum | `always`, `discovered`, `nearby`, `none` |
+
+### A.6 `EncounterSpec` and spawn waves
+
+Each encounter declares:
+
+| Field | Type | Constraints |
+|---|---|---|
+| `id` | string | Unique stable encounter ID |
+| `roomNodeId` | string | Existing maze node |
+| `trigger` | enum/spec | `on-enter`, `on-objective`, `on-interact`, `on-tick`, `on-wave-complete` |
+| `triggerRef` | string or null | Referenced objective/entity/wave where required |
+| `arenaLock` | boolean | Whether connected combat doors lock during encounter |
+| `waves` | `WaveSpec[]` | At least one wave |
+| `completion` | enum | `all-defeated`, `timer`, `target-defeated`, `objective-event` |
+| `rewardId` | string or null | References economy reward bundle |
+| `checkpointOnComplete` | string or null | Existing checkpoint ID |
+
+Each `WaveSpec` declares:
+
+- stable `id`;
+- deterministic start condition;
+- `SpawnGroupSpec[]`;
+- maximum concurrently active robots contributed by the wave;
+- inter-group delay in ticks;
+- optional music/dance transition ID;
+- completion condition;
+- fallback/error policy if a spawn point is invalid.
+
+Each `SpawnGroupSpec` declares:
+
+- archetype ID;
+- count;
+- approved modifier IDs;
+- spawn-point set or deterministic placement rule;
+- level-default or override dance preset ID;
+- fixed AI profile ID;
+- fixed reward profile ID;
+- deterministic RNG stream name;
+- elite/boss flag;
+- accessibility icon/silhouette verification reference.
+
+Across all simultaneously live waves, active robot count must never exceed `performance.maxActiveRobots`, which is at most 24. A later wave is queued rather than represented by simplified active physics.
+
+### A.7 `DanceLevelSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `presetId` | string | Unique campaign dance preset for this level |
+| `grammarVersion` | integer | Pins deterministic dance grammar behavior |
+| `bpm` | integer | Approved accessible range; validated against reaction windows |
+| `timeSignature` | enum | Approved values such as `4/4`, `3/4`, `7/8` |
+| `barsPerPhrase` | integer | Positive and bounded |
+| `footPatternId` | string | Approved pattern manifest ID |
+| `torsoPatternId` | string | Approved pattern manifest ID |
+| `armPatternId` | string | Approved pattern manifest ID |
+| `headAccentId` | string | Approved pattern manifest ID |
+| `pathPatternId` | string | Approved movement-path ID |
+| `attackBeats` | beat-index array | Sorted, unique, inside phrase |
+| `vulnerableBeats` | beat-index array | Sorted, unique, inside phrase |
+| `transitionIds` | string array | Approved transitions; deterministic conditions live in data |
+| `visualIntensity` | bounded number | Presentation hint only |
+| `reducedMotionPresetId` | string | Required accessibility equivalent with identical combat timing |
+
+Authoritative attacks use tick-resolved beat metadata derived from the fixed simulation clock. Audio latency or render frames never decide attack timing.
+
+### A.8 `DifficultySpec`
+
+All values are explicit finite numbers within schema bounds:
+
+- player incoming-damage multiplier;
+- robot health multiplier;
+- robot movement-speed multiplier;
+- projectile-speed multiplier;
+- reaction/telegraph ticks;
+- spawn delay ticks;
+- resource multiplier;
+- aim-assist defaults by supported difficulty;
+- boss phase thresholds;
+- maximum simultaneous attack tokens;
+- AI profile IDs;
+- fixed rules for Story, Standard, Hard, and optional custom assists.
+
+Difficulty cannot override simulation tick, substeps, solver iterations, collision geometry, active-robot cap, or entity update schedule.
+
+### A.9 `EconomySpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `baseCoinBudget` | integer | Expected normal-play award before mastery |
+| `rewardBundles` | record | Stable IDs mapping to deterministic rewards |
+| `pickupBudget` | record | Health, armor, cells, bombs, laser energy |
+| `comboRulesId` | string | Versioned shared rule set |
+| `checkpointBanking` | enum | Approved banking behavior |
+| `masteryCoinCap` | integer | Prevents farming bugs |
+| `expectedSpendBand` | integer range | Balance-tool warning range, not runtime enforcement |
+
+The balance harness verifies that required combat does not demand more ammunition than the level can provide under declared accuracy assumptions.
+
+### A.10 Checkpoints, audio, mastery, and story
+
+`CheckpointSpec` declares a stable ID, trigger node/event, full-state serialization policy, banked rewards, respawn anchor, encounter reset list, and one-way state transitions. A checkpoint cannot capture an already unwinnable key/ammo/objective state.
+
+`AudioLevelSpec` declares original music graph ID, tempo source, ambience asset IDs, room-reverb preset map, boss transition cues, and accessibility cue map. It contains no raw URL and no unverified asset file.
+
+`MasterySpec` declares ID, localized text key, rule enum, threshold, comparison, reward, and whether assists invalidate the medal. Mastery rules read emitted gameplay metrics; they do not alter combat.
+
+`StorySpec` declares skippable intro/outro IDs, log IDs, dialogue cue IDs, and localization keys. Skipping story never skips authoritative objective setup.
+
+### A.11 `AgentValidationSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `policyId` | string | Versioned baseline planner/reference policy |
+| `policyVersion` | integer | Pinned for reproducible CI |
+| `seed` | string | Normally equals campaign seed |
+| `difficulty` | enum | Standard campaign validation difficulty |
+| `maxTicks` | integer | Hard level completion budget |
+| `stuckTimeoutTicks` | integer | No-progress failure threshold |
+| `maxIllegalActions` | integer | Normally zero |
+| `requiredObjectiveIds` | string array | Must match required objectives |
+| `expectedCompletion` | boolean | True for every released campaign level |
+| `expectedChecksum` | string or null | Set after the approved reference replay is recorded |
+| `referenceReplayId` | string or null | Optional reviewed fallback/reference script |
+| `parTicks` | integer | Balance comparison, distinct from hard max |
+
+The baseline agent’s success is a CI gate for solvability. A level can still fail human review for being confusing, boring, unfair, or badly paced.
+
+### A.12 `PerformanceSpec`
+
+| Field | Type | Constraints |
+|---|---|---|
+| `maxActiveRobots` | integer | `1..24`; never exceeded by encounters |
+| `maxActiveProjectiles` | integer | Fixed bounded pool budget |
+| `maxActivePickups` | integer | Fixed bounded pool budget |
+| `maxHazards` | integer | Fixed bounded simulation budget |
+| `maxMazeNodes` | integer | Bounds navigation and snapshot size |
+| `maxRenderInstances` | integer | Presentation/content warning; does not change simulation |
+| `expectedPeakDrawCalls` | integer | Validation target |
+| `expectedPeakMemoryMb` | integer | Validation target |
+| `benchmarkScenarioIds` | string array | Required stress/replay scenarios |
+
+### A.13 Root validation invariants
+
+Release export fails unless all invariants pass:
+
+1. Level IDs and numbers are unique, contiguous, and agree from 1 through the released maximum.
+2. Chapter membership and chapter boss rules are consistent.
+3. Every reference resolves to the correct type.
+4. Objective dependency graphs and encounter trigger graphs are acyclic unless an explicitly supported loop type is declared.
+5. Maze solvability, key/lock ordering, critical route, player clearance, spawn validity, and exit reachability pass.
+6. Required objectives can complete under every supported difficulty/assist combination.
+7. Concurrent robot count never exceeds 24; queued waves are not active entities.
+8. Attack telegraphs meet accessibility and reaction-time floors after difficulty multipliers.
+9. Dance attack/vulnerability beats map exactly to fixed simulation ticks.
+10. Economy/ammunition analysis shows a conservative completion path.
+11. Every visible string key exists in every release locale or approved fallback.
+12. Every asset ID exists in the provenance manifest with an approved license.
+13. Every checkpoint restores a solvable, reward-consistent state.
+14. Agent validation completes within `maxTicks`, produces the approved result/checksum, and uses no hidden state.
+15. Performance/content budgets pass the fixed stress harness.
+16. Canonical serialization is stable and produces a reviewable diff.
+
+### A.14 Minimal conceptual Level 1 record
+
+This non-executable illustration shows how the fields connect; exact serialization is generated by the tooling phase:
+
+```text
+schemaVersion: 1
+id: level-001
+number: 1
+chapterId: chapter-01
+nameKey: levels.001.name
+briefingKey: levels.001.briefing
+seed: campaign-level-001-v1
+palette: neon-workshop-01
+maze:
+  templateSetId: workshop-basic
+  criticalPathRooms: 4..5
+  optionalRooms: 1..1
+  entranceNodeId: room-entry
+  exitNodeId: room-exit
+objectives:
+  - id: deactivate-scouts
+    type: deactivate
+    required: true
+encounters:
+  - id: tutorial-wave
+    roomNodeId: room-floor
+    waves: [wave-001]
+dance:
+  presetId: wobble-march
+  bpm: 96
+  timeSignature: 4/4
+difficulty: standard-tutorial-001
+economy: economy-tutorial-001
+checkpoints: [checkpoint-entry, checkpoint-before-exit]
+audio: audio-neon-workshop-001
+mastery: [accuracy-bronze, par-time, all-secrets]
+agentValidation:
+  policyId: baseline-campaign-agent
+  policyVersion: 1
+  maxTicks: approved-after-balance-run
+performance:
+  maxActiveRobots: 6
+  maxActiveProjectiles: 16
+tags: [tutorial, workshop, gun, scouts]
+```
+
+Before Phase 5 exits, this conceptual contract must become one strict TypeScript definition, one generated JSON Schema, one canonical serializer, and one validator suite used by the engine, editor, CI, and campaign data.
