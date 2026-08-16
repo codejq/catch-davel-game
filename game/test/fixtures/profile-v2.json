@@ -1,0 +1,52 @@
+{
+  "profileSchemaVersion": 2,
+  "migrationHistory": ["created:v1", "v1->v2:independent-motion-controls"],
+  "profileId": "migration-v1",
+  "displayName": "Legacy Ranger",
+  "unlockedLevelIds": ["level-001"],
+  "levelProgress": [{
+    "levelId": "level-001",
+    "completed": true,
+    "medals": [],
+    "bestTicks": 5000,
+    "bestReplayId": null,
+    "attempts": 2,
+    "defeats": 1,
+    "robotsDefeated": 6
+  }],
+  "totalCoins": 12,
+  "spendableCoins": 7,
+  "weaponUpgrades": {
+    "pulseDamage": 0,
+    "pulseEfficiency": 0,
+    "swordCooling": 0,
+    "bombCapacity": 0,
+    "laserCooling": 0
+  },
+  "playerUpgrades": { "maxHealth": 0, "maxEnergy": 0 },
+  "cosmetics": [],
+  "achievements": [],
+  "settings": {
+    "language": "ar",
+    "masterVolume": 0.8,
+    "musicVolume": 0.6,
+    "effectsVolume": 0.7,
+    "mouseSensitivity": 1.4,
+    "reducedMotion": true,
+    "highContrast": true,
+    "cameraMotion": 0,
+    "recoilMotion": 0,
+    "shakeMotion": 0,
+    "flashIntensity": 0
+  },
+  "inputMappings": {
+    "forward": "KeyW",
+    "back": "KeyS",
+    "left": "KeyA",
+    "right": "KeyD",
+    "fire": "Mouse0"
+  },
+  "campaignCheckpoint": null,
+  "lastCleanShutdown": true,
+  "integrityChecksum": "61d8f3afd185dd09"
+}

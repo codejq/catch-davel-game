@@ -2,8 +2,9 @@ import { canonicalJson, checksumCanonical, parseSimulationSnapshot, type Simulat
 import { normalizeWeaponUpgradeLevels } from '../sim/weapons';
 import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 import { isCampaignLevelId } from '../content/level-ids';
+import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 
-export const PROFILE_SCHEMA_VERSION = 2;
+export const PROFILE_SCHEMA_VERSION = 3;
 
 export interface LevelProgressV1 {
   readonly levelId: string;
@@ -16,8 +17,8 @@ export interface LevelProgressV1 {
   readonly robotsDefeated: number;
 }
 
-export interface ProfileBodyV2 {
-  readonly profileSchemaVersion: 2;
+export interface ProfileBodyV3 {
+  readonly profileSchemaVersion: 3;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -41,29 +42,30 @@ export interface ProfileBodyV2 {
     readonly shakeMotion: number;
     readonly flashIntensity: number;
     readonly highContrast: boolean;
+    readonly renderQuality: RenderQualityPreference;
   };
   readonly inputMappings: Readonly<Record<string, string>>;
   readonly campaignCheckpoint: SimulationSnapshotV1 | null;
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV2 extends ProfileBodyV2 {
+export interface ProfileV3 extends ProfileBodyV3 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV2): ProfileBodyV2 {
+function profileBody(profile: ProfileV3): ProfileBodyV3 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV2): ProfileV2 {
+export function sealProfile(body: ProfileBodyV3): ProfileV3 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV2 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV3 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v2'],
+    migrationHistory: ['created:v3'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
@@ -81,7 +83,7 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
       language: 'en', masterVolume: 1, musicVolume: 0.75, effectsVolume: 0.9,
       mouseSensitivity: 1, reducedMotion: false,
       cameraMotion: 1, recoilMotion: 1, shakeMotion: 1, flashIntensity: 1,
-      highContrast: false,
+      highContrast: false, renderQuality: 'auto',
     },
     inputMappings: DEFAULT_INPUT_BINDINGS,
     campaignCheckpoint: null,
@@ -169,7 +171,7 @@ function verifyProfileIntegrity(profile: Record<string, unknown>): void {
   if (profile.integrityChecksum !== checksumCanonical(sourceBody)) throw new Error('Profile integrity checksum mismatch');
 }
 
-function validateProfileV2(profile: Record<string, unknown>): ProfileV2 {
+function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -181,7 +183,7 @@ function validateProfileV2(profile: Record<string, unknown>): ProfileV2 {
   const settings = object(profile.settings, 'profile.settings');
   exactKeys(settings, [
     'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
-    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast',
+    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
   ], 'profile.settings');
   const checkpoint = profile.campaignCheckpoint === null
     ? null
@@ -199,7 +201,7 @@ function validateProfileV2(profile: Record<string, unknown>): ProfileV2 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 2,
+    profileSchemaVersion: 3,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -223,6 +225,7 @@ function validateProfileV2(profile: Record<string, unknown>): ProfileV2 {
       shakeMotion,
       flashIntensity,
       highContrast: booleanValue(settings.highContrast, 'profile.settings.highContrast'),
+      renderQuality: normalizeRenderQuality(settings.renderQuality),
     },
     inputMappings: stringRecord(profile.inputMappings, 'profile.inputMappings'),
     campaignCheckpoint: checkpoint,
@@ -234,7 +237,29 @@ function validateProfileV2(profile: Record<string, unknown>): ProfileV2 {
   return result;
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV2 {
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV3 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  const settings = object(profile.settings, 'profile.settings');
+  exactKeys(settings, [
+    'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
+    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast',
+  ], 'profile.settings');
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 3 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v2->v3:render-quality-preference'],
+    settings: { ...settings, renderQuality: 'auto' as const },
+  };
+  return validateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV3 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -259,26 +284,27 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV2 {
       flashIntensity: reducedMotion ? 0 : 1,
     },
   };
-  return validateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV2 {
+export function validateProfile(value: unknown): ProfileV3 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
   }
   if (profile.profileSchemaVersion === 1) return migrateProfileV1(profile);
-  return validateProfileV2(profile);
+  if (profile.profileSchemaVersion === 2) return migrateProfileV2(profile);
+  return validateProfileV3(profile);
 }
 
-export function serializeProfile(profile: ProfileV2): string {
+export function serializeProfile(profile: ProfileV3): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV2 {
+export function parseProfile(serialized: string): ProfileV3 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV2, changes: Partial<ProfileBodyV2>): ProfileV2 {
+export function updateProfile(profile: ProfileV3, changes: Partial<ProfileBodyV3>): ProfileV3 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }

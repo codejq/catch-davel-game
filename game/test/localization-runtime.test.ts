@@ -18,6 +18,7 @@ describe('runtime localization selection', () => {
       .toBe('شحن النبضة · المستوى 1 → 2 · 10 عملة');
     expect(runtimeUiText('ar', 'retryCheckpoint')).toBe('إعادة نقطة الحفظ');
     expect(runtimeUiText('en', 'restartMissionHint')).toContain('Restart the mission');
+    expect(runtimeUiText('ar', 'renderQuality')).toBe('جودة العرض');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });

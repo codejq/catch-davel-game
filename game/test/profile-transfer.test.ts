@@ -8,7 +8,7 @@ describe('cross-platform profile transfer', () => {
   it('round-trips a human-readable integrity-checked default profile', () => {
     const profile = createDefaultProfile();
     const serialized = serializeProfileExport(profile);
-    expect(serialized).toContain('\n  "profileSchemaVersion": 2,');
+    expect(serialized).toContain('\n  "profileSchemaVersion": 3,');
     expect(parseProfileExport(serialized)).toEqual(profile);
   });
 

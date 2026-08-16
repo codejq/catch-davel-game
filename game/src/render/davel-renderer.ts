@@ -3,6 +3,7 @@ import { createCapsule, createSphere } from './geometry';
 import { ROBOT_DEFINITIONS, type RobotDefinition } from '../sim/robots';
 import { BODY_POINT } from '../sim/xpbd';
 import { PLAYER_EYE_HEIGHT } from '../sim/constants';
+import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { RenderGameState, RenderRobotState } from './render-model';
 
 type Color = readonly [number, number, number];
@@ -279,11 +280,17 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 384);
   }
 
-  render(state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1): void {
+  render(
+    state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1,
+    qualityTier: RenderQualityTier = 'high',
+  ): void {
     this.spheres.reset();
     this.capsules.reset();
     for (const robot of state.robots) {
-      if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale);
+      if (robot.active) this.addRobot(
+        robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale,
+        RENDER_QUALITY_PROFILES[qualityTier].hitSparkCount,
+      );
     }
     for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
@@ -344,7 +351,7 @@ export class DavelRenderer {
   }
 
   private addRobot(
-    robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number,
+    robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number, hitSparkCount: number,
   ): void {
     const p = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
     const scale = definition.scale;
@@ -361,7 +368,7 @@ export class DavelRenderer {
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
     if (robot.hitFlashTicks > 0 && flashScale > 0) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
-      for (let index = 0; index < 4; index += 1) {
+      for (let index = 0; index < hitSparkCount; index += 1) {
         const angle = robot.id * 1.37 + index * Math.PI * 0.5 + robot.hitFlashTicks * 0.11;
         this.addSphere({
           x: p.chest.x + Math.cos(angle) * (0.36 * scale + travel),

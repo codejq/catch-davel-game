@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV2 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV3 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -32,6 +32,10 @@ import {
 } from '../storage/input-bindings';
 import { projectStandardGamepad } from './gamepad-input';
 import { campaignResultSummary, formatCampaignTicks, type CampaignResultSummary } from '../campaign/results';
+import {
+  AutoQualityController, browserRenderCapabilities, initialRenderQuality, normalizeRenderQuality,
+  type RenderQualityPreference, type RenderQualityTier,
+} from '../render/quality';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -121,6 +125,7 @@ export async function startBrowserGame(): Promise<void> {
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
+  const settingQuality = requireElement<HTMLSelectElement>('#setting-quality');
   const settingCameraMotion = requireElement<HTMLInputElement>('#setting-camera-motion');
   const settingRecoilMotion = requireElement<HTMLInputElement>('#setting-recoil-motion');
   const settingShakeMotion = requireElement<HTMLInputElement>('#setting-shake-motion');
@@ -146,7 +151,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV2;
+  let activeProfile: ProfileV3;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -166,7 +171,14 @@ export async function startBrowserGame(): Promise<void> {
   let latestCampaignResult: CampaignResultSummary | null = null;
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
-  let renderPresentationSettings: RenderPresentationSettings = { motionScale: 1, flashScale: 1 };
+  const renderCapabilities = browserRenderCapabilities();
+  let qualityPreference: RenderQualityPreference = activeProfile.settings.renderQuality;
+  let resolvedQuality: RenderQualityTier = qualityPreference === 'auto'
+    ? initialRenderQuality(renderCapabilities) : qualityPreference;
+  let autoQuality = new AutoQualityController(resolvedQuality);
+  let renderPresentationSettings: RenderPresentationSettings = {
+    motionScale: 1, flashScale: 1, qualityTier: resolvedQuality,
+  };
   let messageTimeout = 0;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
@@ -202,6 +214,11 @@ export async function startBrowserGame(): Promise<void> {
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
     const recoil = activeProfile.settings.recoilMotion;
     const shake = activeProfile.settings.shakeMotion;
+    if (activeProfile.settings.renderQuality !== qualityPreference) {
+      qualityPreference = activeProfile.settings.renderQuality;
+      resolvedQuality = qualityPreference === 'auto' ? initialRenderQuality(renderCapabilities) : qualityPreference;
+      autoQuality = new AutoQualityController(resolvedQuality);
+    }
     const style = document.body.style;
     style.setProperty('--weapon-kick-y', `${18 * recoil}px`);
     style.setProperty('--sword-swing-x', `${-50 + 14 * recoil}%`);
@@ -221,7 +238,11 @@ export async function startBrowserGame(): Promise<void> {
     renderPresentationSettings = {
       motionScale: activeProfile.settings.cameraMotion,
       flashScale: activeProfile.settings.flashIntensity,
+      qualityTier: resolvedQuality,
     };
+    renderer.setQuality(resolvedQuality);
+    document.body.dataset.qualityPreference = qualityPreference;
+    document.body.dataset.qualityTier = resolvedQuality;
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -235,6 +256,7 @@ export async function startBrowserGame(): Promise<void> {
     promptBriefing.textContent = localized(activeLevel.briefingKey);
     settingLanguage.value = catalog.locale;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
+    settingQuality.value = activeProfile.settings.renderQuality;
     settingCameraMotion.value = String(activeProfile.settings.cameraMotion);
     settingRecoilMotion.value = String(activeProfile.settings.recoilMotion);
     settingShakeMotion.value = String(activeProfile.settings.shakeMotion);
@@ -308,7 +330,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV2): void => {
+  const persistProfile = (profile: ProfileV3): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -332,6 +354,7 @@ export async function startBrowserGame(): Promise<void> {
     const nextSettings = {
       language: settingLanguage.value === 'ar' ? 'ar' : 'en',
       mouseSensitivity: Number(settingSensitivity.value),
+      renderQuality: normalizeRenderQuality(settingQuality.value),
       cameraMotion,
       recoilMotion,
       shakeMotion,
@@ -969,7 +992,17 @@ export async function startBrowserGame(): Promise<void> {
     client.terminate();
   });
 
-  const frame = (): void => {
+  const frame = (timestamp: number): void => {
+    const adaptiveTier = qualityPreference === 'auto' ? autoQuality.sample(
+      timestamp,
+      document.visibilityState === 'visible' && !campaignMap.classList.contains('open') && !shop.classList.contains('open'),
+    ) : null;
+    if (adaptiveTier !== null) {
+      resolvedQuality = adaptiveTier;
+      renderPresentationSettings = { ...renderPresentationSettings, qualityTier: adaptiveTier };
+      renderer.setQuality(adaptiveTier);
+      document.body.dataset.qualityTier = adaptiveTier;
+    }
     if (!agentController.isAgentControlled()) {
       const gamepads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
       const connectedGamepad = Array.from(gamepads).find((candidate) => candidate?.connected) ?? null;

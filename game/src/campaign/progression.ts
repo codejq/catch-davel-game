@@ -1,5 +1,5 @@
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
-import { updateProfile, type LevelProgressV1, type ProfileV2 } from '../storage/profile';
+import { updateProfile, type LevelProgressV1, type ProfileV3 } from '../storage/profile';
 import { standardParTicks } from './results';
 
 function emptyProgress(levelId: Chapter01LevelId): LevelProgressV1 {
@@ -10,7 +10,7 @@ function emptyProgress(levelId: Chapter01LevelId): LevelProgressV1 {
 }
 
 export function updateLevelProgress(
-  profile: ProfileV2,
+  profile: ProfileV3,
   levelId: Chapter01LevelId,
   update: (progress: LevelProgressV1) => LevelProgressV1,
 ): readonly LevelProgressV1[] {
@@ -19,14 +19,14 @@ export function updateLevelProgress(
     : [...profile.levelProgress, update(emptyProgress(levelId))];
 }
 
-export function recordCampaignAttempt(profile: ProfileV2, levelId: Chapter01LevelId): ProfileV2 {
+export function recordCampaignAttempt(profile: ProfileV3, levelId: Chapter01LevelId): ProfileV3 {
   return updateProfile(profile, {
     lastCleanShutdown: false,
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
   });
 }
 
-export function recordCampaignRobotDefeat(profile: ProfileV2, levelId: Chapter01LevelId): ProfileV2 {
+export function recordCampaignRobotDefeat(profile: ProfileV3, levelId: Chapter01LevelId): ProfileV3 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({
       ...progress, robotsDefeated: progress.robotsDefeated + 1,
@@ -34,15 +34,15 @@ export function recordCampaignRobotDefeat(profile: ProfileV2, levelId: Chapter01
   });
 }
 
-export function recordCampaignDefeat(profile: ProfileV2, levelId: Chapter01LevelId): ProfileV2 {
+export function recordCampaignDefeat(profile: ProfileV3, levelId: Chapter01LevelId): ProfileV3 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, defeats: progress.defeats + 1 })),
   });
 }
 
 export function completeCampaignLevel(
-  profile: ProfileV2, levelId: Chapter01LevelId, completionTicks: number,
-): ProfileV2 {
+  profile: ProfileV3, levelId: Chapter01LevelId, completionTicks: number,
+): ProfileV3 {
   if (!Number.isSafeInteger(completionTicks) || completionTicks < 1) throw new Error('Completion ticks must be a positive safe integer');
   const currentIndex = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
   const nextLevelId = CHAPTER_01_LEVEL_IDS[currentIndex + 1];

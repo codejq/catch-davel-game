@@ -103,9 +103,11 @@ export interface RenderGameState {
 export interface RenderPresentationSettings {
   readonly motionScale: number;
   readonly flashScale: number;
+  readonly qualityTier: import('./quality').RenderQualityTier;
 }
 
 export const DEFAULT_RENDER_PRESENTATION_SETTINGS: RenderPresentationSettings = Object.freeze({
   motionScale: 1,
   flashScale: 1,
+  qualityTier: 'high',
 });

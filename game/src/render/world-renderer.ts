@@ -187,7 +187,7 @@ export class WorldRenderer {
     gl.uniform3f(this.fogColorLocation, fogColor[0], fogColor[1], fogColor[2]);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
-    this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale);
+    this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale, settings.qualityTier);
   }
 
   private buildWorldInstances(levelId: Chapter01LevelId): void {

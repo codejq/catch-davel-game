@@ -5,6 +5,7 @@ import {
 } from './render-model';
 import { WorldRenderer } from './world-renderer';
 import type { RenderWorkerRequest, RenderWorkerResponse } from '../workers/render-worker-protocol';
+import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 
 export type RendererMode = 'offscreen-worker' | 'main-thread-fallback';
 
@@ -12,6 +13,7 @@ export interface RendererHost {
   readonly canvas: HTMLCanvasElement;
   readonly mode: RendererMode;
   resize(): void;
+  setQuality(quality: RenderQualityTier): void;
   present(state: RenderGameState, settings?: RenderPresentationSettings): void;
   dispose(): void;
 }
@@ -22,11 +24,11 @@ export interface RendererHostOptions {
   readonly onContextStatus?: (status: 'lost' | 'restored') => void;
 }
 
-function canvasSize(canvas: HTMLCanvasElement): { readonly cssWidth: number; readonly cssHeight: number; readonly pixelRatio: number } {
+function canvasSize(canvas: HTMLCanvasElement, quality: RenderQualityTier): { readonly cssWidth: number; readonly cssHeight: number; readonly pixelRatio: number } {
   return {
     cssWidth: Math.max(1, canvas.clientWidth),
     cssHeight: Math.max(1, canvas.clientHeight),
-    pixelRatio: Math.min(devicePixelRatio, 2),
+    pixelRatio: Math.min(devicePixelRatio, RENDER_QUALITY_PROFILES[quality].pixelRatioCap),
   };
 }
 
@@ -42,6 +44,7 @@ class MainThreadRendererHost implements RendererHost {
   private previousState: RenderGameState | null = null;
   private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
   private contextLost = false;
+  private quality: RenderQualityTier = 'high';
 
   constructor(readonly canvas: HTMLCanvasElement, private readonly onContextStatus?: (status: 'lost' | 'restored') => void) {
     this.renderer = new WorldRenderer(webGl2(canvas), canvas);
@@ -49,11 +52,18 @@ class MainThreadRendererHost implements RendererHost {
     canvas.addEventListener('webglcontextrestored', this.handleContextRestored);
   }
 
-  resize(): void { this.renderer.resize(); }
+  resize(): void { this.renderer.resize(undefined, undefined, RENDER_QUALITY_PROFILES[this.quality].pixelRatioCap); }
+
+  setQuality(quality: RenderQualityTier): void {
+    if (quality === this.quality) return;
+    this.quality = quality;
+    this.resize();
+  }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     if (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
-      && settings.flashScale === this.previousSettings.flashScale) return;
+      && settings.flashScale === this.previousSettings.flashScale
+      && settings.qualityTier === this.previousSettings.qualityTier) return;
     this.previousState = state;
     this.previousSettings = settings;
     if (!this.contextLost) this.renderer.render(state, settings);
@@ -72,7 +82,7 @@ class MainThreadRendererHost implements RendererHost {
 
   private readonly handleContextRestored = (): void => {
     this.renderer = new WorldRenderer(webGl2(this.canvas), this.canvas);
-    this.renderer.resize();
+    this.resize();
     this.contextLost = false;
     this.onContextStatus?.('restored');
     if (this.previousState !== null) this.renderer.render(this.previousState, this.previousSettings);
@@ -89,6 +99,7 @@ class OffscreenRendererHost implements RendererHost {
   private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
   private latest: { readonly state: RenderGameState; readonly settings: RenderPresentationSettings } | null = null;
   private disposed = false;
+  private quality: RenderQualityTier = 'high';
   private resolveReady!: () => void;
   private rejectReady!: (error: Error) => void;
   private readonly ready: Promise<void>;
@@ -105,19 +116,26 @@ class OffscreenRendererHost implements RendererHost {
     });
     this.worker.onmessage = (event: MessageEvent<RenderWorkerResponse>) => this.receive(event.data);
     this.worker.onerror = (event) => this.fail(new Error(event.message || 'Render Worker failed'));
-    this.worker.postMessage({ type: 'initialize', canvas: offscreen, ...canvasSize(canvas) } satisfies RenderWorkerRequest, [offscreen]);
+    this.worker.postMessage({ type: 'initialize', canvas: offscreen, ...canvasSize(canvas, this.quality) } satisfies RenderWorkerRequest, [offscreen]);
   }
 
   initialized(): Promise<void> { return this.ready; }
 
   resize(): void {
     if (this.disposed) return;
-    this.worker.postMessage({ type: 'resize', ...canvasSize(this.canvas) } satisfies RenderWorkerRequest);
+    this.worker.postMessage({ type: 'resize', ...canvasSize(this.canvas, this.quality) } satisfies RenderWorkerRequest);
+  }
+
+  setQuality(quality: RenderQualityTier): void {
+    if (quality === this.quality) return;
+    this.quality = quality;
+    this.resize();
   }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     if (this.disposed || (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
-      && settings.flashScale === this.previousSettings.flashScale)) return;
+      && settings.flashScale === this.previousSettings.flashScale
+      && settings.qualityTier === this.previousSettings.qualityTier)) return;
     this.previousState = state;
     this.previousSettings = settings;
     this.latest = { state, settings };
