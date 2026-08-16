@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV8 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV9 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -75,6 +75,7 @@ const UPGRADE_UI_KEYS: Readonly<Record<WeaponUpgradeId, {
 
 const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
   forward: 'controlForward', back: 'controlBack', left: 'controlLeft', right: 'controlRight',
+  sprint: 'controlSprint',
   fire: 'controlFire', altFire: 'controlAltFire', campaign: 'controlCampaign', shop: 'controlShop',
   weaponPulse: 'controlPulse', weaponSword: 'controlSword', weaponBomb: 'controlBomb', weaponLaser: 'controlLaser',
 };
@@ -218,6 +219,7 @@ export async function startBrowserGame(): Promise<void> {
   const settingTouchHandedness = requireElement<HTMLSelectElement>('#setting-touch-handedness');
   const settingTouchDeadZone = requireElement<HTMLInputElement>('#setting-touch-dead-zone');
   const settingTouchFireMode = requireElement<HTMLSelectElement>('#setting-touch-fire-mode');
+  const settingSprintMode = requireElement<HTMLSelectElement>('#setting-sprint-mode');
   const settingsStatus = requireElement<HTMLOutputElement>('#settings-status');
   const inputBindingGrid = requireElement<HTMLElement>('#input-binding-grid');
   const inputBindingReset = requireElement<HTMLButtonElement>('#input-binding-reset');
@@ -227,6 +229,7 @@ export async function startBrowserGame(): Promise<void> {
   const movePad = requireElement<HTMLElement>('#move-pad');
   const moveStick = requireElement<HTMLElement>('#move-stick');
   const touchFire = requireElement<HTMLButtonElement>('#touch-fire');
+  const touchSprint = requireElement<HTMLButtonElement>('#touch-sprint');
   const touchAlt = requireElement<HTMLButtonElement>('#touch-alt');
   const touchWeapon = requireElement<HTMLButtonElement>('#touch-weapon');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
@@ -234,7 +237,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV8;
+  let activeProfile: ProfileV9;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -398,6 +401,7 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.presentationFlashScale = String(renderPresentationSettings.flashScale);
     document.body.dataset.touchHandedness = activeProfile.settings.touchHandedness;
     document.body.dataset.touchFireMode = activeProfile.settings.touchFireMode;
+    document.body.dataset.sprintMode = activeProfile.settings.sprintMode;
     document.body.dataset.touchDeadZone = String(activeProfile.settings.touchDeadZone);
     document.body.dataset.audioDynamicRange = activeProfile.settings.dynamicRange;
     document.body.dataset.difficulty = renderState?.difficulty ?? activeProfile.settings.difficulty;
@@ -442,6 +446,7 @@ export async function startBrowserGame(): Promise<void> {
     settingTouchHandedness.value = activeProfile.settings.touchHandedness;
     settingTouchDeadZone.value = String(activeProfile.settings.touchDeadZone);
     settingTouchFireMode.value = activeProfile.settings.touchFireMode;
+    settingSprintMode.value = activeProfile.settings.sprintMode;
     renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     audio?.setMix({
@@ -539,7 +544,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV8): void => {
+  const persistProfile = (profile: ProfileV9): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -561,6 +566,11 @@ export async function startBrowserGame(): Promise<void> {
     const shakeMotion = Number(settingShakeMotion.value);
     const reducedMotion = cameraMotion === 0 && recoilMotion === 0 && shakeMotion === 0;
     settingReducedMotion.checked = reducedMotion;
+    if (event.target === settingSprintMode) {
+      sprintHeld = false;
+      touchSprint.classList.remove('active');
+      document.body.classList.remove('sprinting');
+    }
     const nextSettings = {
       difficulty: isDifficultyId(settingDifficulty.value) ? settingDifficulty.value : 'standard',
       language: settingLanguage.value === 'ar' ? 'ar' : 'en',
@@ -589,6 +599,7 @@ export async function startBrowserGame(): Promise<void> {
       touchHandedness: settingTouchHandedness.value === 'left' ? 'left' as const : 'right' as const,
       touchDeadZone: Number(settingTouchDeadZone.value),
       touchFireMode: settingTouchFireMode.value === 'toggle' ? 'toggle' as const : 'hold' as const,
+      sprintMode: settingSprintMode.value === 'toggle' ? 'toggle' as const : 'hold' as const,
     };
     persistProfile(updateProfile(activeProfile, {
       settings: nextSettings,
@@ -1260,6 +1271,7 @@ export async function startBrowserGame(): Promise<void> {
   let fireQueued = false;
   let altFireQueued = false;
   let fireHeld = false;
+  let sprintHeld = false;
   let queuedWeapon: WeaponId | null = null;
   let resumeAfterVisibility = false;
   let touchForward = 0;
@@ -1268,6 +1280,7 @@ export async function startBrowserGame(): Promise<void> {
   let previousGamepadCycle = false;
   let previousGamepadCampaign = false;
   let previousGamepadShop = false;
+  let previousGamepadSprint = false;
   let movePointerId: number | null = null;
   let lookPointerId: number | null = null;
   let lookClientX = 0;
@@ -1340,6 +1353,20 @@ export async function startBrowserGame(): Promise<void> {
   };
   touchFire.addEventListener('pointerup', releaseTouchFire);
   touchFire.addEventListener('pointercancel', releaseTouchFire);
+  touchSprint.addEventListener('pointerdown', (event) => {
+    if (pauseMenu.classList.contains('open')) return;
+    event.preventDefault(); beginTouchSession(); touchSprint.setPointerCapture(event.pointerId);
+    sprintHeld = touchFireHeld(sprintHeld, activeProfile.settings.sprintMode, 'press');
+    touchSprint.classList.toggle('active', sprintHeld);
+    document.body.classList.toggle('sprinting', sprintHeld);
+  });
+  const releaseTouchSprint = (): void => {
+    sprintHeld = touchFireHeld(sprintHeld, activeProfile.settings.sprintMode, 'release');
+    touchSprint.classList.toggle('active', sprintHeld);
+    document.body.classList.toggle('sprinting', sprintHeld);
+  };
+  touchSprint.addEventListener('pointerup', releaseTouchSprint);
+  touchSprint.addEventListener('pointercancel', releaseTouchSprint);
   touchAlt.addEventListener('pointerdown', (event) => {
     if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); fireQueued = true; altFireQueued = true;
@@ -1359,8 +1386,10 @@ export async function startBrowserGame(): Promise<void> {
   const clearTouchInput = (): void => {
     touchForward = 0; touchStrafe = 0; movePointerId = null; lookPointerId = null;
     moveStick.style.transform = '';
-    touchFire.classList.remove('active'); touchAlt.classList.remove('active'); touchWeapon.classList.remove('active');
-    document.body.classList.remove('firing');
+    sprintHeld = false;
+    touchFire.classList.remove('active'); touchSprint.classList.remove('active');
+    touchAlt.classList.remove('active'); touchWeapon.classList.remove('active');
+    document.body.classList.remove('firing', 'sprinting');
   };
 
   const clearHumanInput = (): void => {
@@ -1462,6 +1491,11 @@ export async function startBrowserGame(): Promise<void> {
       return;
     }
     if (shop.classList.contains('open')) return;
+    if (event.code === activeInputBindings.sprint && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
+      sprintHeld = !sprintHeld;
+      touchSprint.classList.toggle('active', sprintHeld);
+      document.body.classList.toggle('sprinting', sprintHeld);
+    }
     pressed.add(event.code);
     if (event.code === activeInputBindings.altFire && !event.repeat) { fireQueued = true; altFireQueued = true; }
     const weaponByCode: Partial<Record<string, WeaponId>> = {
@@ -1480,7 +1514,8 @@ export async function startBrowserGame(): Promise<void> {
   }, true);
   window.addEventListener('blur', () => {
     pressed.clear(); fireHeld = false; clearTouchInput();
-    previousGamepadAlt = false; previousGamepadCycle = false; previousGamepadCampaign = false; previousGamepadShop = false;
+    previousGamepadAlt = false; previousGamepadCycle = false; previousGamepadCampaign = false;
+    previousGamepadShop = false; previousGamepadSprint = false;
   });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
@@ -1551,10 +1586,20 @@ export async function startBrowserGame(): Promise<void> {
       if (gameInputAllowed && gamepad.cycleWeapon && !previousGamepadCycle && renderState !== null) {
         queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
       }
+      if (gameInputAllowed && activeProfile.settings.sprintMode === 'toggle'
+        && gamepad.sprint && !previousGamepadSprint) {
+        sprintHeld = !sprintHeld;
+      }
       if (gameInputAllowed && (Math.abs(gamepad.forward) > 0 || Math.abs(gamepad.strafe) > 0
-        || Math.abs(gamepad.yawDelta) > 0 || Math.abs(gamepad.pitchDelta) > 0 || gamepad.fire || gamepad.altFire)) {
+        || Math.abs(gamepad.yawDelta) > 0 || Math.abs(gamepad.pitchDelta) > 0
+        || gamepad.sprint || gamepad.fire || gamepad.altFire)) {
         beginHumanSession();
       }
+      const sprintActive = gameInputAllowed && (sprintHeld
+        || (activeProfile.settings.sprintMode === 'hold'
+          && (pressed.has(activeInputBindings.sprint) || gamepad.sprint)));
+      touchSprint.classList.toggle('active', sprintActive);
+      document.body.classList.toggle('sprinting', sprintActive);
       const rawCommand: PlayerCommand = {
         forward: Math.max(-1, Math.min(1,
           Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back))
@@ -1564,6 +1609,7 @@ export async function startBrowserGame(): Promise<void> {
           + touchStrafe + (gameInputAllowed ? gamepad.strafe : 0))),
         yawDelta: yawDelta + (gameInputAllowed ? gamepad.yawDelta : 0),
         pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
+        sprint: sprintActive,
         fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire) || (gameInputAllowed && gamepad.fire),
         altFire: altFireQueued,
         weapon: queuedWeapon,
@@ -1583,6 +1629,7 @@ export async function startBrowserGame(): Promise<void> {
       previousGamepadCycle = gamepad.cycleWeapon;
       previousGamepadCampaign = gamepad.campaign;
       previousGamepadShop = gamepad.shop;
+      previousGamepadSprint = gamepad.sprint;
     }
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
     requestAnimationFrame(frame);

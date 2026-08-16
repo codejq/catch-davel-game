@@ -1,5 +1,5 @@
 import type { AgentObservation } from '../agent/observation';
-import type { ReplayFileV1 } from '../replay/replay';
+import type { ReplayFile } from '../replay/replay';
 import type { PlayerCommand } from '../sim/player';
 import type { SimulationSnapshotV1 } from '../sim/serialization';
 import type { RenderGameState } from '../render/render-model';
@@ -110,6 +110,7 @@ export class SimulationWorkerClient {
       forward: command.forward, strafe: command.strafe,
       yawDelta: command.yawDelta, pitchDelta: command.pitchDelta, fire: command.fire,
       altFire: command.altFire ?? false, weapon: command.weapon ?? null,
+      sprint: command.sprint ?? false,
     } satisfies SimulationWorkerRequest);
   }
 
@@ -146,13 +147,13 @@ export class SimulationWorkerClient {
     return this.requestComplete({ type: 'get-status', requestId: 0 });
   }
 
-  async saveReplay(): Promise<ReplayFileV1> {
+  async saveReplay(): Promise<ReplayFile> {
     const requestId = this.nextRequestId++;
     const response = await this.request({ type: 'save-replay', requestId }, 'replay');
     return (response as SimulationWorkerReplay).replay;
   }
 
-  async loadReplay(replay: ReplayFileV1 | string): Promise<SimulationWorkerComplete> {
+  async loadReplay(replay: ReplayFile | string): Promise<SimulationWorkerComplete> {
     return this.requestComplete({ type: 'load-replay', requestId: 0, replay });
   }
 

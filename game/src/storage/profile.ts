@@ -5,10 +5,11 @@ import { isCampaignLevelId } from '../content/level-ids';
 import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
 
-export const PROFILE_SCHEMA_VERSION = 8;
+export const PROFILE_SCHEMA_VERSION = 9;
 
 export type TouchHandedness = 'right' | 'left';
 export type TouchFireMode = 'hold' | 'toggle';
+export type SprintMode = 'hold' | 'toggle';
 export type AudioDynamicRange = 'wide' | 'balanced' | 'night';
 export type CampaignMedalTier = 'bronze' | 'silver' | 'gold' | 'quantum';
 
@@ -46,8 +47,8 @@ export interface LevelProgressV1 {
   readonly lastResult: StoredLevelResultV1 | null;
 }
 
-export interface ProfileBodyV8 {
-  readonly profileSchemaVersion: 8;
+export interface ProfileBodyV9 {
+  readonly profileSchemaVersion: 9;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -86,29 +87,30 @@ export interface ProfileBodyV8 {
     readonly touchHandedness: TouchHandedness;
     readonly touchDeadZone: number;
     readonly touchFireMode: TouchFireMode;
+    readonly sprintMode: SprintMode;
   };
   readonly inputMappings: Readonly<Record<string, string>>;
   readonly campaignCheckpoint: SimulationSnapshotV1 | null;
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV8 extends ProfileBodyV8 {
+export interface ProfileV9 extends ProfileBodyV9 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV8): ProfileBodyV8 {
+function profileBody(profile: ProfileV9): ProfileBodyV9 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV8): ProfileV8 {
+export function sealProfile(body: ProfileBodyV9): ProfileV9 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV8 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV9 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v8'],
+    migrationHistory: ['created:v9'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
@@ -133,6 +135,7 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
       highContrast: false, renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
       touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
       touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold',
+      sprintMode: 'hold',
     },
     inputMappings: DEFAULT_INPUT_BINDINGS,
     campaignCheckpoint: null,
@@ -330,6 +333,11 @@ function touchFireMode(value: unknown): TouchFireMode {
   return value;
 }
 
+function sprintMode(value: unknown): SprintMode {
+  if (value !== 'hold' && value !== 'toggle') throw new Error('profile.settings.sprintMode is invalid');
+  return value;
+}
+
 function audioDynamicRange(value: unknown): AudioDynamicRange {
   if (value !== 'wide' && value !== 'balanced' && value !== 'night') {
     throw new Error('profile.settings.dynamicRange is invalid');
@@ -342,7 +350,7 @@ function profileDifficulty(value: unknown): DifficultyId {
   return value;
 }
 
-function validateProfileV8(profile: Record<string, unknown>): ProfileV8 {
+function validateProfileV9(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -358,7 +366,7 @@ function validateProfileV8(profile: Record<string, unknown>): ProfileV8 {
     'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
     'textScale', 'captions', 'photosensitivitySafe',
     'touchControlScale', 'touchControlOpacity', 'touchVerticalOffset', 'touchHandedness', 'touchDeadZone',
-    'touchFireMode',
+    'touchFireMode', 'sprintMode',
   ], 'profile.settings');
   const checkpoint = profile.campaignCheckpoint === null
     ? null
@@ -376,7 +384,7 @@ function validateProfileV8(profile: Record<string, unknown>): ProfileV8 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 8,
+    profileSchemaVersion: 9,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -415,6 +423,7 @@ function validateProfileV8(profile: Record<string, unknown>): ProfileV8 {
       touchHandedness: touchHandedness(settings.touchHandedness),
       touchDeadZone: bounded(settings.touchDeadZone, 'profile.settings.touchDeadZone', 0.05, 0.4),
       touchFireMode: touchFireMode(settings.touchFireMode),
+      sprintMode: sprintMode(settings.sprintMode),
     },
     inputMappings: stringRecord(profile.inputMappings, 'profile.inputMappings'),
     campaignCheckpoint: checkpoint,
@@ -426,7 +435,36 @@ function validateProfileV8(profile: Record<string, unknown>): ProfileV8 {
   return result;
 }
 
-function migrateProfileV7(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV8(profile: Record<string, unknown>): ProfileV9 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  const settings = object(profile.settings, 'profile.settings');
+  const inputMappings = stringRecord(profile.inputMappings, 'profile.inputMappings');
+  exactKeys(settings, [
+    'difficulty', 'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'combatVolume', 'worldVolume',
+    'interfaceVolume', 'dynamicRange', 'mouseSensitivity', 'reducedMotion',
+    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
+    'textScale', 'captions', 'photosensitivitySafe',
+    'touchControlScale', 'touchControlOpacity', 'touchVerticalOffset', 'touchHandedness', 'touchDeadZone',
+    'touchFireMode',
+  ], 'profile.settings');
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 9 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v8->v9:sprint-controls'],
+    settings: { ...settings, sprintMode: 'hold' as const },
+    inputMappings: { ...inputMappings, sprint: inputMappings.sprint ?? DEFAULT_INPUT_BINDINGS.sprint },
+    campaignCheckpoint: null,
+  };
+  return validateProfileV9({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV7(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -450,10 +488,10 @@ function migrateProfileV7(profile: Record<string, unknown>): ProfileV8 {
     settings: { ...settings, difficulty: 'standard' as const },
     campaignCheckpoint: null,
   };
-  return validateProfileV8({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV8({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV6(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV6(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -487,7 +525,7 @@ function migrateProfileV6(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV7({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV5(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV5(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -517,7 +555,7 @@ function migrateProfileV5(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV6({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV4(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV4(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -548,7 +586,7 @@ function migrateProfileV4(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV5({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV3(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV3(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -570,7 +608,7 @@ function migrateProfileV3(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV2(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -592,7 +630,7 @@ function migrateProfileV2(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV8 {
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV9 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -620,7 +658,7 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV8 {
   return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV8 {
+export function validateProfile(value: unknown): ProfileV9 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
@@ -632,17 +670,18 @@ export function validateProfile(value: unknown): ProfileV8 {
   if (profile.profileSchemaVersion === 5) return migrateProfileV5(profile);
   if (profile.profileSchemaVersion === 6) return migrateProfileV6(profile);
   if (profile.profileSchemaVersion === 7) return migrateProfileV7(profile);
-  return validateProfileV8(profile);
+  if (profile.profileSchemaVersion === 8) return migrateProfileV8(profile);
+  return validateProfileV9(profile);
 }
 
-export function serializeProfile(profile: ProfileV8): string {
+export function serializeProfile(profile: ProfileV9): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV8 {
+export function parseProfile(serialized: string): ProfileV9 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV8, changes: Partial<ProfileBodyV8>): ProfileV8 {
+export function updateProfile(profile: ProfileV9, changes: Partial<ProfileBodyV9>): ProfileV9 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }

@@ -3,7 +3,7 @@ import type { SimulationSnapshotV1 } from '../sim/serialization';
 import type { SnapshotPoolMetrics } from '../transport/snapshot-pool';
 import type { EventProducerChannel } from '../transport/event-channel';
 import type { AgentObservation } from '../agent/observation';
-import type { ReplayFileV1 } from '../replay/replay';
+import type { ReplayFile } from '../replay/replay';
 import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
@@ -59,6 +59,7 @@ export interface InputSimulationWorker {
   readonly pitchDelta: number;
   readonly fire: boolean;
   readonly altFire: boolean;
+  readonly sprint: boolean;
   readonly weapon: WeaponId | null;
 }
 
@@ -77,7 +78,7 @@ export interface SaveReplaySimulationWorker {
 export interface LoadReplaySimulationWorker {
   readonly type: 'load-replay';
   readonly requestId: number;
-  readonly replay: ReplayFileV1 | string;
+  readonly replay: ReplayFile | string;
 }
 
 export interface GetStatusSimulationWorker {
@@ -120,7 +121,7 @@ export interface SimulationWorkerComplete {
 export interface SimulationWorkerReplay {
   readonly type: 'replay';
   readonly requestId: number;
-  readonly replay: ReplayFileV1;
+  readonly replay: ReplayFile;
 }
 
 export interface SimulationWorkerCheckpoint {

@@ -1,6 +1,6 @@
 import {
   currentReplayDependencies, parseReplay, serializeReplay, verifyReplay,
-  type ReplayDependencyHashes, type ReplayFileV1,
+  type ReplayDependencyHashes, type ReplayFile,
 } from '../replay/replay';
 import type { WeaponId } from '../sim/weapons';
 
@@ -12,7 +12,7 @@ export interface ReplayDependencyInspection {
 }
 
 export interface ReplayInspection {
-  readonly replay: ReplayFileV1;
+  readonly replay: ReplayFile;
   readonly canonicalJson: string;
   readonly verified: boolean;
   readonly verificationError: string | null;
@@ -31,7 +31,7 @@ export interface ReplayInspection {
   readonly weaponSelectionTicks: Readonly<Record<WeaponId, number>>;
 }
 
-export function inspectReplay(value: string | ReplayFileV1): ReplayInspection {
+export function inspectReplay(value: string | ReplayFile): ReplayInspection {
   const replay = typeof value === 'string' ? parseReplay(value) : parseReplay(serializeReplay(value));
   const currentDependencies = currentReplayDependencies(replay.levelId);
   const dependencies = (Object.keys(currentDependencies) as (keyof ReplayDependencyHashes)[]).map((name) => ({

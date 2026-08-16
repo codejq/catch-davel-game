@@ -5,14 +5,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "953fd6ca520be31d",
-          "effectiveLevel": "bc99316542a17830",
-          "policyOrReplay": "9e93db37c543d9ed",
+          "balanceData": "8826a02aa9120373",
+          "effectiveLevel": "9edc7601f73a0b65",
+          "policyOrReplay": "14182891b2ae032e",
           "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "fc1589880c492708"
+          "simulationSchema": "c40da2477395c717"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "f87ad56e4fd08525",
+        "expectedChecksum": "2107ee58a74b311a",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
@@ -31,14 +31,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "953fd6ca520be31d",
-          "effectiveLevel": "bc99316542a17830",
-          "policyOrReplay": "9e93db37c543d9ed",
+          "balanceData": "8826a02aa9120373",
+          "effectiveLevel": "9edc7601f73a0b65",
+          "policyOrReplay": "14182891b2ae032e",
           "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "fc1589880c492708"
+          "simulationSchema": "c40da2477395c717"
         },
         "difficulty": "Story",
-        "expectedChecksum": "58ea5941e4a917ea",
+        "expectedChecksum": "d901a29c5e356a5d",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -57,14 +57,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "953fd6ca520be31d",
-          "effectiveLevel": "bc99316542a17830",
-          "policyOrReplay": "9e93db37c543d9ed",
+          "balanceData": "8826a02aa9120373",
+          "effectiveLevel": "9edc7601f73a0b65",
+          "policyOrReplay": "14182891b2ae032e",
           "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "fc1589880c492708"
+          "simulationSchema": "c40da2477395c717"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "7275c555b9f5e1a1",
+        "expectedChecksum": "b61db266615a5e32",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,

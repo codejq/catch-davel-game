@@ -30,9 +30,9 @@ interface Chapter01Recipe {
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: 'fc1589880c492708',
-  balanceData: '953fd6ca520be31d',
-  policyOrReplay: '9e93db37c543d9ed',
+  simulationSchema: 'c40da2477395c717',
+  balanceData: '8826a02aa9120373',
+  policyOrReplay: '14182891b2ae032e',
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
@@ -238,8 +238,8 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
         requiredObjectiveIds: [requiredObjectiveId],
         expectedCompletion: true,
         expectedChecksum: difficulty === 'Story'
-          ? (recipe.number === 9 ? '9c98c668cd728161' : '2458ddb2ddf9436f')
-          : (recipe.number === 9 ? '17627047f28015e0' : '44b4660f28db76e4'),
+          ? (recipe.number === 9 ? '181386caa2bd2dc2' : 'e286f094e7df2930')
+          : (recipe.number === 9 ? '6de3f041efb043af' : '9ef5b7d9e52a238b'),
         parTicks: 7_000 + recipe.number * 350,
         dependencyHashes: {
           ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',

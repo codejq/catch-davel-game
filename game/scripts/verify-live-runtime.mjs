@@ -66,6 +66,24 @@ try {
     const realtimeEndTick = Number(document.body.dataset.snapshotTick);
     const profilesBeforeAgent = await readProfileRecords();
 
+    const agentVersion = api.getVersion();
+    const actionSchema = api.getActionSchema();
+    const walkOrigin = await api.reset({ seed: 'live-sprint-proof', mode: 'agent' });
+    const walked = await api.step({ action: { forward: 1, sprint: false }, ticks: 10 });
+    const walkDistance = Math.hypot(walked.player.x - walkOrigin.player.x, walked.player.z - walkOrigin.player.z);
+    const sprintOrigin = await api.reset({ seed: 'live-sprint-proof', mode: 'agent' });
+    const sprinted = await api.step({ action: { forward: 1, sprint: true }, ticks: 10 });
+    const sprintDistance = Math.hypot(sprinted.player.x - sprintOrigin.player.x, sprinted.player.z - sprintOrigin.player.z);
+    const sprintProof = {
+      apiVersion: agentVersion.apiVersion,
+      simulationSchemaVersion: agentVersion.simulationSchemaVersion,
+      replayFormatVersion: agentVersion.replayFormatVersion,
+      actionType: actionSchema.properties?.sprint?.type,
+      walkDistance,
+      sprintDistance,
+      ratio: sprintDistance / walkDistance,
+    };
+
     const resetObservation = await api.reset({ seed: 'live-worker-agent-proof', mode: 'agent' });
     const steppedObservation = await api.step({
       action: { forward: 0.7, strafe: -0.15, turn: -0.008, look: 0.002, fire: true },
@@ -326,6 +344,7 @@ try {
       profileReady: document.body.dataset.profileReady,
       realtimeStartTick,
       realtimeEndTick,
+      sprintProof,
       resetTick: resetObservation.tick,
       steppedTick: steppedObservation.tick,
       pulseSpreadProof,
@@ -371,6 +390,11 @@ try {
     [result.workerStatus === 'ready', 'live Worker status is not ready'],
     [result.profileReady === 'true', 'profile repository was not ready'],
     [result.realtimeEndTick > result.realtimeStartTick, 'realtime Worker clock did not advance'],
+    [result.sprintProof.apiVersion === 2 && result.sprintProof.simulationSchemaVersion === 17
+      && result.sprintProof.replayFormatVersion === 2 && result.sprintProof.actionType === 'boolean'
+      && result.sprintProof.walkDistance > 0 && result.sprintProof.ratio > 1.54
+      && result.sprintProof.ratio < 1.56,
+    'public agent API v2 did not expose the authoritative deterministic sprint action'],
     [result.resetTick === 0, 'agent reset did not begin at tick zero'],
     [result.steppedTick === 30 && result.replayFinalTick === 30, 'agent step/replay tick mismatch'],
     [result.objectiveCompass.hidden === false && result.objectiveCompass.target === 'key'

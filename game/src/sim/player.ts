@@ -1,4 +1,4 @@
-import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED } from './constants';
+import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER } from './constants';
 import { cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
 import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, normalizeWeaponUpgradeLevels, weaponUnlocked,
@@ -30,6 +30,7 @@ export interface PlayerCommand {
   readonly yawDelta: number;
   readonly pitchDelta: number;
   readonly fire: boolean;
+  readonly sprint?: boolean;
   readonly altFire?: boolean;
   readonly weapon?: WeaponId | null;
 }
@@ -61,7 +62,7 @@ export function stepPlayer(
   const strafe = inputLength > 1 ? command.strafe / inputLength : command.strafe;
   const sinYaw = Math.sin(player.yaw);
   const cosYaw = Math.cos(player.yaw);
-  const distance = PLAYER_SPEED * FIXED_DT_SECONDS;
+  const distance = PLAYER_SPEED * (command.sprint === true ? PLAYER_SPRINT_MULTIPLIER : 1) * FIXED_DT_SECONDS;
   const deltaX = (sinYaw * forward + cosYaw * strafe) * distance;
   const deltaZ = (-cosYaw * forward + sinYaw * strafe) * distance;
   if (isPlayerPositionValidWithBlockers(player.x + deltaX, player.z, PLAYER_RADIUS, blockedCells, levelId)) player.x += deltaX;

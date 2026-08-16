@@ -4,11 +4,13 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **7 — implementation continuation without physical-device availability approved**
+Revision: **8 — deterministic sprint contract implemented; physical devices remain certification-only**
 
-> This document defines the proposed product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. It intentionally contains no gameplay implementation. Decisions marked **Review required** should be approved before production begins.
+> This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
 Revision 2 fixes deterministic-simulation contradictions, separates simulation and rendering workers, reconciles the robot budget, selects hitscan for the pulse gun, adds content tooling and agent-driven campaign QA, defines a provisional device matrix, makes packaged saves file-backed, protects production progress from agent automation, and adds the level-data contract in Appendix A.
+
+Revision 8 records the implemented movement contract: simulation schema v17 adds a normalized boolean sprint command with a fixed 1.55 multiplier; replay format v2 records that command and explicitly rejects incompatible replay v1 files; agent API v2 exposes the same action; and profile v9 persists hold/toggle accessibility state while migrating v8 saves checksum-first and clearing incompatible schema-v16 checkpoints. Remappable Shift, gamepad left-stick press, mobile RUN, tests, replay, and LLM control all converge on the same authoritative command. Physical-device suites remain mandatory before a corresponding platform release claim, but their current unavailability never blocks implementation or the active goal.
 
 ## 1. Executive summary
 
@@ -864,6 +866,7 @@ XPBD is selected because it makes articulated compliant motion practical while r
 - Generate state checksums periodically.
 - Replays store version, seed, initial configuration, tick-tagged commands, checksums, and optional recovery keyframes.
 - Exact replay compatibility is guaranteed within a declared simulation schema version; migrations are explicit.
+- The current implementation uses simulation schema v17 and replay format v2 for the authoritative `sprint` boolean. Replay v1 is explicitly incompatible and rejected because movement checksums can differ.
 
 ### 15.6 Physics scope
 
@@ -1133,6 +1136,8 @@ High-level accessibility/research actions:
 
 High-level actions are translated into the same low-level command stream and obey visibility, movement, cooldown, ammunition, and collision rules.
 
+The current public contract is agent API v2. Its `sprint: boolean` action enters the same schema-v17 `PlayerCommand` used by human input and replay v2; the browser verifier measures the fixed 1.55 walk-to-sprint distance ratio through the live Worker.
+
 ### 16.4 Deterministic stepping
 
 - `step()` advances an explicit number of fixed ticks without waiting for display frames.
@@ -1192,6 +1197,8 @@ High-level actions are translated into the same low-level command stream and obe
 - campaign checkpoint;
 - last clean shutdown marker;
 - integrity checksum for accidental-corruption detection, not anti-cheat security.
+
+The current profile contract is v9. It stores `sprintMode: "hold" | "toggle"`; checksum-valid v8 profiles migrate with `hold` as the explicit default and discard schema-v16 checkpoints that cannot resume under schema v17.
 
 ### 17.3 Reliability
 

@@ -29,6 +29,7 @@ describe('Chapter 1 difficulty QA', () => {
       'Story:campaign-level-009-v1', 'Hard:campaign-level-009-v1',
       'Story:campaign-level-010-v1', 'Hard:campaign-level-010-v1',
     ]);
+    console.log(`DIFFICULTY_SPOT_CHECK_REPORT=${JSON.stringify(results.map(({ result }) => result) )}`);
     for (const { run, result } of results) {
       expect(result.failure, `${result.levelId}/${run.id}`).toBeNull();
       expect(result.victory, `${result.levelId}/${run.id}`).toBe(run.expectedCompletion);
@@ -37,6 +38,5 @@ describe('Chapter 1 difficulty QA', () => {
       expect(result.maximumIdleProgressTicks, `${result.levelId}/${run.id}`).toBeLessThan(run.stuckTimeoutTicks);
       expect(result.checksum, `${result.levelId}/${run.id}`).toBe(run.expectedChecksum);
     }
-    console.log(`DIFFICULTY_SPOT_CHECK_REPORT=${JSON.stringify(results.map(({ result }) => result) )}`);
   });
 });

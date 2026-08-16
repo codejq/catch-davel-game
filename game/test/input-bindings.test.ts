@@ -8,6 +8,7 @@ describe('profile input bindings', () => {
     const legacy = normalizeInputBindings({ forward: 'ArrowUp', fire: 'Mouse0' });
     expect(legacy.forward).toBe('ArrowUp');
     expect(legacy.back).toBe(DEFAULT_INPUT_BINDINGS.back);
+    expect(legacy.sprint).toBe('ShiftLeft');
     const rebound = rebindInput(legacy, 'back', 'ArrowUp');
     expect(rebound.back).toBe('ArrowUp');
     expect(rebound.forward).toBe('KeyS');

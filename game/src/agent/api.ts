@@ -2,7 +2,7 @@ import type { GameSimulation } from '../sim/game';
 import type { PlayerCommand } from '../sim/player';
 import { createObservation, levelObservation, type AgentObservation } from './observation';
 import {
-  REPLAY_FORMAT_VERSION, ReplayRecorder, parseReplay, verifyReplay, type ReplayFileV1,
+  REPLAY_FORMAT_VERSION, ReplayRecorder, parseReplay, verifyReplay, type ReplayFile,
 } from '../replay/replay';
 import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
@@ -11,6 +11,7 @@ import { chapter01Level } from '../content/levels/chapter-01';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import type { RunMetrics } from '../sim/run-metrics';
 import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
+import { AGENT_API_VERSION } from './contract';
 
 export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: DifficultyId; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
@@ -21,6 +22,7 @@ export interface AgentAction {
   readonly look?: number;
   readonly fire?: boolean;
   readonly altFire?: boolean;
+  readonly sprint?: boolean;
   readonly weapon?: WeaponId;
 }
 
@@ -31,6 +33,7 @@ export interface NormalizedAgentAction {
   readonly look: number;
   readonly fire: boolean;
   readonly altFire: boolean;
+  readonly sprint: boolean;
   readonly weapon: WeaponId | null;
 }
 
@@ -47,16 +50,16 @@ interface QueuedAction {
 }
 
 export interface CatchDavelAgentApi {
-  readonly version: 1;
-  getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
+  readonly version: typeof AGENT_API_VERSION;
+  getVersion(): { readonly apiVersion: typeof AGENT_API_VERSION; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
   reset(options?: AgentResetOptions): Promise<AgentObservation>;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
   step(request: { readonly action: AgentAction; readonly ticks?: number }): Promise<AgentObservation>;
-  saveReplay(): Promise<ReplayFileV1>;
-  loadReplay(replay: ReplayFileV1 | string): Promise<AgentObservation>;
+  saveReplay(): Promise<ReplayFile>;
+  loadReplay(replay: ReplayFile | string): Promise<AgentObservation>;
   getMetrics(): {
     readonly tick: number;
     readonly checksum: string;
@@ -85,6 +88,7 @@ export function normalizeAgentAction(action: AgentAction): NormalizedAgentAction
     look: finiteBounded(action.look, -0.12, 0.12),
     fire: action.fire === true,
     altFire: action.altFire === true,
+    sprint: action.sprint === true,
     weapon: action.weapon ?? null,
   };
 }
@@ -100,6 +104,7 @@ export function agentActionSchema(): Readonly<Record<string, unknown>> {
       look: Object.freeze({ type: 'number', minimum: -0.12, maximum: 0.12 }),
       fire: Object.freeze({ type: 'boolean' }),
       altFire: Object.freeze({ type: 'boolean' }),
+      sprint: Object.freeze({ type: 'boolean' }),
       weapon: Object.freeze({ type: 'string', enum: Object.freeze(['pulse', 'sword', 'bomb', 'laser']) }),
     }),
   });
@@ -119,8 +124,8 @@ export class AgentController {
 
   install(): CatchDavelAgentApi {
     const api: CatchDavelAgentApi = {
-      version: 1,
-      getVersion: () => ({ apiVersion: 1, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
+      version: AGENT_API_VERSION,
+      getVersion: () => ({ apiVersion: AGENT_API_VERSION, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
       getActionSchema: () => agentActionSchema(),
       reset: async (options = {}) => this.resetSession(options),
       observe: () => createObservation(this.simulation.state),
@@ -163,6 +168,7 @@ export class AgentController {
       pitchDelta: next.action.look,
       fire: next.action.fire,
       altFire: next.action.altFire,
+      sprint: next.action.sprint,
       weapon: next.action.weapon,
     };
   }
@@ -213,7 +219,7 @@ export class AgentController {
     return createObservation(this.simulation.state);
   }
 
-  private loadReplay(replayValue: ReplayFileV1 | string): AgentObservation {
+  private loadReplay(replayValue: ReplayFile | string): AgentObservation {
     if (this.queue.length > 0) throw new Error('Cannot load a replay while agent actions are queued');
     const replay = typeof replayValue === 'string' ? parseReplay(replayValue) : replayValue;
     const verified = verifyReplay(replay);

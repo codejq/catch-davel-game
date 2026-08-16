@@ -55,6 +55,7 @@ export function runCampaignLevel(levelId: Chapter01LevelId, validationRunId = 's
       simulation.step({
         forward: action.forward, strafe: action.strafe, yawDelta: action.turn, pitchDelta: action.look,
         fire: action.fire, altFire: action.altFire, weapon: action.weapon,
+        sprint: action.sprint,
       });
     } catch {
       illegalActions += 1;

@@ -1,4 +1,4 @@
-import { REPLAY_FORMAT_VERSION, type ReplayFileV1 } from '../replay/replay';
+import { REPLAY_FORMAT_VERSION, type ReplayFile } from '../replay/replay';
 import type { SimulationWorkerClient } from '../runtime/simulation-worker-client';
 import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { levelObservation, type AgentObservation } from './observation';
@@ -11,6 +11,7 @@ import { chapter01Level } from '../content/levels/chapter-01';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import { createRunMetrics } from '../sim/run-metrics';
 import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
+import { AGENT_API_VERSION } from './contract';
 
 type ResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: DifficultyId; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
@@ -29,8 +30,8 @@ export class WorkerAgentController {
 
   install(): CatchDavelAgentApi {
     const api: CatchDavelAgentApi = {
-      version: 1,
-      getVersion: () => ({ apiVersion: 1, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
+      version: AGENT_API_VERSION,
+      getVersion: () => ({ apiVersion: AGENT_API_VERSION, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
       getActionSchema: () => agentActionSchema(),
       reset: (options = {}) => this.reset(options),
       observe: () => this.client.latestObservation,
@@ -98,6 +99,7 @@ export class WorkerAgentController {
           pitchDelta: normalized.look,
           fire: normalized.fire,
           altFire: normalized.altFire,
+          sprint: normalized.sprint,
           weapon: normalized.weapon,
         }, ticks);
         return response.observation;
@@ -107,7 +109,7 @@ export class WorkerAgentController {
     });
   }
 
-  private loadReplay(replay: ReplayFileV1 | string): Promise<AgentObservation> {
+  private loadReplay(replay: ReplayFile | string): Promise<AgentObservation> {
     return this.task(async () => {
       await this.client.setMode('manual', true);
       const response = await this.client.loadReplay(replay);

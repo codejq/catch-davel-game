@@ -143,6 +143,7 @@ try {
     document.querySelector('#setting-touch-handedness').value = 'left';
     document.querySelector('#setting-touch-dead-zone').value = '0.2';
     document.querySelector('#setting-touch-fire-mode').value = 'toggle';
+    document.querySelector('#setting-sprint-mode').value = 'toggle';
     document.querySelector('#setting-reduced-motion').dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForFunction(() => document.documentElement.dir === 'rtl'
@@ -179,6 +180,7 @@ try {
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
     touchFire: document.querySelector('#touch-fire')?.textContent ?? '',
+    touchSprint: document.querySelector('#touch-sprint')?.textContent ?? '',
     forwardBinding: document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent ?? '',
     cameraMotion: document.querySelector('#setting-camera-motion')?.value,
     recoilMotion: document.querySelector('#setting-recoil-motion')?.value,
@@ -204,6 +206,7 @@ try {
     touchHandedness: document.body.dataset.touchHandedness,
     touchDeadZone: document.body.dataset.touchDeadZone,
     touchFireMode: document.body.dataset.touchFireMode,
+    sprintMode: document.body.dataset.sprintMode,
     status: document.querySelector('#settings-status')?.textContent ?? '',
     reducedMotion: document.body.classList.contains('reduced-motion'),
     highContrast: document.body.classList.contains('high-contrast'),
@@ -231,6 +234,7 @@ try {
     || settingsProfile.profile.settings.touchHandedness !== 'left'
     || settingsProfile.profile.settings.touchDeadZone !== 0.2
     || settingsProfile.profile.settings.touchFireMode !== 'toggle'
+    || settingsProfile.profile.settings.sprintMode !== 'toggle'
     || settingsProfile.profile.inputMappings.forward !== 'ArrowUp'
     || settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
@@ -251,6 +255,7 @@ try {
     || accessibilitySettings.healthLabel !== 'الصحة'
     || accessibilitySettings.shopTitle !== 'ورشة كوانتم'
     || accessibilitySettings.touchFire !== 'إطلاق'
+    || accessibilitySettings.touchSprint !== 'ركض'
     || accessibilitySettings.forwardBinding !== 'UP'
     || accessibilitySettings.cameraMotion !== '0.25'
     || accessibilitySettings.recoilMotion !== '0.35'
@@ -275,7 +280,8 @@ try {
     || accessibilitySettings.touchOffset !== '32px'
     || accessibilitySettings.touchHandedness !== 'left'
     || accessibilitySettings.touchDeadZone !== '0.2'
-    || accessibilitySettings.touchFireMode !== 'toggle') {
+    || accessibilitySettings.touchFireMode !== 'toggle'
+    || accessibilitySettings.sprintMode !== 'toggle') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
   }
   const downloadPromise = page.waitForEvent('download');
@@ -287,18 +293,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v8.json'
-    || exportedProfile.profileSchemaVersion !== 8
+  if (download.suggestedFilename() !== 'catch-davel-profile-v9.json'
+    || exportedProfile.profileSchemaVersion !== 9
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v6 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v9 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v8.json',
+    name: 'catch-davel-profile-v9.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -587,10 +593,11 @@ try {
     document.querySelector('#setting-touch-handedness').value = 'left';
     document.querySelector('#setting-touch-dead-zone').value = '0.2';
     document.querySelector('#setting-touch-fire-mode').value = 'toggle';
+    document.querySelector('#setting-sprint-mode').value = 'toggle';
     document.querySelector('#setting-touch-scale').dispatchEvent(new Event('change', { bubbles: true }));
   });
   await mobilePage.waitForFunction(() => document.body.dataset.touchHandedness === 'left'
-    && document.body.dataset.touchFireMode === 'toggle');
+    && document.body.dataset.touchFireMode === 'toggle' && document.body.dataset.sprintMode === 'toggle');
   await mobilePage.click('#campaign-close');
   const mobileBeforeTap = await mobilePage.evaluate(() => {
     const controls = document.querySelector('#touch-controls');
@@ -603,6 +610,10 @@ try {
       actionLeft: document.querySelector('#touch-actions')?.getBoundingClientRect().left ?? 0,
       fireCenter: (() => {
         const bounds = document.querySelector('#touch-fire')?.getBoundingClientRect();
+        return bounds === undefined ? null : { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
+      })(),
+      sprintCenter: (() => {
+        const bounds = document.querySelector('#touch-sprint')?.getBoundingClientRect();
         return bounds === undefined ? null : { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
       })(),
       touchPromptVisible: getComputedStyle(document.querySelector('.touch-prompt')).display !== 'none',
@@ -618,16 +629,23 @@ try {
   const toggleFireOn = await mobilePage.locator('#touch-fire').evaluate((element) => element.classList.contains('active'));
   await mobilePage.touchscreen.tap(mobileBeforeTap.fireCenter.x, mobileBeforeTap.fireCenter.y);
   const toggleFireOff = await mobilePage.locator('#touch-fire').evaluate((element) => !element.classList.contains('active'));
+  if (mobileBeforeTap.sprintCenter === null) throw new Error('Touch sprint button did not expose a hit target');
+  await mobilePage.touchscreen.tap(mobileBeforeTap.sprintCenter.x, mobileBeforeTap.sprintCenter.y);
+  const toggleSprintOn = await mobilePage.locator('#touch-sprint').evaluate((element) => element.classList.contains('active'));
+  await mobilePage.touchscreen.tap(mobileBeforeTap.sprintCenter.x, mobileBeforeTap.sprintCenter.y);
+  const toggleSprintOff = await mobilePage.locator('#touch-sprint').evaluate((element) => !element.classList.contains('active'));
   const mobile = {
     ...mobileBeforeTap,
     touchSessionStarted: await mobilePage.evaluate(() => document.body.classList.contains('touch-active')),
     toggleFireOn,
     toggleFireOff,
+    toggleSprintOn,
+    toggleSprintOff,
   };
-  if (!mobile.controlsVisible || mobile.actionButtons !== 3 || mobile.padWidth < 148
+  if (!mobile.controlsVisible || mobile.actionButtons !== 4 || mobile.padWidth < 148
     || mobile.padLeft < 650 || mobile.actionLeft > 40
     || !mobile.touchPromptVisible || mobile.desktopPromptVisible || !mobile.touchSessionStarted
-    || !mobile.toggleFireOn || !mobile.toggleFireOff) {
+    || !mobile.toggleFireOn || !mobile.toggleFireOff || !mobile.toggleSprintOn || !mobile.toggleSprintOff) {
     throw new Error(`Production mobile controls did not expose the expected touch layout: ${JSON.stringify(mobile)}`);
   }
   if (mobile.profileStorage !== 'indexeddb') throw new Error('Mobile web build did not select IndexedDB profile storage');

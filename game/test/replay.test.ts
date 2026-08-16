@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ReplayRecorder, parseReplay, serializeReplay, verifyReplay, type ReplayFileV1,
+  ReplayRecorder, parseReplay, serializeReplay, verifyReplay, type ReplayFile,
 } from '../src/replay/replay';
 import { GameSimulation } from '../src/sim/game';
 import type { PlayerCommand } from '../src/sim/player';
@@ -12,11 +12,12 @@ function scriptedCommand(tick: number): PlayerCommand {
     strafe: tick >= 120 && tick < 185 ? 1 : 0,
     yawDelta: tick % 41 === 0 ? -0.035 : 0,
     pitchDelta: tick % 173 === 0 ? 0.003 : 0,
+    sprint: tick >= 220 && tick < 280,
     fire: tick % 67 === 0,
   };
 }
 
-function recordRun(ticks = 720): { simulation: GameSimulation; replay: ReplayFileV1 } {
+function recordRun(ticks = 720): { simulation: GameSimulation; replay: ReplayFile } {
   const simulation = new GameSimulation('replay-proof');
   const recorder = new ReplayRecorder(simulation);
   recorder.markAgentRun();
@@ -35,10 +36,18 @@ describe('versioned deterministic replays', () => {
     expect(replay.commandRuns.length).toBeLessThan(720);
     expect(replay.checksums.map((entry) => entry.tick)).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720]);
     const serialized = serializeReplay(replay);
+    expect(replay.replayFormatVersion).toBe(2);
+    expect(replay.commandRuns.some((run) => run.command.sprint)).toBe(true);
     expect(serializeReplay(parseReplay(serialized))).toBe(serialized);
     const verified = verifyReplay(replay);
     expect(verified.ticksPlayed).toBe(720);
     expect(verified.finalChecksum).toBe(stateChecksum(simulation.state));
+  });
+
+  it('uses an explicit incompatible-v1 policy after the authoritative sprint schema change', () => {
+    const { replay } = recordRun(90);
+    const legacy = { ...structuredClone(replay), replayFormatVersion: 1 };
+    expect(() => parseReplay(JSON.stringify(legacy))).toThrow(/Unsupported replay format version/);
   });
 
   it('rejects command drift and stale dependencies', () => {

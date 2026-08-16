@@ -9,12 +9,12 @@ describe('standard gamepad projection', () => {
   it('dead-zones analog axes and maps standard buttons into shared human actions', () => {
     expect(projectStandardGamepad(null).connected).toBe(false);
     const quiet = projectStandardGamepad({ connected: true, axes: [0.1, -0.1, 0, 0], buttons: buttons([]) });
-    expect(quiet).toMatchObject({ forward: 0, strafe: 0, fire: false, altFire: false });
-    const active = projectStandardGamepad({ connected: true, axes: [0.59, -1, 0.59, -0.59], buttons: buttons([7, 6, 5, 9]) });
+    expect(quiet).toMatchObject({ forward: 0, strafe: 0, sprint: false, fire: false, altFire: false });
+    const active = projectStandardGamepad({ connected: true, axes: [0.59, -1, 0.59, -0.59], buttons: buttons([7, 6, 5, 9, 10]) });
     expect(active.forward).toBe(1);
     expect(active.strafe).toBeCloseTo(0.5);
     expect(active.yawDelta).toBeCloseTo(0.0325);
     expect(active.pitchDelta).toBeCloseTo(0.025);
-    expect(active).toMatchObject({ fire: true, altFire: true, cycleWeapon: true, campaign: true, shop: false });
+    expect(active).toMatchObject({ sprint: true, fire: true, altFire: true, cycleWeapon: true, campaign: true, shop: false });
   });
 });

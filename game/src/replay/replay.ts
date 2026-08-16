@@ -8,7 +8,9 @@ import {
   SWORD_CHARGED_DAMAGE, SWORD_CHARGED_RANGE, SWORD_DAMAGE, SWORD_HEAT_COOL_PER_TICK,
   SWORD_HEAT_REDUCTION_PER_UPGRADE, SWORD_RANGE,
 } from '../sim/combat';
-import { GAME_SCHEMA_VERSION, TICK_HZ } from '../sim/constants';
+import {
+  GAME_SCHEMA_VERSION, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER, TICK_HZ,
+} from '../sim/constants';
 import { GameSimulation } from '../sim/game';
 import { levelRows } from '../sim/level';
 import { createLevelRuntime } from '../sim/interactions';
@@ -37,13 +39,14 @@ import {
 import { levelDancePerformance } from '../sim/dance-performance';
 import { levelMechanicDependency } from '../sim/level-mechanics';
 import { AGENT_OBSERVATION_SCHEMA_VERSION } from '../agent/observation';
+import { AGENT_API_VERSION } from '../agent/contract';
 import { DIFFICULTY_PROFILES } from '../sim/difficulty';
 import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, WEAK_POINT_RADIUS_SCALE,
 } from '../sim/weak-point';
 import { DANCE_ATTACK_SCHEDULE_VERSION } from '../sim/dance-timing';
 
-export const REPLAY_FORMAT_VERSION = 1;
+export const REPLAY_FORMAT_VERSION = 2;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
 export const MAX_REPLAY_TICKS = 3_600_000;
 
@@ -65,8 +68,8 @@ export interface ReplayChecksum {
   readonly checksum: string;
 }
 
-export interface ReplayFileV1 {
-  readonly replayFormatVersion: 1;
+export interface ReplayFileV2 {
+  readonly replayFormatVersion: 2;
   readonly simulationSchemaVersion: number;
   readonly levelId: Chapter01LevelId;
   readonly seed: string;
@@ -76,6 +79,8 @@ export interface ReplayFileV1 {
   readonly commandRuns: readonly ReplayCommandRun[];
   readonly checksums: readonly ReplayChecksum[];
 }
+
+export type ReplayFile = ReplayFileV2;
 
 function robotBalanceData(): unknown {
   return ROBOT_DEFINITIONS.map((definition) => ({
@@ -115,6 +120,7 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
     simulationSchema: checksumCanonical({
       GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
       difficultyProfiles: DIFFICULTY_PROFILES,
+      playerCommand: { sprint: 'boolean' },
     }),
     levelData: checksumCanonical({ effectiveLevel, simulationLevel }),
     balanceData: checksumCanonical({
@@ -124,6 +130,7 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
         PULSE_BURST_RESET_TICKS, PULSE_MAX_BURST_SHOTS, PULSE_SPREAD_RADIANS_PER_SHOT,
         PULSE_MAX_SPREAD_RADIANS,
       },
+      playerMovement: { PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER },
       sword: {
         SWORD_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_RANGE, SWORD_CHARGED_RANGE,
         SWORD_HEAT_COOL_PER_TICK, SWORD_HEAT_REDUCTION_PER_UPGRADE,
@@ -170,6 +177,7 @@ export function currentAgentValidationDependencies(levelId: Chapter01LevelId = '
     policyOrReplay: validation.mode === 'live-agent' ? checksumCanonical({
       policyId: validation.policyId,
       policyVersion: validation.policyVersion,
+      agentApiVersion: AGENT_API_VERSION,
       observationSchemaVersion: AGENT_OBSERVATION_SCHEMA_VERSION,
     }) : replay.replayPolicy,
   };
@@ -178,11 +186,12 @@ export function currentAgentValidationDependencies(levelId: Chapter01LevelId = '
 function sameCommand(first: PlayerCommand, second: PlayerCommand): boolean {
   return first.forward === second.forward && first.strafe === second.strafe
     && first.yawDelta === second.yawDelta && first.pitchDelta === second.pitchDelta && first.fire === second.fire
-    && (first.altFire ?? false) === (second.altFire ?? false) && (first.weapon ?? null) === (second.weapon ?? null);
+    && (first.altFire ?? false) === (second.altFire ?? false) && (first.sprint ?? false) === (second.sprint ?? false)
+    && (first.weapon ?? null) === (second.weapon ?? null);
 }
 
 function copyCommand(command: PlayerCommand): PlayerCommand {
-  return { ...command, altFire: command.altFire ?? false, weapon: command.weapon ?? null };
+  return { ...command, altFire: command.altFire ?? false, sprint: command.sprint ?? false, weapon: command.weapon ?? null };
 }
 
 export class ReplayRecorder {
@@ -214,7 +223,7 @@ export class ReplayRecorder {
     }
   }
 
-  finish(): ReplayFileV1 {
+  finish(): ReplayFileV2 {
     const finalTick = this.simulation.state.tick;
     const finalChecksums = this.checksums.map((checksum) => ({ ...checksum }));
     if (finalChecksums.at(-1)?.tick !== finalTick) finalChecksums.push({ tick: finalTick, checksum: stateChecksum(this.simulation.state) });
@@ -257,7 +266,7 @@ function finite(value: unknown, label: string): number {
 
 function parseCommand(value: unknown, label: string): PlayerCommand {
   const command = record(value, label);
-  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire', 'altFire', 'weapon'], label);
+  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire', 'altFire', 'sprint', 'weapon'], label);
   const forward = finite(command.forward, `${label}.forward`);
   const strafe = finite(command.strafe, `${label}.strafe`);
   const yawDelta = finite(command.yawDelta, `${label}.yawDelta`);
@@ -266,8 +275,12 @@ function parseCommand(value: unknown, label: string): PlayerCommand {
   if (Math.abs(yawDelta) > 10 || Math.abs(pitchDelta) > 10) throw new Error(`${label} look delta is outside replay bounds`);
   if (typeof command.fire !== 'boolean') throw new Error(`${label}.fire must be boolean`);
   if (typeof command.altFire !== 'boolean') throw new Error(`${label}.altFire must be boolean`);
+  if (typeof command.sprint !== 'boolean') throw new Error(`${label}.sprint must be boolean`);
   if (command.weapon !== null && !isWeaponId(command.weapon)) throw new Error(`${label}.weapon is invalid`);
-  return { forward, strafe, yawDelta, pitchDelta, fire: command.fire, altFire: command.altFire, weapon: command.weapon };
+  return {
+    forward, strafe, yawDelta, pitchDelta, fire: command.fire, altFire: command.altFire,
+    sprint: command.sprint, weapon: command.weapon,
+  };
 }
 
 function parseDependencies(value: unknown): ReplayDependencyHashes {
@@ -279,7 +292,7 @@ function parseDependencies(value: unknown): ReplayDependencyHashes {
   return dependencies as unknown as ReplayDependencyHashes;
 }
 
-export function parseReplay(serialized: string): ReplayFileV1 {
+export function parseReplay(serialized: string): ReplayFileV2 {
   const value = record(JSON.parse(serialized) as unknown, 'replay');
   exactKeys(value, [
     'replayFormatVersion', 'simulationSchemaVersion', 'levelId', 'seed', 'agentRun', 'dependencyHashes',
@@ -320,7 +333,7 @@ export function parseReplay(serialized: string): ReplayFileV1 {
     throw new Error('Replay must checksum its initial and final ticks');
   }
   return {
-    replayFormatVersion: 1,
+    replayFormatVersion: 2,
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
     levelId: value.levelId,
     seed: value.seed,
@@ -332,7 +345,7 @@ export function parseReplay(serialized: string): ReplayFileV1 {
   };
 }
 
-export function serializeReplay(replay: ReplayFileV1): string {
+export function serializeReplay(replay: ReplayFile): string {
   return canonicalJson(replay);
 }
 
@@ -342,7 +355,7 @@ export interface ReplayVerification {
   readonly finalChecksum: string;
 }
 
-export function verifyReplay(replayValue: ReplayFileV1): ReplayVerification {
+export function verifyReplay(replayValue: ReplayFile): ReplayVerification {
   const replay = parseReplay(serializeReplay(replayValue));
   const expectedDependencies = currentReplayDependencies(replay.levelId);
   for (const key of Object.keys(expectedDependencies) as (keyof ReplayDependencyHashes)[]) {
