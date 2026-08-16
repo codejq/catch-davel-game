@@ -89,7 +89,7 @@ export class WorldRenderer {
   private readonly davels: DavelRenderer;
   private instanceCount = 0;
 
-  constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement) {
+  constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
     this.program = program(gl);
     this.davels = new DavelRenderer(gl);
     const vao = gl.createVertexArray();
@@ -133,10 +133,14 @@ export class WorldRenderer {
     gl.enable(gl.CULL_FACE);
   }
 
-  resize(): void {
-    const pixelRatio = Math.min(devicePixelRatio, 2);
-    this.canvas.width = Math.max(1, Math.floor(this.canvas.clientWidth * pixelRatio));
-    this.canvas.height = Math.max(1, Math.floor(this.canvas.clientHeight * pixelRatio));
+  resize(cssWidth?: number, cssHeight?: number, requestedPixelRatio?: number): void {
+    const htmlCanvas = typeof HTMLCanvasElement !== 'undefined' && this.canvas instanceof HTMLCanvasElement
+      ? this.canvas : null;
+    const width = cssWidth ?? htmlCanvas?.clientWidth ?? this.canvas.width;
+    const height = cssHeight ?? htmlCanvas?.clientHeight ?? this.canvas.height;
+    const pixelRatio = Math.min(requestedPixelRatio ?? (typeof devicePixelRatio === 'number' ? devicePixelRatio : 1), 2);
+    this.canvas.width = Math.max(1, Math.floor(width * pixelRatio));
+    this.canvas.height = Math.max(1, Math.floor(height * pixelRatio));
   }
 
   render(state: RenderGameState): void {

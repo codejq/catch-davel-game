@@ -45,15 +45,38 @@ try {
     startTick: before,
     endTick: Number(document.body.dataset.snapshotTick),
     agentApiExposed: window.CatchDavelAgent !== undefined,
-    renderer: document.querySelector('#game')?.getContext('webgl2') !== null,
+    rendererMode: document.body.dataset.rendererMode,
     workerStatus: document.body.dataset.workerStatus,
     profileReady: document.body.dataset.profileReady,
   }), startTick);
   if (result.agentApiExposed) throw new Error('Default production build exposed the mutation-capable agent API');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
-  if (!result.renderer) throw new Error('Production runtime did not obtain a WebGL2 context');
+  if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
   if (errors.length > 0) throw new Error(`Production browser errors: ${errors.join('; ')}`);
-  console.log(JSON.stringify({ passed: true, ...result, browserErrors: errors }, null, 2));
+
+  const fallbackPage = await browser.newPage();
+  const fallbackErrors = [];
+  fallbackPage.on('pageerror', (error) => fallbackErrors.push(error.message));
+  fallbackPage.on('console', (message) => { if (message.type() === 'error') fallbackErrors.push(message.text()); });
+  await fallbackPage.goto(`${url}?renderer=main`, { waitUntil: 'load' });
+  await fallbackPage.waitForFunction(() => (
+    document.body.dataset.workerStatus === 'ready'
+    && document.body.dataset.rendererMode === 'main-thread-fallback'
+    && Number(document.body.dataset.snapshotTick) > 0
+  ));
+  const fallback = await fallbackPage.evaluate(() => ({
+    mode: document.body.dataset.rendererMode,
+    webgl2: document.querySelector('#game')?.getContext('webgl2') !== null,
+    tick: Number(document.body.dataset.snapshotTick),
+    agentApiExposed: window.CatchDavelAgent !== undefined,
+  }));
+  if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
+  if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
+  if (fallbackErrors.length > 0) throw new Error(`Fallback browser errors: ${fallbackErrors.join('; ')}`);
+  console.log(JSON.stringify({
+    passed: true, ...result, browserErrors: errors,
+    fallback: { ...fallback, browserErrors: fallbackErrors },
+  }, null, 2));
 } finally {
   await browser?.close();
   await new Promise((resolve, reject) => server.httpServer.close((error) => error ? reject(error) : resolve()));

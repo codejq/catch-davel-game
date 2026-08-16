@@ -1,5 +1,5 @@
 import { WorkerAgentController } from '../agent/worker-api';
-import { WorldRenderer } from '../render/world-renderer';
+import { createRendererHost } from '../render/renderer-host';
 import type { RenderGameState } from '../render/render-model';
 import { LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
@@ -14,12 +14,6 @@ function requireCanvas(): HTMLCanvasElement {
   return element;
 }
 
-function requireWebGL2(element: HTMLCanvasElement): WebGL2RenderingContext {
-  const context = element.getContext('webgl2', { alpha: false, antialias: true });
-  if (context === null) throw new Error('Catch Davel requires WebGL2');
-  return context;
-}
-
 function requireElement<T extends Element>(selector: string): T {
   const element = document.querySelector<T>(selector);
   if (element === null) throw new Error(`Required HUD element ${selector} is missing`);
@@ -27,8 +21,13 @@ function requireElement<T extends Element>(selector: string): T {
 }
 
 export async function startBrowserGame(): Promise<void> {
-  const canvas = requireCanvas();
-  const renderer = new WorldRenderer(requireWebGL2(canvas), canvas);
+  let canvas = requireCanvas();
+  const renderer = await createRendererHost(canvas, {
+    forceMainThread: new URLSearchParams(location.search).get('renderer') === 'main',
+    onError: (error) => console.warn('Offscreen renderer issue', error),
+  });
+  canvas = renderer.canvas;
+  document.body.dataset.rendererMode = renderer.mode;
   const healthHud = requireElement<HTMLElement>('#health');
   const energyHud = requireElement<HTMLElement>('#energy');
   const coinsHud = requireElement<HTMLElement>('#coins');
@@ -232,6 +231,7 @@ export async function startBrowserGame(): Promise<void> {
   });
   window.addEventListener('pagehide', () => {
     if (humanSessionStarted && !agentController.isAgentControlled()) persistProfile(updateProfile(activeProfile, { lastCleanShutdown: true }));
+    renderer.dispose();
     client.terminate();
   });
 
@@ -249,7 +249,7 @@ export async function startBrowserGame(): Promise<void> {
       pitchDelta = 0;
       fireQueued = false;
     }
-    if (renderState !== null) renderer.render(renderState);
+    if (renderState !== null) renderer.present(renderState);
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);

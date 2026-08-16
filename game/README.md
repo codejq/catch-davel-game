@@ -65,5 +65,6 @@ The version-1 observation includes the tick/seed, player pose and resources, sta
 - deterministic simulation/agent contracts covered by automated tests.
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
 - Worker-owned 60 Hz authority with bounded snapshot/event transport; the main thread handles only input, HUD/audio feedback, persistence, and raw-WebGL2 presentation.
+- OffscreenCanvas render Worker with one frame in flight and latest-frame coalescing; unsupported browsers retain the same renderer through the main-thread WebGL2 fallback.
 
 Physical-device evidence is not an implementation prerequisite. It remains required before a release claims support for the corresponding platform.

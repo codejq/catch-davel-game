@@ -49,7 +49,7 @@ Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browse
 
 `RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 1 is a fixed 6,332-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
 
-The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract and the main-thread renderer consumes its decoded immutable copy. Moving presentation to an optional OffscreenCanvas Worker therefore does not introduce another renderer or gameplay implementation.
+The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract, and capable browsers pass its decoded immutable copy through a bounded one-in-flight/latest-pending mailbox to the unchanged `WorldRenderer` in an OffscreenCanvas Worker. Unsupported or failed initialization uses the same renderer on the main thread, so the enhancement introduces neither another gameplay implementation nor an unbounded browser message queue.
 
 The production three-slot pool uses one staging slot, up to two in-flight transfers, and any remaining free slots. It will not publish when doing so would transfer the final producer-owned buffer; newer ticks overwrite staging and increment coalescing until a transfer returns.
 

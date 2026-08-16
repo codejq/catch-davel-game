@@ -28,6 +28,7 @@ Implementation is active. Missing physical devices do not block development; the
 - The Worker also owns an autonomous 60 Hz clock with bounded catch-up, persistent movement input, one-shot look/fire latches, and independent snapshot/event ports.
 - Ordered event transport uses fixed records, stable deduplicated IDs, tick correlation, acknowledgement only after presentation, one credited batch, presentation-first overflow eviction, and epoch/resync handling for critical overflow.
 - Human input, the LLM API, replay save/load, observations, and status queries now all use the same live Simulation Worker authority. Releasing agent control resets a clean human session from durable profile coins before realtime ticking resumes.
+- Capable browsers run the unchanged raw-WebGL2 `WorldRenderer` in a dedicated OffscreenCanvas Worker. Its host permits one render frame in flight and coalesces pending state to the newest immutable snapshot; capability/initialization failures use the main-thread renderer fallback.
 
 ## Verification evidence
 
@@ -42,14 +43,14 @@ Implementation is active. Missing physical devices do not block development; the
 - Worker determinism/stall check: a 240-tick browser Worker run matched the direct checksum, retained two in-flight/one producer-owned buffer, coalesced 239 snapshots under a deliberate consumer stall, and delivered tick 240 when capacity returned.
 - Autonomous-clock check: while the main browser thread was deliberately blocked for 300 ms, the simulation Worker advanced 18 fixed ticks, coalesced 17 snapshots, and delivered its newest tick 259 after recovery.
 - Live-runtime check: realtime advanced 18 ticks in 300 ms, the agent reset and stepped exactly to tick 30, replay reload restored checksum `633197248e47eb17`, manual mode stayed paused during a 250 ms think interval, the human IndexedDB profile did not change, and releasing control resumed realtime ticking.
+- Render-topology check: the production artifact initialized the OffscreenCanvas Worker with no page/console errors; a separately forced main-thread fallback obtained WebGL2, rendered live Worker snapshots, and likewise kept the production agent API absent.
 - Visual inspection confirmed a bright continuous floor, bounded colorful corridors, readable HUD/gun, rounded connected robot parts, angry-comic faces, and visible size/proportion differences.
 
 These are development/CI results, not physical-device release certification.
 
 ## Next implementation work
 
-1. Add the optional OffscreenCanvas render Worker while retaining the required main-thread renderer fallback.
-2. Add richer combat AI states, pickups, and a complete exit/win flow.
-3. Add campaign level data, validators, automated agent scenarios, and the frozen checksum benchmark manifest.
-4. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.
-5. Expand the slice into Chapter 1 content before scaling campaign data toward 100 levels.
+1. Add richer combat AI states, pickups, and a complete exit/win flow.
+2. Add campaign level data, validators, automated agent scenarios, and the frozen checksum benchmark manifest.
+3. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.
+4. Expand the slice into Chapter 1 content before scaling campaign data toward 100 levels.

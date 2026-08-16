@@ -102,7 +102,7 @@ try {
       resumedTick,
       replayFinalTick: replay.checksums.at(-1)?.tick,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
-      renderer: document.querySelector('#game')?.getContext('webgl2') !== null,
+      rendererMode: document.body.dataset.rendererMode,
     };
   });
 
@@ -117,7 +117,7 @@ try {
     [result.pausedTickAfterWait === result.pausedTick, 'manual agent simulation advanced without an action'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
-    [result.renderer, 'live runtime did not obtain a WebGL2 context'],
+    [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);
