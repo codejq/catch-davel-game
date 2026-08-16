@@ -12,6 +12,8 @@ npm run game:dev
 
 Open the URL printed by Vite. Click the canvas to capture the mouse, use WASD or the arrow keys to move, aim with the mouse, hold the left button to attack, use the right button for the sword's charged attack, and press Escape to release the pointer. Press `U` before starting a run to spend durable Quantum Coins at the upgrade workbench, and press `M` to open the pausing ten-level campaign map. Level 1 intentionally starts with only the pulse gun. Add `?arsenal=training` to the URL for the isolated all-weapons training loadout, or `?encounter=boss-training` for the three-phase Final Invoice boss; training modes never write campaign progress.
 
+Open `/tooling.html` on the same Vite origin for the internal content workbench. It validates editable level JSON with the production schema, previews the committed runtime maze/interactions, visualizes the encounter graph and dance beats, summarizes waves/budgets, and produces canonical review JSON without writing source files.
+
 Validation commands:
 
 ```powershell
@@ -29,7 +31,7 @@ npm run game:content:schema
 npm run game:content:export
 ```
 
-The build rejects stale generated content. The authored `LevelDefinition` is strictly validated for unknown fields, stable IDs, cross-references, objective cycles, key/lock solvability, encounter ownership, agent policy, and bounded performance budgets. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`.
+The build rejects stale generated content. The authored `LevelDefinition` is strictly validated for unknown fields, stable IDs, cross-references, objective cycles, key/lock solvability, encounter ownership, agent policy, and bounded performance budgets. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`; the designer workflow is documented in `docs/content/CONTENT_WORKBENCH.md`.
 
 ## LLM/browser-agent control
 

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#63e7ff" />
+    <link rel="icon" href="data:," />
+    <title>Catch Davel — Content Workbench</title>
+  </head>
+  <body>
+    <header class="topbar">
+      <div><small>QUANTUM BILLING // INTERNAL</small><h1>Catch Davel Content Workbench</h1></div>
+      <p>Schema-aware authoring · deterministic previews · canonical review output</p>
+    </header>
+    <main>
+      <section class="editor panel">
+        <div class="toolbar">
+          <label>Authored level <select id="level-select"></select></label>
+          <button id="load-level" type="button">Load</button>
+          <button id="validate-level" type="button" class="primary">Validate</button>
+          <button id="format-level" type="button">Canonical format</button>
+          <button id="copy-level" type="button">Copy</button>
+          <button id="download-level" type="button">Download JSON</button>
+        </div>
+        <textarea id="level-source" spellcheck="false" aria-label="Level definition JSON"></textarea>
+        <div id="validation-status" role="status" aria-live="polite"></div>
+      </section>
+
+      <section class="dashboard">
+        <article class="panel summary"><h2>Validation report</h2><dl id="summary"></dl></article>
+        <article class="panel maze-panel"><h2>Deterministic runtime maze</h2><div id="maze" aria-label="Maze preview"></div><p class="legend">S start · E exit · K key · + repair · ⚡ energy · $ coins · D lock · C checkpoint · ⏱ timed gate · ⇢ conveyor</p></article>
+        <article class="panel graph-panel"><h2>Encounter graph</h2><svg id="graph" viewBox="0 0 900 300" role="img" aria-label="Encounter and lock graph"></svg></article>
+        <article class="panel dance-panel"><h2>Dance / combat timeline</h2><div id="dance-heading"></div><div id="dance-timeline"></div><p class="legend"><span class="attack-key"></span> attack beat <span class="vulnerable-key"></span> vulnerable beat</p></article>
+        <article class="panel wave-panel"><h2>Waves and budgets</h2><div id="waves"></div></article>
+      </section>
+    </main>
+    <footer>Runtime previews use the same committed grid, interaction profiles, validators, and hashes as the production game. Run <code>npm run game:qa:campaign</code> before submission.</footer>
+    <script type="module" src="/src/tooling/main.ts"></script>
+  </body>
+</html>

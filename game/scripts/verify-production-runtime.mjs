@@ -111,10 +111,43 @@ try {
   if (chapterLevel.remaining !== '8 Davels remain') throw new Error('Production Level 8 did not render its eight-Davel roster');
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
+
+  const toolingPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const toolingErrors = [];
+  toolingPage.on('pageerror', (error) => toolingErrors.push(error.message));
+  toolingPage.on('console', (message) => { if (message.type() === 'error') toolingErrors.push(message.text()); });
+  await toolingPage.goto(new URL('tooling.html', url).href, { waitUntil: 'load' });
+  await toolingPage.waitForFunction(() => document.querySelector('#validation-status')?.classList.contains('valid') === true);
+  await toolingPage.selectOption('#level-select', 'level-008');
+  await toolingPage.waitForFunction(() => document.querySelector('#level-select')?.value === 'level-008'
+    && document.querySelector('#validation-status')?.classList.contains('valid') === true);
+  const toolingProof = await toolingPage.evaluate(() => ({
+    authoredLevels: document.querySelectorAll('#level-select option').length,
+    mazeCells: document.querySelectorAll('#maze .maze-cell').length,
+    timedGates: [...document.querySelectorAll('#maze .maze-cell')].filter((cell) => cell.textContent === '⏱').length,
+    graphNodes: document.querySelectorAll('#graph rect').length,
+    danceBeats: document.querySelectorAll('#dance-timeline span').length,
+    status: document.querySelector('#validation-status')?.textContent ?? '',
+  }));
+  await toolingPage.evaluate(() => {
+    const source = document.querySelector('#level-source');
+    const value = JSON.parse(source.value);
+    value.surprise = true;
+    source.value = JSON.stringify(value);
+  });
+  await toolingPage.click('#validate-level');
+  const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
+  if (toolingProof.authoredLevels !== 10 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+    || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')) {
+    throw new Error(`Content Workbench did not render the canonical Level 8 projections: ${JSON.stringify(toolingProof)}`);
+  }
+  if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
+  if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
     passed: true, ...result, campaignFlow, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
+    tooling: { ...toolingProof, rejectsUnknownField, browserErrors: toolingErrors },
   }, null, 2));
 } finally {
   await browser?.close();
