@@ -34,6 +34,17 @@ export interface AgentObservation {
   readonly robots: readonly RobotObservation[];
   readonly remainingRobots: number;
   readonly victory: boolean;
+  readonly defeat: boolean;
+  readonly hostileProjectiles: readonly {
+    readonly id: number;
+    readonly ownerRobotId: number;
+    readonly relativeX: number;
+    readonly relativeY: number;
+    readonly relativeZ: number;
+    readonly velocityX: number;
+    readonly velocityY: number;
+    readonly velocityZ: number;
+  }[];
 }
 
 function round(value: number): number { return Math.round(value * 1_000) / 1_000; }
@@ -89,6 +100,17 @@ export function createObservation(state: GameState): AgentObservation {
     robots,
     remainingRobots: robots.length,
     victory: state.victory,
+    defeat: state.defeat,
+    hostileProjectiles: state.projectiles.map((projectile) => ({
+      id: projectile.id,
+      ownerRobotId: projectile.ownerRobotId,
+      relativeX: round(projectile.x - state.player.x),
+      relativeY: round(projectile.y - PLAYER_EYE_HEIGHT),
+      relativeZ: round(projectile.z - state.player.z),
+      velocityX: round(projectile.velocityX),
+      velocityY: round(projectile.velocityY),
+      velocityZ: round(projectile.velocityZ),
+    })),
   };
 }
 

@@ -36,6 +36,7 @@ export interface RobotState {
   knockbackX: number;
   knockbackZ: number;
   readonly body: RobotBodyState;
+  attackCooldownTicks: number;
 }
 
 const cells = (...coordinates: readonly [number, number][]): readonly CellCoordinate[] => coordinates.map(([column, row]) => ({ column, row }));
@@ -100,6 +101,7 @@ export function createRobots(): RobotState[] {
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
       health: 100, active: true,
       hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
+      attackCooldownTicks: 75 + id * 23,
     };
     return { ...robot, body: createRobotBody(robot.x, robot.z, robot.heading, robot.danceTime, definition) };
   });

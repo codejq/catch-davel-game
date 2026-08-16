@@ -2,6 +2,7 @@ import type { MeshData } from './geometry';
 import { createCapsule, createSphere } from './geometry';
 import { ROBOT_DEFINITIONS, type RobotDefinition, type RobotState } from '../sim/robots';
 import { BODY_POINT, readBodyPoint } from '../sim/xpbd';
+import type { EnemyProjectile } from '../sim/enemy-combat';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -219,11 +220,22 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 192);
   }
 
-  render(robots: readonly RobotState[], viewProjection: Float32Array): void {
+  render(robots: readonly RobotState[], projectiles: readonly EnemyProjectile[], viewProjection: Float32Array): void {
     this.spheres.reset();
     this.capsules.reset();
     for (const robot of robots) {
       if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!);
+    }
+    for (const projectile of projectiles) {
+      const center = { x: projectile.x, y: projectile.y, z: projectile.z };
+      const trail = {
+        x: projectile.x - projectile.velocityX * 0.055,
+        y: projectile.y - projectile.velocityY * 0.055,
+        z: projectile.z - projectile.velocityZ * 0.055,
+      };
+      this.addCapsule(trail, center, 0.075, [1, 0.18, 0.035]);
+      this.addSphere(center, 0.16, [1, 0.72, 0.08]);
+      this.addSphere(center, 0.075, [1, 1, 0.72]);
     }
     this.gl.useProgram(this.program);
     this.gl.uniformMatrix4fv(this.viewProjectionLocation, false, viewProjection);

@@ -100,8 +100,15 @@ function processEvents(events: readonly GameEvent[]): void {
       window.setTimeout(() => crosshair.classList.remove('hit'), 90);
       sound(92, 0.08, 0.04, 'square');
     }
+    if (event.type === 'robot-fired') sound(155, 0.18, 0.035, 'triangle');
+    if (event.type === 'player-hit') {
+      document.body.classList.add('hurt');
+      window.setTimeout(() => document.body.classList.remove('hurt'), 130);
+      sound(68, 0.2, 0.075, 'sawtooth');
+    }
     if (event.type === 'robot-defeated') showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
     if (event.type === 'victory') showMessage('MAZE STABILIZED!');
+    if (event.type === 'defeat') showMessage('SYSTEM DOWN — DAVELS WIN');
   }
 }
 

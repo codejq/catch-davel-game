@@ -4,6 +4,9 @@ dist/
 coverage/
 playwright-report/
 test-results/
+game/*-inspection.png
+game/first-playable.png
+game/davel-clucky.png
 spike/phase-minus-one/artifacts/runs/
 
 # Tauri and Rust build output

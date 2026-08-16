@@ -14,13 +14,14 @@ Implementation is active. Missing physical devices do not block development; the
 - Authoritative articulated Davel bodies using fixed-step Verlet integration, XPBD compliant link projection, two substeps, and eight constraint iterations per substep.
 - Independent deterministic robot territories, route decisions, pauses, reversals, speeds, phases, scales, proportions, palettes, and dance poses.
 - Pulse hitscan, wall occlusion, energy cost, cooldown, damage, hit flash, knockback, deactivation, coin rewards, remaining-enemy objective, and victory state.
+- Deterministic Davel fire-spit projectiles with line-of-sight gating, maze collision, player damage, defeat state, audiovisual feedback, and structured agent observations.
 - Versioned browser-agent observation/action API using the same authoritative simulation as human play.
 - Replay command capture and agent-time pausing between action batches.
 
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 6 files, 9 tests passed.
+- Automated tests: 7 files, 11 tests passed.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 12-tick command advanced exactly from tick 0 to tick 12 and remained paused at tick 12 during a 300 ms model-think interval.
@@ -30,7 +31,7 @@ These are development/CI results, not physical-device release certification.
 
 ## Next implementation work
 
-1. Add robot attacks, player damage, combat AI states, pickups, and a complete exit/win flow.
+1. Add richer combat AI states, pickups, and a complete exit/win flow.
 2. Add deterministic snapshots, checksum/replay serialization, save data, and automated agent campaign scenarios.
 3. Add Worker/OffscreenCanvas production transport using the already-proven bounded transport contract.
 4. Expand the slice into Chapter 1 content before scaling campaign data toward 100 levels.

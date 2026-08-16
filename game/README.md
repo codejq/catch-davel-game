@@ -45,6 +45,7 @@ The version-1 observation includes the tick/seed, player pose and resources, sta
 - six procedural sphere/capsule Davels with different scale, proportions, palettes, faces, routes, seeded decisions, and dance styles;
 - authoritative fixed-step Verlet/XPBD articulated bodies with two substeps and eight link/motor iterations per substep;
 - pulse hitscan with wall occlusion, energy/cooldown, damage, hit flash, knockback, defeat, coins, and victory;
+- deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - deterministic simulation/agent contracts covered by automated tests.
 
 Physical-device evidence is not an implementation prerequisite. It remains required before a release claims support for the corresponding platform.
