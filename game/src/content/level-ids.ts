@@ -4,7 +4,7 @@ export const CHAPTER_01_LEVEL_IDS = [
 ] as const;
 
 export const CHAPTER_02_LEVEL_IDS = [
-  'level-011', 'level-012', 'level-013', 'level-014', 'level-015', 'level-016', 'level-017', 'level-018', 'level-019',
+  'level-011', 'level-012', 'level-013', 'level-014', 'level-015', 'level-016', 'level-017', 'level-018', 'level-019', 'level-020',
 ] as const;
 
 /** IDs with complete authored content and runtime validation in this build. */

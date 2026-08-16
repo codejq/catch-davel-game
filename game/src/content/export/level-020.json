@@ -1,0 +1,437 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "84639c435577918b",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "2b66b71ee1b11f7e",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 12000,
+        "mode": "live-agent",
+        "parTicks": 7200,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "defeat-ringmaster-davel"
+        ],
+        "seed": "campaign-level-020-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "boss"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-020"
+  },
+  "briefingKey": "levels.020.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-020"
+    }
+  ],
+  "dance": {
+    "armPatternId": "evil-ringmaster-revue-arms-v1",
+    "attackBeats": [
+      1,
+      4,
+      7,
+      10,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 160,
+    "footPatternId": "evil-ringmaster-revue-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "evil-ringmaster-revue-head-v1",
+    "pathPatternId": "evil-ringmaster-revue-path-v1",
+    "presetId": "evil-ringmaster-revue",
+    "reducedMotionPresetId": "evil-ringmaster-revue-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "evil-ringmaster-revue-torso-v1",
+    "transitionIds": [
+      "boss-phase",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      3,
+      6,
+      9,
+      12,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-020"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-020"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "target-defeated",
+      "id": "ringmaster-finale",
+      "rewardId": "chapter-02-clear-020",
+      "roomNodeId": "evil-big-top",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "target-defeated",
+          "danceTransitionId": "boss-phase",
+          "id": "evil-ringmaster-finale",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 1,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-invoice-overlord-v1",
+              "aiProfileId": "chapter-02-boss-20",
+              "archetypeId": "invoice-overlord",
+              "count": 1,
+              "dancePresetId": "evil-ringmaster-revue",
+              "id": "ringmaster-davel",
+              "modifierIds": [
+                "ringmaster-regalia",
+                "carnival-volley"
+              ],
+              "rank": "boss",
+              "rewardProfileId": "chapter-02-boss-coins-20",
+              "rngStream": "encounter.level-020.boss.ringmaster",
+              "spawnPointSetId": "level-020-boss"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-020",
+  "mastery": [
+    {
+      "presetId": "level-020-par-time"
+    },
+    {
+      "presetId": "level-020-no-boss-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "finale-entry",
+        "id": "entry-ticket",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "ringmaster-ticket-lane",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "ringmaster-ticket-lane",
+        "id": "ticket-big-top",
+        "requiredKeyId": "ringmaster-ticket",
+        "stateTrigger": "key-collected",
+        "to": "evil-big-top",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "evil-big-top",
+        "id": "big-top-crossing",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "finale-crossing",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "finale-crossing",
+        "id": "crossing-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "ringmaster-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ringmaster-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "carnival-victory-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ringmaster-ticket-lane",
+        "id": "ticket-west",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "west-grandstand",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "west-grandstand",
+        "id": "west-east",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "east-grandstand",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "east-grandstand",
+        "id": "east-crossing",
+        "requiredKeyId": "ringmaster-ticket",
+        "stateTrigger": "key-collected",
+        "to": "finale-crossing",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "finale-entry",
+    "exitNodeId": "carnival-victory-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 70,
+        "collisionProfileId": "ringmaster-curtain-west-v1",
+        "id": "ringmaster-curtain-west",
+        "nodeId": "evil-big-top",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 70,
+        "collisionProfileId": "ringmaster-curtain-east-v1",
+        "id": "ringmaster-curtain-east",
+        "nodeId": "evil-big-top",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 70,
+        "collisionProfileId": "ringmaster-curtain-north-v1",
+        "id": "ringmaster-curtain-north",
+        "nodeId": "evil-big-top",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 70,
+        "collisionProfileId": "ringmaster-curtain-south-v1",
+        "id": "ringmaster-curtain-south",
+        "nodeId": "evil-big-top",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "ringmaster-ticket",
+        "placementNodeId": "ringmaster-ticket-lane"
+      }
+    ],
+    "maxBranchDepth": 2,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "finale-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "finale-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ringmaster-ticket-lane",
+        "pickupIds": [
+          "ringmaster-ticket"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "golden-ticket"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "ringmaster-finale"
+        ],
+        "id": "evil-big-top",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "chapter-boss",
+          "rotating-curtains"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "west-grandstand",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "grandstand-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "east-grandstand",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "grandstand-loop"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "finale-crossing",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "finale-crossing"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-020",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ringmaster-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "carnival-victory-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "chapter-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 2,
+      "minimum": 2
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-ringmaster-davel",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.020.name",
+  "number": 20,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "defeat-ringmaster-davel",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 1,
+      "targetIds": [
+        "evil-ringmaster-finale"
+      ],
+      "titleKey": "objectives.level_020",
+      "type": "boss"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-20"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-020-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 48,
+    "maxActiveRobots": 1,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-020-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "chapter-boss",
+    "rotating-curtains",
+    "evil-ringmaster-revue"
+  ]
+}

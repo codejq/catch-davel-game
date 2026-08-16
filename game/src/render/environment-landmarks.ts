@@ -40,7 +40,8 @@ export type LandmarkMotif =
   | 'mirror-gallery'
   | 'prize-vault'
   | 'backtrack-arrows'
-  | 'moonlit-marquee';
+  | 'moonlit-marquee'
+  | 'ringmaster-crown';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -62,6 +63,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-017': 'prize-vault',
   'level-018': 'backtrack-arrows',
   'level-019': 'moonlit-marquee',
+  'level-020': 'ringmaster-crown',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -249,6 +251,15 @@ function motifBoxes(
         box(anchorX - 0.62, y + 1.48, anchorZ - 0.16, 0.16, 0.16, 0.1, accent, 0.95),
         box(anchorX + 0.7, y + 1.35, anchorZ - 0.16, 0.12, 0.12, 0.1, accent, 0.95),
         box(anchorX - 0.72, y + 0.38, anchorZ - 0.16, 0.12, 0.12, 0.1, accent, 0.95),
+      ];
+    case 'ringmaster-crown':
+      return [
+        box(anchorX, y + 0.38, anchorZ, 1.7, 0.54, 0.24, primary, 0.42),
+        box(anchorX - 0.62, y + 1.02, anchorZ, 0.28, 1.18, 0.22, accent, 0.84),
+        box(anchorX, y + 1.25, anchorZ, 0.3, 1.64, 0.22, accent, 0.92),
+        box(anchorX + 0.62, y + 1.02, anchorZ, 0.28, 1.18, 0.22, accent, 0.84),
+        box(anchorX - 0.31 + shift, y + 0.72, anchorZ - 0.16, 0.18, 0.18, 0.1, primary, 0.96),
+        box(anchorX + 0.31 + shift, y + 0.72, anchorZ - 0.16, 0.18, 0.18, 0.1, primary, 0.96),
       ];
   }
 }

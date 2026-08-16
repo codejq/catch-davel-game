@@ -63,6 +63,13 @@
       "roomSize": 0.96,
       "wetMix": 0.37
     },
+    "audio-copper-carnival-020": {
+      "dampingHz": 3600,
+      "decaySeconds": 0.9,
+      "pitchScale": 0.91,
+      "roomSize": 0.98,
+      "wetMix": 0.39
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -154,6 +161,12 @@
       "phaseOffsetTicks": 0
     },
     "corner-peek-groove": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "evil-ringmaster-revue": {
       "freezeTicks": 0,
       "kind": "ambient",
       "periodTicks": 0,
@@ -255,6 +268,7 @@
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",
     "corner-peek-groove": "corner-peek",
+    "evil-ringmaster-revue": "ringmaster-revue",
     "flame-fan-fandango": "flame-fandango",
     "flashlight-freeze-dance": "freeze-dance",
     "giant-wobble-breakdown": "giant-breakdown",
@@ -433,6 +447,46 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 140,
       "row": 10
+    },
+    "ringmaster-curtain-east-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 45,
+      "row": 7
+    },
+    "ringmaster-curtain-north-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 90,
+      "row": 11
+    },
+    "ringmaster-curtain-south-v1": {
+      "column": 13,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 135,
+      "row": 11
+    },
+    "ringmaster-curtain-west-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 7
     },
     "roundabout-gate-center-v1": {
       "column": 8,
@@ -941,6 +995,103 @@
         },
         "health": {
           "amount": 18,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "carnival-ringmaster-davel": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 22,
+          "column": 5,
+          "row": 5
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 26,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 20,
           "column": 11,
           "row": 3
         },
@@ -1876,6 +2027,33 @@
       ],
       "swing": 0.14
     },
+    "evil-ringmaster-revue": {
+      "bassPattern": [
+        0,
+        0,
+        4,
+        2
+      ],
+      "leadPattern": [
+        0,
+        4,
+        1,
+        3,
+        2,
+        4,
+        1,
+        0
+      ],
+      "rootMidi": 41,
+      "scale": [
+        0,
+        3,
+        6,
+        7,
+        10
+      ],
+      "swing": 0.14
+    },
     "flame-fan-fandango": {
       "bassPattern": [
         0,
@@ -2586,6 +2764,40 @@
           0.18,
           0.82,
           0.72
+        ]
+      ]
+    },
+    "copper-carnival-20": {
+      "floor": [
+        0.92,
+        0.72,
+        0.28
+      ],
+      "sky": [
+        0.88,
+        0.48,
+        0.7
+      ],
+      "walls": [
+        [
+          0.38,
+          0.12,
+          0.58
+        ],
+        [
+          1,
+          0.22,
+          0.34
+        ],
+        [
+          0.08,
+          0.72,
+          0.84
+        ],
+        [
+          1,
+          0.72,
+          0.08
         ]
       ]
     },

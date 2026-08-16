@@ -162,6 +162,7 @@ export async function startBrowserGame(): Promise<void> {
   const objectiveCompassTarget = requireElement<HTMLElement>('#objective-compass-target');
   const objectiveCompassDistance = requireElement<HTMLElement>('#objective-compass-distance');
   const bossStatus = requireElement<HTMLElement>('#boss-status');
+  const bossStatusTitle = requireElement<HTMLElement>('[data-ui-text="bossTitle"]');
   const bossStatusPhase = requireElement<HTMLElement>('#boss-status-phase');
   const bossStatusHealth = requireElement<HTMLElement>('#boss-status-health');
   const bossStatusHp = requireElement<HTMLElement>('#boss-status-hp');
@@ -977,11 +978,13 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.bossPhase = String(boss?.phase ?? 0);
     if (boss !== null) {
       const health = Math.ceil(boss.health);
+      const ringmaster = state.levelId === 'level-020';
       bossStatus.dataset.phase = String(boss.phase);
       bossStatus.style.setProperty('--boss-health', `${boss.healthRatio * 100}%`);
+      bossStatusTitle.textContent = ui(ringmaster ? 'ringmasterBossTitle' : 'bossTitle');
       bossStatusPhase.textContent = ui('bossPhaseLabel', { phase: boss.phase });
       bossStatusHp.textContent = ui('bossHp', { health, max: boss.maxHealth });
-      bossStatus.setAttribute('aria-label', ui('bossAria', {
+      bossStatus.setAttribute('aria-label', ui(ringmaster ? 'ringmasterBossAria' : 'bossAria', {
         phase: boss.phase, health, max: boss.maxHealth,
       }));
       bossStatusHealth.dataset.health = String(health);
@@ -1002,7 +1005,7 @@ export async function startBrowserGame(): Promise<void> {
             waves: state.level.encounter.waveCount,
             seconds: wave?.secondsRemaining ?? '0.1',
           })
-          : ui('remain', { count: remaining });
+          : ui(remaining === 1 ? 'remainOne' : 'remain', { count: remaining });
     const resource = state.player.selectedWeapon === 'bomb' ? ` · ${ui('bombs', { count: state.player.bombs })}`
       : state.player.selectedWeapon === 'sword' ? ` · ${ui('heat', { value: Math.ceil(state.player.swordHeat) })}`
       : state.player.selectedWeapon === 'laser'
@@ -1113,7 +1116,7 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-melee') eventSound('robot-melee', event.robotId);
     if (event.type === 'robot-buff') { showMessage(ui('djBeat')); eventSound('dj-buff', event.robotId); }
     if (event.type === 'boss-phase') {
-      showMessage(ui('bossPhase', { phase: event.value ?? 1 }));
+      showMessage(ui(activeLevelId === 'level-020' ? 'ringmasterBossPhase' : 'bossPhase', { phase: event.value ?? 1 }));
       eventSound('boss-phase', event.robotId);
       showDavelBark(event, 'boss-phase', 0);
     }

@@ -197,6 +197,18 @@ function targets(
     leftFootY += Math.max(0, beat) * 0.13; rightFootY += Math.max(0, -beat) * 0.13;
     leftHand = [-0.72 - sweep * 0.22, 1.55 + dip * 0.22, 0.18];
     rightHand = [0.72 - sweep * 0.22, 1.55 - dip * 0.18, 0.18];
+  } else if (performance.motif === 'ringmaster-revue') {
+    const flourish = wave(performanceTime, 0.92, 0.35); const bow = Math.max(0, -beat);
+    bounce += Math.max(0, beat) * 0.16 * intensity;
+    hipX = -alternate * 0.16 * intensity; chestX = alternate * 0.34 * intensity;
+    chestZ = bow * 0.22; headX += flourish * 0.25; headZ = -bow * 0.16;
+    leftFootX = -0.3 - Math.max(0, alternate) * 0.16;
+    rightFootX = 0.3 + Math.max(0, -alternate) * 0.16;
+    leftFootZ = Math.max(0, beat) * 0.42 - bow * 0.18;
+    rightFootZ = bow * 0.42 - Math.max(0, beat) * 0.18;
+    leftFootY += Math.max(0, beat) * 0.12; rightFootY += bow * 0.12;
+    leftHand = [-1.02, 1.42 + flourish * 0.36, 0.08];
+    rightHand = [0.42 + flourish * 0.32, 1.94 - bow * 0.48, 0.22];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

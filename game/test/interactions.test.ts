@@ -282,4 +282,14 @@ describe('authoritative Level 1 interactions', () => {
     expect(curtains.map(({ active }) => active)).toEqual([false, true]);
     expect(closedDoorCells(game.state.level)).toContainEqual({ column: 8, row: 10 });
   });
+
+  it('rotates the Level 20 boss curtains in two readable pairs', () => {
+    const game = new GameSimulation('ringmaster-curtain-proof', undefined, undefined, 'campaign', 'level-020');
+    expect(game.state.level.hazards.map(({ active }) => active)).toEqual([true, true, false, false]);
+    stepLevelHazardPhases(game.state.level, 90, game.state.levelId);
+    expect(game.state.level.hazards.map(({ active }) => active)).toEqual([false, false, true, true]);
+    expect(closedDoorCells(game.state.level)).toEqual(expect.arrayContaining([
+      { column: 6, row: 11 }, { column: 13, row: 11 },
+    ]));
+  });
 });

@@ -20,6 +20,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-017': 'Prize Booth Panic',
   'level-018': 'Big Top Backtrack',
   'level-019': 'Midnight Matinee',
+  'level-020': 'Ringmaster Davel',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {
