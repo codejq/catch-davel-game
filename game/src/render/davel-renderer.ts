@@ -29,6 +29,8 @@ import {
   DefeatCollapseTracker, defeatCollapsePose, type DefeatCollapseEffect,
 } from './defeat-collapse';
 import { combatStateMarkers } from './combat-state-markers';
+import { robotHealthBar } from './robot-health-bar';
+import { difficultyRobotHealth } from '../sim/difficulty';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -451,10 +453,13 @@ export class DavelRenderer {
       }
     }
     for (const robot of state.robots) {
-      if (robot.active) this.addRobot(
-        robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale,
-        quality.hitSparkCount, weakPointsActive,
-      );
+      if (robot.active) {
+        const definition = ROBOT_DEFINITIONS[robot.id]!;
+        this.addRobot(
+          robot, definition, motionScale, flashScale, quality.hitSparkCount, weakPointsActive,
+          difficultyRobotHealth(definition.maxHealth, state.difficulty), state.player.x, state.player.z,
+        );
+      }
     }
     for (const effect of defeatCollapses) this.addDefeatCollapse(effect, state.tick, motionScale);
     for (const projectile of state.projectiles) {
@@ -551,8 +556,8 @@ export class DavelRenderer {
     this.spheres.addMatrix(ellipsoidMatrix(point, radius, radius * yScale, radius * zScale), color, emission);
   }
 
-  private addCapsule(start: Point, end: Point, radius: number, color: Color): void {
-    this.capsules.addMatrix(capsuleMatrix(start, end, radius), color);
+  private addCapsule(start: Point, end: Point, radius: number, color: Color, emission = 0): void {
+    this.capsules.addMatrix(capsuleMatrix(start, end, radius), color, emission);
   }
 
   private addDefeatCollapse(effect: DefeatCollapseEffect, tick: number, motionScale: number): void {
@@ -598,7 +603,7 @@ export class DavelRenderer {
 
   private addRobot(
     robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number,
-    hitSparkCount: number, weakPointActive: boolean,
+    hitSparkCount: number, weakPointActive: boolean, maxHealth: number, playerX: number, playerZ: number,
   ): void {
     const basePose = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
     const expression = davelExpression(robot, motionScale);
@@ -654,6 +659,13 @@ export class DavelRenderer {
     this.addSphere(p.rightFoot, 0.17 * scale, jointColor, 0.62, 1.35);
     const headRadius = 0.37 * definition.headScale * scale;
     this.addSphere(p.head, headRadius, bodyColor, 0.9, 0.83);
+    for (const segment of robotHealthBar({
+      x: robot.x, z: robot.z, heading: robot.heading, playerX, playerZ, headY: p.head.y, scale,
+      health: robot.health, maxHealth, rank: definition.rank,
+      playerDistance: Math.hypot(robot.x - playerX, robot.z - playerZ),
+    })) {
+      this.addCapsule(segment.start, segment.end, segment.radius, segment.color, segment.emission);
+    }
     const eyeY = p.head.y + headRadius * 0.13;
     const eyeForward = headRadius * 0.78;
     const eyeLeft = localPoint(robot, -headRadius * 0.36, eyeY, eyeForward);

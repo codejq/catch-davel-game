@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **21 — shape-coded Davel attack/recovery markers implemented; physical devices remain certification-only**
+Revision: **22 — occlusion-safe nearby Davel health bars implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -35,6 +35,8 @@ Revision 19 records the completed first Chapter 1 environmental-storytelling pas
 Revision 20 records the completed first-person weapon-locomotion pass. The pulse gun, sword, bomb, and laser view models now share bounded lateral sway, vertical step response, and roll derived from authoritative player position, travelled-distance `bobPhase`, and snapshot tick spacing. Walk and sprint speed produce different intensity, attack/release use fixed per-tick slew, and normal snapshot coalescing reaches the same pose as sequential delivery to floating-point tolerance. Rewind, level change, phase reset, terminal state, resync, and zero camera-motion presentation return safely toward or directly to rest. Existing recoil and sword-swing keyframes compose with the locomotion offsets instead of replacing them. This tracker is browser presentation only and adds no simulation, transport, replay, save, or LLM state.
 
 Revision 21 records the completed close-combat state-marker pass. Existing authoritative XPBD hit impulses, impact flashes/sparks, shocked expressions, hit markers, captions, audio, and vibration remain the hit-reaction stack. To keep overlapping attack phases readable, each telegraph now adds a three-point amber chevron around the Davel silhouette and each recovery adds two cyan side brackets. The shapes use at most three raw sphere instances per active robot, scale with the authored body, pulse only through snapshot `combatTicks` and presentation motion, and remain stable at zero motion. A per-instance emissive value in the existing Davel sphere/capsule batches prevents these signals from turning muddy under low-angle lighting. This presentation projection consumes already-public combat state and changes no AI, damage, collision, simulation, replay, transport, save, or LLM contract.
+
+Revision 22 records the completed ordinary-Davel health-readability pass. A damaged, active, non-boss Davel within 14 world units now receives one dark background capsule and one emissive remaining-health capsule. Exact health is encoded by bar width and reinforced with green/amber/red thresholds; full-health, distant, defeated, and boss robots allocate no bar, avoiding encounter-start clutter and duplication of the Final Invoice HUD. The world-space bar faces the player independently of robot heading but remains depth tested, and its height is capped at 2.82 units beneath the 3.1-unit maze walls so it cannot reveal enemies across occlusion. Story/Standard/Hard maximum health comes from the existing authoritative difficulty projection. No screen-space overlay, new hidden information, simulation field, replay dependency, transport field, save field, or LLM field was added.
 
 ## 1. Executive summary
 
