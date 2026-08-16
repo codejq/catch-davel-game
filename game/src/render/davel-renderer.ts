@@ -25,6 +25,9 @@ import {
   PulseImpactTracker, pulseImpactFlashRadius, pulseImpactSparkSegment, type PulseImpactEffect,
 } from './pulse-impact';
 import { PULSE_IMPACT_KIND } from '../sim/combat';
+import {
+  DefeatCollapseTracker, defeatCollapsePose, type DefeatCollapseEffect,
+} from './defeat-collapse';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -311,6 +314,7 @@ export class DavelRenderer {
   private readonly spheres: InstanceBatch;
   private readonly capsules: InstanceBatch;
   private readonly coinBursts = new CoinBurstTracker();
+  private readonly defeatCollapses = new DefeatCollapseTracker();
   private readonly pulseEnergyCells = new PulseEnergyCellTracker();
   private readonly pulseImpacts = new PulseImpactTracker();
   private readonly bombDetonations = new BombDetonationTracker();
@@ -334,6 +338,8 @@ export class DavelRenderer {
   emitSwordArc(effect: SwordArcEffect): void { this.swordArcs.emit(effect); }
 
   clearPresentationEffects(): void {
+    this.coinBursts.reset();
+    this.defeatCollapses.reset();
     this.pulseEnergyCells.clear();
     this.pulseImpacts.clear();
     this.bombDetonations.clear();
@@ -348,7 +354,9 @@ export class DavelRenderer {
     this.capsules.reset();
     const quality = RENDER_QUALITY_PROFILES[qualityTier];
     const weakPointsActive = isDanceWeakPointActive(state.levelId, state.tick);
-    for (const effect of this.coinBursts.update(state)) {
+    const coinBursts = this.coinBursts.update(state);
+    const defeatCollapses = this.defeatCollapses.update(state);
+    for (const effect of coinBursts) {
       for (let coinIndex = 0; coinIndex < quality.coinBurstCount; coinIndex += 1) {
         const current = coinBurstPoint(effect, state.tick, coinIndex, state.player, motionScale);
         const previous = coinBurstPoint(effect, Math.max(effect.startTick, state.tick - 1), coinIndex, state.player, motionScale);
@@ -429,6 +437,7 @@ export class DavelRenderer {
         quality.hitSparkCount, weakPointsActive,
       );
     }
+    for (const effect of defeatCollapses) this.addDefeatCollapse(effect, state.tick, motionScale);
     for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
       const trail = {
@@ -525,6 +534,47 @@ export class DavelRenderer {
 
   private addCapsule(start: Point, end: Point, radius: number, color: Color): void {
     this.capsules.addMatrix(capsuleMatrix(start, end, radius), color);
+  }
+
+  private addDefeatCollapse(effect: DefeatCollapseEffect, tick: number, motionScale: number): void {
+    const collapse = defeatCollapsePose(effect, tick, motionScale);
+    const definition = ROBOT_DEFINITIONS[effect.robotId];
+    if (collapse === null || definition === undefined) return;
+    const point = (index: number): Point => ({
+      x: collapse.positions[index * 3]!,
+      y: collapse.positions[index * 3 + 1]!,
+      z: collapse.positions[index * 3 + 2]!,
+    });
+    const scale = definition.scale;
+    const hip = point(BODY_POINT.hip);
+    const chest = point(BODY_POINT.chest);
+    const head = point(BODY_POINT.head);
+    const jointColor: Color = [0.045, 0.055, 0.08];
+    const bodyColor = blendColor(definition.bodyColor, [0.055, 0.065, 0.09], 0.34 + collapse.progress * 0.42);
+    const accentColor = blendColor(definition.accentColor, [0.12, 0.08, 0.12], 0.28 + collapse.progress * 0.48);
+    const shadowX = (hip.x + chest.x + head.x) / 3;
+    const shadowZ = (hip.z + chest.z + head.z) / 3;
+    this.addSphere({ x: shadowX, y: 0.04, z: shadowZ }, 0.72 * scale, [0.025, 0.035, 0.055], 0.045, 0.82);
+    this.addSphere(hip, 0.31 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);
+    this.addSphere(chest, 0.37 * definition.torsoWidth * scale, bodyColor, 1.24, 0.82);
+    this.addSphere(head, 0.35 * definition.headScale * scale, bodyColor, 0.88, 0.83);
+    const links = [
+      [BODY_POINT.hip, BODY_POINT.chest], [BODY_POINT.chest, BODY_POINT.head],
+      [BODY_POINT.chest, BODY_POINT.leftElbow], [BODY_POINT.leftElbow, BODY_POINT.leftHand],
+      [BODY_POINT.chest, BODY_POINT.rightElbow], [BODY_POINT.rightElbow, BODY_POINT.rightHand],
+      [BODY_POINT.hip, BODY_POINT.leftKnee], [BODY_POINT.leftKnee, BODY_POINT.leftFoot],
+      [BODY_POINT.hip, BODY_POINT.rightKnee], [BODY_POINT.rightKnee, BODY_POINT.rightFoot],
+    ] as const;
+    for (let index = 0; index < links.length; index += 1) {
+      const [start, end] = links[index]!;
+      this.addCapsule(point(start), point(end), (index < 2 ? 0.12 : 0.09) * scale,
+        index % 2 === 0 ? bodyColor : accentColor);
+    }
+    for (const index of [
+      BODY_POINT.leftElbow, BODY_POINT.leftHand, BODY_POINT.rightElbow, BODY_POINT.rightHand,
+      BODY_POINT.leftKnee, BODY_POINT.leftFoot, BODY_POINT.rightKnee, BODY_POINT.rightFoot,
+    ]) this.addSphere(point(index), 0.115 * scale, jointColor, 0.8, 0.8);
+    this.addSphere(head, 0.1 * definition.headScale * scale, [1, 0.22, 0.08], 0.48, 0.42);
   }
 
   private addRobot(

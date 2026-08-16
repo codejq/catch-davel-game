@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **10 — snapshot-derived player locomotion audio implemented; physical devices remain certification-only**
+Revision: **11 — bounded Davel defeat collapse implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -13,6 +13,8 @@ Revision 2 fixes deterministic-simulation contradictions, separates simulation a
 Revision 9 records the implemented player-resource upgrade contract. Simulation schema v18 derives maximum health and energy from two bounded three-level upgrades; pickups and regeneration clamp to those authoritative caps. Replay format v3, RenderSnapshot transport v13, observation v15, Worker resets, HUD, workbench purchases, tests, and profile v10 all carry the same state. The checksum-first v9→v10 migration bounds the previously reserved upgrade fields and clears schema-v17 checkpoints. Agent and training resets deliberately retain zero upgrades. The existing schema-v17 sprint command and API v2 remain unchanged. Physical-device suites remain mandatory before a corresponding platform release claim, but their current unavailability never blocks implementation or the active goal.
 
 Revision 10 records the implemented player locomotion-audio pass. A presentation-only sequencer derives alternating footsteps from authoritative travelled-distance `bobPhase`, requires actual snapshot displacement, distinguishes the faster sprint cadence, and emits at most one current cue per presented snapshot. Hidden, paused, terminal, coalesced, rewind, and resync paths consume or re-prime phase without replaying a stale burst. The project-original two-layer cue uses the existing world bus, room response, dynamic-range controls, and fixed 50-source ceiling. It changes no simulation schema, replay dependency, transport contract, save profile, or LLM observation.
+
+Revision 11 records the implemented Davel defeat-collapse pass. A bounded renderer-local tracker recognizes only safely correlated active-to-zero-health transitions, copies the final 11-point XPBD pose, and topples that pose toward the floor for 36 presentation ticks while existing coins and mechanical fragments scatter. Coalesced gaps, spawns, non-fatal deactivation, rewinds, level changes, reactivation, and resynchronization cannot synthesize or retain a false collapse. Zero-motion presentation uses one immediate stable toppled silhouette. Authoritative defeat, collision removal, rewards, waves, snapshots, replay checksums, and LLM observations remain unchanged.
 
 ## 1. Executive summary
 
