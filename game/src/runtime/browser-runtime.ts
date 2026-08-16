@@ -16,7 +16,7 @@ import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../storage/economy';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
-  completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
+  bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../campaign/progression';
 import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
@@ -461,17 +461,6 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.weapon = state.player.selectedWeapon;
   }
 
-  const persistDurableState = (state: RenderGameState): void => {
-    if (!humanSessionStarted || agentController.isAgentControlled()) return;
-    if (state.player.coins > activeProfile.spendableCoins) {
-      const earned = state.player.coins - activeProfile.spendableCoins;
-      persistProfile(updateProfile(activeProfile, {
-        totalCoins: activeProfile.totalCoins + earned,
-        spendableCoins: state.player.coins,
-      }));
-    }
-  };
-
   const processEvent = (event: DecodedGameEvent): void => {
     const feedback = presentationFeedback(event.type);
     if (feedback !== null) {
@@ -533,14 +522,19 @@ export async function startBrowserGame(): Promise<void> {
     }
     if (event.type === 'door-opened') { showMessage(ui('doorOpened')); sound('door'); }
     if (event.type === 'checkpoint-activated') {
-      showMessage(ui('checkpoint'));
       sound('checkpoint');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         void client.getCheckpoint().then((snapshot) => {
           if (snapshot !== null && humanSessionStarted && !agentController.isAgentControlled()) {
-            persistProfile(updateProfile(activeProfile, { campaignCheckpoint: snapshot }));
+            const newlyBanked = Math.max(0, snapshot.player.coins - activeProfile.spendableCoins);
+            persistProfile(updateProfile(bankCampaignCoins(activeProfile, snapshot.player.coins), {
+              campaignCheckpoint: snapshot,
+            }));
+            showMessage(ui('checkpointBanked', { coins: newlyBanked }));
           }
         }).catch((error: unknown) => console.warn('Catch Davel checkpoint save failed', error));
+      } else {
+        showMessage(ui('checkpoint'));
       }
     }
     if (event.type === 'objective-complete') { showMessage(ui('allDavelsDown')); sound('objective'); }
@@ -549,12 +543,7 @@ export async function startBrowserGame(): Promise<void> {
       showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
       sound('robot-defeat', event.robotId);
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
-        const reward = event.coins ?? 0;
-        persistProfile(updateProfile(activeProfile, {
-          totalCoins: activeProfile.totalCoins + reward,
-          spendableCoins: renderState.player.coins,
-          levelProgress: recordCampaignRobotDefeat(activeProfile, activeLevelId).levelProgress,
-        }));
+        persistProfile(recordCampaignRobotDefeat(activeProfile, activeLevelId));
       }
     }
     if (event.type === 'victory') {
@@ -564,7 +553,9 @@ export async function startBrowserGame(): Promise<void> {
         const summary = campaignResultSummary(
           activeProfile, activeLevelId, renderState.tick, Math.max(0, renderState.player.coins - runStartingCoins),
         );
-        persistProfile(completeCampaignLevel(activeProfile, activeLevelId, renderState.tick));
+        persistProfile(completeCampaignLevel(
+          bankCampaignCoins(activeProfile, renderState.player.coins), activeLevelId, renderState.tick,
+        ));
         renderCampaignMap();
         window.setTimeout(() => showMissionResults(summary), 700);
       }
@@ -607,7 +598,6 @@ export async function startBrowserGame(): Promise<void> {
       onResync: (state) => {
         renderState = state;
         updateHud(state);
-        persistDurableState(state);
         showMessage(ui('resynchronized'));
       },
       onError: (error) => {

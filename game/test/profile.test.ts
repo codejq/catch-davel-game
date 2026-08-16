@@ -5,7 +5,7 @@ import { createDefaultProfile, parseProfile, serializeProfile, updateProfile, va
 import { MemoryKeyValueStore, ProfileRepository, profileStorageKeys } from '../src/storage/repository';
 import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../src/storage/economy';
 import {
-  completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
+  bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../src/campaign/progression';
 
 describe('versioned profile persistence', () => {
@@ -79,6 +79,15 @@ describe('versioned profile persistence', () => {
       levelId: 'level-001', completed: true, attempts: 1, defeats: 1, robotsDefeated: 1, bestTicks: 4_700,
     }));
     expect(() => completeCampaignLevel(profile, 'level-002', 0)).toThrow(/positive/);
+  });
+
+  it('banks authoritative run coins exactly once and rejects backward balances', () => {
+    const funded = updateProfile(createDefaultProfile('banking-proof'), { totalCoins: 20, spendableCoins: 7 });
+    const banked = bankCampaignCoins(funded, 12);
+    expect(banked).toMatchObject({ totalCoins: 25, spendableCoins: 12 });
+    expect(bankCampaignCoins(banked, 12)).toBe(banked);
+    expect(() => bankCampaignCoins(banked, 11)).toThrow(/cannot move backward/);
+    expect(() => bankCampaignCoins(banked, 1.5)).toThrow(/safe-integer/);
   });
 
   it('reserves stable save identifiers through Level 100 and rejects IDs outside the campaign envelope', () => {

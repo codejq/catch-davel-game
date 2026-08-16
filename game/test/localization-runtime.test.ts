@@ -19,6 +19,7 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('ar', 'retryCheckpoint')).toBe('إعادة نقطة الحفظ');
     expect(runtimeUiText('en', 'restartMissionHint')).toContain('Restart the mission');
     expect(runtimeUiText('ar', 'renderQuality')).toBe('جودة العرض');
+    expect(runtimeUiText('en', 'checkpointBanked', { coins: 9 })).toContain('+9 COINS BANKED');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });

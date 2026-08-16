@@ -40,6 +40,18 @@ export function recordCampaignDefeat(profile: ProfileV3, levelId: Chapter01Level
   });
 }
 
+export function bankCampaignCoins(profile: ProfileV3, authoritativeCoins: number): ProfileV3 {
+  if (!Number.isSafeInteger(authoritativeCoins) || authoritativeCoins < profile.spendableCoins) {
+    throw new Error('Banked campaign coins cannot move backward or leave the safe-integer range');
+  }
+  const newlyBanked = authoritativeCoins - profile.spendableCoins;
+  if (newlyBanked === 0) return profile;
+  return updateProfile(profile, {
+    totalCoins: profile.totalCoins + newlyBanked,
+    spendableCoins: authoritativeCoins,
+  });
+}
+
 export function completeCampaignLevel(
   profile: ProfileV3, levelId: Chapter01LevelId, completionTicks: number,
 ): ProfileV3 {
