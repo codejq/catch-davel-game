@@ -91,7 +91,7 @@ The version-10 observation includes the authoritative Chapter 1 level ID and cho
 - ten bright, bounded 15×15 Chapter 1 maze configurations with distinct deterministic loops/shortcuts and reachable exits;
 - authoritative repair/energy/key pickups, a key-gated collision door, checkpoint capture/recovery, objective-gated exit, and launch-to-results victory flow;
 - first-person collision, pointer-lock mouse aim, keyboard movement, gun, crosshair, and HUD;
-- eleven procedural sphere/capsule Davel definitions with different scale, proportions, palettes, faces, routes, ranks, seeded decisions, and dance styles;
+- eleven procedural sphere/capsule Davel definitions with different scale, proportions, palettes, faces, routes, ranks, seeded decisions, dance styles, and distinct silhouette accessories;
 - canonical Chapter 1 data and browser/Worker/LLM selection for `level-001` through `level-010`, including the named Level 5 elite, eight-Davel Level 8 roster, and Level 10 boss;
 - a pausing ten-level campaign map with sequential locks, durable completion, best-tick records, replayable clears, and automatic reveal after victory;
 - authoritative fixed-step Verlet/XPBD articulated bodies with two substeps and eight link/motor iterations per substep;

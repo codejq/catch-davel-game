@@ -6,6 +6,7 @@ import { PLAYER_EYE_HEIGHT } from '../sim/constants';
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { RenderGameState, RenderRobotState } from './render-model';
 import { davelExpression, type DavelExpression } from './davel-expression';
+import { davelAccessory } from './davel-accessory';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -429,9 +430,6 @@ export class DavelRenderer {
     const pupilRight = localPoint(robot, headRadius * 0.36, pupilY, eyeForward * 1.12);
     this.addSphere(pupilLeft, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
     this.addSphere(pupilRight, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
-    if (definition.archetype === 'blue-slider') {
-      this.addCapsule(eyeLeft, eyeRight, headRadius * 0.14, [0.08, 0.16, 0.34]);
-    }
     const browLeftStart = localPoint(robot, -headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
     const browLeftEnd = localPoint(robot, -headRadius * 0.16, eyeY + headRadius * (0.13 - expression.browPressure), eyeForward * 1.03);
     const browRightStart = localPoint(robot, headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
@@ -451,36 +449,124 @@ export class DavelRenderer {
       this.addSphere(toothLeft, headRadius * 0.055, [1, 0.95, 0.72], 1.35, 0.42);
       this.addSphere(toothRight, headRadius * 0.055, [1, 0.95, 0.72], 1.35, 0.42);
     }
-    if (definition.archetype === 'red-firemouth') {
-      const nozzleBase = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 0.84);
-      const nozzleTip = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 1.55);
-      this.addCapsule(nozzleBase, nozzleTip, headRadius * 0.2, [0.18, 0.07, 0.05]);
-      this.addSphere(nozzleTip, headRadius * 0.22, robot.combatState === 'telegraph' ? [1, 0.78, 0.08] : [0.45, 0.1, 0.04]);
-    }
-    if (definition.archetype === 'cyan-dj') {
+    this.addAccessory(robot, p, definition, expression, headRadius, eyeLeft, eyeRight, shoulderLeft, shoulderRight,
+      accentColor, jointColor);
+  }
+
+  private addAccessory(
+    robot: RenderRobotState, p: Pose, definition: RobotDefinition, expression: DavelExpression,
+    headRadius: number, eyeLeft: Point, eyeRight: Point, shoulderLeft: Point, shoulderRight: Point,
+    accentColor: Color, jointColor: Color,
+  ): void {
+    const scale = definition.scale;
+    const accessory = davelAccessory(robot.id);
+    if (accessory === null) return;
+    const point = (x: number, y: number, z = 0): Point => localPoint(robot, x, p.head.y + y, z);
+    if (accessory === 'chicken-plume') {
+      const root = point(0, headRadius * 0.78);
+      for (const [x, y] of [[-0.3, 1.28], [0, 1.48], [0.3, 1.28]] as const) {
+        const tip = point(x * headRadius, y * headRadius, -0.03 * scale);
+        this.addCapsule(root, tip, headRadius * 0.075, [1, 0.28, 0.16]);
+        this.addSphere(tip, headRadius * 0.12, [1, 0.78, 0.12]);
+      }
+    } else if (accessory === 'slider-fins') {
+      this.addCapsule(eyeLeft, eyeRight, headRadius * 0.14, [0.08, 0.16, 0.34]);
+      for (const side of [-1, 1] as const) {
+        const base = point(side * headRadius * 0.72, headRadius * 0.08);
+        const tip = point(side * headRadius * 1.16, headRadius * 0.28, -headRadius * 0.08);
+        this.addCapsule(base, tip, headRadius * 0.09, accentColor);
+      }
+    } else if (accessory === 'tyrant-horns') {
+      for (const side of [-1, 1] as const) {
+        const base = point(side * headRadius * 0.48, headRadius * 0.65);
+        const tip = point(side * headRadius * 1.02, headRadius * 1.24, -headRadius * 0.08);
+        this.addCapsule(base, tip, headRadius * 0.09, [0.2, 0.04, 0.08]);
+        this.addSphere(tip, headRadius * 0.1, [1, 0.82, 0.16]);
+      }
+    } else if (accessory === 'firemouth-nozzle') {
+      const base = point(0, -headRadius * 0.25, headRadius * 0.82);
+      const tip = point(0, -headRadius * 0.25, headRadius * 1.55);
+      this.addCapsule(base, tip, headRadius * 0.2, [0.18, 0.07, 0.05]);
+      this.addSphere(tip, headRadius * 0.22,
+        robot.combatState === 'telegraph' ? [1, 0.78, 0.08] : [0.45, 0.1, 0.04]);
+    } else if (accessory === 'spinner-flywheels') {
+      for (const side of [-1, 1] as const) {
+        const center = point(side * headRadius * 0.82, 0);
+        this.addSphere(center, headRadius * 0.26, [0.08, 0.18, 0.42], 1, 0.42);
+        this.addSphere(center, headRadius * 0.1, accentColor, 1.15, 0.5);
+        for (let tooth = 0; tooth < 4; tooth += 1) {
+          const angle = robot.danceTime * 2 + tooth * Math.PI * 0.5;
+          const toothPoint = point(
+            side * headRadius * 0.82 + Math.cos(angle) * headRadius * 0.32,
+            Math.sin(angle) * headRadius * 0.32,
+          );
+          this.addSphere(toothPoint, headRadius * 0.07, [1, 0.78, 0.12]);
+        }
+      }
+    } else if (accessory === 'dj-headphones') {
+      const leftCup = point(-headRadius * 0.82, 0);
+      const rightCup = point(headRadius * 0.82, 0);
+      this.addSphere(leftCup, headRadius * 0.25, [0.04, 0.12, 0.18], 1.08, 0.65);
+      this.addSphere(rightCup, headRadius * 0.25, [0.04, 0.12, 0.18], 1.08, 0.65);
+      this.addSphere(leftCup, headRadius * 0.11, accentColor, 1.08, 0.5);
+      this.addSphere(rightCup, headRadius * 0.11, accentColor, 1.08, 0.5);
+      this.addCapsule(point(-headRadius * 0.72, headRadius * 0.22), point(0, headRadius * 0.92), headRadius * 0.08, jointColor);
+      this.addCapsule(point(0, headRadius * 0.92), point(headRadius * 0.72, headRadius * 0.22), headRadius * 0.08, jointColor);
       this.addSphere(shoulderLeft, 0.25 * scale, [0.04, 0.12, 0.18], 1.15, 0.68);
       this.addSphere(shoulderRight, 0.25 * scale, [0.04, 0.12, 0.18], 1.15, 0.68);
-      this.addSphere(shoulderLeft, 0.11 * scale, accentColor, 1.15, 0.45);
-      this.addSphere(shoulderRight, 0.11 * scale, accentColor, 1.15, 0.45);
-    }
-    const antennaBase = localPoint(robot, 0, p.head.y + headRadius * 0.8, 0);
-    const antennaDirection = robot.id % 2 === 0 ? -1 : 1;
-    const antennaTip = localPoint(
-      robot, (antennaDirection * 0.08 + expression.antennaSway) * scale, p.head.y + headRadius * 1.35, 0,
-    );
-    this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
-    this.addSphere(antennaTip, 0.105 * scale, accentColor);
-    if (definition.rank === 'boss') {
-      const crownY = p.head.y + headRadius * 0.92;
+    } else if (accessory === 'invoice-crown') {
+      const crownY = headRadius * 0.92;
       for (const offset of [-0.48, 0, 0.48]) {
-        const base = localPoint(robot, offset * headRadius, crownY, 0);
-        const tip = localPoint(robot, offset * headRadius * 0.82, crownY + headRadius * (offset === 0 ? 0.72 : 0.55), 0);
+        const base = point(offset * headRadius, crownY);
+        const tip = point(offset * headRadius * 0.82, crownY + headRadius * (offset === 0 ? 0.72 : 0.55));
         this.addCapsule(base, tip, headRadius * 0.07, [1, 0.68, 0.06]);
-        this.addSphere(tip, headRadius * 0.11, robot.bossPhase === 3 ? [1, 0.08, 0.2] : [1, 0.9, 0.2]);
+        this.addSphere(tip, headRadius * 0.11,
+          robot.bossPhase === 3 ? [1, 0.08, 0.2] : [1, 0.9, 0.2]);
       }
       const phaseColor: Color = robot.bossPhase === 1 ? [1, 0.72, 0.08]
         : robot.bossPhase === 2 ? [1, 0.28, 0.08] : [1, 0.05, 0.42];
       this.addSphere(p.chest, 0.5 * scale, phaseColor, 1.15, 0.72);
+    } else if (accessory === 'foreman-hardhat') {
+      this.addSphere(point(0, headRadius * 0.79), headRadius * 0.72, [1, 0.58, 0.04], 0.38, 0.92);
+      this.addCapsule(point(-headRadius * 0.84, headRadius * 0.72),
+        point(headRadius * 0.84, headRadius * 0.72), headRadius * 0.09, [0.24, 0.08, 0.03]);
+      this.addSphere(shoulderLeft, 0.27 * scale, [0.32, 0.07, 0.03], 0.65, 1.2);
+      this.addSphere(shoulderRight, 0.27 * scale, [0.32, 0.07, 0.03], 0.65, 1.2);
+    } else if (accessory === 'gear-ears') {
+      for (const side of [-1, 1] as const) {
+        const center = point(side * headRadius * 0.82, 0);
+        this.addSphere(center, headRadius * 0.24, [0.08, 0.22, 0.3], 1, 0.5);
+        for (let tooth = 0; tooth < 4; tooth += 1) {
+          const angle = tooth * Math.PI * 0.5 + Math.PI * 0.25;
+          this.addSphere(point(
+            side * headRadius * 0.82 + Math.cos(angle) * headRadius * 0.28,
+            Math.sin(angle) * headRadius * 0.28,
+          ), headRadius * 0.065, accentColor);
+        }
+      }
+    } else if (accessory === 'jester-bells') {
+      const root = point(0, headRadius * 0.75);
+      for (const side of [-1, 1] as const) {
+        const middle = point(side * headRadius * 0.5, headRadius * 1.18, -headRadius * 0.08);
+        const tip = point(side * headRadius * 0.86, headRadius * 0.9, -headRadius * 0.04);
+        this.addCapsule(root, middle, headRadius * 0.075, side < 0 ? [0.2, 0.9, 1] : [0.96, 0.18, 1]);
+        this.addCapsule(middle, tip, headRadius * 0.075, side < 0 ? [0.2, 0.9, 1] : [0.96, 0.18, 1]);
+        this.addSphere(tip, headRadius * 0.14, [1, 0.88, 0.18]);
+      }
+    } else if (accessory === 'crook-top-hat') {
+      this.addSphere(point(0, headRadius * 0.8), headRadius * 0.86, [0.06, 0.08, 0.18], 0.22, 0.92);
+      this.addSphere(point(0, headRadius * 1.22), headRadius * 0.52, [0.08, 0.1, 0.24], 0.92, 0.82);
+      this.addSphere(point(0, headRadius * 1.03), headRadius * 0.55, accentColor, 0.13, 0.84);
+    }
+    if (accessory !== 'invoice-crown' && accessory !== 'foreman-hardhat'
+      && accessory !== 'crook-top-hat' && accessory !== 'jester-bells') {
+      const antennaBase = point(0, headRadius * 0.8);
+      const antennaDirection = robot.id % 2 === 0 ? -1 : 1;
+      const antennaTip = point(
+        (antennaDirection * 0.08 + expression.antennaSway) * scale, headRadius * 1.35,
+      );
+      this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
+      this.addSphere(antennaTip, 0.105 * scale, accentColor);
     }
   }
 }
