@@ -1,0 +1,8 @@
+export const GAME_SCHEMA_VERSION = 1;
+export const TICK_HZ = 60;
+export const FIXED_DT_SECONDS = 1 / TICK_HZ;
+export const CELL_SIZE = 3;
+export const PLAYER_RADIUS = 0.34;
+export const PLAYER_EYE_HEIGHT = 1.62;
+export const PLAYER_SPEED = 4.8;
+export const LOOK_SCALE = 0.0022;
