@@ -1,5 +1,6 @@
 import { canonicalJson, checksumCanonical, parseSimulationSnapshot, type SimulationSnapshotV1 } from '../sim/serialization';
 import { normalizeWeaponUpgradeLevels } from '../sim/weapons';
+import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 
 export const PROFILE_SCHEMA_VERSION = 1;
 
@@ -75,7 +76,7 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
       language: 'en', masterVolume: 1, musicVolume: 0.75, effectsVolume: 0.9,
       mouseSensitivity: 1, reducedMotion: false, highContrast: false,
     },
-    inputMappings: { forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD', fire: 'Mouse0' },
+    inputMappings: DEFAULT_INPUT_BINDINGS,
     campaignCheckpoint: null,
     lastCleanShutdown: true,
   });

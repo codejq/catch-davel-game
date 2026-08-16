@@ -33,6 +33,13 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #settings-grid select, #settings-grid input[type='range'] { width: 100%; accent-color: #65efff; }
 #settings-grid select { padding: 5px; border: 1px solid #71e8f5; border-radius: 5px; background: #162e58; color: #fff; }
 #settings-grid .setting-check { display: flex; align-items: center; gap: 7px; }
+#input-settings { margin: 8px 0; padding: 9px; border: 1px solid #4daabb; border-radius: 8px; }
+#input-settings legend { padding: 0 6px; color: #92f4ff; font-size: 10px; font-weight: 950; letter-spacing: .09em; }
+#input-binding-grid { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 6px; margin-bottom: 8px; }
+#input-binding-grid button, #input-binding-reset { display: flex; justify-content: space-between; gap: 8px; padding: 7px 8px; border: 1px solid #67d9e7; border-radius: 6px; background: #172f59; color: #fff; font: inherit; font-size: 10px; font-weight: 800; cursor: pointer; }
+#input-binding-grid button.listening { border-color: #ffe56c; background: #5a4618; }
+#input-binding-grid kbd { color: #ffe56c; font: inherit; font-weight: 950; }
+#input-binding-reset { justify-content: center; }
 #settings-status { color: #ffe56c; font-size: 10px; }
 #campaign-close { padding: 8px 12px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
 #profile-actions { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
@@ -51,6 +58,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .level-card small { color: #a9edff; }
 @media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #level-name { top: 142px; } #profile-actions { align-items: stretch; flex-wrap: wrap; } #profile-transfer-status { flex-basis: 100%; } }
 @media (max-width: 720px) { #settings-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
+@media (max-width: 720px) { #input-binding-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; translate: -50% -50%; }
 #crosshair::before, #crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 4px #14284e; }
 #crosshair::before { left: 8px; width: 2px; height: 18px; }

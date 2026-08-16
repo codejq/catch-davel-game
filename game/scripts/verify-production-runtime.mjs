@@ -110,6 +110,9 @@ try {
   await page.waitForFunction(() => document.documentElement.dir === 'rtl'
     && document.body.classList.contains('reduced-motion')
     && document.body.classList.contains('high-contrast'));
+  await page.click('#input-binding-grid button[data-input-action="forward"]');
+  await page.keyboard.press('ArrowUp');
+  await page.waitForFunction(() => document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent === 'UP');
   await page.waitForTimeout(150);
   const settingsProfile = await readBrowserProfile(page);
   const accessibilitySettings = await page.evaluate(() => ({
@@ -121,6 +124,7 @@ try {
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
     touchFire: document.querySelector('#touch-fire')?.textContent ?? '',
+    forwardBinding: document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent ?? '',
     status: document.querySelector('#settings-status')?.textContent ?? '',
     reducedMotion: document.body.classList.contains('reduced-motion'),
     highContrast: document.body.classList.contains('high-contrast'),
@@ -130,6 +134,7 @@ try {
     || settingsProfile.profile.settings.masterVolume !== 0.8
     || settingsProfile.profile.settings.musicVolume !== 0.6
     || settingsProfile.profile.settings.effectsVolume !== 0.7
+    || settingsProfile.profile.inputMappings.forward !== 'ArrowUp'
     || !settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
     || !accessibilitySettings.levelName.includes('التمايل الأول')
@@ -138,7 +143,8 @@ try {
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'
     || accessibilitySettings.shopTitle !== 'ورشة كوانتم'
-    || accessibilitySettings.touchFire !== 'إطلاق') {
+    || accessibilitySettings.touchFire !== 'إطلاق'
+    || accessibilitySettings.forwardBinding !== 'UP') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
   }
   const downloadPromise = page.waitForEvent('download');
@@ -179,7 +185,7 @@ try {
     importedAndReloaded: true,
   };
   const beforeLifecycle = await readBrowserProfile(page);
-  await page.keyboard.down('KeyW');
+  await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
   await page.evaluate(() => {
     window.__catchDavelTestVisibility = 'hidden';
@@ -201,7 +207,7 @@ try {
   });
   await page.waitForFunction((tick) => document.body.dataset.suspended === 'false'
     && Number(document.body.dataset.snapshotTick) > tick, suspendedEndTick);
-  await page.keyboard.up('KeyW');
+  await page.keyboard.up('ArrowUp');
   const resumedAfterVisibilityTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
   await page.waitForTimeout(100);
   const resumedProfile = await readBrowserProfile(page);

@@ -26,6 +26,10 @@ import { ProceduralMusicSequencer } from '../audio/music-sequencer';
 import { freezeDanceWindow } from '../sim/level-mechanics';
 import { localizedContentString, releaseLocalizationCatalog } from '../content/localization/catalogs';
 import { runtimeUiText, type RuntimeUiKey } from '../content/localization/runtime-ui';
+import {
+  DEFAULT_INPUT_BINDINGS, INPUT_ACTIONS, inputCodeLabel, normalizeInputBindings, rebindInput,
+  type InputAction, type InputBindings,
+} from '../storage/input-bindings';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -40,6 +44,12 @@ const UPGRADE_UI_KEYS: Readonly<Record<WeaponUpgradeId, {
   swordCooling: { name: 'swordCoolingName', description: 'swordCoolingDescription' },
   bombCapacity: { name: 'bombCapacityName', description: 'bombCapacityDescription' },
   laserCooling: { name: 'laserCoolingName', description: 'laserCoolingDescription' },
+};
+
+const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
+  forward: 'controlForward', back: 'controlBack', left: 'controlLeft', right: 'controlRight',
+  fire: 'controlFire', altFire: 'controlAltFire', campaign: 'controlCampaign', shop: 'controlShop',
+  weaponPulse: 'controlPulse', weaponSword: 'controlSword', weaponBomb: 'controlBomb', weaponLaser: 'controlLaser',
 };
 
 function requireCanvas(): HTMLCanvasElement {
@@ -95,6 +105,8 @@ export async function startBrowserGame(): Promise<void> {
   const settingReducedMotion = requireElement<HTMLInputElement>('#setting-reduced-motion');
   const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
   const settingsStatus = requireElement<HTMLOutputElement>('#settings-status');
+  const inputBindingGrid = requireElement<HTMLElement>('#input-binding-grid');
+  const inputBindingReset = requireElement<HTMLButtonElement>('#input-binding-reset');
   const levelName = requireElement<HTMLElement>('#level-name');
   const movePad = requireElement<HTMLElement>('#move-pad');
   const moveStick = requireElement<HTMLElement>('#move-stick');
@@ -121,6 +133,7 @@ export async function startBrowserGame(): Promise<void> {
     activeLevelId = 'level-001';
     activeLevel = chapter01Level(activeLevelId);
   }
+  let activeInputBindings: InputBindings = normalizeInputBindings(activeProfile.inputMappings);
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
   let renderPresentationSettings: RenderPresentationSettings = { reducedMotion: false };
@@ -136,6 +149,21 @@ export async function startBrowserGame(): Promise<void> {
   const ui = (key: RuntimeUiKey, parameters?: Readonly<Record<string, string | number>>): string => (
     runtimeUiText(activeProfile.settings.language, key, parameters)
   );
+  let bindingCaptureAction: InputAction | null = null;
+  const renderInputBindings = (): void => {
+    inputBindingGrid.replaceChildren(...INPUT_ACTIONS.map((action) => {
+      const button = document.createElement('button');
+      const label = document.createElement('span');
+      const key = document.createElement('kbd');
+      button.type = 'button';
+      button.dataset.inputAction = action;
+      button.classList.toggle('listening', bindingCaptureAction === action);
+      label.textContent = ui(INPUT_ACTION_UI_KEYS[action]);
+      key.textContent = bindingCaptureAction === action ? '…' : inputCodeLabel(activeInputBindings[action]);
+      button.append(label, key);
+      return button;
+    }));
+  };
   const applyProfileSettings = (): void => {
     const catalog = releaseLocalizationCatalog(activeProfile.settings.language);
     document.documentElement.lang = catalog.locale;
@@ -159,6 +187,7 @@ export async function startBrowserGame(): Promise<void> {
     settingEffects.value = String(activeProfile.settings.effectsVolume);
     settingReducedMotion.checked = activeProfile.settings.reducedMotion;
     settingHighContrast.checked = activeProfile.settings.highContrast;
+    renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
@@ -190,6 +219,7 @@ export async function startBrowserGame(): Promise<void> {
 
   const persistProfile = (profile: ProfileV1): void => {
     activeProfile = profile;
+    activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
     profileWrite = profileWrite.then(() => profileRepository.save(profile)).catch((error: unknown) => {
       console.warn('Catch Davel profile save failed', error);
@@ -211,6 +241,30 @@ export async function startBrowserGame(): Promise<void> {
     renderCampaignMap();
     renderShop();
     updateHud(renderState ?? undefined);
+    settingsStatus.textContent = ui('settingsSaved');
+  });
+
+  const commitInputBinding = (action: InputAction, code: string): void => {
+    const nextBindings = rebindInput(activeInputBindings, action, code);
+    persistProfile(updateProfile(activeProfile, { inputMappings: nextBindings }));
+    bindingCaptureAction = null;
+    renderInputBindings();
+    settingsStatus.textContent = ui('controlSaved', {
+      action: ui(INPUT_ACTION_UI_KEYS[action]), control: inputCodeLabel(code),
+    });
+  };
+  inputBindingGrid.addEventListener('click', (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>('button[data-input-action]');
+    const action = button?.dataset.inputAction as InputAction | undefined;
+    if (action === undefined || !INPUT_ACTIONS.includes(action)) return;
+    bindingCaptureAction = action;
+    renderInputBindings();
+    settingsStatus.textContent = ui('pressControl');
+  });
+  inputBindingReset.addEventListener('click', () => {
+    persistProfile(updateProfile(activeProfile, { inputMappings: DEFAULT_INPUT_BINDINGS }));
+    bindingCaptureAction = null;
+    renderInputBindings();
     settingsStatus.textContent = ui('settingsSaved');
   });
 
@@ -683,12 +737,24 @@ export async function startBrowserGame(): Promise<void> {
   });
 
   window.addEventListener('keydown', (event: KeyboardEvent) => {
-    if (event.code === 'KeyM' && !trainingMode && !agentController.isAgentControlled()) {
+    if (bindingCaptureAction !== null) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.code === 'Escape') {
+        bindingCaptureAction = null;
+        renderInputBindings();
+        settingsStatus.textContent = ui('settingsHint');
+      } else {
+        commitInputBinding(bindingCaptureAction, event.code);
+      }
+      return;
+    }
+    if (event.code === activeInputBindings.campaign && !trainingMode && !agentController.isAgentControlled()) {
       event.preventDefault();
       setCampaignMapOpen(!campaignMap.classList.contains('open'));
       return;
     }
-    if (event.code === 'KeyU' && !trainingMode && !humanSessionStarted && !agentController.isAgentControlled()) {
+    if (event.code === activeInputBindings.shop && !trainingMode && !humanSessionStarted && !agentController.isAgentControlled()) {
       event.preventDefault();
       shop.classList.toggle('open');
       if (shop.classList.contains('open')) document.exitPointerLock();
@@ -696,11 +762,21 @@ export async function startBrowserGame(): Promise<void> {
     }
     if (shop.classList.contains('open')) return;
     pressed.add(event.code);
-    const weaponByCode: Partial<Record<string, WeaponId>> = { Digit1: 'pulse', Digit2: 'sword', Digit3: 'bomb', Digit4: 'laser' };
+    if (event.code === activeInputBindings.altFire && !event.repeat) { fireQueued = true; altFireQueued = true; }
+    const weaponByCode: Partial<Record<string, WeaponId>> = {
+      [activeInputBindings.weaponPulse]: 'pulse', [activeInputBindings.weaponSword]: 'sword',
+      [activeInputBindings.weaponBomb]: 'bomb', [activeInputBindings.weaponLaser]: 'laser',
+    };
     queuedWeapon = weaponByCode[event.code] ?? queuedWeapon;
     beginHumanSession();
   });
   window.addEventListener('keyup', (event: KeyboardEvent) => pressed.delete(event.code));
+  window.addEventListener('mousedown', (event: MouseEvent) => {
+    if (bindingCaptureAction === null || (event.target as Element).closest('#input-settings button') !== null) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    commitInputBinding(bindingCaptureAction, `Mouse${event.button}`);
+  }, true);
   window.addEventListener('blur', () => { pressed.clear(); fireHeld = false; clearTouchInput(); });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
@@ -715,12 +791,16 @@ export async function startBrowserGame(): Promise<void> {
   });
   canvas.addEventListener('mousedown', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
-    if (event.button === 0) fireHeld = true;
-    if (event.button === 2) { fireQueued = true; altFireQueued = true; }
+    const code = `Mouse${event.button}`;
+    pressed.add(code);
+    if (code === activeInputBindings.fire) fireHeld = true;
+    if (code === activeInputBindings.altFire) { fireQueued = true; altFireQueued = true; }
     document.body.classList.add('firing');
   });
   window.addEventListener('mouseup', (event: MouseEvent) => {
-    if (event.button === 0) fireHeld = false;
+    const code = `Mouse${event.button}`;
+    pressed.delete(code);
+    if (code === activeInputBindings.fire) fireHeld = false;
     document.body.classList.remove('firing');
   });
   canvas.addEventListener('contextmenu', (event) => event.preventDefault());
@@ -736,11 +816,13 @@ export async function startBrowserGame(): Promise<void> {
   const frame = (): void => {
     if (!agentController.isAgentControlled()) {
       const command: PlayerCommand = {
-        forward: Math.max(-1, Math.min(1, Number(pressed.has('KeyW') || pressed.has('ArrowUp')) - Number(pressed.has('KeyS') || pressed.has('ArrowDown')) + touchForward)),
-        strafe: Math.max(-1, Math.min(1, Number(pressed.has('KeyD') || pressed.has('ArrowRight')) - Number(pressed.has('KeyA') || pressed.has('ArrowLeft')) + touchStrafe)),
+        forward: Math.max(-1, Math.min(1,
+          Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back)) + touchForward)),
+        strafe: Math.max(-1, Math.min(1,
+          Number(pressed.has(activeInputBindings.right)) - Number(pressed.has(activeInputBindings.left)) + touchStrafe)),
         yawDelta,
         pitchDelta,
-        fire: fireQueued || fireHeld,
+        fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire),
         altFire: altFireQueued,
         weapon: queuedWeapon,
       };
