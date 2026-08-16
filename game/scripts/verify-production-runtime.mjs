@@ -158,6 +158,7 @@ try {
     failureRetry: document.querySelector('#failure-retry')?.textContent ?? '',
     pauseLabel: document.querySelector('#pause-menu')?.getAttribute('aria-label') ?? '',
     pauseResume: document.querySelector('#pause-resume')?.textContent ?? '',
+    captionsLabel: document.querySelector('#sound-captions')?.getAttribute('aria-label') ?? '',
     campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
@@ -196,6 +197,7 @@ try {
     || accessibilitySettings.failureRetry !== 'إعادة نقطة الحفظ'
     || accessibilitySettings.pauseLabel !== 'اللعبة متوقفة مؤقتًا'
     || accessibilitySettings.pauseResume !== 'متابعة'
+    || accessibilitySettings.captionsLabel !== 'ترجمة أصوات القتال'
     || !accessibilitySettings.objective.includes('متبقٍ')
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'
@@ -225,7 +227,7 @@ try {
     || exportedProfile.profileSchemaVersion !== 3
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v2 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v3 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
@@ -252,6 +254,11 @@ try {
   const beforeLifecycle = await readBrowserProfile(page);
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
+  await page.click('#game');
+  await page.mouse.down();
+  await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
+  const captionProof = await page.locator('#sound-captions span').first().textContent();
+  await page.mouse.up();
   await page.evaluate(() => {
     window.__catchDavelTestVisibility = 'hidden';
     Object.defineProperty(document, 'visibilityState', {
@@ -471,7 +478,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
+    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, profileTransfer, lifecycle, browserErrors: errors,
     fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

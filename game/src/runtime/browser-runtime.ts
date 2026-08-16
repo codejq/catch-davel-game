@@ -36,6 +36,7 @@ import {
   AutoQualityController, browserRenderCapabilities, initialRenderQuality, normalizeRenderQuality,
   type RenderQualityPreference, type RenderQualityTier,
 } from '../render/quality';
+import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type CaptionRequest } from './event-captions';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -56,6 +57,10 @@ const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
   forward: 'controlForward', back: 'controlBack', left: 'controlLeft', right: 'controlRight',
   fire: 'controlFire', altFire: 'controlAltFire', campaign: 'controlCampaign', shop: 'controlShop',
   weaponPulse: 'controlPulse', weaponSword: 'controlSword', weaponBomb: 'controlBomb', weaponLaser: 'controlLaser',
+};
+
+const CAPTION_DIRECTION_UI_KEYS: Readonly<Record<CaptionDirection, RuntimeUiKey>> = {
+  left: 'directionLeft', center: 'directionCenter', right: 'directionRight',
 };
 
 function requireCanvas(): HTMLCanvasElement {
@@ -94,6 +99,7 @@ export async function startBrowserGame(): Promise<void> {
   const objectiveTitle = requireElement<HTMLElement>('#objective-title');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
+  const soundCaptions = requireElement<HTMLElement>('#sound-captions');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
   const shop = requireElement<HTMLElement>('#shop');
   const shopCoins = requireElement<HTMLElement>('#shop-coins');
@@ -191,6 +197,7 @@ export async function startBrowserGame(): Promise<void> {
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
   const feedbackTimers = new Map<string, number>();
+  const captionTimers = new Map<string, number>();
 
   const localized = (key: string): string => localizedContentString(activeProfile.settings.language, key);
   const ui = (key: RuntimeUiKey, parameters?: Readonly<Record<string, string | number>>): string => (
@@ -440,6 +447,34 @@ export async function startBrowserGame(): Promise<void> {
     messageTimeout = window.setTimeout(() => combatMessage.classList.remove('show'), 650);
   };
 
+  const showCaption = (request: CaptionRequest): void => {
+    const existing = [...soundCaptions.children].find((element) => (
+      (element as HTMLElement).dataset.captionKey === request.dedupeKey
+    ));
+    existing?.remove();
+    window.clearTimeout(captionTimers.get(request.dedupeKey));
+    while (soundCaptions.childElementCount >= 3) {
+      const oldest = soundCaptions.firstElementChild as HTMLElement | null;
+      if (oldest === null) break;
+      window.clearTimeout(captionTimers.get(oldest.dataset.captionKey ?? ''));
+      captionTimers.delete(oldest.dataset.captionKey ?? '');
+      oldest.remove();
+    }
+    const entry = document.createElement('span');
+    entry.dataset.captionKey = request.dedupeKey;
+    entry.classList.toggle('warning', request.key === 'captionAttackCharging' || request.key === 'captionIncoming'
+      || request.key === 'captionMelee' || request.key === 'captionPlayerHit');
+    entry.textContent = ui(request.key, {
+      ...request.parameters,
+      ...(request.direction === undefined ? {} : { direction: ui(CAPTION_DIRECTION_UI_KEYS[request.direction]) }),
+    });
+    soundCaptions.append(entry);
+    captionTimers.set(request.dedupeKey, window.setTimeout(() => {
+      entry.remove();
+      captionTimers.delete(request.dedupeKey);
+    }, 1_400));
+  };
+
   function updateHud(state?: RenderGameState): void {
     if (state === undefined) return;
     healthHud.textContent = String(Math.ceil(state.player.health));
@@ -467,6 +502,13 @@ export async function startBrowserGame(): Promise<void> {
   }
 
   const processEvent = (event: DecodedGameEvent): void => {
+    const captionRobot = event.robotId === undefined
+      ? undefined : renderState?.robots.find((candidate) => candidate.id === event.robotId);
+    const captionDirection = captionRobot === undefined || renderState === null ? 'center' : relativeCaptionDirection(
+      renderState.player.x, renderState.player.z, renderState.player.yaw, captionRobot.x, captionRobot.z,
+    );
+    const caption = captionForEvent(event, captionDirection);
+    if (caption !== null) showCaption(caption);
     const feedback = presentationFeedback(event.type);
     if (feedback !== null) {
       for (const className of feedback.classes) {
