@@ -180,6 +180,33 @@ export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
   return profile;
 }
 
+export interface MusicRuntimeProfile {
+  readonly rootMidi: number;
+  readonly scale: readonly number[];
+  readonly leadPattern: readonly number[];
+  readonly bassPattern: readonly number[];
+  readonly swing: number;
+}
+
+export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile>> = {
+  'wobble-march': { rootMidi: 48, scale: [0, 3, 5, 7, 10], leadPattern: [0, 2, 1, 3, 0, 4, 2, 1], bassPattern: [0, 0, 3, 2], swing: 0.08 },
+  'side-to-side-shuffle': { rootMidi: 50, scale: [0, 2, 3, 7, 9], leadPattern: [0, 1, 3, 1, 4, 3, 1, 2], bassPattern: [0, 2, 0, 3], swing: 0.18 },
+  'pocket-robot-pop': { rootMidi: 53, scale: [0, 2, 5, 7, 9], leadPattern: [0, 4, 2, 3, 1, 4, 3, 2], bassPattern: [0, 3, 1, 4], swing: 0.04 },
+  'corner-peek-groove': { rootMidi: 46, scale: [0, 3, 5, 6, 10], leadPattern: [0, 3, 1, 4, 0, 2, 4, 1], bassPattern: [0, 0, 4, 1], swing: 0.14 },
+  'heavy-boot-two-step': { rootMidi: 43, scale: [0, 3, 5, 7, 10], leadPattern: [0, 2, 0, 3, 1, 2, 4, 2], bassPattern: [0, 2, 0, 4], swing: 0.02 },
+  'conveyor-conga': { rootMidi: 52, scale: [0, 2, 4, 7, 9], leadPattern: [0, 2, 4, 3, 1, 3, 4, 2], bassPattern: [0, 3, 2, 4], swing: 0.12 },
+  'flashlight-freeze-dance': { rootMidi: 45, scale: [0, 3, 6, 7, 10], leadPattern: [0, 4, 1, 3, 0, 2, 4, 1], bassPattern: [0, 1, 0, 4], swing: 0 },
+  'clockwork-charleston': { rootMidi: 55, scale: [0, 2, 4, 6, 9], leadPattern: [0, 3, 1, 4, 2, 4, 1, 3], bassPattern: [0, 4, 2, 3], swing: 0.22 },
+  'turbo-tool-shuffle': { rootMidi: 49, scale: [0, 2, 3, 7, 10], leadPattern: [0, 2, 4, 1, 3, 4, 2, 1], bassPattern: [0, 3, 4, 2], swing: 0.1 },
+  'giant-wobble-breakdown': { rootMidi: 38, scale: [0, 3, 5, 8, 10], leadPattern: [0, 1, 3, 4, 0, 2, 1, 4], bassPattern: [0, 0, 3, 4], swing: 0.06 },
+};
+
+export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
+  const profile = MUSIC_RUNTIME_PROFILES[presetId];
+  if (profile === undefined) throw new Error(`Unknown music runtime preset ${presetId}`);
+  return profile;
+}
+
 export type RuntimeRgb = readonly [number, number, number];
 export interface PaletteRuntimeProfile {
   readonly sky: RuntimeRgb;
@@ -214,5 +241,6 @@ export const CHAPTER_01_RUNTIME_MANIFEST = {
   danceMotifs: DANCE_RUNTIME_MOTIFS,
   danceGameplayProfiles: DANCE_GAMEPLAY_RUNTIME_PROFILES,
   audioProfiles: AUDIO_RUNTIME_PROFILES,
+  musicProfiles: MUSIC_RUNTIME_PROFILES,
   paletteProfiles: PALETTE_RUNTIME_PROFILES,
 } as const;

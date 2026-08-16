@@ -6,7 +6,7 @@ import { RELEASE_LOCALES, RELEASE_LOCALIZATION_CATALOGS } from './localization/c
 import { validateLevelDefinition } from './validate-level.ts';
 import {
   audioRuntimeProfile, danceGameplayRuntimeProfile, danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile,
-  paletteRuntimeProfile,
+  musicRuntimeProfile, paletteRuntimeProfile,
 } from './runtime-manifests.ts';
 
 const ID = /^[a-z0-9][a-z0-9._-]*$/;
@@ -62,6 +62,7 @@ function validateRuntimeBindings(level: LevelDefinition): void {
   danceRuntimeMotif(level.dance.presetId);
   const danceGameplay = danceGameplayRuntimeProfile(level.dance.presetId);
   const audio = audioRuntimeProfile(level.audio.presetId);
+  const music = musicRuntimeProfile(level.dance.presetId);
   for (const hazard of level.maze.hazards) hazardRuntimeProfile(hazard.collisionProfileId);
   const cells = [
     ...maze.openings,
@@ -93,6 +94,15 @@ function validateRuntimeBindings(level: LevelDefinition): void {
     .every((value) => Number.isFinite(value) && value > 0)
     || audio.roomSize > 1 || audio.decaySeconds > 1 || audio.wetMix > 0.5) {
     throw new Error(`Level ${level.id} has an invalid audio runtime profile`);
+  }
+  if (!Number.isSafeInteger(music.rootMidi) || music.rootMidi < 24 || music.rootMidi > 72
+    || music.scale.length < 4 || music.leadPattern.length !== 8 || music.bassPattern.length !== 4
+    || ![...music.scale, ...music.leadPattern, ...music.bassPattern, music.swing].every(Number.isFinite)
+    || [...music.leadPattern, ...music.bassPattern].some(
+      (degree) => !Number.isSafeInteger(degree) || degree < 0 || degree >= music.scale.length,
+    )
+    || music.swing < 0 || music.swing > 0.25) {
+    throw new Error(`Level ${level.id} has an invalid music runtime profile`);
   }
 }
 

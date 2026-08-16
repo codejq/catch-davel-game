@@ -21,8 +21,10 @@ import {
 import { chapter01LevelTitle } from '../campaign/catalog';
 import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
-import { audioRuntimeProfile } from '../content/runtime-manifests';
+import { audioRuntimeProfile, musicRuntimeProfile } from '../content/runtime-manifests';
 import { presentationFeedback } from './presentation-feedback';
+import { ProceduralMusicSequencer } from '../audio/music-sequencer';
+import { freezeDanceWindow } from '../sim/level-mechanics';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -98,6 +100,7 @@ export async function startBrowserGame(): Promise<void> {
   let renderState: RenderGameState | null = null;
   let messageTimeout = 0;
   let audio: ProceduralAudio | null = null;
+  let music: ProceduralMusicSequencer | null = null;
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -141,10 +144,17 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const ensureAudio = (): ProceduralAudio => {
-    audio ??= new ProceduralAudio(
-      new AudioContext(), audioRuntimeProfile(activeLevel.audio.presetId), activeLevel.audio.presetId,
-      activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume,
-    );
+    if (audio === null) {
+      const context = new AudioContext();
+      audio = new ProceduralAudio(
+        context, audioRuntimeProfile(activeLevel.audio.presetId), activeLevel.audio.presetId,
+        activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume,
+      );
+      music = new ProceduralMusicSequencer(
+        context, activeLevel.dance.bpm, musicRuntimeProfile(activeLevel.dance.presetId),
+        activeProfile.settings.masterVolume * activeProfile.settings.musicVolume,
+      );
+    }
     return audio;
   };
 
@@ -311,6 +321,14 @@ export async function startBrowserGame(): Promise<void> {
       onSnapshot: (state) => {
         renderState = state;
         updateHud(state);
+        const activeRobots = state.robots.filter((robot) => robot.active).length;
+        const combatIntensity = Math.min(1, 0.22 + activeRobots / Math.max(1, state.robots.length) * 0.58
+          + Math.min(0.2, state.projectiles.length * 0.025));
+        const bossPhase = state.robots.reduce((phase, robot) => Math.max(phase, robot.bossPhase), 0);
+        music?.update(
+          state.tick, combatIntensity, freezeDanceWindow(state.levelId, state.tick).frozen, bossPhase,
+          !state.victory && !state.defeat,
+        );
         document.body.dataset.snapshotTick = String(state.tick);
       },
       onEvent: processEvent,
