@@ -12,7 +12,7 @@ import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
   type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
-import { purchaseWeaponUpgrade, weaponUpgradeCost, WEAPON_UPGRADE_CATALOG } from '../storage/economy';
+import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../storage/economy';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
@@ -25,6 +25,22 @@ import { presentationFeedback } from './presentation-feedback';
 import { ProceduralMusicSequencer } from '../audio/music-sequencer';
 import { freezeDanceWindow } from '../sim/level-mechanics';
 import { localizedContentString, releaseLocalizationCatalog } from '../content/localization/catalogs';
+import { runtimeUiText, type RuntimeUiKey } from '../content/localization/runtime-ui';
+
+const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
+  pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
+};
+
+const UPGRADE_UI_KEYS: Readonly<Record<WeaponUpgradeId, {
+  readonly name: RuntimeUiKey;
+  readonly description: RuntimeUiKey;
+}>> = {
+  pulseDamage: { name: 'pulseDamageName', description: 'pulseDamageDescription' },
+  pulseEfficiency: { name: 'pulseEfficiencyName', description: 'pulseEfficiencyDescription' },
+  swordCooling: { name: 'swordCoolingName', description: 'swordCoolingDescription' },
+  bombCapacity: { name: 'bombCapacityName', description: 'bombCapacityDescription' },
+  laserCooling: { name: 'laserCoolingName', description: 'laserCoolingDescription' },
+};
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -57,7 +73,7 @@ export async function startBrowserGame(): Promise<void> {
   const energyHud = requireElement<HTMLElement>('#energy');
   const coinsHud = requireElement<HTMLElement>('#coins');
   const remainingHud = requireElement<HTMLElement>('#remaining');
-  const objectiveHud = requireElement<HTMLElement>('#objective');
+  const objectiveTitle = requireElement<HTMLElement>('#objective-title');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
@@ -117,6 +133,9 @@ export async function startBrowserGame(): Promise<void> {
   const feedbackTimers = new Map<string, number>();
 
   const localized = (key: string): string => localizedContentString(activeProfile.settings.language, key);
+  const ui = (key: RuntimeUiKey, parameters?: Readonly<Record<string, string | number>>): string => (
+    runtimeUiText(activeProfile.settings.language, key, parameters)
+  );
   const applyProfileSettings = (): void => {
     const catalog = releaseLocalizationCatalog(activeProfile.settings.language);
     document.documentElement.lang = catalog.locale;
@@ -124,8 +143,15 @@ export async function startBrowserGame(): Promise<void> {
     document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
     renderPresentationSettings = { reducedMotion: activeProfile.settings.reducedMotion };
-    levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
-    if (objectiveHud.firstChild !== null) objectiveHud.firstChild.textContent = `${localized(activeLevel.objectives[0]!.titleKey)} · `;
+    document.title = ui('documentTitle');
+    for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
+      element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
+    }
+    for (const element of document.querySelectorAll<HTMLElement>('[data-ui-aria]')) {
+      element.setAttribute('aria-label', ui(element.dataset.uiAria as RuntimeUiKey));
+    }
+    levelName.textContent = `${ui('level')} ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
+    objectiveTitle.textContent = localized(activeLevel.objectives[0]!.titleKey);
     settingLanguage.value = catalog.locale;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
     settingMaster.value = String(activeProfile.settings.masterVolume);
@@ -149,12 +175,13 @@ export async function startBrowserGame(): Promise<void> {
       button.dataset.levelId = levelId;
       button.disabled = !unlocked;
       const number = document.createElement('b');
-      number.textContent = `LEVEL ${String(index + 1).padStart(2, '0')}`;
+      number.textContent = `${ui('level')} ${String(index + 1).padStart(2, '0')}`;
       const title = document.createElement('span');
       title.textContent = localized(chapter01Level(levelId).nameKey);
       const status = document.createElement('small');
-      status.textContent = !unlocked ? 'LOCKED' : progress?.completed
-        ? `CLEARED · BEST ${progress.bestTicks ?? '—'} TICKS` : levelId === activeLevelId ? 'CURRENT MISSION' : 'READY';
+      status.textContent = !unlocked ? ui('locked') : progress?.completed
+        ? ui('clearedBest', { ticks: progress.bestTicks ?? '—' })
+        : levelId === activeLevelId ? ui('currentMission') : ui('ready');
       button.append(number, title, status);
       return button;
     }));
@@ -182,7 +209,9 @@ export async function startBrowserGame(): Promise<void> {
     persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
     applyProfileSettings();
     renderCampaignMap();
-    settingsStatus.textContent = nextSettings.language === 'ar' ? 'تم حفظ الإعدادات.' : 'Settings saved.';
+    renderShop();
+    updateHud(renderState ?? undefined);
+    settingsStatus.textContent = ui('settingsSaved');
   });
 
   const beginHumanSession = (): void => {
@@ -222,25 +251,31 @@ export async function startBrowserGame(): Promise<void> {
     messageTimeout = window.setTimeout(() => combatMessage.classList.remove('show'), 650);
   };
 
-  const updateHud = (state: RenderGameState): void => {
+  function updateHud(state?: RenderGameState): void {
+    if (state === undefined) return;
     healthHud.textContent = String(Math.ceil(state.player.health));
     energyHud.textContent = String(Math.floor(state.player.energy));
     coinsHud.textContent = String(state.player.coins);
     const remaining = state.robots.filter((robot) => robot.active).length;
-    remainingHud.textContent = state.victory ? 'maze clear!'
-      : state.level.objectiveComplete ? 'reach the green exit'
+    remainingHud.textContent = state.victory ? ui('mazeClear')
+      : state.level.objectiveComplete ? ui('reachExit')
       : bossTraining
-        ? `THE FINAL INVOICE · ${Math.ceil(state.robots[0]?.health ?? 0)} HP · phase ${state.robots[0]?.bossPhase ?? 1}`
+        ? ui('bossHealth', { health: Math.ceil(state.robots[0]?.health ?? 0), phase: state.robots[0]?.bossPhase ?? 1 })
         : state.level.encounter.pendingTicks > 0
-          ? `DAVEL SHIFT ${state.level.encounter.waveIndex + 2}/${state.level.encounter.waveCount} IN ${state.level.encounter.pendingTicks}`
-        : `${remaining} Davels remain`;
-    const resource = state.player.selectedWeapon === 'bomb' ? ` · ${state.player.bombs} BOMBS`
-      : state.player.selectedWeapon === 'sword' ? ` · HEAT ${Math.ceil(state.player.swordHeat)}`
-      : state.player.selectedWeapon === 'laser' ? ` · HEAT ${Math.ceil(state.player.laserHeat)}${state.player.laserOverheated ? ' OVERHEATED' : ''}` : '';
-    weaponStatus.textContent = `${state.player.selectedWeapon.toUpperCase()}${resource}`;
-    touchWeapon.textContent = state.player.selectedWeapon.toUpperCase();
+          ? ui('shift', {
+            wave: state.level.encounter.waveIndex + 2,
+            waves: state.level.encounter.waveCount,
+            ticks: state.level.encounter.pendingTicks,
+          })
+          : ui('remain', { count: remaining });
+    const resource = state.player.selectedWeapon === 'bomb' ? ` · ${ui('bombs', { count: state.player.bombs })}`
+      : state.player.selectedWeapon === 'sword' ? ` · ${ui('heat', { value: Math.ceil(state.player.swordHeat) })}`
+      : state.player.selectedWeapon === 'laser'
+        ? ` · ${ui('heat', { value: Math.ceil(state.player.laserHeat) })}${state.player.laserOverheated ? ` · ${ui('overheated')}` : ''}` : '';
+    weaponStatus.textContent = `${ui(WEAPON_UI_KEYS[state.player.selectedWeapon])}${resource}`;
+    touchWeapon.textContent = ui(WEAPON_UI_KEYS[state.player.selectedWeapon]);
     document.body.dataset.weapon = state.player.selectedWeapon;
-  };
+  }
 
   const persistDurableState = (state: RenderGameState): void => {
     if (!humanSessionStarted || agentController.isAgentControlled()) return;
@@ -273,7 +308,7 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
     if (event.type === 'projectile-deflected') sound('deflect');
     if (event.type === 'bomb-thrown') sound('bomb-throw');
-    if (event.type === 'bomb-detonated') { showMessage('PULSE BOMB DETONATED'); sound('bomb-detonate'); }
+    if (event.type === 'bomb-detonated') { showMessage(ui('bombDetonated')); sound('bomb-detonate'); }
     if (event.type === 'laser-fired' && event.tick % 4 === 0) sound('laser');
     if (event.type === 'robot-hit') {
       crosshair.classList.add('hit');
@@ -283,36 +318,36 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-fired') sound('robot-shot', event.robotId);
     if (event.type === 'robot-telegraph') sound('robot-telegraph', event.robotId);
     if (event.type === 'robot-melee') sound('robot-melee', event.robotId);
-    if (event.type === 'robot-buff') { showMessage('DJ GRIN DROPPED THE EVIL BEAT'); sound('dj-buff', event.robotId); }
-    if (event.type === 'boss-phase') { showMessage(`FINAL INVOICE · PHASE ${event.value ?? 1}`); sound('boss-phase', event.robotId); }
+    if (event.type === 'robot-buff') { showMessage(ui('djBeat')); sound('dj-buff', event.robotId); }
+    if (event.type === 'boss-phase') { showMessage(ui('bossPhase', { phase: event.value ?? 1 })); sound('boss-phase', event.robotId); }
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
       sound('player-hit', event.robotId);
     }
     if (event.type === 'key-collected') {
-      showMessage('WORKSHOP KEY ACQUIRED');
+      showMessage(ui('keyAcquired'));
       sound('key');
     }
     if (event.type === 'ambush-triggered') {
-      showMessage('WRONG TURN — THE WALLS ARE LAUGHING!');
+      showMessage(ui('ambush'));
       sound('ambush');
     }
     if (event.type === 'health-collected') {
-      showMessage(`REPAIR KIT  +${event.value ?? 0} HEALTH`);
+      showMessage(ui('repair', { value: event.value ?? 0 }));
       sound('health');
     }
     if (event.type === 'energy-collected') {
-      showMessage(`PULSE CELL  +${event.value ?? 0} ENERGY`);
+      showMessage(ui('energyCell', { value: event.value ?? 0 }));
       sound('energy');
     }
     if (event.type === 'coin-collected') {
-      showMessage(`QUANTUM CACHE  +${event.value ?? 0} COINS`);
+      showMessage(ui('cache', { value: event.value ?? 0 }));
       sound('coin');
     }
-    if (event.type === 'door-opened') { showMessage('WORKSHOP LOCK OPEN'); sound('door'); }
+    if (event.type === 'door-opened') { showMessage(ui('doorOpened')); sound('door'); }
     if (event.type === 'checkpoint-activated') {
-      showMessage('CHECKPOINT STABILIZED');
+      showMessage(ui('checkpoint'));
       sound('checkpoint');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         void client.getCheckpoint().then((snapshot) => {
@@ -322,10 +357,10 @@ export async function startBrowserGame(): Promise<void> {
         }).catch((error: unknown) => console.warn('Catch Davel checkpoint save failed', error));
       }
     }
-    if (event.type === 'objective-complete') { showMessage('ALL DAVELS DOWN'); sound('objective'); }
-    if (event.type === 'exit-unlocked') showMessage('EXIT ONLINE — REACH THE GREEN PORTAL');
+    if (event.type === 'objective-complete') { showMessage(ui('allDavelsDown')); sound('objective'); }
+    if (event.type === 'exit-unlocked') showMessage(ui('exitOnline'));
     if (event.type === 'robot-defeated') {
-      showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
+      showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
       sound('robot-defeat', event.robotId);
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
         const reward = event.coins ?? 0;
@@ -337,7 +372,7 @@ export async function startBrowserGame(): Promise<void> {
       }
     }
     if (event.type === 'victory') {
-      showMessage('MAZE STABILIZED!');
+      showMessage(ui('victory'));
       sound('victory');
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
         persistProfile(completeCampaignLevel(activeProfile, activeLevelId, renderState.tick));
@@ -350,7 +385,7 @@ export async function startBrowserGame(): Promise<void> {
       }
     }
     if (event.type === 'defeat') {
-      showMessage('SYSTEM DOWN — DAVELS WIN');
+      showMessage(ui('defeat'));
       sound('defeat');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         persistProfile(recordCampaignDefeat(activeProfile, activeLevelId));
@@ -385,11 +420,11 @@ export async function startBrowserGame(): Promise<void> {
         renderState = state;
         updateHud(state);
         persistDurableState(state);
-        showMessage('PRESENTATION RESYNCHRONIZED');
+        showMessage(ui('resynchronized'));
       },
       onError: (error) => {
         document.body.dataset.workerStatus = 'error';
-        showMessage('SIMULATION WORKER ERROR');
+        showMessage(ui('workerError'));
         console.error(error);
       },
     },
@@ -448,28 +483,29 @@ export async function startBrowserGame(): Promise<void> {
   };
   profileExport.addEventListener('click', async () => {
     setProfileTransferBusy(true);
-    profileTransferStatus.textContent = 'Preparing validated profile export…';
+    profileTransferStatus.textContent = ui('exportPreparing');
     try {
       await profileWrite;
       const saved = await exportProfileFile(activeProfile);
-      profileTransferStatus.textContent = saved ? 'Profile exported.' : 'Export cancelled.';
+      profileTransferStatus.textContent = saved ? ui('exported') : ui('exportCancelled');
     } catch (error) {
-      profileTransferStatus.textContent = error instanceof Error ? `Export rejected: ${error.message}` : 'Profile export failed.';
+      profileTransferStatus.textContent = error instanceof Error
+        ? ui('exportRejected', { error: error.message }) : ui('exportFailed');
     } finally {
       setProfileTransferBusy(false);
     }
   });
   profileImport.addEventListener('click', async () => {
     setProfileTransferBusy(true);
-    profileTransferStatus.textContent = 'Choose a Catch Davel JSON profile…';
+    profileTransferStatus.textContent = ui('importChoose');
     try {
       const imported = await importProfileFile();
       if (imported === null) {
-        profileTransferStatus.textContent = 'Import cancelled.';
+        profileTransferStatus.textContent = ui('importCancelled');
         return;
       }
-      if (!window.confirm('Replace this device\'s Catch Davel progress with the selected validated profile?')) {
-        profileTransferStatus.textContent = 'Import cancelled; current progress was kept.';
+      if (!window.confirm(ui('replaceProgress'))) {
+        profileTransferStatus.textContent = ui('importKept');
         return;
       }
       await profileWrite;
@@ -478,10 +514,11 @@ export async function startBrowserGame(): Promise<void> {
       if (verified?.integrityChecksum !== imported.integrityChecksum) throw new Error('Imported profile read-back verification failed');
       activeProfile = verified;
       renderCampaignMap();
-      profileTransferStatus.textContent = 'Profile imported and verified. Reloading…';
+      profileTransferStatus.textContent = ui('imported');
       window.setTimeout(() => location.reload(), 250);
     } catch (error) {
-      profileTransferStatus.textContent = error instanceof Error ? `Import rejected: ${error.message}` : 'Profile import failed.';
+      profileTransferStatus.textContent = error instanceof Error
+        ? ui('importRejected', { error: error.message }) : ui('importFailed');
     } finally {
       setProfileTransferBusy(false);
     }
@@ -492,13 +529,14 @@ export async function startBrowserGame(): Promise<void> {
     shopCoins.textContent = String(activeProfile.spendableCoins);
     for (const button of shop.querySelectorAll<HTMLButtonElement>('button[data-upgrade]')) {
       const id = button.dataset.upgrade as WeaponUpgradeId;
-      const definition = WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id)!;
+      const localization = UPGRADE_UI_KEYS[id];
+      const name = ui(localization.name);
       const level = levels[id];
       button.disabled = level >= 3;
       button.textContent = level >= 3
-        ? `${definition.name} · MAX`
-        : `${definition.name} · L${level} → L${level + 1} · ${weaponUpgradeCost(id, level)} coins`;
-      button.title = definition.description;
+        ? ui('upgradeMax', { name })
+        : ui('upgradePrice', { name, level: `${level} → ${level + 1}`, cost: weaponUpgradeCost(id, level) });
+      button.title = ui(localization.description);
     }
   };
   renderShop();
@@ -516,9 +554,10 @@ export async function startBrowserGame(): Promise<void> {
         normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
         'campaign', activeLevelId,
       ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
-      showMessage(`${WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id)!.name.toUpperCase()} INSTALLED`);
+      showMessage(ui('upgradeInstalled', { name: ui(UPGRADE_UI_KEYS[id].name) }));
     } catch (error) {
-      showMessage(error instanceof Error ? error.message.toUpperCase() : 'UPGRADE FAILED');
+      console.warn('Catch Davel upgrade rejected', error);
+      showMessage(ui('upgradeFailed'));
     }
   });
 

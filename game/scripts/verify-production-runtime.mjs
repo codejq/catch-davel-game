@@ -117,6 +117,10 @@ try {
     direction: document.documentElement.dir,
     levelName: document.querySelector('#level-name')?.textContent ?? '',
     objective: document.querySelector('#objective')?.textContent ?? '',
+    campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
+    healthLabel: document.querySelector('#stats i')?.textContent ?? '',
+    shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
+    touchFire: document.querySelector('#touch-fire')?.textContent ?? '',
     status: document.querySelector('#settings-status')?.textContent ?? '',
     reducedMotion: document.body.classList.contains('reduced-motion'),
     highContrast: document.body.classList.contains('high-contrast'),
@@ -129,7 +133,12 @@ try {
     || !settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
     || !accessibilitySettings.levelName.includes('التمايل الأول')
-    || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')) {
+    || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')
+    || !accessibilitySettings.objective.includes('متبقٍ')
+    || accessibilitySettings.campaignButton !== 'M · المستويات'
+    || accessibilitySettings.healthLabel !== 'الصحة'
+    || accessibilitySettings.shopTitle !== 'ورشة كوانتم'
+    || accessibilitySettings.touchFire !== 'إطلاق') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
   }
   const downloadPromise = page.waitForEvent('download');
@@ -144,7 +153,7 @@ try {
   if (download.suggestedFilename() !== 'catch-davel-profile-v1.json'
     || exportedProfile.profileSchemaVersion !== 1
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
-    || exportStatus !== 'Profile exported.') {
+    || exportStatus !== 'تم تصدير الحفظ.') {
     throw new Error('Browser profile export did not produce the validated v1 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
@@ -269,10 +278,14 @@ try {
   ));
   const chapterLevel = await chapterPage.evaluate(() => ({
     levelId: document.body.dataset.levelId,
+    language: document.documentElement.lang,
     remaining: document.querySelector('#remaining')?.textContent ?? '',
     agentApiExposed: window.CatchDavelAgent !== undefined,
   }));
-  if (chapterLevel.remaining !== '8 Davels remain') throw new Error('Production Level 8 did not render its eight-Davel roster');
+  const expectedChapterRemaining = chapterLevel.language === 'ar' ? 'متبقٍ 8 من دافل' : '8 Davels remain';
+  if (chapterLevel.remaining !== expectedChapterRemaining) {
+    throw new Error('Production Level 8 did not render its eight-Davel roster in the active locale');
+  }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
 

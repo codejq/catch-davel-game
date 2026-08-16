@@ -8,62 +8,62 @@
     <title>Catch Davel — First Playable</title>
   </head>
   <body>
-    <canvas id="game" aria-label="Catch Davel first-person game"></canvas>
+    <canvas id="game" aria-label="Catch Davel first-person game" data-ui-aria="canvasLabel"></canvas>
     <div id="hud">
       <div id="brand">QUANTUM BILLING // CATCH DAVEL</div>
-      <button id="campaign-button" type="button">M · LEVELS</button>
+      <button id="campaign-button" type="button" data-ui-text="campaignButton">M · LEVELS</button>
       <div id="level-name">LEVEL 01 · WOBBLE WORKSHOP</div>
-      <div id="objective">Find and deactivate the dancing Davels · <b id="remaining">6 remain</b></div>
-      <div id="stats"><span>HEALTH <b id="health">100</b></span><span>ENERGY <b id="energy">100</b></span><span>COINS <b id="coins">0</b></span></div>
+      <div id="objective"><span id="objective-title">Find and deactivate the dancing Davels</span> · <b id="remaining">6 remain</b></div>
+      <div id="stats"><span><i data-ui-text="health">HEALTH</i> <b id="health">100</b></span><span><i data-ui-text="energy">ENERGY</i> <b id="energy">100</b></span><span><i data-ui-text="coins">COINS</i> <b id="coins">0</b></span></div>
       <div id="weapon-status">PULSE</div>
-      <section id="shop" aria-label="Quantum Coin upgrade shop">
-        <h2>QUANTUM WORKBENCH</h2>
-        <p><b id="shop-coins">0</b> coins · purchases apply before the run</p>
+      <section id="shop" aria-label="Quantum Coin upgrade shop" data-ui-aria="shopLabel">
+        <h2 data-ui-text="shopTitle">QUANTUM WORKBENCH</h2>
+        <p id="shop-balance"><b id="shop-coins">0</b><span data-ui-text="shopBalanceSuffix"> coins · purchases apply before the run</span></p>
         <button data-upgrade="pulseDamage"></button>
         <button data-upgrade="pulseEfficiency"></button>
         <button data-upgrade="swordCooling"></button>
         <button data-upgrade="bombCapacity"></button>
         <button data-upgrade="laserCooling"></button>
-        <small>Press U to close</small>
+        <small data-ui-text="shopClose">Press U to close</small>
       </section>
-      <section id="campaign-map" aria-label="Chapter 1 campaign map" aria-hidden="true">
+      <section id="campaign-map" aria-label="Chapter 1 campaign map" data-ui-aria="campaignLabel" aria-hidden="true">
         <header>
-          <div><small>CHAPTER 1</small><h2>THE NEON WORKSHOP</h2></div>
-          <button id="campaign-close" type="button">CLOSE</button>
+          <div><small data-ui-text="chapter">CHAPTER 1</small><h2 data-ui-text="chapterTitle">THE NEON WORKSHOP</h2></div>
+          <button id="campaign-close" type="button" data-ui-text="close">CLOSE</button>
         </header>
-        <p>Hunt the dancing Davels, bank coins, and unlock the route to Chief Wobble.</p>
+        <p data-ui-text="campaignDescription">Hunt the dancing Davels, bank coins, and unlock the route to Chief Wobble.</p>
         <details id="settings-panel">
-          <summary>ACCESSIBILITY &amp; AUDIO</summary>
+          <summary data-ui-text="settingsTitle">ACCESSIBILITY &amp; AUDIO</summary>
           <div id="settings-grid">
-            <label>Language<select id="setting-language"><option value="en">English</option><option value="ar">العربية</option></select></label>
-            <label>Mouse sensitivity<input id="setting-sensitivity" type="range" min="0.25" max="3" step="0.05"></label>
-            <label>Master volume<input id="setting-master" type="range" min="0" max="1" step="0.05"></label>
-            <label>Music volume<input id="setting-music" type="range" min="0" max="1" step="0.05"></label>
-            <label>Effects volume<input id="setting-effects" type="range" min="0" max="1" step="0.05"></label>
-            <label class="setting-check"><input id="setting-reduced-motion" type="checkbox">Reduced motion</label>
-            <label class="setting-check"><input id="setting-high-contrast" type="checkbox">High contrast</label>
+            <label><span data-ui-text="language">Language</span><select id="setting-language"><option value="en">English</option><option value="ar">العربية</option></select></label>
+            <label><span data-ui-text="sensitivity">Mouse sensitivity</span><input id="setting-sensitivity" type="range" min="0.25" max="3" step="0.05"></label>
+            <label><span data-ui-text="masterVolume">Master volume</span><input id="setting-master" type="range" min="0" max="1" step="0.05"></label>
+            <label><span data-ui-text="musicVolume">Music volume</span><input id="setting-music" type="range" min="0" max="1" step="0.05"></label>
+            <label><span data-ui-text="effectsVolume">Effects volume</span><input id="setting-effects" type="range" min="0" max="1" step="0.05"></label>
+            <label class="setting-check"><input id="setting-reduced-motion" type="checkbox"><span data-ui-text="reducedMotion">Reduced motion</span></label>
+            <label class="setting-check"><input id="setting-high-contrast" type="checkbox"><span data-ui-text="highContrast">High contrast</span></label>
           </div>
-          <output id="settings-status" aria-live="polite">Settings save to this profile.</output>
+          <output id="settings-status" aria-live="polite" data-ui-text="settingsHint">Settings save to this profile.</output>
         </details>
         <div id="campaign-levels"></div>
         <div id="profile-actions">
-          <button id="profile-export" type="button">EXPORT SAVE</button>
-          <button id="profile-import" type="button">IMPORT SAVE</button>
-          <output id="profile-transfer-status" aria-live="polite">Profiles use validated JSON with an integrity checksum.</output>
+          <button id="profile-export" type="button" data-ui-text="exportSave">EXPORT SAVE</button>
+          <button id="profile-import" type="button" data-ui-text="importSave">IMPORT SAVE</button>
+          <output id="profile-transfer-status" aria-live="polite" data-ui-text="profileHint">Profiles use validated JSON with an integrity checksum.</output>
         </div>
-        <small>Completed levels stay replayable. Locked levels open in order.</small>
+        <small data-ui-text="campaignFooter">Completed levels stay replayable. Locked levels open in order.</small>
       </section>
       <div id="crosshair" aria-hidden="true"></div>
       <div id="combat-message" aria-live="polite"></div>
-      <div id="prompt"><span class="desktop-prompt">CLICK TO ENTER THE MAZE</span><span class="touch-prompt">TOUCH TO ENTER THE MAZE</span><br><small>WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · M levels · Esc release</small></div>
+      <div id="prompt"><span class="desktop-prompt" data-ui-text="enterDesktop">CLICK TO ENTER THE MAZE</span><span class="touch-prompt" data-ui-text="enterTouch">TOUCH TO ENTER THE MAZE</span><br><small data-ui-text="controlsHelp">WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · M levels · Esc release</small></div>
       <div id="weapon" aria-hidden="true"><i></i><b></b></div>
-      <section id="touch-controls" aria-label="Touch game controls">
-        <div id="move-pad" role="group" aria-label="Virtual movement stick"><span id="move-stick"></span></div>
-        <div id="look-hint" aria-hidden="true">DRAG TO AIM</div>
+      <section id="touch-controls" aria-label="Touch game controls" data-ui-aria="touchControls">
+        <div id="move-pad" role="group" aria-label="Virtual movement stick" data-ui-aria="moveStick"><span id="move-stick"></span></div>
+        <div id="look-hint" aria-hidden="true" data-ui-text="dragAim">DRAG TO AIM</div>
         <div id="touch-actions">
-          <button id="touch-weapon" type="button" aria-label="Select next unlocked weapon">PULSE</button>
-          <button id="touch-alt" type="button" aria-label="Alternate or charged attack">ALT</button>
-          <button id="touch-fire" type="button" aria-label="Fire selected weapon">FIRE</button>
+          <button id="touch-weapon" type="button" aria-label="Select next unlocked weapon" data-ui-aria="nextWeapon">PULSE</button>
+          <button id="touch-alt" type="button" aria-label="Alternate or charged attack" data-ui-aria="alternateAttack" data-ui-text="alt">ALT</button>
+          <button id="touch-fire" type="button" aria-label="Fire selected weapon" data-ui-aria="fireWeapon" data-ui-text="fire">FIRE</button>
         </div>
       </section>
     </div>
