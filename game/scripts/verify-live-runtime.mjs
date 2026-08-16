@@ -81,6 +81,9 @@ try {
       radians: steppedObservation.player.pulseSpreadRadians,
       crosshairScale: document.querySelector('#crosshair')?.style.getPropertyValue('--pulse-spread-scale'),
       energyCellTick: Number(document.body.dataset.pulseEnergyCellTick),
+      impactTick: Number(document.body.dataset.pulseImpactTick),
+      impactKind: Number(document.body.dataset.pulseImpactKind),
+      impactPosition: document.body.dataset.pulseImpactPosition?.split(',').map(Number) ?? [],
     };
     const objectiveCompass = {
       hidden: document.querySelector('#objective-compass')?.hidden,
@@ -404,8 +407,13 @@ try {
     [result.pulseSpreadProof.burstShots >= 2 && result.pulseSpreadProof.radians > 0
       && Number(result.pulseSpreadProof.crosshairScale) > 1
       && Number.isFinite(result.pulseSpreadProof.energyCellTick)
-      && result.pulseSpreadProof.energyCellTick <= result.steppedTick,
-    'authoritative pulse spread did not reach the LLM observation, human crosshair, and 3D cell effect'],
+      && result.pulseSpreadProof.energyCellTick <= result.steppedTick
+      && Number.isFinite(result.pulseSpreadProof.impactTick)
+      && result.pulseSpreadProof.impactTick <= result.steppedTick
+      && [0, 1, 2].includes(result.pulseSpreadProof.impactKind)
+      && result.pulseSpreadProof.impactPosition.length === 3
+      && result.pulseSpreadProof.impactPosition.every(Number.isFinite),
+    'authoritative pulse spread/contact did not reach the LLM observation, human crosshair, and raw-WebGL2 effects'],
     [result.levelEightProof.levelId === 'level-008' && result.levelEightProof.replayLevelId === 'level-008'
       && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
     [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,

@@ -11,6 +11,7 @@ export interface RenderCapabilities {
 export interface RenderQualityProfile {
   readonly pixelRatioCap: number;
   readonly hitSparkCount: number;
+  readonly pulseImpactSparkCount: number;
   readonly fireSmokeCount: number;
   readonly defeatFragmentCount: number;
   readonly coinBurstCount: number;
@@ -23,17 +24,17 @@ export interface RenderQualityProfile {
 
 export const RENDER_QUALITY_PROFILES: Readonly<Record<RenderQualityTier, RenderQualityProfile>> = Object.freeze({
   low: Object.freeze({
-    pixelRatioCap: 1, hitSparkCount: 1, fireSmokeCount: 1, defeatFragmentCount: 1, coinBurstCount: 2,
+    pixelRatioCap: 1, hitSparkCount: 1, pulseImpactSparkCount: 2, fireSmokeCount: 1, defeatFragmentCount: 1, coinBurstCount: 2,
     bombPressureRingSegments: 6, bombSparkCount: 3, laserContactSparkCount: 2, swordArcSegmentCount: 4,
     bombPreviewSegmentCount: 6,
   }),
   medium: Object.freeze({
-    pixelRatioCap: 1.5, hitSparkCount: 2, fireSmokeCount: 2, defeatFragmentCount: 2, coinBurstCount: 3,
+    pixelRatioCap: 1.5, hitSparkCount: 2, pulseImpactSparkCount: 4, fireSmokeCount: 2, defeatFragmentCount: 2, coinBurstCount: 3,
     bombPressureRingSegments: 8, bombSparkCount: 5, laserContactSparkCount: 4, swordArcSegmentCount: 6,
     bombPreviewSegmentCount: 8,
   }),
   high: Object.freeze({
-    pixelRatioCap: 2, hitSparkCount: 4, fireSmokeCount: 3, defeatFragmentCount: 4, coinBurstCount: 5,
+    pixelRatioCap: 2, hitSparkCount: 4, pulseImpactSparkCount: 6, fireSmokeCount: 3, defeatFragmentCount: 4, coinBurstCount: 5,
     bombPressureRingSegments: 12, bombSparkCount: 8, laserContactSparkCount: 6, swordArcSegmentCount: 8,
     bombPreviewSegmentCount: 12,
   }),

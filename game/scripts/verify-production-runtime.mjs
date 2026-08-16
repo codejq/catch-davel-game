@@ -350,9 +350,19 @@ try {
   await page.mouse.down();
   await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
   await page.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
+  await page.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseImpactTick)));
   await page.waitForFunction(() => document.body.classList.contains('feedback-muzzle-flash'));
   const captionProof = await page.locator('#sound-captions span').first().textContent();
   const pulseEnergyCellProof = await page.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  const pulseImpactProof = await page.evaluate(() => ({
+    tick: Number(document.body.dataset.pulseImpactTick),
+    kind: Number(document.body.dataset.pulseImpactKind),
+    position: document.body.dataset.pulseImpactPosition?.split(',').map(Number) ?? [],
+  }));
+  if (![0, 1, 2].includes(pulseImpactProof.kind) || pulseImpactProof.position.length !== 3
+    || !pulseImpactProof.position.every(Number.isFinite)) {
+    throw new Error(`Offscreen pulse contact lost its event anchor: ${JSON.stringify(pulseImpactProof)}`);
+  }
   const safeMuzzleFlashDisplay = await page.locator('#weapon').evaluate((element) => (
     getComputedStyle(element, '::after').display
   ));
@@ -474,6 +484,16 @@ try {
   await fallbackPage.mouse.down();
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
   const fallbackPulseEnergyCellTick = await fallbackPage.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseImpactTick)));
+  const fallbackPulseImpact = await fallbackPage.evaluate(() => ({
+    tick: Number(document.body.dataset.pulseImpactTick),
+    kind: Number(document.body.dataset.pulseImpactKind),
+    position: document.body.dataset.pulseImpactPosition?.split(',').map(Number) ?? [],
+  }));
+  if (![0, 1, 2].includes(fallbackPulseImpact.kind) || fallbackPulseImpact.position.length !== 3
+    || !fallbackPulseImpact.position.every(Number.isFinite)) {
+    throw new Error(`Main-thread pulse contact lost its event anchor: ${JSON.stringify(fallbackPulseImpact)}`);
+  }
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombFuseTick)));
   const fallbackBombFuse = await fallbackPage.evaluate(() => ({
     milestone: Number(document.body.dataset.bombFuseTick),
@@ -662,10 +682,11 @@ try {
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
     passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
-    pulseEnergyCellProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
+    pulseEnergyCellProof, pulseImpactProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
     fallback: {
       ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
+      pulseImpact: fallbackPulseImpact,
       bombFuse: fallbackBombFuse,
       bombDetonation: fallbackBombDetonation, contextRecovery, browserErrors: fallbackErrors,
     },

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_BURST_RESET_TICKS, PULSE_DAMAGE, PULSE_MAX_SPREAD_RADIANS,
+  BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_BURST_RESET_TICKS, PULSE_DAMAGE, PULSE_IMPACT_KIND, PULSE_MAX_SPREAD_RADIANS,
   SWORD_CHARGED_DAMAGE, SWORD_DAMAGE, effectivePulseBurstShots, fireLaser, firePulse, pulseSpreadOffset,
 } from '../src/sim/combat';
 import { GameSimulation } from '../src/sim/game';
@@ -87,6 +87,27 @@ describe('pulse gun', () => {
     game.state.player.yaw = 0;
     game.step({ ...idle, fire: true });
     expect(target.health).toBe(100);
+    const pulse = game.state.events.find((event) => event.type === 'pulse-fired');
+    expect(pulse).toMatchObject({ value: PULSE_IMPACT_KIND.wall });
+    expect([pulse?.x, pulse?.y, pulse?.z].every((value) => Number.isFinite(value))).toBe(true);
+  });
+
+  it('reports a deterministic visual contact anchor for robot hits and wall misses', () => {
+    const hitGame = new GameSimulation('pulse-contact-hit');
+    const target = hitGame.state.robots[0]!;
+    for (const other of hitGame.state.robots.slice(1)) other.active = false;
+    target.x = hitGame.state.player.x;
+    target.z = hitGame.state.player.z + 2;
+    const hit = firePulse(hitGame.state.player, hitGame.state.robots, 0, -1_000);
+    expect(hit.impactKind).toBe(PULSE_IMPACT_KIND.robot);
+    expect([hit.impactX, hit.impactY, hit.impactZ].every(Number.isFinite)).toBe(true);
+
+    const wallGame = new GameSimulation('pulse-contact-wall');
+    wallGame.state.robots.forEach((robot) => { robot.active = false; });
+    wallGame.state.player.yaw = 0;
+    const wall = firePulse(wallGame.state.player, wallGame.state.robots, 0, -1_000);
+    expect(wall.impactKind).toBe(PULSE_IMPACT_KIND.wall);
+    expect([wall.impactX, wall.impactY, wall.impactZ].every(Number.isFinite)).toBe(true);
   });
 
   it('rewards precision only while the authored vulnerability beat is active', () => {

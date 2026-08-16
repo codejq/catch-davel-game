@@ -16,7 +16,7 @@ describe('bounded ordered event transport', () => {
   it('uses credit flow control and acknowledges only after tick-correlated presentation', () => {
     const producer = new EventProducerChannel(config(8, 2, 1));
     const events: GameEvent[] = [
-      { tick: 3, type: 'pulse-fired' },
+      { tick: 3, type: 'pulse-fired', value: 1, x: 2, y: 1.4, z: -3 },
       { tick: 4, type: 'robot-hit', robotId: 2 },
       { tick: 5, type: 'robot-defeated', robotId: 2, coins: 16 },
     ];
@@ -54,7 +54,10 @@ describe('bounded ordered event transport', () => {
 
   it('drops presentation records first and advances epoch on unavoidable critical overflow', () => {
     const producer = new EventProducerChannel(config(2));
-    producer.enqueue([{ tick: 1, type: 'pulse-fired' }, { tick: 1, type: 'robot-hit', robotId: 0 }]);
+    producer.enqueue([
+      { tick: 1, type: 'pulse-fired', value: 1, x: 2, y: 1.4, z: -3 },
+      { tick: 1, type: 'robot-hit', robotId: 0 },
+    ]);
     producer.enqueue([{ tick: 1, type: 'player-hit', robotId: 0 }]);
     expect(producer.metrics()).toMatchObject({ pendingRecords: 2, presentationDrops: 1, stateCriticalResyncs: 0 });
     producer.enqueue([{ tick: 1, type: 'victory' }]);
@@ -94,12 +97,12 @@ describe('bounded ordered event transport', () => {
     expect(presented).toEqual([{ type: 'coin-collected', value: 18, eventClass: EVENT_CLASS.stateCritical }]);
   });
 
-  it('carries the presentation-only ambush cue on event contract v3', () => {
+  it('carries the presentation-only ambush cue on event contract v4', () => {
     const producer = new EventProducerChannel(config(4));
     producer.enqueue([{ tick: 9, type: 'ambush-triggered' }]);
     const batch = producer.createBatch()!;
     expect(new DataView(batch.buffer).getUint32(0, true)).toBe(EVENT_TRANSPORT_CONTRACT_VERSION);
-    expect(EVENT_TRANSPORT_CONTRACT_VERSION).toBe(3);
+    expect(EVENT_TRANSPORT_CONTRACT_VERSION).toBe(4);
     const consumer = new EventConsumerQueue(config(4));
     consumer.receive(batch.buffer);
     const presented: { type: string; eventClass: number }[] = [];
@@ -125,11 +128,30 @@ describe('bounded ordered event transport', () => {
     });
   });
 
+  it('carries the pulse contact kind and finite presentation anchor', () => {
+    const producer = new EventProducerChannel(config(4));
+    producer.enqueue([{ tick: 10, type: 'pulse-fired', value: 2, x: 3.25, y: 1.5, z: -6.75 }]);
+    const batch = producer.createBatch()!;
+    const consumer = new EventConsumerQueue(config(4));
+    consumer.receive(batch.buffer);
+    const presented: GameEvent[] = [];
+    consumer.presentThrough(10, (event) => presented.push(event));
+    expect(presented[0]).toMatchObject({
+      tick: 10,
+      type: 'pulse-fired',
+      value: 2,
+      x: 3.25,
+      y: 1.5,
+      z: -6.75,
+    });
+  });
+
   it('rejects missing or non-finite pulse-bomb positions before transport', () => {
     const producer = new EventProducerChannel(config(4));
     expect(() => producer.enqueue([{ tick: 1, type: 'bomb-detonated', value: 1 }])).toThrow(/position/);
     expect(() => producer.enqueue([
       { tick: 1, type: 'bomb-detonated', value: 1, x: Number.NaN, y: 0, z: 0 },
     ])).toThrow(/finite float32/);
+    expect(() => producer.enqueue([{ tick: 1, type: 'pulse-fired' }])).toThrow(/pulse-fired.*position/);
   });
 });

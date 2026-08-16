@@ -21,6 +21,10 @@ import {
 import { laserContactSparkSegment } from './laser-contact';
 import { SwordArcTracker, swordArcSegment, type SwordArcEffect } from './sword-arc';
 import { bombPreviewSegment } from './bomb-preview';
+import {
+  PulseImpactTracker, pulseImpactFlashRadius, pulseImpactSparkSegment, type PulseImpactEffect,
+} from './pulse-impact';
+import { PULSE_IMPACT_KIND } from '../sim/combat';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -308,6 +312,7 @@ export class DavelRenderer {
   private readonly capsules: InstanceBatch;
   private readonly coinBursts = new CoinBurstTracker();
   private readonly pulseEnergyCells = new PulseEnergyCellTracker();
+  private readonly pulseImpacts = new PulseImpactTracker();
   private readonly bombDetonations = new BombDetonationTracker();
   private readonly swordArcs = new SwordArcTracker();
 
@@ -322,12 +327,15 @@ export class DavelRenderer {
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.pulseEnergyCells.emit(effect); }
 
+  emitPulseImpact(effect: PulseImpactEffect): void { this.pulseImpacts.emit(effect); }
+
   emitBombDetonation(effect: BombDetonationEffect): void { this.bombDetonations.emit(effect); }
 
   emitSwordArc(effect: SwordArcEffect): void { this.swordArcs.emit(effect); }
 
   clearPresentationEffects(): void {
     this.pulseEnergyCells.clear();
+    this.pulseImpacts.clear();
     this.bombDetonations.clear();
     this.swordArcs.clear();
   }
@@ -362,6 +370,20 @@ export class DavelRenderer {
       this.addSphere(cell.center, cell.glowRadius, [0.24, 1, 0.96], 0.72, 0.72);
       this.addSphere(cell.start, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
       this.addSphere(cell.end, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
+    }
+    for (const effect of this.pulseImpacts.update(state.tick)) {
+      const sparkCount = motionScale === 0 ? Math.min(2, quality.pulseImpactSparkCount) : quality.pulseImpactSparkCount;
+      const primary: Color = effect.kind === PULSE_IMPACT_KIND.robot ? [0.22, 1, 0.96]
+        : effect.kind === PULSE_IMPACT_KIND.wall ? [1, 0.68, 0.12] : [0.32, 0.8, 1];
+      for (let sparkIndex = 0; sparkIndex < sparkCount; sparkIndex += 1) {
+        const spark = pulseImpactSparkSegment(effect, state.tick, sparkIndex, motionScale);
+        if (spark === null) continue;
+        const color: Color = sparkIndex % 2 === 0 ? primary : [1, 0.94, 0.5];
+        this.addCapsule(spark.start, spark.end, spark.radius, color);
+        this.addSphere(spark.end, spark.radius * 1.35, color);
+      }
+      const flashRadius = pulseImpactFlashRadius(effect, state.tick, flashScale);
+      if (flashRadius !== null) this.addSphere(effect, flashRadius, primary);
     }
     for (const effect of this.bombDetonations.update(state.tick)) {
       for (let segmentIndex = 0; segmentIndex < quality.bombPressureRingSegments; segmentIndex += 1) {

@@ -2,7 +2,7 @@ import type { GameEvent } from '../sim/game';
 
 export const EVENT_RECORD_BYTES = 32;
 export const EVENT_BATCH_HEADER_BYTES = 32;
-export const EVENT_TRANSPORT_CONTRACT_VERSION = 3;
+export const EVENT_TRANSPORT_CONTRACT_VERSION = 4;
 
 export const EVENT_CLASS = { presentationOnly: 0, stateCritical: 1 } as const;
 export type EventClass = typeof EVENT_CLASS[keyof typeof EVENT_CLASS];
@@ -89,10 +89,10 @@ function capacity(records: number, bytes: number): number {
 }
 
 function eventPosition(event: GameEvent): { readonly x: number; readonly y: number; readonly z: number } {
-  if (event.type !== 'bomb-detonated') return { x: 0, y: 0, z: 0 };
+  if (event.type !== 'bomb-detonated' && event.type !== 'pulse-fired') return { x: 0, y: 0, z: 0 };
   const values = [event.x, event.y, event.z];
   if (values.some((value) => value === undefined || !Number.isFinite(value) || !Number.isFinite(Math.fround(value)))) {
-    throw new Error('Bomb detonation event position must contain three finite float32 values');
+    throw new Error(`${event.type} event position must contain three finite float32 values`);
   }
   return { x: event.x!, y: event.y!, z: event.z! };
 }
@@ -321,7 +321,7 @@ export class EventConsumerQueue {
       const robotId = view.getInt16(offset + 2, true);
       const value = view.getInt32(offset + 12, true);
       const type = decodeKind(view.getUint8(offset + 1));
-      const position = type === 'bomb-detonated' ? {
+      const position = type === 'bomb-detonated' || type === 'pulse-fired' ? {
         x: view.getFloat32(offset + 16, true),
         y: view.getFloat32(offset + 20, true),
         z: view.getFloat32(offset + 24, true),

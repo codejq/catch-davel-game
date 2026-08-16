@@ -15,6 +15,7 @@ import { freezeDanceWindow } from '../sim/level-mechanics';
 import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
+import type { PulseImpactEffect } from './pulse-impact';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -162,6 +163,8 @@ export class WorldRenderer {
   }
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.davels.emitPulseEnergyCell(effect); }
+
+  emitPulseImpact(effect: PulseImpactEffect): void { this.davels.emitPulseImpact(effect); }
 
   emitBombDetonation(effect: BombDetonationEffect): void { this.davels.emitBombDetonation(effect); }
 

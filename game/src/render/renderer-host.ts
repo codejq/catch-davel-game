@@ -9,6 +9,7 @@ import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
+import type { PulseImpactEffect } from './pulse-impact';
 
 export type RendererMode = 'offscreen-worker' | 'main-thread-fallback';
 
@@ -18,6 +19,7 @@ export interface RendererHost {
   resize(): void;
   setQuality(quality: RenderQualityTier): void;
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void;
+  emitPulseImpact(effect: PulseImpactEffect): void;
   emitBombDetonation(effect: BombDetonationEffect): void;
   emitSwordArc(effect: SwordArcEffect): void;
   clearPresentationEffects(): void;
@@ -69,6 +71,11 @@ class MainThreadRendererHost implements RendererHost {
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
     this.renderer.emitPulseEnergyCell(effect);
+    if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
+  }
+
+  emitPulseImpact(effect: PulseImpactEffect): void {
+    this.renderer.emitPulseImpact(effect);
     if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
   }
 
@@ -159,6 +166,13 @@ class OffscreenRendererHost implements RendererHost {
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
     if (this.disposed) return;
     this.worker.postMessage({ type: 'pulse-energy-cell', effect } satisfies RenderWorkerRequest);
+    this.pending = this.latest;
+    this.flush();
+  }
+
+  emitPulseImpact(effect: PulseImpactEffect): void {
+    if (this.disposed) return;
+    this.worker.postMessage({ type: 'pulse-impact', effect } satisfies RenderWorkerRequest);
     this.pending = this.latest;
     this.flush();
   }

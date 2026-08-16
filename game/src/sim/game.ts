@@ -278,7 +278,14 @@ export class GameSimulation {
     recordRangedAttack(this.state.metrics, result.hitRobotId !== null);
     this.state.lastShotTick = this.state.tick;
     this.state.shotSerial += 1;
-    this.state.events.push({ tick: this.state.tick, type: 'pulse-fired' });
+    this.state.events.push({
+      tick: this.state.tick,
+      type: 'pulse-fired',
+      value: result.impactKind,
+      x: result.impactX,
+      y: result.impactY,
+      z: result.impactZ,
+    });
     if (result.hitRobotId !== null) this.applyWeaponHit({
       robotId: result.hitRobotId, defeated: result.defeatedRobotId === result.hitRobotId, coinsAwarded: result.coinsAwarded,
       weakPoint: result.weakPoint,

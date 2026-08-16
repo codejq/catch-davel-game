@@ -2,6 +2,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import type { PulseEnergyCellEffect } from '../render/presentation-particles';
 import type { BombDetonationEffect } from '../render/bomb-detonation';
 import type { SwordArcEffect } from '../render/sword-arc';
+import type { PulseImpactEffect } from '../render/pulse-impact';
 
 export type RenderWorkerRequest = {
   readonly type: 'initialize';
@@ -22,6 +23,9 @@ export type RenderWorkerRequest = {
 } | {
   readonly type: 'pulse-energy-cell';
   readonly effect: PulseEnergyCellEffect;
+} | {
+  readonly type: 'pulse-impact';
+  readonly effect: PulseImpactEffect;
 } | {
   readonly type: 'bomb-detonation';
   readonly effect: BombDetonationEffect;

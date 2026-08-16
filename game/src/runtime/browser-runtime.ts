@@ -56,6 +56,7 @@ import {
   CHARGED_SWORD_ARC_DURATION_TICKS, SWORD_ARC_DURATION_TICKS, createSwordArcEffect,
 } from '../render/sword-arc';
 import { BombFuseAudioSequencer, type BombFuseAudioRequest } from '../audio/bomb-fuse-sequencer';
+import { normalizePulseImpactKind } from '../render/pulse-impact';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -849,7 +850,23 @@ export async function startBrowserGame(): Promise<void> {
         navigator.vibrate(feedback.vibration as number | number[]);
       }
     }
-    if (event.type === 'pulse-fired') { queuePulseEffect(event.tick); sound('pulse'); }
+    if (event.type === 'pulse-fired') {
+      queuePulseEffect(event.tick);
+      if (event.x !== undefined && event.y !== undefined && event.z !== undefined
+        && [event.x, event.y, event.z].every(Number.isFinite)) {
+        renderer.emitPulseImpact({
+          startTick: event.tick,
+          kind: normalizePulseImpactKind(event.value),
+          x: event.x,
+          y: event.y,
+          z: event.z,
+        });
+        document.body.dataset.pulseImpactTick = String(event.tick);
+        document.body.dataset.pulseImpactKind = String(normalizePulseImpactKind(event.value));
+        document.body.dataset.pulseImpactPosition = `${event.x},${event.y},${event.z}`;
+      }
+      sound('pulse');
+    }
     if (event.type === 'sword-swung' || event.type === 'sword-charged') {
       queueSwordArc(event.tick, event.type === 'sword-charged');
       sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');

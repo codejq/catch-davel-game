@@ -48,7 +48,14 @@ export interface ShotResult {
   readonly coinsAwarded: number;
   readonly weakPoint: boolean;
   readonly spreadRadians: number;
+  readonly impactKind: PulseImpactKind;
+  readonly impactX: number;
+  readonly impactY: number;
+  readonly impactZ: number;
 }
+
+export const PULSE_IMPACT_KIND = { range: 0, wall: 1, robot: 2 } as const;
+export type PulseImpactKind = typeof PULSE_IMPACT_KIND[keyof typeof PULSE_IMPACT_KIND];
 
 export interface WeaponHit {
   readonly robotId: number;
@@ -88,10 +95,12 @@ interface AimTrace {
   readonly directionX: number;
   readonly directionY: number;
   readonly directionZ: number;
+  readonly wallHit: boolean;
 }
 
 const noShot: ShotResult = {
   fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false, spreadRadians: 0,
+  impactKind: PULSE_IMPACT_KIND.range, impactX: 0, impactY: 0, impactZ: 0,
 };
 
 export function effectivePulseBurstShots(tick: number, lastShotTick: number, storedBurstShots: number): number {
@@ -192,7 +201,19 @@ function traceAim(
   }
   return {
     robot: target, distance: targetDistance, weakPoint: targetWeakPoint,
-    directionX, directionY, directionZ,
+    directionX, directionY, directionZ, wallHit: target === null && obstructionDistance < maximumRange,
+  };
+}
+
+function pulseImpact(trace: AimTrace, player: PlayerState): Pick<ShotResult, 'impactKind' | 'impactX' | 'impactY' | 'impactZ'> {
+  // Pull the visual anchor just in front of the traced surface so depth testing cannot bury the spark inside a wall or body.
+  const visualDistance = Math.max(0, trace.distance - 0.12);
+  return {
+    impactKind: trace.robot !== null ? PULSE_IMPACT_KIND.robot
+      : trace.wallHit ? PULSE_IMPACT_KIND.wall : PULSE_IMPACT_KIND.range,
+    impactX: player.x + trace.directionX * visualDistance,
+    impactY: PLAYER_EYE_HEIGHT + trace.directionY * visualDistance,
+    impactZ: player.z + trace.directionZ * visualDistance,
   };
 }
 
@@ -226,10 +247,11 @@ export function firePulse(
   player.energy -= energyCost;
   const spread = pulseSpreadOffset(seed, shotSerial, burstShots);
   const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick, spread.yaw, spread.pitch);
+  const impact = pulseImpact(trace, player);
   if (trace.robot === null) {
     return {
       fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0,
-      weakPoint: false, spreadRadians: spread.radians,
+      weakPoint: false, spreadRadians: spread.radians, ...impact,
     };
   }
   const damage = PULSE_DAMAGE + player.weaponUpgrades.pulseDamage * PULSE_DAMAGE_PER_UPGRADE;
@@ -238,7 +260,7 @@ export function firePulse(
   );
   return {
     fired: true, hitRobotId: hit.robotId, defeatedRobotId: hit.defeated ? hit.robotId : null,
-    coinsAwarded: hit.coinsAwarded, weakPoint: hit.weakPoint, spreadRadians: spread.radians,
+    coinsAwarded: hit.coinsAwarded, weakPoint: hit.weakPoint, spreadRadians: spread.radians, ...impact,
   };
 }
 
