@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV1 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV2 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -111,6 +111,10 @@ export async function startBrowserGame(): Promise<void> {
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
+  const settingCameraMotion = requireElement<HTMLInputElement>('#setting-camera-motion');
+  const settingRecoilMotion = requireElement<HTMLInputElement>('#setting-recoil-motion');
+  const settingShakeMotion = requireElement<HTMLInputElement>('#setting-shake-motion');
+  const settingFlashIntensity = requireElement<HTMLInputElement>('#setting-flash-intensity');
   const settingMaster = requireElement<HTMLInputElement>('#setting-master');
   const settingMusic = requireElement<HTMLInputElement>('#setting-music');
   const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
@@ -130,7 +134,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV1;
+  let activeProfile: ProfileV2;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -150,7 +154,7 @@ export async function startBrowserGame(): Promise<void> {
   let latestCampaignResult: CampaignResultSummary | null = null;
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
-  let renderPresentationSettings: RenderPresentationSettings = { reducedMotion: false };
+  let renderPresentationSettings: RenderPresentationSettings = { motionScale: 1, flashScale: 1 };
   let messageTimeout = 0;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
@@ -184,7 +188,28 @@ export async function startBrowserGame(): Promise<void> {
     document.documentElement.dir = catalog.direction;
     document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
-    renderPresentationSettings = { reducedMotion: activeProfile.settings.reducedMotion };
+    const recoil = activeProfile.settings.recoilMotion;
+    const shake = activeProfile.settings.shakeMotion;
+    const style = document.body.style;
+    style.setProperty('--weapon-kick-y', `${18 * recoil}px`);
+    style.setProperty('--sword-swing-x', `${-50 + 14 * recoil}%`);
+    style.setProperty('--sword-swing-y', `${-22 * recoil}px`);
+    style.setProperty('--sword-swing-angle', `${24 * recoil}deg`);
+    for (const [name, value] of Object.entries({
+      '--shake-light-x1': `${-3 * shake}px`, '--shake-light-y1': `${2 * shake}px`,
+      '--shake-light-x2': `${2 * shake}px`, '--shake-light-y2': `${-1 * shake}px`,
+      '--shake-heavy-x1': `${-7 * shake}px`, '--shake-heavy-y1': `${4 * shake}px`,
+      '--shake-heavy-x2': `${6 * shake}px`, '--shake-heavy-y2': `${-5 * shake}px`,
+      '--shake-heavy-x3': `${-4 * shake}px`, '--shake-heavy-y3': `${-2 * shake}px`,
+      '--shake-heavy-x4': `${3 * shake}px`, '--shake-heavy-y4': `${2 * shake}px`,
+      '--shake-light-s1': String(1 + 0.006 * shake), '--shake-light-s2': String(1 + 0.004 * shake),
+      '--shake-heavy-s1': String(1 + 0.014 * shake), '--shake-heavy-s2': String(1 + 0.012 * shake),
+      '--shake-heavy-s3': String(1 + 0.009 * shake), '--shake-heavy-s4': String(1 + 0.005 * shake),
+    })) style.setProperty(name, value);
+    renderPresentationSettings = {
+      motionScale: activeProfile.settings.cameraMotion,
+      flashScale: activeProfile.settings.flashIntensity,
+    };
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -196,6 +221,10 @@ export async function startBrowserGame(): Promise<void> {
     objectiveTitle.textContent = localized(activeLevel.objectives[0]!.titleKey);
     settingLanguage.value = catalog.locale;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
+    settingCameraMotion.value = String(activeProfile.settings.cameraMotion);
+    settingRecoilMotion.value = String(activeProfile.settings.recoilMotion);
+    settingShakeMotion.value = String(activeProfile.settings.shakeMotion);
+    settingFlashIntensity.value = String(activeProfile.settings.flashIntensity);
     settingMaster.value = String(activeProfile.settings.masterVolume);
     settingMusic.value = String(activeProfile.settings.musicVolume);
     settingEffects.value = String(activeProfile.settings.effectsVolume);
@@ -247,7 +276,7 @@ export async function startBrowserGame(): Promise<void> {
     resultsNext.focus();
   };
 
-  const persistProfile = (profile: ProfileV1): void => {
+  const persistProfile = (profile: ProfileV2): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -256,14 +285,29 @@ export async function startBrowserGame(): Promise<void> {
     });
   };
 
-  settingsPanel.addEventListener('change', () => {
+  settingsPanel.addEventListener('change', (event) => {
+    if (event.target === settingReducedMotion) {
+      const presetValue = settingReducedMotion.checked ? '0' : '1';
+      settingCameraMotion.value = presetValue;
+      settingRecoilMotion.value = presetValue;
+      settingShakeMotion.value = presetValue;
+    }
+    const cameraMotion = Number(settingCameraMotion.value);
+    const recoilMotion = Number(settingRecoilMotion.value);
+    const shakeMotion = Number(settingShakeMotion.value);
+    const reducedMotion = cameraMotion === 0 && recoilMotion === 0 && shakeMotion === 0;
+    settingReducedMotion.checked = reducedMotion;
     const nextSettings = {
       language: settingLanguage.value === 'ar' ? 'ar' : 'en',
       mouseSensitivity: Number(settingSensitivity.value),
+      cameraMotion,
+      recoilMotion,
+      shakeMotion,
+      flashIntensity: Number(settingFlashIntensity.value),
       masterVolume: Number(settingMaster.value),
       musicVolume: Number(settingMusic.value),
       effectsVolume: Number(settingEffects.value),
-      reducedMotion: settingReducedMotion.checked,
+      reducedMotion,
       highContrast: settingHighContrast.checked,
     };
     persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
@@ -376,8 +420,10 @@ export async function startBrowserGame(): Promise<void> {
   const processEvent = (event: DecodedGameEvent): void => {
     const feedback = presentationFeedback(event.type);
     if (feedback !== null) {
-      if (!activeProfile.settings.reducedMotion) {
-        for (const className of feedback.classes) {
+      for (const className of feedback.classes) {
+        const motionScale = className === 'feedback-weapon-kick' || className === 'feedback-sword-swing'
+          ? activeProfile.settings.recoilMotion : activeProfile.settings.shakeMotion;
+        if (motionScale > 0) {
           document.body.classList.remove(className);
           void document.body.offsetWidth;
           document.body.classList.add(className);

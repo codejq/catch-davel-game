@@ -101,9 +101,11 @@ export interface RenderGameState {
 }
 
 export interface RenderPresentationSettings {
-  readonly reducedMotion: boolean;
+  readonly motionScale: number;
+  readonly flashScale: number;
 }
 
 export const DEFAULT_RENDER_PRESENTATION_SETTINGS: RenderPresentationSettings = Object.freeze({
-  reducedMotion: false,
+  motionScale: 1,
+  flashScale: 1,
 });

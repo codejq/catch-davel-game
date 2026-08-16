@@ -1,7 +1,7 @@
 import {
   MAX_WEAPON_UPGRADE_LEVEL, normalizeWeaponUpgradeLevels, type WeaponUpgradeId,
 } from '../sim/weapons';
-import { updateProfile, type ProfileV1 } from './profile';
+import { updateProfile, type ProfileV2 } from './profile';
 
 export interface WeaponUpgradeDefinition {
   readonly id: WeaponUpgradeId;
@@ -27,7 +27,7 @@ export function weaponUpgradeCost(id: WeaponUpgradeId, currentLevel: number): nu
   return definition.baseCost * (currentLevel + 1);
 }
 
-export function purchaseWeaponUpgrade(profile: ProfileV1, id: WeaponUpgradeId): ProfileV1 {
+export function purchaseWeaponUpgrade(profile: ProfileV2, id: WeaponUpgradeId): ProfileV2 {
   const levels = normalizeWeaponUpgradeLevels(profile.weaponUpgrades);
   const currentLevel = levels[id];
   const cost = weaponUpgradeCost(id, currentLevel);

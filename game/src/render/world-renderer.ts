@@ -166,7 +166,7 @@ export class WorldRenderer {
     }
     this.buildDynamicInstances(state, settings);
     const player = state.player;
-    const eyeY = PLAYER_EYE_HEIGHT + (settings.reducedMotion ? 0 : Math.sin(player.bobPhase) * 0.025);
+    const eyeY = PLAYER_EYE_HEIGHT + Math.sin(player.bobPhase) * 0.025 * settings.motionScale;
     const cosPitch = Math.cos(player.pitch);
     const directionX = Math.sin(player.yaw) * cosPitch;
     const directionY = Math.sin(player.pitch);
@@ -175,9 +175,10 @@ export class WorldRenderer {
     lookAt(this.view, player.x, eyeY, player.z, player.x + directionX, eyeY + directionY, player.z + directionZ);
     multiplyMatrix4(this.viewProjection, this.projection, this.view);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    const freezeFlash = !settings.reducedMotion && freezeDanceWindow(state.levelId, state.tick).frozen;
-    const fogColor: RuntimeRgb = freezeFlash
-      ? [this.skyColor[0] * 0.58 + 0.42, this.skyColor[1] * 0.58 + 0.42, this.skyColor[2] * 0.58 + 0.42]
+    const freezeFlash = freezeDanceWindow(state.levelId, state.tick).frozen;
+    const flashMix = freezeFlash ? 0.42 * settings.flashScale : 0;
+    const fogColor: RuntimeRgb = flashMix > 0
+      ? [this.skyColor[0] * (1 - flashMix) + flashMix, this.skyColor[1] * (1 - flashMix) + flashMix, this.skyColor[2] * (1 - flashMix) + flashMix]
       : this.skyColor;
     gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -186,7 +187,7 @@ export class WorldRenderer {
     gl.uniform3f(this.fogColorLocation, fogColor[0], fogColor[1], fogColor[2]);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
-    this.davels.render(state, this.viewProjection, settings.reducedMotion);
+    this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale);
   }
 
   private buildWorldInstances(levelId: Chapter01LevelId): void {
@@ -211,7 +212,7 @@ export class WorldRenderer {
 
   private buildDynamicInstances(state: RenderGameState, settings: RenderPresentationSettings): void {
     let instance = this.staticInstanceCount;
-    const bob = settings.reducedMotion ? 0 : Math.sin(state.tick * 0.08) * 0.12;
+    const bob = Math.sin(state.tick * 0.08) * 0.12 * settings.motionScale;
     for (const pickup of state.level.pickups) {
       if (!pickup.active) continue;
       if (pickup.kind === 'key') {
@@ -235,7 +236,7 @@ export class WorldRenderer {
           instance = this.writeInstance(instance, hazard.x + offsetX, 1.25, hazard.z + offsetZ, 0.18, 2.5, 0.18, gateColor);
         }
         if (hazard.active) {
-          const pulseHeight = 0.68 + (settings.reducedMotion ? 0 : Math.sin(state.tick * 0.14) * 0.12);
+          const pulseHeight = 0.68 + Math.sin(state.tick * 0.14) * 0.12 * settings.motionScale;
           instance = this.writeInstance(instance, hazard.x, pulseHeight, hazard.z, 2.55, 0.12, 0.12, [1, 0.72, 0.95]);
           instance = this.writeInstance(instance, hazard.x, 1.58, hazard.z, 0.12, 0.12, 2.55, [1, 0.72, 0.95]);
         }
@@ -245,7 +246,7 @@ export class WorldRenderer {
       instance = this.writeInstance(
         instance, hazard.x, 0.035, hazard.z, hazard.halfWidth * 2, 0.07, hazard.halfDepth * 2, color,
       );
-      const pulse = settings.reducedMotion ? 0.5 : state.tick % 36 / 36;
+      const pulse = 0.5 + (state.tick % 36 / 36 - 0.5) * settings.motionScale;
       instance = this.writeInstance(
         instance,
         hazard.x + hazard.directionX * (pulse - 0.5) * hazard.halfWidth * 1.4,

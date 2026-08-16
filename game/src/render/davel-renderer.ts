@@ -223,7 +223,7 @@ function blendPoint(stable: Point, animated: Point, animatedWeight: number): Poi
   };
 }
 
-function reducedMotionPose(robot: RenderRobotState, definition: RobotDefinition): Pose {
+function motionScaledPose(robot: RenderRobotState, definition: RobotDefinition, motionScale: number): Pose {
   const animated = pose(robot);
   const scale = definition.scale;
   const width = definition.torsoWidth * scale;
@@ -240,19 +240,28 @@ function reducedMotionPose(robot: RenderRobotState, definition: RobotDefinition)
     leftFoot: localPoint(robot, -0.21 * scale, 0.1 * scale, 0.08 * scale),
     rightFoot: localPoint(robot, 0.21 * scale, 0.1 * scale, 0.08 * scale),
   };
+  const animatedWeight = 0.16 + Math.max(0, Math.min(1, motionScale)) * 0.84;
   return {
-    hip: blendPoint(stable.hip, animated.hip, 0.16),
-    chest: blendPoint(stable.chest, animated.chest, 0.16),
-    head: blendPoint(stable.head, animated.head, 0.16),
-    leftElbow: blendPoint(stable.leftElbow, animated.leftElbow, 0.16),
-    rightElbow: blendPoint(stable.rightElbow, animated.rightElbow, 0.16),
-    leftHand: blendPoint(stable.leftHand, animated.leftHand, 0.16),
-    rightHand: blendPoint(stable.rightHand, animated.rightHand, 0.16),
-    leftKnee: blendPoint(stable.leftKnee, animated.leftKnee, 0.16),
-    rightKnee: blendPoint(stable.rightKnee, animated.rightKnee, 0.16),
-    leftFoot: blendPoint(stable.leftFoot, animated.leftFoot, 0.16),
-    rightFoot: blendPoint(stable.rightFoot, animated.rightFoot, 0.16),
+    hip: blendPoint(stable.hip, animated.hip, animatedWeight),
+    chest: blendPoint(stable.chest, animated.chest, animatedWeight),
+    head: blendPoint(stable.head, animated.head, animatedWeight),
+    leftElbow: blendPoint(stable.leftElbow, animated.leftElbow, animatedWeight),
+    rightElbow: blendPoint(stable.rightElbow, animated.rightElbow, animatedWeight),
+    leftHand: blendPoint(stable.leftHand, animated.leftHand, animatedWeight),
+    rightHand: blendPoint(stable.rightHand, animated.rightHand, animatedWeight),
+    leftKnee: blendPoint(stable.leftKnee, animated.leftKnee, animatedWeight),
+    rightKnee: blendPoint(stable.rightKnee, animated.rightKnee, animatedWeight),
+    leftFoot: blendPoint(stable.leftFoot, animated.leftFoot, animatedWeight),
+    rightFoot: blendPoint(stable.rightFoot, animated.rightFoot, animatedWeight),
   };
+}
+
+function blendColor(from: Color, to: Color, amount: number): Color {
+  return [
+    from[0] + (to[0] - from[0]) * amount,
+    from[1] + (to[1] - from[1]) * amount,
+    from[2] + (to[2] - from[2]) * amount,
+  ];
 }
 
 export class DavelRenderer {
@@ -270,11 +279,11 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 384);
   }
 
-  render(state: RenderGameState, viewProjection: Float32Array, reducedMotion = false): void {
+  render(state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1): void {
     this.spheres.reset();
     this.capsules.reset();
     for (const robot of state.robots) {
-      if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!, reducedMotion);
+      if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale);
     }
     for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
@@ -298,7 +307,7 @@ export class DavelRenderer {
     }
     for (const bomb of state.playerBombs) {
       const center = { x: bomb.x, y: bomb.y, z: bomb.z };
-      const pulse = 0.19 + (reducedMotion ? 0 : Math.sin(bomb.fuseTicks * 0.35) * 0.025);
+      const pulse = 0.19 + Math.sin(bomb.fuseTicks * 0.35) * 0.025 * motionScale;
       this.addSphere(center, pulse, [0.08, 0.1, 0.16]);
       this.addSphere(
         { x: bomb.x, y: bomb.y + 0.15, z: bomb.z }, 0.07,
@@ -334,20 +343,22 @@ export class DavelRenderer {
     this.capsules.addMatrix(capsuleMatrix(start, end, radius), color);
   }
 
-  private addRobot(robot: RenderRobotState, definition: RobotDefinition, reducedMotion: boolean): void {
-    const p = reducedMotion ? reducedMotionPose(robot, definition) : pose(robot);
+  private addRobot(
+    robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number,
+  ): void {
+    const p = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
-    const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1]
+    const bodyColor: Color = robot.hitFlashTicks > 0 ? blendColor(definition.bodyColor, [1, 1, 1], flashScale)
       : robot.combatState === 'telegraph' ? [1, 0.22, 0.16] : definition.bodyColor;
-    const accentColor: Color = robot.hitFlashTicks > 0 ? [0.6, 1, 1]
+    const accentColor: Color = robot.hitFlashTicks > 0 ? blendColor(definition.accentColor, [0.6, 1, 1], flashScale)
       : robot.tempoBuffTicks > 0 ? [0.18, 1, 0.72] : definition.accentColor;
     const shoulderLeft = localPoint(robot, -0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
-    if (robot.hitFlashTicks > 0 && !reducedMotion) {
+    if (robot.hitFlashTicks > 0 && flashScale > 0) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
       for (let index = 0; index < 4; index += 1) {
         const angle = robot.id * 1.37 + index * Math.PI * 0.5 + robot.hitFlashTicks * 0.11;
@@ -355,7 +366,7 @@ export class DavelRenderer {
           x: p.chest.x + Math.cos(angle) * (0.36 * scale + travel),
           y: p.chest.y + (index - 1.5) * 0.13 + travel * 0.35,
           z: p.chest.z + Math.sin(angle) * (0.36 * scale + travel),
-        }, 0.055 * scale, index % 2 === 0 ? [1, 0.92, 0.18] : [0.25, 1, 1]);
+        }, 0.055 * scale * flashScale, index % 2 === 0 ? [1, 0.92, 0.18] : [0.25, 1, 1]);
       }
     }
     this.addSphere(p.hip, 0.33 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);

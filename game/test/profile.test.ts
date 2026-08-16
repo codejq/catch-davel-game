@@ -45,7 +45,7 @@ describe('versioned profile persistence', () => {
   it('rejects corruption and never silently accepts a newer schema', () => {
     const profile = createDefaultProfile('validation-proof');
     expect(() => validateProfile({ ...profile, spendableCoins: 1 })).toThrow(/checksum mismatch/);
-    expect(() => validateProfile({ ...profile, profileSchemaVersion: 2 })).toThrow(/newer than supported/);
+    expect(() => validateProfile({ ...profile, profileSchemaVersion: 3 })).toThrow(/newer than supported/);
     expect(() => updateProfile(profile, { spendableCoins: 5 })).toThrow(/cannot exceed/);
     expect(() => updateProfile(profile, { weaponUpgrades: { ...profile.weaponUpgrades, laserCooling: 4 } })).toThrow(/0 to 3/);
   });

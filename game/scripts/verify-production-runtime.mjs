@@ -107,16 +107,27 @@ try {
     document.querySelector('#settings-panel').open = true;
     document.querySelector('#setting-language').value = 'ar';
     document.querySelector('#setting-sensitivity').value = '1.4';
+    document.querySelector('#setting-camera-motion').value = '1';
+    document.querySelector('#setting-recoil-motion').value = '1';
+    document.querySelector('#setting-shake-motion').value = '1';
+    document.querySelector('#setting-flash-intensity').value = '0.55';
     document.querySelector('#setting-master').value = '0.8';
     document.querySelector('#setting-music').value = '0.6';
     document.querySelector('#setting-effects').value = '0.7';
     document.querySelector('#setting-reduced-motion').checked = true;
     document.querySelector('#setting-high-contrast').checked = true;
-    document.querySelector('#settings-panel').dispatchEvent(new Event('change', { bubbles: true }));
+    document.querySelector('#setting-reduced-motion').dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForFunction(() => document.documentElement.dir === 'rtl'
     && document.body.classList.contains('reduced-motion')
     && document.body.classList.contains('high-contrast'));
+  await page.evaluate(() => {
+    document.querySelector('#setting-camera-motion').value = '0.25';
+    document.querySelector('#setting-recoil-motion').value = '0.35';
+    document.querySelector('#setting-shake-motion').value = '0.45';
+    document.querySelector('#setting-camera-motion').dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.waitForFunction(() => !document.body.classList.contains('reduced-motion'));
   await page.click('#input-binding-grid button[data-input-action="forward"]');
   await page.keyboard.press('ArrowUp');
   await page.waitForFunction(() => document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent === 'UP');
@@ -132,6 +143,12 @@ try {
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
     touchFire: document.querySelector('#touch-fire')?.textContent ?? '',
     forwardBinding: document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent ?? '',
+    cameraMotion: document.querySelector('#setting-camera-motion')?.value,
+    recoilMotion: document.querySelector('#setting-recoil-motion')?.value,
+    shakeMotion: document.querySelector('#setting-shake-motion')?.value,
+    flashIntensity: document.querySelector('#setting-flash-intensity')?.value,
+    recoilKick: document.body.style.getPropertyValue('--weapon-kick-y'),
+    heavyShake: document.body.style.getPropertyValue('--shake-heavy-x1'),
     status: document.querySelector('#settings-status')?.textContent ?? '',
     reducedMotion: document.body.classList.contains('reduced-motion'),
     highContrast: document.body.classList.contains('high-contrast'),
@@ -141,8 +158,12 @@ try {
     || settingsProfile.profile.settings.masterVolume !== 0.8
     || settingsProfile.profile.settings.musicVolume !== 0.6
     || settingsProfile.profile.settings.effectsVolume !== 0.7
+    || settingsProfile.profile.settings.cameraMotion !== 0.25
+    || settingsProfile.profile.settings.recoilMotion !== 0.35
+    || settingsProfile.profile.settings.shakeMotion !== 0.45
+    || settingsProfile.profile.settings.flashIntensity !== 0.55
     || settingsProfile.profile.inputMappings.forward !== 'ArrowUp'
-    || !settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
+    || settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
     || !accessibilitySettings.levelName.includes('التمايل الأول')
     || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')
@@ -151,7 +172,13 @@ try {
     || accessibilitySettings.healthLabel !== 'الصحة'
     || accessibilitySettings.shopTitle !== 'ورشة كوانتم'
     || accessibilitySettings.touchFire !== 'إطلاق'
-    || accessibilitySettings.forwardBinding !== 'UP') {
+    || accessibilitySettings.forwardBinding !== 'UP'
+    || accessibilitySettings.cameraMotion !== '0.25'
+    || accessibilitySettings.recoilMotion !== '0.35'
+    || accessibilitySettings.shakeMotion !== '0.45'
+    || accessibilitySettings.flashIntensity !== '0.55'
+    || accessibilitySettings.recoilKick !== '6.3px'
+    || accessibilitySettings.heavyShake !== '-3.15px') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
   }
   const downloadPromise = page.waitForEvent('download');
@@ -163,18 +190,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v1.json'
-    || exportedProfile.profileSchemaVersion !== 1
+  if (download.suggestedFilename() !== 'catch-davel-profile-v2.json'
+    || exportedProfile.profileSchemaVersion !== 2
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v1 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v2 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v1.json',
+    name: 'catch-davel-profile-v2.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

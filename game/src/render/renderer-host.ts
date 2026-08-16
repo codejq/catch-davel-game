@@ -48,7 +48,8 @@ class MainThreadRendererHost implements RendererHost {
   resize(): void { this.renderer.resize(); }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
-    if (state === this.previousState && settings.reducedMotion === this.previousSettings.reducedMotion) return;
+    if (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
+      && settings.flashScale === this.previousSettings.flashScale) return;
     this.previousState = state;
     this.previousSettings = settings;
     this.renderer.render(state, settings);
@@ -88,7 +89,8 @@ class OffscreenRendererHost implements RendererHost {
   }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
-    if (this.disposed || (state === this.previousState && settings.reducedMotion === this.previousSettings.reducedMotion)) return;
+    if (this.disposed || (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
+      && settings.flashScale === this.previousSettings.flashScale)) return;
     this.previousState = state;
     this.previousSettings = settings;
     this.pending = { state, settings };
