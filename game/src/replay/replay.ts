@@ -17,7 +17,10 @@ import { levelDefinitionDependencyHash } from '../content/validate-level';
 import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
 import type { PlayerCommand } from '../sim/player';
 import { isWeaponId } from '../sim/weapons';
-import { ROBOT_DEFINITIONS, campaignRobotWaves } from '../sim/robots';
+import {
+  ROBOT_CROWD_STEERING_VERSION, ROBOT_DEFINITIONS, ROBOT_PERSONAL_SPACE_SCALE,
+  ROBOT_SEPARATION_MAX_STEP, campaignRobotWaves,
+} from '../sim/robots';
 import {
   canonicalJson, checksumCanonical, createSimulationSnapshot, parseSimulationSnapshot, stateChecksum,
   type SimulationSnapshotV1,
@@ -133,6 +136,11 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
         radiusScale: WEAK_POINT_RADIUS_SCALE,
       },
       danceCombat: { attackScheduleVersion: DANCE_ATTACK_SCHEDULE_VERSION },
+      robotCrowdSteering: {
+        version: ROBOT_CROWD_STEERING_VERSION,
+        personalSpaceScale: ROBOT_PERSONAL_SPACE_SCALE,
+        maximumSeparationPerTick: ROBOT_SEPARATION_MAX_STEP,
+      },
       enemyProjectile: {
         ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_ATTACK_RANGE,
         ENEMY_SLIDER_BOLT_SPEED, ENEMY_FIREBALL_SPEED, ENEMY_FIREBALL_DAMAGE, ENEMY_MELEE_DAMAGE,

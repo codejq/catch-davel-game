@@ -15,6 +15,10 @@ export type RobotRank = 'ordinary' | 'elite' | 'boss';
 export type RobotCombatState = 'patrol' | 'telegraph' | 'recover';
 export type EncounterId = 'campaign' | 'boss-training';
 
+export const ROBOT_CROWD_STEERING_VERSION = 1;
+export const ROBOT_PERSONAL_SPACE_SCALE = 0.52;
+export const ROBOT_SEPARATION_MAX_STEP = 0.035;
+
 export interface RobotDefinition {
   readonly name: string;
   readonly dance: DanceId;
@@ -245,6 +249,52 @@ function tryCombatMovement(
   return moved;
 }
 
+function moveRobotWithMazeCollision(robot: RobotState, deltaX: number, deltaZ: number, levelId: Chapter01LevelId): void {
+  const nextX = robot.x + deltaX;
+  const nextZ = robot.z + deltaZ;
+  if (!isWallAtWorld(nextX, robot.z, levelId)) robot.x = nextX;
+  if (!isWallAtWorld(robot.x, nextZ, levelId)) robot.z = nextZ;
+}
+
+export function resolveRobotCrowding(robots: RobotState[], levelId: Chapter01LevelId = 'level-001'): void {
+  const active = robots.filter((robot) => robot.active).sort((first, second) => first.id - second.id);
+  for (let firstIndex = 0; firstIndex < active.length; firstIndex += 1) {
+    const first = active[firstIndex]!;
+    const firstDefinition = ROBOT_DEFINITIONS[first.id]!;
+    for (let secondIndex = firstIndex + 1; secondIndex < active.length; secondIndex += 1) {
+      const second = active[secondIndex]!;
+      const secondDefinition = ROBOT_DEFINITIONS[second.id]!;
+      const deltaX = second.x - first.x;
+      const deltaZ = second.z - first.z;
+      const distance = Math.hypot(deltaX, deltaZ);
+      const minimumDistance = (firstDefinition.scale + secondDefinition.scale) * ROBOT_PERSONAL_SPACE_SCALE;
+      if (distance >= minimumDistance) continue;
+      let directionX: number;
+      let directionZ: number;
+      if (distance < 0.000_001) {
+        const pairAngle = (first.id * 2.399_963 + second.id * 3.883_222) % (Math.PI * 2);
+        directionX = Math.cos(pairAngle);
+        directionZ = Math.sin(pairAngle);
+      } else {
+        directionX = deltaX / distance;
+        directionZ = deltaZ / distance;
+      }
+      const correction = Math.min(ROBOT_SEPARATION_MAX_STEP, (minimumDistance - distance) * 0.5);
+      const firstMass = firstDefinition.scale * firstDefinition.scale;
+      const secondMass = secondDefinition.scale * secondDefinition.scale;
+      const totalMass = firstMass + secondMass;
+      moveRobotWithMazeCollision(
+        first, -directionX * correction * secondMass / totalMass * 2,
+        -directionZ * correction * secondMass / totalMass * 2, levelId,
+      );
+      moveRobotWithMazeCollision(
+        second, directionX * correction * firstMass / totalMass * 2,
+        directionZ * correction * firstMass / totalMass * 2, levelId,
+      );
+    }
+  }
+}
+
 export function stepRobots(
   robots: RobotState[], seedText: string, player?: PlayerState, levelId: Chapter01LevelId = 'level-001',
   difficulty: DifficultyId = 'standard',
@@ -295,6 +345,10 @@ export function stepRobots(
         robot.targetIndex += robot.routeDirection;
       }
     }
-    stepRobotBody(robot, definition, performance);
+  }
+  resolveRobotCrowding(robots, levelId);
+  for (const robot of robots) {
+    if (!robot.active) continue;
+    stepRobotBody(robot, ROBOT_DEFINITIONS[robot.id]!, performance);
   }
 }

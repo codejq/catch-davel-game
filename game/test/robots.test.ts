@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
 import { cellAt, worldCell } from '../src/sim/level';
 import {
-  ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, createRobots, stepRobots, validateRobotDefinitions,
+  ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, createRobots, resolveRobotCrowding, stepRobots,
+  validateRobotDefinitions,
 } from '../src/sim/robots';
 import { CHAPTER_01_LEVEL_IDS, CHAPTER_01_LEVELS } from '../src/content/levels/chapter-01';
 import { CHAPTER_01_DANCE_PERFORMANCES, levelDancePerformance } from '../src/sim/dance-performance';
@@ -52,6 +53,23 @@ describe('Davel simulation', () => {
     expect(first.state.robots).toEqual(second.state.robots);
     expect(new Set(first.state.robots.map((robot) => `${robot.x.toFixed(2)},${robot.z.toFixed(2)}`)).size).toBe(6);
     expect(new Set(first.state.robots.map((robot) => robot.arrivalCount)).size).toBeGreaterThan(2);
+  });
+
+  it('separates overlapping squad members deterministically without entering walls', () => {
+    const first = createRobots();
+    const second = createRobots();
+    for (const robots of [first, second]) {
+      for (const robot of robots) robot.active = robot.id < 2;
+      robots[1]!.x = robots[0]!.x;
+      robots[1]!.z = robots[0]!.z;
+      for (let step = 0; step < 20; step += 1) resolveRobotCrowding(robots);
+    }
+    expect(first.map(({ x, z }) => ({ x, z }))).toEqual(second.map(({ x, z }) => ({ x, z })));
+    expect(Math.hypot(first[1]!.x - first[0]!.x, first[1]!.z - first[0]!.z)).toBeGreaterThan(0.99);
+    for (const robot of first.filter((entry) => entry.active)) {
+      const cell = worldCell(robot.x, robot.z);
+      expect(cellAt(cell.column, cell.row)).not.toBe('#');
+    }
   });
 
   it('materializes every authored level dance as a distinct XPBD performance', () => {

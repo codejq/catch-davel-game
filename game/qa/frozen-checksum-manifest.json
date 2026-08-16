@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "suiteId": "chapter-01-frozen-checksums",
-  "suiteVersion": 7,
+  "suiteVersion": 8,
   "policyId": "baseline-campaign-agent",
   "policyVersion": 1,
   "levels": [
@@ -14,20 +14,20 @@
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "91ec88fe61da36a0",
         "simulationLevel": "fd7ff25ba218846f",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     },
     {
       "levelId": "level-003",
       "seed": "campaign-level-003-v1",
-      "finalTick": 4723,
-      "checksum": "00fa0378b44baa79",
+      "finalTick": 5025,
+      "checksum": "3361f0cd11487c87",
       "dependencyHashes": {
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "54a0088fa5b73f07",
         "simulationLevel": "a49cdbde3d8080ff",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     },
@@ -40,7 +40,7 @@
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "b7654c2e740d2791",
         "simulationLevel": "3a3edcda864ef8c8",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     },
@@ -53,20 +53,20 @@
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "7f15c9e87217e556",
         "simulationLevel": "ab36213ee65614c6",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     },
     {
       "levelId": "level-008",
       "seed": "campaign-level-008-v1",
-      "finalTick": 2660,
-      "checksum": "2c43afb1f7d986de",
+      "finalTick": 2685,
+      "checksum": "77bc3781a35072c6",
       "dependencyHashes": {
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "713c20b1eb916831",
         "simulationLevel": "228dfc76d33f070e",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     },
@@ -79,7 +79,7 @@
         "simulationSchema": "b03f2f88cc38d8fb",
         "effectiveLevel": "531257d381370542",
         "simulationLevel": "3644e3340b52e0fe",
-        "balanceData": "fce1f4ab3c784705",
+        "balanceData": "478ee6eac341109b",
         "policyOrReplay": "b13ba2d327b826a4"
       }
     }
