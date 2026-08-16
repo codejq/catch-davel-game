@@ -253,4 +253,22 @@ describe('authoritative Level 1 interactions', () => {
     expect(target.health).toBe(0);
     expect(game.state.defeat).toBe(true);
   });
+
+  it('reverses the Level 18 route gates exactly when the key is collected', () => {
+    const game = new GameSimulation('backtrack-gate-proof', undefined, undefined, 'campaign', 'level-018');
+    const forward = game.state.level.hazards.find((hazard) => hazard.id === 'backtrack-forward-gate')!;
+    const returning = game.state.level.hazards.find((hazard) => hazard.id === 'backtrack-return-gate')!;
+    expect([forward.active, returning.active]).toEqual([false, true]);
+    expect(hazardTicksUntilToggle(forward, game.state.tick, game.state.levelId)).toBe(0);
+    const key = game.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
+    game.state.player.x = key.x;
+    game.state.player.z = key.z;
+    game.step(idle);
+    expect(game.state.level.keyCollected).toBe(true);
+    expect([forward.active, returning.active]).toEqual([true, false]);
+    expect(closedDoorCells(game.state.level)).toContainEqual({ column: forward.column, row: forward.row });
+    expect(closedDoorCells(game.state.level)).not.toContainEqual({ column: returning.column, row: returning.row });
+    const restored = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+    expect(restored.level.hazards).toEqual(game.state.level.hazards);
+  });
 });

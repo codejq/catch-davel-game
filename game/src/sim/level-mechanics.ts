@@ -12,9 +12,14 @@ export interface FreezeDanceWindow {
 export function levelMechanicKind(levelId: PlayableLevelId): LevelMechanicKind {
   const level = campaignLevel(levelId);
   if (level.tags.includes('ambush')) return 'key-ambush';
+  if (level.tags.includes('maze-reversal')) return 'branch-route';
   if (danceGameplayRuntimeProfile(level.dance.presetId).kind === 'freeze-window') return 'freeze-dance';
   if (level.tags.includes('branching')) return 'branch-route';
   return 'standard';
+}
+
+export function isMazeReversalLevel(levelId: PlayableLevelId): boolean {
+  return campaignLevel(levelId).tags.includes('maze-reversal');
 }
 
 export function isKeyAmbushLevel(levelId: PlayableLevelId): boolean {
@@ -43,7 +48,11 @@ export function freezeDanceWindow(levelId: PlayableLevelId, tick: number): Freez
 
 export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Record<string, unknown>> | null {
   const kind = levelMechanicKind(levelId);
-  if (kind === 'standard' || kind === 'branch-route') return null;
+  if (kind === 'standard') return null;
+  if (kind === 'branch-route') return isMazeReversalLevel(levelId) ? {
+    kind: 'maze-reversal', trigger: 'key-collected', closes: 'after-key', opens: 'before-key',
+    collision: 'timed-door',
+  } : null;
   if (kind === 'key-ambush') return { kind, trigger: 'key-collected', activation: 'first-wave' };
   return { kind, profile: danceGameplayRuntimeProfile(campaignLevel(levelId).dance.presetId) };
 }

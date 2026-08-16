@@ -9,11 +9,11 @@ import { validateContentSubmission, validateLevelSubmission } from '../src/conte
 describe('content submission localization and provenance gates', () => {
   it('covers every playable visible key and referenced presentation asset', () => {
     const report = validateContentSubmission(PLAYABLE_LEVELS);
-    expect(report.levels).toHaveLength(17);
+    expect(report.levels).toHaveLength(18);
     expect(report.releaseLocales).toEqual(['en', 'ar']);
-    expect(report.localizationKeyCount).toBe(51);
-    expect(report.referencedAssetCount).toBe(170);
-    expect(report.provenanceRecordCount).toBe(17);
+    expect(report.localizationKeyCount).toBe(54);
+    expect(report.referencedAssetCount).toBe(180);
+    expect(report.provenanceRecordCount).toBe(18);
     expect(report.thirdPartyAssetCount).toBe(0);
   });
 

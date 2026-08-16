@@ -133,7 +133,7 @@ export class GameSimulation {
   step(command: PlayerCommand): void {
     this.state.events.length = 0;
     if (this.state.defeat || this.state.victory) {
-      stepLevelHazardPhases(this.state.level, this.state.tick + 1);
+      stepLevelHazardPhases(this.state.level, this.state.tick + 1, this.state.levelId);
       this.state.tick += 1;
       return;
     }
@@ -141,13 +141,14 @@ export class GameSimulation {
     if (this.state.tick > this.state.metrics.comboExpiresTick) this.state.metrics.currentCombo = 0;
     const doorEvent = openNearbyDoor(this.state.player, this.state.level);
     if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
-    stepLevelHazardPhases(this.state.level, this.state.tick);
+    stepLevelHazardPhases(this.state.level, this.state.tick, this.state.levelId);
     stepPlayer(this.state.player, command, closedDoorCells(this.state.level, this.state.player), this.state.levelId);
     stepLevelHazards(this.state.player, this.state.level, this.state.tick, this.state.levelId);
     const secretWasActive = this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active);
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level, this.state.difficulty)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
     }
+    stepLevelHazardPhases(this.state.level, this.state.tick, this.state.levelId);
     if (secretWasActive && !this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active)) {
       this.state.metrics.secretsFound += 1;
     }
@@ -157,7 +158,7 @@ export class GameSimulation {
     if (reachedUnlockedExit(this.state.player, this.state.level)) {
       this.state.victory = true;
       this.state.events.push({ tick: this.state.tick, type: 'victory' });
-      stepLevelHazardPhases(this.state.level, this.state.tick + 1);
+      stepLevelHazardPhases(this.state.level, this.state.tick + 1, this.state.levelId);
       quantizeSimulationState(this.state);
       this.state.tick += 1;
       return;
@@ -203,7 +204,7 @@ export class GameSimulation {
       z: detonation.z,
     });
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
-    stepLevelHazardPhases(this.state.level, this.state.tick + 1);
+    stepLevelHazardPhases(this.state.level, this.state.tick + 1, this.state.levelId);
     quantizeSimulationState(this.state);
     this.state.tick += 1;
   }

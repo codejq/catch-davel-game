@@ -1,0 +1,547 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "c487c4a492ec3c4b",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "05ad08de4cb6dc07",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 15000,
+        "mode": "live-agent",
+        "parTicks": 11000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-big-top-backtrack"
+        ],
+        "seed": "campaign-level-018-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "named-elite"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-018"
+  },
+  "briefingKey": "levels.018.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-018"
+    }
+  ],
+  "dance": {
+    "armPatternId": "reverse-circus-strut-arms-v1",
+    "attackBeats": [
+      0,
+      4,
+      8,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 150,
+    "footPatternId": "reverse-circus-strut-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "reverse-circus-strut-head-v1",
+    "pathPatternId": "reverse-circus-strut-path-v1",
+    "presetId": "reverse-circus-strut",
+    "reducedMotionPresetId": "reverse-circus-strut-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "reverse-circus-strut-torso-v1",
+    "transitionIds": [
+      "reverse-rush",
+      "backtrack-finale",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      2,
+      6,
+      10,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-018"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-018"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "reverse-circus-company",
+      "rewardId": "chapter-02-clear-018",
+      "roomNodeId": "backtrack-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "outbound-parade",
+          "interGroupDelayTicks": 9,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "outbound-wobblers",
+              "modifierIds": [
+                "wrong-way"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-1.wobblers",
+              "spawnPointSetId": "level-018-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "outbound-sliders",
+              "modifierIds": [
+                "reverse-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-1.sliders",
+              "spawnPointSetId": "level-018-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "reverse-rush",
+          "id": "reverse-rush",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "reverse-spinner",
+              "modifierIds": [
+                "about-face"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-2.spinners",
+              "spawnPointSetId": "level-018-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "reverse-firemouth",
+              "modifierIds": [
+                "backfire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-2.firemouth",
+              "spawnPointSetId": "level-018-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 26
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "backtrack-finale",
+          "id": "backtrack-finale",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "finale-wobbler",
+              "modifierIds": [
+                "wrong-way"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-3.wobbler",
+              "spawnPointSetId": "level-018-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "finale-foreman",
+              "modifierIds": [
+                "reverse-ringmaster"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-3.foreman",
+              "spawnPointSetId": "level-018-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-18",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "reverse-circus-strut",
+              "id": "finale-dj",
+              "modifierIds": [
+                "backbeat-barker"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-18",
+              "rngStream": "encounter.level-018.wave-3.dj",
+              "spawnPointSetId": "level-018-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 22
+        }
+      ]
+    }
+  ],
+  "id": "level-018",
+  "mastery": [
+    {
+      "presetId": "level-018-par-time"
+    },
+    {
+      "presetId": "level-018-no-wrong-way"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "big-top-entry",
+        "id": "entry-outbound",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "outbound-ring",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "outbound-ring",
+        "id": "outbound-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "reverse-key-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "reverse-key-booth",
+        "id": "key-arena",
+        "requiredKeyId": "reverse-key",
+        "stateTrigger": "key-collected",
+        "to": "backtrack-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "backtrack-arena",
+        "id": "arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "reverse-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "reverse-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "reverse-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "outbound-ring",
+        "id": "outbound-short",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "short-way-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "short-way-booth",
+        "id": "short-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "reverse-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "reverse-key-booth",
+        "id": "key-long",
+        "requiredKeyId": "reverse-key",
+        "stateTrigger": "key-collected",
+        "to": "long-way-booth",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "long-way-booth",
+        "id": "long-arena",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "backtrack-arena",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "big-top-entry",
+    "exitNodeId": "reverse-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "backtrack-gate-forward-v1",
+        "id": "backtrack-forward-gate",
+        "nodeId": "backtrack-arena",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "backtrack-gate-return-v1",
+        "id": "backtrack-return-gate",
+        "nodeId": "backtrack-arena",
+        "periodTicks": 1
+      }
+    ],
+    "keys": [
+      {
+        "id": "reverse-key",
+        "placementNodeId": "reverse-key-booth"
+      }
+    ],
+    "maxBranchDepth": 2,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "big-top-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "big-top-entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "outbound-ring",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "outbound-route"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "reverse-key-booth",
+        "pickupIds": [
+          "reverse-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "route-switch"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "reverse-circus-company"
+        ],
+        "id": "backtrack-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "maze-reversal",
+          "backtrack-gates"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "short-way-booth",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "closed-after-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "long-way-booth",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "opened-after-key"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-018",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "reverse-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "reverse-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 2,
+      "minimum": 2
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-big-top-backtrack",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.018.name",
+  "number": 18,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-big-top-backtrack",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "outbound-parade",
+        "reverse-rush",
+        "backtrack-finale"
+      ],
+      "titleKey": "objectives.level_018",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-18"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-018-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 56,
+    "maxActiveRobots": 4,
+    "maxHazards": 2,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-018-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "maze-reversal",
+    "backtrack-gates",
+    "reverse-circus-strut"
+  ]
+}

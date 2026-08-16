@@ -101,4 +101,26 @@ describe('agent observation contract', () => {
       },
     });
   });
+
+  it('exposes the Level 18 key-driven route reversal without hidden state', () => {
+    const game = new GameSimulation('agent-backtrack', undefined, undefined, 'campaign', 'level-018');
+    expect(createObservation(game.state)).toMatchObject({
+      levelMechanic: { kind: 'branch-route', phase: 'armed' },
+      hazards: [
+        { id: 'backtrack-forward-gate', active: false, ticksUntilToggle: 0 },
+        { id: 'backtrack-return-gate', active: true, ticksUntilToggle: 0 },
+      ],
+    });
+    const key = game.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
+    game.state.player.x = key.x;
+    game.state.player.z = key.z;
+    game.step({ forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false });
+    expect(createObservation(game.state)).toMatchObject({
+      levelMechanic: { kind: 'branch-route', phase: 'active' },
+      hazards: [
+        { id: 'backtrack-forward-gate', active: true, ticksUntilToggle: 0 },
+        { id: 'backtrack-return-gate', active: false, ticksUntilToggle: 0 },
+      ],
+    });
+  });
 });

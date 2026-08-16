@@ -49,6 +49,13 @@
       "roomSize": 0.88,
       "wetMix": 0.33
     },
+    "audio-copper-carnival-018": {
+      "dampingHz": 4400,
+      "decaySeconds": 0.68,
+      "pitchScale": 1.03,
+      "roomSize": 0.84,
+      "wetMix": 0.31
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -187,6 +194,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "reverse-circus-strut": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "side-to-side-shuffle": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -236,6 +249,7 @@
     "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
     "pocket-robot-pop": "robot-pop",
+    "reverse-circus-strut": "reverse-strut",
     "side-to-side-shuffle": "side-shuffle",
     "sideways-soft-shoe": "soft-shoe",
     "tempo-tent-twist": "tempo-twist",
@@ -244,6 +258,28 @@
     "wobble-march": "wobble-march"
   },
   "hazardProfiles": {
+    "backtrack-gate-forward-v1": {
+      "activation": "after-key",
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    },
+    "backtrack-gate-return-v1": {
+      "activation": "before-key",
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.3,
+      "halfWidth": 1.3,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    },
     "clockwork-gate-center-v1": {
       "column": 10,
       "directionX": 0,
@@ -457,6 +493,103 @@
   },
   "manifestId": "campaign-runtime-v1",
   "mazeProfiles": {
+    "carnival-big-top-backtrack": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 20,
+          "column": 5,
+          "row": 5
+        },
+        "door": {
+          "column": 8,
+          "row": 10
+        },
+        "energy": {
+          "amount": 23,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 17,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 11,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "carnival-firebreather-funhouse": {
       "interactions": {
         "checkpoint": {
@@ -1781,6 +1914,33 @@
       ],
       "swing": 0.04
     },
+    "reverse-circus-strut": {
+      "bassPattern": [
+        4,
+        2,
+        0,
+        3
+      ],
+      "leadPattern": [
+        4,
+        2,
+        3,
+        1,
+        4,
+        0,
+        2,
+        1
+      ],
+      "rootMidi": 55,
+      "scale": [
+        0,
+        2,
+        5,
+        7,
+        9
+      ],
+      "swing": 0.2
+    },
     "side-to-side-shuffle": {
       "bassPattern": [
         0,
@@ -2180,6 +2340,40 @@
           0.32,
           0.24,
           0.94
+        ]
+      ]
+    },
+    "copper-carnival-18": {
+      "floor": [
+        0.98,
+        0.66,
+        0.2
+      ],
+      "sky": [
+        0.56,
+        0.86,
+        1
+      ],
+      "walls": [
+        [
+          0.92,
+          0.2,
+          0.38
+        ],
+        [
+          0.12,
+          0.68,
+          0.92
+        ],
+        [
+          0.98,
+          0.72,
+          0.12
+        ],
+        [
+          0.44,
+          0.22,
+          0.86
         ]
       ]
     },

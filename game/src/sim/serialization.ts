@@ -518,7 +518,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const level = validateLevel(snapshotValue.level, levelId, encounter, difficulty);
   const player = validatePlayer(snapshotValue.player);
   const metrics = validateRunMetrics(snapshotValue.metrics, robots, level, player);
-  if (level.hazards.some((hazard) => hazard.active !== hazardActiveAtTick(hazard, tick))) {
+  if (level.hazards.some((hazard) => hazard.active
+    !== hazardActiveAtTick(hazard, tick, level.keyCollected, levelId))) {
     throw new Error('snapshot.level hazard phase is inconsistent with snapshot.tick');
   }
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');

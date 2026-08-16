@@ -67,6 +67,7 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
   { level: '015', palette: 'copper-carnival-15', mazeTemplate: 'carnival-tempo-tent', audio: 'audio-copper-carnival-015', dance: 'tempo-tent-twist', sourcePath: 'game/src/content/levels/level-015.ts' },
   { level: '016', palette: 'copper-carnival-16', mazeTemplate: 'carnival-laughing-mirrors', audio: 'audio-copper-carnival-016', dance: 'mirrorball-lindy', sourcePath: 'game/src/content/levels/level-016.ts' },
   { level: '017', palette: 'copper-carnival-17', mazeTemplate: 'carnival-prize-booth-panic', audio: 'audio-copper-carnival-017', dance: 'jackpot-jitterbug', sourcePath: 'game/src/content/levels/level-017.ts' },
+  { level: '018', palette: 'copper-carnival-18', mazeTemplate: 'carnival-big-top-backtrack', audio: 'audio-copper-carnival-018', dance: 'reverse-circus-strut', sourcePath: 'game/src/content/levels/level-018.ts' },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {

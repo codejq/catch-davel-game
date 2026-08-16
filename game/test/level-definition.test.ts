@@ -6,6 +6,7 @@ import { DEFAULT_LEVEL_SEED } from '../src/sim/constants';
 import { currentAgentValidationDependencies } from '../src/replay/replay';
 import {
   CHAPTER_02_LEVELS, LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016, LEVEL_017,
+  LEVEL_018,
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
 
@@ -37,7 +38,7 @@ describe('Appendix A level-data contract', () => {
     expect(CHAPTER_01_LEVELS[9].agentValidation.tier).toBe('boss');
   });
 
-  it('admits both authored Chapter 2 levels through the shared catalog with current replay dependencies', () => {
+  it('admits every authored Chapter 2 level through the shared catalog with current replay dependencies', () => {
     expect(validateLevelDefinition(LEVEL_011)).toBe(LEVEL_011);
     expect(campaignLevel('level-011')).toBe(LEVEL_011);
     expect(LEVEL_011.chapterId).toBe('chapter-02');
@@ -48,6 +49,7 @@ describe('Appendix A level-data contract', () => {
       .toEqual(currentAgentValidationDependencies('level-011'));
     expect(CHAPTER_02_LEVELS.map((level) => level.id)).toEqual([
       'level-011', 'level-012', 'level-013', 'level-014', 'level-015', 'level-016', 'level-017',
+      'level-018',
     ]);
     expect(validateLevelDefinition(LEVEL_012)).toBe(LEVEL_012);
     expect(campaignLevel('level-012')).toBe(LEVEL_012);
@@ -81,6 +83,11 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_017.objectives[0]).toMatchObject({ id: 'defend-prize-bank', type: 'defend' });
     expect(LEVEL_017.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-017'));
+    expect(validateLevelDefinition(LEVEL_018)).toBe(LEVEL_018);
+    expect(campaignLevel('level-018')).toBe(LEVEL_018);
+    expect(LEVEL_018.tags).toContain('maze-reversal');
+    expect(LEVEL_018.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-018'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

@@ -178,6 +178,15 @@ function targets(
     leftFootY += grab * 0.15; rightFootY += toss * 0.15;
     leftHand = [-0.28 - toss * 0.64, 1.1 + grab * 0.86, 0.34];
     rightHand = [0.28 + grab * 0.64, 1.1 + toss * 0.86, 0.34];
+  } else if (performance.motif === 'reverse-strut') {
+    const forward = Math.max(0, beat); const reverse = Math.max(0, -beat);
+    bounce += (forward * 0.08 + reverse * 0.14) * intensity;
+    hipX = -alternate * 0.3 * intensity; chestX = alternate * 0.38 * intensity;
+    chestZ = (reverse - forward) * 0.11; headX -= alternate * 0.24; headZ = reverse * 0.1;
+    leftFootZ = reverse * 0.66 - forward * 0.28; rightFootZ = forward * 0.66 - reverse * 0.28;
+    leftFootY += reverse * 0.17; rightFootY += forward * 0.17;
+    leftHand = [-0.78 + forward * 0.32, 1.48 + reverse * 0.28, -0.18];
+    rightHand = [0.78 - reverse * 0.32, 1.48 + forward * 0.28, -0.18];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

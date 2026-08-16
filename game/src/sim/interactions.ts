@@ -149,7 +149,8 @@ export function createLevelRuntime(
       halfWidth: profile.halfWidth, halfDepth: profile.halfDepth,
       directionX: profile.directionX, directionZ: profile.directionZ,
       periodTicks: hazard.periodTicks, activeTicks: hazard.activeTicks,
-      phaseOffsetTicks: profile.phaseOffsetTicks, active: phase < hazard.activeTicks,
+      phaseOffsetTicks: profile.phaseOffsetTicks,
+      active: profile.activation === 'before-key' || (profile.activation !== 'after-key' && phase < hazard.activeTicks),
     };
   });
   const defense = definition.defense === undefined || encounter !== 'campaign' ? null : (() => {
@@ -239,7 +240,7 @@ export function stepEncounterWaves(
 export function stepLevelHazards(
   player: PlayerState, level: LevelRuntimeState, tick: number, levelId: PlayableLevelId,
 ): void {
-  stepLevelHazardPhases(level, tick);
+  stepLevelHazardPhases(level, tick, levelId);
   for (const hazard of level.hazards) {
     if (hazard.kind !== 'conveyor' || !hazard.active
       || Math.abs(player.x - hazard.x) > hazard.halfWidth || Math.abs(player.z - hazard.z) > hazard.halfDepth) continue;
@@ -254,17 +255,35 @@ export function stepLevelHazards(
   }
 }
 
-export function stepLevelHazardPhases(level: LevelRuntimeState, tick: number): void {
+export function stepLevelHazardPhases(
+  level: LevelRuntimeState, tick: number, levelId: PlayableLevelId = 'level-001',
+): void {
   for (const hazard of level.hazards) {
-    hazard.active = hazardActiveAtTick(hazard, tick);
+    hazard.active = hazardActiveAtTick(hazard, tick, level.keyCollected, levelId);
   }
 }
 
-export function hazardActiveAtTick(hazard: HazardRuntimeState, tick: number): boolean {
+function hazardActivation(
+  levelId: PlayableLevelId, hazardId: string,
+): 'periodic' | 'before-key' | 'after-key' {
+  const authored = campaignLevel(levelId).maze.hazards.find((hazard) => hazard.id === hazardId);
+  if (authored === undefined) return 'periodic';
+  return hazardRuntimeProfile(authored.collisionProfileId).activation ?? 'periodic';
+}
+
+export function hazardActiveAtTick(
+  hazard: HazardRuntimeState, tick: number, keyCollected = false, levelId: PlayableLevelId = 'level-001',
+): boolean {
+  const activation = hazardActivation(levelId, hazard.id);
+  if (activation === 'before-key') return !keyCollected;
+  if (activation === 'after-key') return keyCollected;
   return (tick + hazard.phaseOffsetTicks) % hazard.periodTicks < hazard.activeTicks;
 }
 
-export function hazardTicksUntilToggle(hazard: HazardRuntimeState, tick: number): number {
+export function hazardTicksUntilToggle(
+  hazard: HazardRuntimeState, tick: number, levelId: PlayableLevelId = 'level-001',
+): number {
+  if (hazardActivation(levelId, hazard.id) !== 'periodic') return 0;
   const phase = (tick + hazard.phaseOffsetTicks) % hazard.periodTicks;
   return phase < hazard.activeTicks ? hazard.activeTicks - phase : hazard.periodTicks - phase;
 }

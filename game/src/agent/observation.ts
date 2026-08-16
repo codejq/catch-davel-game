@@ -8,7 +8,7 @@ import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 import type { PlayableLevelId } from '../content/level-ids';
 import { levelDancePerformance } from '../sim/dance-performance';
-import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
+import { freezeDanceWindow, isMazeReversalLevel, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
 import { campaignRunScore, runAccuracyPermille } from '../sim/run-score';
 import type { DifficultyId } from '../sim/difficulty';
@@ -360,7 +360,8 @@ export function createObservation(state: GameState): AgentObservation {
       kind: mechanicKind,
       phase: mechanicKind === 'key-ambush' ? (state.level.keyCollected ? 'ambush' : 'armed')
         : mechanicKind === 'freeze-dance' ? (freezeWindow.frozen ? 'freeze' : 'hunt')
-          : mechanicKind === 'branch-route' ? 'explore' : 'active',
+          : mechanicKind === 'branch-route' ? (isMazeReversalLevel(state.levelId)
+            ? (state.level.keyCollected ? 'active' : 'armed') : 'explore') : 'active',
       robotsFrozen: freezeWindow.frozen,
       ticksUntilPhaseChange: mechanicKind === 'freeze-dance' ? freezeWindow.ticksUntilToggle : null,
     },
@@ -383,7 +384,7 @@ export function createObservation(state: GameState): AgentObservation {
       active: hazard.active,
       periodTicks: hazard.periodTicks,
       activeTicks: hazard.activeTicks,
-      ticksUntilToggle: hazardTicksUntilToggle(hazard, state.tick),
+      ticksUntilToggle: hazardTicksUntilToggle(hazard, state.tick, state.levelId),
     })),
     door: {
       id: state.level.door.id,
