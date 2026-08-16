@@ -4,13 +4,15 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **9 — deterministic player-resource upgrades implemented; physical devices remain certification-only**
+Revision: **10 — snapshot-derived player locomotion audio implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
 Revision 2 fixes deterministic-simulation contradictions, separates simulation and rendering workers, reconciles the robot budget, selects hitscan for the pulse gun, adds content tooling and agent-driven campaign QA, defines a provisional device matrix, makes packaged saves file-backed, protects production progress from agent automation, and adds the level-data contract in Appendix A.
 
 Revision 9 records the implemented player-resource upgrade contract. Simulation schema v18 derives maximum health and energy from two bounded three-level upgrades; pickups and regeneration clamp to those authoritative caps. Replay format v3, RenderSnapshot transport v13, observation v15, Worker resets, HUD, workbench purchases, tests, and profile v10 all carry the same state. The checksum-first v9→v10 migration bounds the previously reserved upgrade fields and clears schema-v17 checkpoints. Agent and training resets deliberately retain zero upgrades. The existing schema-v17 sprint command and API v2 remain unchanged. Physical-device suites remain mandatory before a corresponding platform release claim, but their current unavailability never blocks implementation or the active goal.
+
+Revision 10 records the implemented player locomotion-audio pass. A presentation-only sequencer derives alternating footsteps from authoritative travelled-distance `bobPhase`, requires actual snapshot displacement, distinguishes the faster sprint cadence, and emits at most one current cue per presented snapshot. Hidden, paused, terminal, coalesced, rewind, and resync paths consume or re-prime phase without replaying a stale burst. The project-original two-layer cue uses the existing world bus, room response, dynamic-range controls, and fixed 50-source ceiling. It changes no simulation schema, replay dependency, transport contract, save profile, or LLM observation.
 
 ## 1. Executive summary
 

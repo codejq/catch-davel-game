@@ -4,7 +4,7 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
   | 'laser' | 'robot-impact' | 'weak-point' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
-  | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
+  | 'player-step' | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
 
 export type AudioBus = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
@@ -34,6 +34,7 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
   checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
   defeat: 'interface', ambush: 'interface', 'wave-warning': 'interface',
+  'player-step': 'world',
   'wobble-step': 'world', 'slider-step': 'world', 'spinner-step': 'world', 'firemouth-step': 'world',
   'dj-step': 'world', 'overlord-step': 'world',
 };
@@ -118,6 +119,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   defeat: [tone('sawtooth', 145, 42, 0.68, 0.16), noise('lowpass', 360, 0.55, 0.11)],
   ambush: [tone('sawtooth', 92, 46, 0.58, 0.16), noise('bandpass', 680, 0.32, 0.12), tone('square', 184, 69, 0.4, 0.08, 0.06)],
   'wave-warning': [tone('square', 196, 294, 0.42, 0.07), tone('triangle', 392, 588, 0.32, 0.045, 0.08), noise('bandpass', 920, 0.2, 0.04)],
+  'player-step': [noise('lowpass', 390, 0.095, 0.065), tone('sine', 88, 54, 0.11, 0.052, 0.008)],
   'wobble-step': [tone('sine', 142, 92, 0.11, 0.04), noise('bandpass', 580, 0.055, 0.025, 0.018)],
   'slider-step': [noise('bandpass', 1260, 0.1, 0.035), tone('triangle', 310, 205, 0.12, 0.032, 0.012)],
   'spinner-step': [tone('square', 720, 460, 0.055, 0.027), noise('highpass', 2100, 0.07, 0.024, 0.025)],

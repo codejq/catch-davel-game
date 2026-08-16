@@ -335,6 +335,24 @@ try {
   await page.click('#game');
   await page.waitForFunction(() => document.body.dataset.ambienceSources === '2'
     && document.body.dataset.ambienceActive === 'true');
+  await page.waitForFunction(() => Number(document.body.dataset.playerStepCount) >= 1
+    && document.body.dataset.playerStepSprint === 'false');
+  const walkingStepCount = await page.evaluate(() => Number(document.body.dataset.playerStepCount));
+  await page.keyboard.down('ShiftLeft');
+  await page.waitForFunction((count) => Number(document.body.dataset.playerStepCount) > count
+    && document.body.dataset.playerStepSprint === 'true', walkingStepCount);
+  await page.keyboard.up('ShiftLeft');
+  const playerMovementAudioProof = await page.evaluate(() => ({
+    count: Number(document.body.dataset.playerStepCount),
+    pitchScale: Number(document.body.dataset.playerStepPitch),
+    sprinting: document.body.dataset.playerStepSprint,
+  }));
+  if (playerMovementAudioProof.count <= walkingStepCount
+    || !Number.isFinite(playerMovementAudioProof.pitchScale)
+    || playerMovementAudioProof.pitchScale <= 1
+    || playerMovementAudioProof.sprinting !== 'true') {
+    throw new Error(`Player movement audio did not expose walk/sprint cadence: ${JSON.stringify(playerMovementAudioProof)}`);
+  }
   await page.waitForFunction(() => {
     const indicator = document.querySelector('#dance-beat-indicator');
     return indicator?.hidden === false && indicator.children.length === 16
@@ -709,7 +727,7 @@ try {
   console.log(JSON.stringify({
     passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
     pulseEnergyCellProof, pulseImpactProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
-    ambienceProof, lifecycle, browserErrors: errors,
+    ambienceProof, playerMovementAudioProof, lifecycle, browserErrors: errors,
     fallback: {
       ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
       pulseImpact: fallbackPulseImpact,

@@ -51,6 +51,7 @@ import { bossPresentation } from './boss-presentation';
 import { difficultyProfile, isDifficultyId } from '../sim/difficulty';
 import { applyHumanAimAssist } from './human-aim-assist';
 import { DavelMovementAudioSequencer } from './davel-movement-audio';
+import { PlayerMovementAudioSequencer } from './player-movement-audio';
 import { danceBeatPresentation, type DanceBeatPhase } from './dance-beat-presentation';
 import { PULSE_MAX_SPREAD_RADIANS } from '../sim/combat';
 import {
@@ -285,6 +286,7 @@ export async function startBrowserGame(): Promise<void> {
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
   const davelMovementAudio = new DavelMovementAudioSequencer();
+  const playerMovementAudio = new PlayerMovementAudioSequencer();
   const laserAudio = new LaserAudioSequencer();
   const bombFuseAudio = new BombFuseAudioSequencer();
   let profileWrite: Promise<void> = Promise.resolve();
@@ -1068,6 +1070,13 @@ export async function startBrowserGame(): Promise<void> {
         for (const request of davelMovementAudio.sample(state, ambienceActive && !frozen)) {
           sound(request.cue, request.robotId, request.gainScale);
         }
+        const playerStep = playerMovementAudio.sample(state, ambienceActive);
+        if (playerStep !== null) {
+          sound(playerStep.cue, undefined, playerStep.gainScale, playerStep.pitchScale);
+          document.body.dataset.playerStepCount = String(Number(document.body.dataset.playerStepCount ?? '0') + 1);
+          document.body.dataset.playerStepPitch = String(playerStep.pitchScale);
+          document.body.dataset.playerStepSprint = String(playerStep.sprinting);
+        }
         audio?.setAmbience(ambienceActive, combatIntensity, frozen);
         document.body.dataset.ambienceActive = String(ambienceActive);
         music?.update(
@@ -1079,6 +1088,7 @@ export async function startBrowserGame(): Promise<void> {
       onEvent: processEvent,
       onResync: (state) => {
         davelMovementAudio.reset();
+        playerMovementAudio.reset();
         laserAudio.reset();
         bombFuseAudio.reset();
         pendingPulseEffectTicks.length = 0;
