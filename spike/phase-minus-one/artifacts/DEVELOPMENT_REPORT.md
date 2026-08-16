@@ -1,8 +1,8 @@
 # Phase -1 development report
 
-Status: **Incomplete — core development diagnostics pass; audio timing and baseline-device certification are outstanding**
+Status: **Development evidence recorded — implementation may continue; release certification remains outstanding**
 
-This report is evidence from the current development environment only. It cannot approve Phase 0 because the named Intel UHD 620 desktop, Pixel 6a, and iPhone 12 runs have not been supplied.
+This report is evidence from the current development environment only. Under the 2026-08-16 continuation decision it permits implementation to proceed, but it does not certify the Intel UHD 620 desktop, Pixel 6a, or iPhone 12 targets.
 
 ## Frozen workload
 
@@ -16,8 +16,8 @@ This report is evidence from the current development environment only. It cannot
 
 | Diagnostic | Result | Plan target | Interpretation |
 |---|---:|---:|---|
-| Node whole tick p95 | 0.193 ms | ≤ 4 ms desktop | Diagnostic pass |
-| Node XPBD/collision p95 | 0.137 ms | ≤ 2 ms desktop | Diagnostic pass |
+| Node whole tick p95 | 0.286 ms | ≤ 4 ms desktop | Diagnostic pass |
+| Node XPBD/collision p95 | 0.177 ms | ≤ 2 ms desktop | Diagnostic pass |
 | Browser whole tick p95 | 0.600 ms | ≤ 4 ms desktop | Diagnostic pass |
 | Main snapshot latency p95 | 0.200 ms | ≤ 5 ms desktop | Diagnostic pass |
 | Raw WebGL2 CPU submission p95 | 0.300 ms | GPU/frame budget | Informational; not GPU time |
@@ -58,4 +58,4 @@ The Node 6,000-tick run ended at checksum `bf3793bf`; its event peak was 79 reco
 - Investigate the failed development audio timing result, then repeat it on baseline devices with physical speaker/display capture. Current result limitation: Instrumented Web Audio clock mapping and animation-frame timing only; no microphone, speaker, photodiode, or physical display capture.
 - Re-run from a clean commit before promoting evidence; development runs with unrelated workspace changes remain marked dirty.
 
-Phase 0 remains gated until those items are measured and the Phase -1 report is approved. No production architecture decision is inferred from this development result.
+Phase 0 implementation may proceed under the recorded continuation decision. Release certification remains gated until the named device evidence and open audio/GPU findings are resolved.

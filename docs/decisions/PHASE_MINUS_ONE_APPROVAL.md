@@ -1,6 +1,6 @@
 # Phase -1 approval packet
 
-Status: **Approved for Phase -1 implementation**
+Status: **Approved; implementation continuation authorized**
 
 Applies to: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6
 
@@ -22,9 +22,9 @@ Approval of this packet authorizes the disposable Phase -1 feasibility spike onl
 
 | Target | Plan baseline | Availability |
 |---|---|---|
-| Windows desktop | Intel Core i5-8250U, Intel UHD 620, 8 GB RAM, Windows 11 | Confirmation/device access required |
-| Android | Google Pixel 6a, 6 GB RAM, Android 14 | Confirmation/device access required |
-| iOS | iPhone 12, 4 GB RAM, iOS 17.4 | Confirmation/device access required |
+| Windows desktop | Intel Core i5-8250U, Intel UHD 620, 8 GB RAM, Windows 11 | Unavailable; deferred to release certification |
+| Android | Google Pixel 6a, 6 GB RAM, Android 14 | Unavailable; deferred to release certification |
+| iOS | iPhone 12, 4 GB RAM, iOS 17.4 | Unavailable; deferred to release certification |
 
 Public browser floors remain Chromium-family 124+, Firefox 125+, and Safari 17.4+ unless Decision 20 supplies replacements.
 
@@ -41,3 +41,7 @@ Approval date: **2026-08-16**
 Approved decisions or replacements: **Decisions 16–20 approved as recommended; no replacements**
 
 Available certification hardware/owners: **Pending**
+
+## Continuation decision
+
+On 2026-08-16, the project owner explicitly directed implementation to continue without the named physical devices. Device absence is therefore an open release-certification gap, not an implementation or phase-start blocker. Development results remain labeled development-only, and no platform is described as certified until its named suite passes.

@@ -99,9 +99,9 @@ const audioMappingP95 = browser.summary.audioVisual?.audioMappingErrorMs.p95 ?? 
 const audioVisualP95 = browser.summary.audioVisual?.audioVisualSeparationMs.p95 ?? Number.POSITIVE_INFINITY;
 const report = `# Phase -1 development report
 
-Status: **Incomplete — core development diagnostics pass; audio timing and baseline-device certification are outstanding**
+Status: **Development evidence recorded — implementation may continue; release certification remains outstanding**
 
-This report is evidence from the current development environment only. It cannot approve Phase 0 because the named Intel UHD 620 desktop, Pixel 6a, and iPhone 12 runs have not been supplied.
+This report is evidence from the current development environment only. Under the 2026-08-16 continuation decision it permits implementation to proceed, but it does not certify the Intel UHD 620 desktop, Pixel 6a, or iPhone 12 targets.
 
 ## Frozen workload
 
@@ -157,7 +157,7 @@ The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event 
 - Investigate the failed development audio timing result, then repeat it on baseline devices with physical speaker/display capture. Current result limitation: ${browser.summary.audioVisual?.limitation ?? 'audio probe missing'}
 - Re-run from a clean commit before promoting evidence; development runs with unrelated workspace changes remain marked dirty.
 
-Phase 0 remains gated until those items are measured and the Phase -1 report is approved. No production architecture decision is inferred from this development result.
+Phase 0 implementation may proceed under the recorded continuation decision. Release certification remains gated until the named device evidence and open audio/GPU findings are resolved.
 `;
 
 writeFileSync(outputPath, report);
@@ -185,7 +185,7 @@ writeFileSync(manifestOutputPath, `${JSON.stringify({
   },
 }, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify({
-  status: 'incomplete',
+  status: 'implementation-continuing; release-certification-incomplete',
   report: outputPath,
   manifest: manifestOutputPath,
   sourceRun: browser.directory,

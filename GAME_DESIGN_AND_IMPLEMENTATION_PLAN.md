@@ -1,10 +1,10 @@
 # Catch Davel: Game Design and Implementation Plan
 
-Status: **Pre-implementation design for review**  
+Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **6 — transport version boundary and measured-capacity review applied**
+Revision: **7 — implementation continuation without physical-device availability approved**
 
 > This document defines the proposed product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. It intentionally contains no gameplay implementation. Decisions marked **Review required** should be approved before production begins.
 
@@ -1241,7 +1241,7 @@ Tauri documentation references:
 
 ### 19.1 Provisional minimum device matrix
 
-These named floors make performance requirements falsifiable. Phase -1 must benchmark them or formally replace them before the budgets are approved.
+These named floors make release performance requirements falsifiable. When the devices are unavailable, development and later implementation phases continue using clearly labeled development/CI evidence. Missing physical-device evidence blocks a release claim for that platform, not implementation progress.
 
 | Target | Concrete baseline | Runtime floor | Required result |
 |---|---|---|---|
@@ -1371,7 +1371,7 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 - Phase -1 runs the identical frozen `perf:sim` scenario on both the named baseline desktop and the pinned CI runner, but records independent distributions rather than assuming one scalar converts different workload shapes between CPUs. The checked-in benchmark manifest stores hardware/runtime metadata, workload and simulation schema hashes, warm-up/sample counts, whole-tick and named-component median/p95 costs, total duration, and approved runner margins.
 - The baseline desktop is the absolute certification: at Phase -1 approval and each required recertification, its measured whole-tick p95 must remain at or below 4 ms and its XPBD/collision p95 at or below 2 ms. The Android and iOS devices similarly certify their declared absolute budgets. Real-device certification results are release evidence, not values inferred from CI hardware.
 - The pinned runner is a regression gate against its own Phase -1 reference. CI fails if whole-tick or named-component median regresses by more than 20%, if a p95 exceeds that runner component's recorded p95 plus its reviewed noise margin, or if total duration exceeds the runner-specific hard threshold. No cross-machine calibration factor is used.
-- Changing runner or baseline hardware, OS/runtime version, power policy, frozen workload, or benchmark instrumentation invalidates the affected reference. At minimum, the applicable absolute certification suite runs on the named baseline device matrix at every phase exit, beginning with Phase -1; a phase cannot pass on an older certification record. Performance-sensitive simulation/serialization changes and release candidates add runs between phase gates rather than replacing that cadence. Reference or margin changes require a pull-request explanation and before/after measurements.
+- Changing runner or baseline hardware, OS/runtime version, power policy, frozen workload, or benchmark instrumentation invalidates the affected reference. Implementation phases may proceed when named devices are unavailable, provided every result remains labeled development-only and no unsupported certification claim is made. The applicable absolute certification suite is required before a release candidate claims support for that platform. Performance-sensitive simulation/serialization changes and release candidates add runs rather than replacing that cadence. Reference or margin changes require a pull-request explanation and before/after measurements.
 - Ordinary hosted CI also runs a shorter regression smoke but does not pretend noisy shared-runner timing is a hardware certification.
 - Separate browser smoke records render FPS, GPU time where available, worker snapshot latency, memory, and draw calls on the device matrix.
 - Performance-baseline changes require a pull-request explanation and before/after measurements; developers may not silently raise thresholds.
@@ -1400,7 +1400,7 @@ Deliverables:
 
 Exit gate:
 
-- either the representative fixed 24-robot workload meets the total tick, physics sub-budget, snapshot transport, rendering, memory, and device targets and becomes approved, or the campaign/design budget is revised before Phase 0; production must not rely on adaptive solver iterations.
+- the representative fixed 24-robot workload must meet deterministic, bounded-transport, and development regression checks before Phase 0; unavailable physical-device measurements remain open release-certification work, and production must not rely on adaptive solver iterations.
 
 ### Phase 0: approval and repository foundation
 
@@ -1768,7 +1768,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
 
 ## 28. Immediate next step after approval
 
-After this plan is reviewed and the decisions tagged “Phase -1” in Section 26 are resolved, technical work begins with the disposable Phase -1 feasibility spike. Each remaining decision must be resolved by its own listed phase gate. Only after the spike measurements reconcile the 24-robot target and device budgets should Phase 0 and the production implementation begin. The first production visual milestone is one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone is a polished ten-level Chapter 1—not a rushed generation of all 100 levels.
+After this plan is reviewed and the decisions tagged “Phase -1” in Section 26 are resolved, technical work begins with the disposable Phase -1 feasibility spike. Each remaining decision must be resolved by its own listed phase gate. Phase 0 may begin after deterministic, bounded-transport, and development-regression evidence is recorded; unavailable physical devices defer platform certification but do not stop implementation. The first production visual milestone is one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone is a polished ten-level Chapter 1—not a rushed generation of all 100 levels.
 
 ## Appendix A. Level data schema contract
 
