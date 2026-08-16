@@ -1,4 +1,4 @@
-import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { campaignLevel, type PlayableLevelId } from '../content/levels/catalog';
 import { ROBOT_DEFINITIONS } from './robots';
 import type { RunMetrics } from './run-metrics';
 
@@ -7,14 +7,14 @@ export function runAccuracyPermille(metrics: RunMetrics): number | null {
     : Math.round(metrics.rangedAttacksHit * 1_000 / metrics.rangedAttacksFired);
 }
 
-export function standardCampaignParTicks(levelId: Chapter01LevelId): number {
-  const run = chapter01Level(levelId).agentValidation.runs.find((candidate) => candidate.difficulty === 'Standard');
+export function standardCampaignParTicks(levelId: PlayableLevelId): number {
+  const run = campaignLevel(levelId).agentValidation.runs.find((candidate) => candidate.difficulty === 'Standard');
   if (run === undefined) throw new Error(`${levelId} has no Standard par time`);
   return run.parTicks;
 }
 
 export function campaignRunScore(
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
   tick: number,
   completed: boolean,
   currentCoins: number,

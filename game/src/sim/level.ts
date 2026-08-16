@@ -1,6 +1,6 @@
 import { CELL_SIZE, PLAYER_RADIUS } from './constants';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
-import { chapter01Level } from '../content/levels/chapter-01';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
 import { mazeRuntimeProfile, type RuntimeGridCell } from '../content/runtime-manifests';
 
 export const LEVEL_ROWS = [
@@ -30,14 +30,14 @@ function openedRows(openings: readonly RuntimeGridCell[]): readonly string[] {
   return rows.map((row) => row.join(''));
 }
 
-export const LEVEL_ROWS_BY_ID: Readonly<Record<Chapter01LevelId, readonly string[]>> = Object.fromEntries(
-  CHAPTER_01_LEVEL_IDS.map((levelId) => [
+export const LEVEL_ROWS_BY_ID: Readonly<Record<PlayableLevelId, readonly string[]>> = Object.fromEntries(
+  PLAYABLE_LEVEL_IDS.map((levelId) => [
     levelId,
-    openedRows(mazeRuntimeProfile(chapter01Level(levelId).maze.templateSetId).openings),
+    openedRows(mazeRuntimeProfile(campaignLevel(levelId).maze.templateSetId).openings),
   ]),
-) as Readonly<Record<Chapter01LevelId, readonly string[]>>;
+) as Readonly<Record<PlayableLevelId, readonly string[]>>;
 
-export function levelRows(levelId: Chapter01LevelId = 'level-001'): readonly string[] {
+export function levelRows(levelId: PlayableLevelId = 'level-001'): readonly string[] {
   return LEVEL_ROWS_BY_ID[levelId];
 }
 
@@ -56,7 +56,7 @@ export interface WorldPoint {
   readonly z: number;
 }
 
-export function cellAt(column: number, row: number, levelId: Chapter01LevelId = 'level-001'): string {
+export function cellAt(column: number, row: number, levelId: PlayableLevelId = 'level-001'): string {
   return levelRows(levelId)[row]?.[column] ?? '#';
 }
 
@@ -74,7 +74,7 @@ export function worldCell(x: number, z: number): CellCoordinate {
   };
 }
 
-export function findCell(marker: 'S' | 'E', levelId: Chapter01LevelId = 'level-001'): CellCoordinate {
+export function findCell(marker: 'S' | 'E', levelId: PlayableLevelId = 'level-001'): CellCoordinate {
   for (let row = 0; row < LEVEL_HEIGHT; row += 1) {
     const column = levelRows(levelId)[row]!.indexOf(marker);
     if (column >= 0) return { column, row };
@@ -82,13 +82,13 @@ export function findCell(marker: 'S' | 'E', levelId: Chapter01LevelId = 'level-0
   throw new Error(`Level marker ${marker} is missing`);
 }
 
-export function isWallAtWorld(x: number, z: number, levelId: Chapter01LevelId = 'level-001'): boolean {
+export function isWallAtWorld(x: number, z: number, levelId: PlayableLevelId = 'level-001'): boolean {
   const cell = worldCell(x, z);
   return cellAt(cell.column, cell.row, levelId) === '#';
 }
 
 export function isPlayerPositionValid(
-  x: number, z: number, radius = PLAYER_RADIUS, levelId: Chapter01LevelId = 'level-001',
+  x: number, z: number, radius = PLAYER_RADIUS, levelId: PlayableLevelId = 'level-001',
 ): boolean {
   return isPlayerPositionValidWithBlockers(x, z, radius, [], levelId);
 }
@@ -98,7 +98,7 @@ export function isPlayerPositionValidWithBlockers(
   z: number,
   radius: number,
   blockedCells: readonly CellCoordinate[],
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
 ): boolean {
   const validCorner = (cornerX: number, cornerZ: number): boolean => {
     if (isWallAtWorld(cornerX, cornerZ, levelId)) return false;
@@ -111,7 +111,7 @@ export function isPlayerPositionValidWithBlockers(
     && validCorner(x + radius, z + radius);
 }
 
-export function wallCells(levelId: Chapter01LevelId = 'level-001'): CellCoordinate[] {
+export function wallCells(levelId: PlayableLevelId = 'level-001'): CellCoordinate[] {
   const result: CellCoordinate[] = [];
   for (let row = 0; row < LEVEL_HEIGHT; row += 1) {
     for (let column = 0; column < LEVEL_WIDTH; column += 1) {

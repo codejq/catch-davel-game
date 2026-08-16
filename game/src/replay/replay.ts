@@ -14,8 +14,8 @@ import {
 import { GameSimulation } from '../sim/game';
 import { levelRows } from '../sim/level';
 import { createLevelRuntime } from '../sim/interactions';
-import { chapter01Level } from '../content/levels/chapter-01';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
+import { isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
 import type { AgentValidationRunSpec } from '../content/level-definition';
 import { levelDefinitionDependencyHash } from '../content/validate-level';
 import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
@@ -75,7 +75,7 @@ export interface ReplayChecksum {
 export interface ReplayFileV3 {
   readonly replayFormatVersion: 3;
   readonly simulationSchemaVersion: number;
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly seed: string;
   readonly agentRun: boolean;
   readonly dependencyHashes: ReplayDependencyHashes;
@@ -103,22 +103,22 @@ function robotBalanceData(): unknown {
   }));
 }
 
-function simulationLevelData(levelId: Chapter01LevelId): Readonly<Record<string, unknown>> {
+function simulationLevelData(levelId: PlayableLevelId): Readonly<Record<string, unknown>> {
   const mechanic = levelMechanicDependency(levelId);
   return {
     rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
     dancePerformance: levelDancePerformance(levelId),
     danceCombatTiming: {
-      bpm: chapter01Level(levelId).dance.bpm,
-      attackBeats: chapter01Level(levelId).dance.attackBeats,
-      vulnerableBeats: chapter01Level(levelId).dance.vulnerableBeats,
+      bpm: campaignLevel(levelId).dance.bpm,
+      attackBeats: campaignLevel(levelId).dance.attackBeats,
+      vulnerableBeats: campaignLevel(levelId).dance.vulnerableBeats,
     },
     ...(mechanic === null ? {} : { mechanic }),
   };
 }
 
-export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001'): ReplayDependencyHashes {
-  const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
+export function currentReplayDependencies(levelId: PlayableLevelId = 'level-001'): ReplayDependencyHashes {
+  const effectiveLevel = levelDefinitionDependencyHash(campaignLevel(levelId));
   const simulationLevel = checksumCanonical(simulationLevelData(levelId));
   return {
     simulationSchema: checksumCanonical({
@@ -173,13 +173,13 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
   };
 }
 
-export function currentAgentValidationDependencies(levelId: Chapter01LevelId = 'level-001'): AgentValidationRunSpec['dependencyHashes'] {
+export function currentAgentValidationDependencies(levelId: PlayableLevelId = 'level-001'): AgentValidationRunSpec['dependencyHashes'] {
   const replay = currentReplayDependencies(levelId);
-  const validation = chapter01Level(levelId).agentValidation.runs[0];
+  const validation = campaignLevel(levelId).agentValidation.runs[0];
   if (validation === undefined) throw new Error(`${levelId} has no agent validation run`);
   return {
     simulationSchema: replay.simulationSchema,
-    effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
+    effectiveLevel: levelDefinitionDependencyHash(campaignLevel(levelId)),
     simulationLevel: checksumCanonical(simulationLevelData(levelId)),
     balanceData: replay.balanceData,
     policyOrReplay: validation.mode === 'live-agent' ? checksumCanonical({
@@ -308,7 +308,7 @@ export function parseReplay(serialized: string): ReplayFileV3 {
   ], 'replay');
   if (value.replayFormatVersion !== REPLAY_FORMAT_VERSION) throw new Error('Unsupported replay format version');
   if (value.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported replay simulation schema');
-  if (typeof value.levelId !== 'string' || !isChapter01LevelId(value.levelId)) throw new Error('Unsupported replay level');
+  if (typeof value.levelId !== 'string' || !isPlayableLevelId(value.levelId)) throw new Error('Unsupported replay level');
   if (typeof value.seed !== 'string' || value.seed.length === 0) throw new Error('replay.seed is invalid');
   if (typeof value.agentRun !== 'boolean') throw new Error('replay.agentRun must be boolean');
   const initialSnapshot = parseSimulationSnapshot(canonicalJson(value.initialSnapshot));

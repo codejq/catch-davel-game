@@ -5,7 +5,7 @@ import type { PlayerState } from './player';
 import { applyRobotBodyImpulse } from './xpbd';
 import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import { isDanceWeakPointActive } from './dance-timing';
 import { decision, hashSeed } from './random';
 import {
@@ -122,7 +122,7 @@ export function pulseSpreadOffset(
 }
 
 function clearLine(
-  fromX: number, fromZ: number, toX: number, toZ: number, levelId: Chapter01LevelId,
+  fromX: number, fromZ: number, toX: number, toZ: number, levelId: PlayableLevelId,
 ): boolean {
   const deltaX = toX - fromX;
   const deltaZ = toZ - fromZ;
@@ -137,7 +137,7 @@ function clearLine(
 
 function wallDistance(
   originX: number, originZ: number, directionX: number, directionZ: number, maximumRange: number,
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
 ): number {
   for (let distance = 0.15; distance <= maximumRange; distance += 0.15) {
     if (isWallAtWorld(originX + directionX * distance, originZ + directionZ * distance, levelId)) return distance;
@@ -164,7 +164,7 @@ function sphereDistance(
 }
 
 function traceAim(
-  player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: Chapter01LevelId, tick: number,
+  player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: PlayableLevelId, tick: number,
   yawOffset = 0, pitchOffset = 0,
 ): AimTrace {
   const yaw = player.yaw + yawOffset;
@@ -240,7 +240,7 @@ export function damageRobot(
 
 export function firePulse(
   player: PlayerState, robots: RobotState[], tick: number, lastShotTick: number,
-  levelId: Chapter01LevelId = 'level-001', seed = 'pulse-default', shotSerial = 0, burstShots = 0,
+  levelId: PlayableLevelId = 'level-001', seed = 'pulse-default', shotSerial = 0, burstShots = 0,
 ): ShotResult {
   const energyCost = Math.max(1, PULSE_ENERGY_COST - player.weaponUpgrades.pulseEfficiency * PULSE_ENERGY_REDUCTION_PER_UPGRADE);
   if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < energyCost) return noShot;
@@ -271,7 +271,7 @@ export function swingSword(
   tick: number,
   lastSwordTick: number,
   charged: boolean,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
 ): SwordResult {
   const cooldown = charged ? 40 : 14;
   const baseHeat = charged ? 44 : 18;
@@ -316,7 +316,7 @@ export function swingSword(
 
 export function fireLaser(
   player: PlayerState, robots: RobotState[], damage: number, tick: number,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
 ): LaserResult {
   const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick);
   if (trace.robot === null) return { hit: null, beamDistance: trace.distance };
@@ -341,7 +341,7 @@ export function createThrownBomb(player: PlayerState, id: number): PlayerBomb {
 }
 
 export function stepPlayerBombs(
-  player: PlayerState, robots: RobotState[], bombs: PlayerBomb[], levelId: Chapter01LevelId = 'level-001',
+  player: PlayerState, robots: RobotState[], bombs: PlayerBomb[], levelId: PlayableLevelId = 'level-001',
 ): BombStepResult {
   const detonations: BombDetonation[] = [];
   const hits: WeaponHit[] = [];

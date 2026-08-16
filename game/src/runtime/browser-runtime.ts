@@ -18,8 +18,8 @@ import {
 import {
   MAX_PLAYER_UPGRADE_LEVEL, PLAYER_UPGRADE_IDS, normalizePlayerUpgradeLevels, type PlayerUpgradeId,
 } from '../sim/player-upgrades';
-import { chapter01Level } from '../content/levels/chapter-01';
-import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
+import { PLAYABLE_LEVEL_IDS, isPlayableLevelId } from '../content/level-ids';
 import {
   bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat,
 } from '../campaign/progression';
@@ -132,9 +132,9 @@ export async function startBrowserGame(): Promise<void> {
   const bossTraining = parameters.get('encounter') === 'boss-training';
   const trainingMode = parameters.get('arsenal') === 'training' || bossTraining;
   const requestedLevelId = parameters.get('level');
-  let activeLevelId = requestedLevelId !== null && isChapter01LevelId(requestedLevelId)
+  let activeLevelId = requestedLevelId !== null && isPlayableLevelId(requestedLevelId)
     ? requestedLevelId : bossTraining ? 'level-010' : 'level-001';
-  let activeLevel = chapter01Level(activeLevelId);
+  let activeLevel = campaignLevel(activeLevelId);
   let canvas = requireCanvas();
   const renderer = await createRendererHost(canvas, {
     forceMainThread: parameters.get('renderer') === 'main',
@@ -279,7 +279,7 @@ export async function startBrowserGame(): Promise<void> {
   }
   if (!trainingMode && !activeProfile.unlockedLevelIds.includes(activeLevelId)) {
     activeLevelId = 'level-001';
-    activeLevel = chapter01Level(activeLevelId);
+    activeLevel = campaignLevel(activeLevelId);
   }
   let activeInputBindings: InputBindings = normalizeInputBindings(activeProfile.inputMappings);
   let latestCampaignResult: CampaignResultSummary | null = null;
@@ -499,7 +499,7 @@ export async function startBrowserGame(): Promise<void> {
   applyProfileSettings();
 
   const renderCampaignMap = (): void => {
-    campaignLevels.replaceChildren(...CHAPTER_01_LEVEL_IDS.map((levelId, index) => {
+    campaignLevels.replaceChildren(...PLAYABLE_LEVEL_IDS.map((levelId, index) => {
       const button = document.createElement('button');
       const progress = activeProfile.levelProgress.find((entry) => entry.levelId === levelId);
       const unlocked = activeProfile.unlockedLevelIds.includes(levelId);
@@ -510,7 +510,7 @@ export async function startBrowserGame(): Promise<void> {
       const number = document.createElement('b');
       number.textContent = `${ui('level')} ${String(index + 1).padStart(2, '0')}`;
       const title = document.createElement('span');
-      title.textContent = localized(chapter01Level(levelId).nameKey);
+      title.textContent = localized(campaignLevel(levelId).nameKey);
       const status = document.createElement('small');
       status.textContent = !unlocked ? ui('locked') : progress?.completed
         ? ui('clearedBest', { ticks: progress.bestTicks ?? '—' })
@@ -1341,7 +1341,7 @@ export async function startBrowserGame(): Promise<void> {
   campaignLevels.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button[data-level-id]');
     const levelId = button?.dataset.levelId;
-    if (button === null || button.disabled || levelId === undefined || !isChapter01LevelId(levelId)) return;
+    if (button === null || button.disabled || levelId === undefined || !isPlayableLevelId(levelId)) return;
     if (levelId === activeLevelId) {
       if (renderState?.victory || renderState?.defeat) {
         void profileWrite.then(() => location.reload());

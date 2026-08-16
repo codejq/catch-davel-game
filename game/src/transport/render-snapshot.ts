@@ -3,7 +3,7 @@ import type {
   RenderGameState, RenderPickupState, RenderPlayerBombState, RenderPlayerState, RenderProjectileState, RenderRobotState,
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
 import type { GameState } from '../sim/game';
 import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
@@ -51,9 +51,9 @@ const HEADER_RUN_SCORE = 64;
 const HEADER_CURRENT_COMBO = 72;
 const HEADER_HIGHEST_COMBO = 76;
 
-function levelCode(levelId: Chapter01LevelId): number { return CHAPTER_01_LEVEL_IDS.indexOf(levelId); }
-function decodeLevel(code: number): Chapter01LevelId {
-  const levelId = CHAPTER_01_LEVEL_IDS[code];
+function levelCode(levelId: PlayableLevelId): number { return PLAYABLE_LEVEL_IDS.indexOf(levelId); }
+function decodeLevel(code: number): PlayableLevelId {
+  const levelId = PLAYABLE_LEVEL_IDS[code];
   if (levelId === undefined) throw new Error(`Unknown render level code ${code}`);
   return levelId;
 }

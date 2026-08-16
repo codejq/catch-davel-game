@@ -7,13 +7,13 @@ import {
   type AgentAction, type CatchDavelAgentApi, type ReplayEntry,
 } from './api';
 import { TRAINING_WEAPON_MASK } from '../sim/weapons';
-import { chapter01Level } from '../content/levels/chapter-01';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
+import { isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
 import { createRunMetrics } from '../sim/run-metrics';
 import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
 import { AGENT_API_VERSION } from './contract';
 
-type ResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: DifficultyId; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
+type ResetOptions = { readonly levelId?: PlayableLevelId; readonly seed?: string; readonly difficulty?: DifficultyId; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
 export class WorkerAgentController {
   private controlled = false;
@@ -63,13 +63,13 @@ export class WorkerAgentController {
 
   private reset(options: ResetOptions): Promise<AgentObservation> {
     return this.task(async () => {
-      if (options.levelId !== undefined && !isChapter01LevelId(options.levelId)) throw new Error('Agent levelId is invalid');
+      if (options.levelId !== undefined && !isPlayableLevelId(options.levelId)) throw new Error('Agent levelId is invalid');
       if (options.difficulty !== undefined && !isDifficultyId(options.difficulty)) throw new Error('Agent difficulty is invalid');
       if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
       if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
       if (options.encounter !== undefined && options.encounter !== 'campaign' && options.encounter !== 'boss-training') throw new Error('Agent encounter is invalid');
       const levelId = options.levelId ?? 'level-001';
-      const seed = options.seed ?? chapter01Level(levelId).seed;
+      const seed = options.seed ?? campaignLevel(levelId).seed;
       if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
       await this.client.setMode('manual', true);
       const training = options.loadout === 'training' || options.encounter === 'boss-training';

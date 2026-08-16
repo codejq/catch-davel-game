@@ -1,4 +1,4 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 import type { RenderProjectileState } from '../render/render-model';
 import { PLAYER_EYE_HEIGHT, PLAYER_RADIUS } from '../sim/constants';
 
@@ -9,7 +9,7 @@ type NearMissProjectile = Pick<RenderProjectileState,
   'id' | 'kind' | 'x' | 'y' | 'z' | 'velocityX' | 'velocityY' | 'velocityZ'>;
 
 export interface ProjectileNearMissSnapshot {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly player: { readonly x: number; readonly z: number };
   readonly projectiles: readonly NearMissProjectile[];
@@ -63,7 +63,7 @@ function clamp01(value: number): number {
  */
 export class ProjectileNearMissTracker {
   private readonly tracked = new Map<number, TrackedProjectile>();
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
 
   reset(): void {

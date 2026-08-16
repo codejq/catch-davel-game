@@ -1,4 +1,4 @@
-import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { campaignLevel, type PlayableLevelId } from '../content/levels/catalog';
 import { freezeDanceWindow } from './level-mechanics';
 
 export type AuthoritativeDancePhase = 'neutral' | 'attack' | 'vulnerable' | 'frozen';
@@ -16,10 +16,10 @@ export function danceAbsoluteStepAtTick(tick: number, bpm: number): number {
 }
 
 export function authoritativeDanceTiming(
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
   tick: number,
 ): AuthoritativeDanceTiming {
-  const dance = chapter01Level(levelId).dance;
+  const dance = campaignLevel(levelId).dance;
   const absoluteStep = danceAbsoluteStepAtTick(tick, dance.bpm);
   const barStep = absoluteStep % 16;
   const phase: AuthoritativeDancePhase = freezeDanceWindow(levelId, tick).frozen ? 'frozen'
@@ -28,11 +28,11 @@ export function authoritativeDanceTiming(
   return { absoluteStep, barStep, phase };
 }
 
-export function isDanceWeakPointActive(levelId: Chapter01LevelId, tick: number): boolean {
+export function isDanceWeakPointActive(levelId: PlayableLevelId, tick: number): boolean {
   return authoritativeDanceTiming(levelId, tick).phase === 'vulnerable';
 }
 
-export function isDanceAttackOnset(levelId: Chapter01LevelId, tick: number): boolean {
+export function isDanceAttackOnset(levelId: PlayableLevelId, tick: number): boolean {
   const current = authoritativeDanceTiming(levelId, tick);
   if (current.phase !== 'attack') return false;
   if (tick <= 0) return true;

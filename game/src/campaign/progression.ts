@@ -1,8 +1,8 @@
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
 import { updateProfile, type LevelProgressV1, type ProfileV11 } from '../storage/profile';
 import { standardParTicks, type CampaignResultSummary } from './results';
 
-function emptyProgress(levelId: Chapter01LevelId): LevelProgressV1 {
+function emptyProgress(levelId: PlayableLevelId): LevelProgressV1 {
   return {
     levelId, completed: false, medals: [], bestTicks: null, bestReplayId: null,
     attempts: 0, defeats: 0, robotsDefeated: 0,
@@ -13,7 +13,7 @@ function emptyProgress(levelId: Chapter01LevelId): LevelProgressV1 {
 
 export function updateLevelProgress(
   profile: ProfileV11,
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
   update: (progress: LevelProgressV1) => LevelProgressV1,
 ): readonly LevelProgressV1[] {
   return profile.levelProgress.some((progress) => progress.levelId === levelId)
@@ -21,14 +21,14 @@ export function updateLevelProgress(
     : [...profile.levelProgress, update(emptyProgress(levelId))];
 }
 
-export function recordCampaignAttempt(profile: ProfileV11, levelId: Chapter01LevelId): ProfileV11 {
+export function recordCampaignAttempt(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
   return updateProfile(profile, {
     lastCleanShutdown: false,
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
   });
 }
 
-export function recordCampaignRobotDefeat(profile: ProfileV11, levelId: Chapter01LevelId): ProfileV11 {
+export function recordCampaignRobotDefeat(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({
       ...progress, robotsDefeated: progress.robotsDefeated + 1,
@@ -36,7 +36,7 @@ export function recordCampaignRobotDefeat(profile: ProfileV11, levelId: Chapter0
   });
 }
 
-export function recordCampaignDefeat(profile: ProfileV11, levelId: Chapter01LevelId): ProfileV11 {
+export function recordCampaignDefeat(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, defeats: progress.defeats + 1 })),
   });
@@ -55,15 +55,15 @@ export function bankCampaignCoins(profile: ProfileV11, authoritativeCoins: numbe
 }
 
 export function completeCampaignLevel(
-  profile: ProfileV11, levelId: Chapter01LevelId, completionTicks: number,
+  profile: ProfileV11, levelId: PlayableLevelId, completionTicks: number,
   result?: CampaignResultSummary,
 ): ProfileV11 {
   if (!Number.isSafeInteger(completionTicks) || completionTicks < 1) throw new Error('Completion ticks must be a positive safe integer');
   if (result !== undefined && (result.levelId !== levelId || result.completionTicks !== completionTicks)) {
     throw new Error('Campaign result does not match the completed level and tick');
   }
-  const currentIndex = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
-  const nextLevelId = CHAPTER_01_LEVEL_IDS[currentIndex + 1];
+  const currentIndex = PLAYABLE_LEVEL_IDS.indexOf(levelId);
+  const nextLevelId = PLAYABLE_LEVEL_IDS[currentIndex + 1];
   const unlockedLevelIds = nextLevelId === undefined || profile.unlockedLevelIds.includes(nextLevelId)
     ? profile.unlockedLevelIds : [...profile.unlockedLevelIds, nextLevelId];
   return updateProfile(profile, {

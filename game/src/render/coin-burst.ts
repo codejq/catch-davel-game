@@ -1,4 +1,4 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 import type { RenderRobotState } from './render-model';
 
 export const COIN_BURST_DURATION_TICKS = 48;
@@ -7,7 +7,7 @@ export const COIN_BURST_MAX_TRANSITION_GAP_TICKS = 8;
 type TrackedRobot = Pick<RenderRobotState, 'id' | 'x' | 'z' | 'health' | 'active'>;
 
 export interface CoinBurstSnapshot {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly robots: readonly TrackedRobot[];
 }
@@ -29,7 +29,7 @@ export interface CoinBurstPoint {
 export class CoinBurstTracker {
   private readonly activeByRobot = new Map<number, boolean>();
   private readonly effects = new Map<number, CoinBurstEffect>();
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
 
   reset(): void {

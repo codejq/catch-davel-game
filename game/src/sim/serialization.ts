@@ -8,7 +8,7 @@ import { createLevelRuntime, hazardActiveAtTick, type LevelRuntimeState, type Pi
 import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
 import { isKeyAmbushLevel } from './level-mechanics';
 import type { RunMetrics } from './run-metrics';
 import { difficultyProfile, difficultyRobotHealth, isDifficultyId, type DifficultyId } from './difficulty';
@@ -54,7 +54,7 @@ export interface SimulationSnapshotV1 {
   readonly simulationSchemaVersion: number;
   readonly tick: number;
   readonly seed: string;
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly encounter: EncounterId;
   readonly difficulty: DifficultyId;
   readonly player: PlayerState;
@@ -326,7 +326,7 @@ function validateProjectile(value: unknown, index: number): EnemyProjectile {
 }
 
 function validateLevel(
-  value: unknown, levelId: Chapter01LevelId, encounter: EncounterId, difficulty: DifficultyId,
+  value: unknown, levelId: PlayableLevelId, encounter: EncounterId, difficulty: DifficultyId,
 ): LevelRuntimeState {
   assertRecord(value, 'snapshot.level');
   assertExactKeys(value, ['pickups', 'hazards', 'door', 'checkpoint', 'exit', 'encounter', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
@@ -466,7 +466,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
   const tick = integer(snapshotValue.tick, 'snapshot.tick');
   if (typeof snapshotValue.seed !== 'string' || snapshotValue.seed.length === 0 || snapshotValue.seed.length > 256) throw new Error('snapshot.seed is invalid');
-  if (typeof snapshotValue.levelId !== 'string' || !isChapter01LevelId(snapshotValue.levelId)) throw new Error('snapshot.levelId is invalid');
+  if (typeof snapshotValue.levelId !== 'string' || !isPlayableLevelId(snapshotValue.levelId)) throw new Error('snapshot.levelId is invalid');
   const levelId = snapshotValue.levelId;
   if (snapshotValue.encounter !== 'campaign' && snapshotValue.encounter !== 'boss-training') throw new Error('snapshot.encounter is invalid');
   const encounter = snapshotValue.encounter as EncounterId;

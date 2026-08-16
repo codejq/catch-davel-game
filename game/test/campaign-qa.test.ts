@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { runCampaignLevel, runChapter01CampaignQa } from '../src/qa/campaign-runner';
+import { runCampaignLevel, runPlayableCampaignQa } from '../src/qa/campaign-runner';
 import { parseFrozenChecksumManifest } from '../src/qa/frozen-manifest';
 
-const results = runChapter01CampaignQa();
+const results = runPlayableCampaignQa();
 const manifest = parseFrozenChecksumManifest(JSON.parse(readFileSync(
   new URL('../qa/frozen-checksum-manifest.json', import.meta.url), 'utf8',
 )));

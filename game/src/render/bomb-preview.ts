@@ -1,6 +1,6 @@
 import { BOMB_BLAST_RADIUS } from '../sim/combat';
 import { isWallAtWorld } from '../sim/level';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 
 interface Point { readonly x: number; readonly y: number; readonly z: number }
 
@@ -20,7 +20,7 @@ export interface BombPreviewSegment {
 export function bombPreviewOccludedRadius(
   bomb: Pick<BombPreviewState, 'x' | 'z'>,
   angle: number,
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
 ): number {
   for (let distance = 0.15; distance <= BOMB_BLAST_RADIUS; distance += 0.15) {
     if (isWallAtWorld(
@@ -37,7 +37,7 @@ export function bombPreviewSegment(
   segmentIndex: number,
   segmentCount: number,
   motionScale: number,
-  levelId?: Chapter01LevelId,
+  levelId?: PlayableLevelId,
 ): BombPreviewSegment | null {
   if (segmentCount < 4 || segmentIndex < 0 || segmentIndex >= segmentCount) return null;
   const motion = Number.isFinite(motionScale) ? Math.max(0, Math.min(1, motionScale)) : 0;

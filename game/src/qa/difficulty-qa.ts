@@ -1,5 +1,5 @@
 import { validateLevelDefinition } from '../content/validate-level';
-import { CHAPTER_01_LEVELS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { PLAYABLE_LEVELS, type PlayableLevelId } from '../content/levels/catalog';
 import {
   DIFFICULTY_IDS, difficultyProfile, difficultyRobotHealth, type DifficultyId,
 } from '../sim/difficulty';
@@ -7,7 +7,7 @@ import { createLevelRuntime } from '../sim/interactions';
 import { campaignRobotIds, ROBOT_DEFINITIONS } from '../sim/robots';
 
 export interface DifficultyStaticResult {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly difficulty: DifficultyId;
   readonly graphAndObjectiveReachable: true;
   readonly totalRobotHealth: number;
@@ -27,9 +27,9 @@ function scaledResource(amount: number, multiplier: number): number {
 
 /** Static difficulty analysis for every released level and supported default assist profile. */
 export function createChapter01DifficultyStaticReport(): readonly DifficultyStaticResult[] {
-  return CHAPTER_01_LEVELS.flatMap((level) => DIFFICULTY_IDS.map((difficulty): DifficultyStaticResult => {
+  return PLAYABLE_LEVELS.flatMap((level) => DIFFICULTY_IDS.map((difficulty): DifficultyStaticResult => {
     validateLevelDefinition(level);
-    const levelId = level.id as Chapter01LevelId;
+    const levelId = level.id as PlayableLevelId;
     const robotIds = campaignRobotIds(levelId);
     const objectiveTarget = level.objectives.find((objective) => objective.required)?.targetCount;
     if (objectiveTarget !== robotIds.length) throw new Error(`${levelId} objective cannot be satisfied by its runtime roster`);

@@ -8,7 +8,7 @@ import {
   type WeaponId, type WeaponUpgradeLevels,
 } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
 import { createObservation } from '../agent/observation';
 import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
@@ -123,7 +123,7 @@ function resetRuntime(
   unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
   encounter: EncounterId = 'campaign',
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
   difficulty: DifficultyId = 'standard',
   playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
 ): void {
@@ -133,7 +133,7 @@ function resetRuntime(
     throw new Error('Worker weapon mask must include pulse and contain only known weapons');
   }
   if (encounter !== 'campaign' && encounter !== 'boss-training') throw new Error('Worker encounter is invalid');
-  if (!isChapter01LevelId(levelId)) throw new Error('Worker levelId is invalid');
+  if (!isPlayableLevelId(levelId)) throw new Error('Worker levelId is invalid');
   if (!isDifficultyId(difficulty)) throw new Error('Worker difficulty is invalid');
   simulation = new GameSimulation(
     seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId, difficulty,

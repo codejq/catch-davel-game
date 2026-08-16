@@ -1,6 +1,6 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 
-export const CHAPTER_01_LEVEL_TITLES: Readonly<Record<Chapter01LevelId, string>> = {
+export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = {
   'level-001': 'Wobble Workshop',
   'level-002': 'Grinning Hall',
   'level-003': 'Coin Circuit',
@@ -13,6 +13,6 @@ export const CHAPTER_01_LEVEL_TITLES: Readonly<Record<Chapter01LevelId, string>>
   'level-010': 'Chief Wobble',
 };
 
-export function chapter01LevelTitle(levelId: Chapter01LevelId): string {
-  return CHAPTER_01_LEVEL_TITLES[levelId];
+export function campaignLevelTitle(levelId: PlayableLevelId): string {
+  return CAMPAIGN_LEVEL_TITLES[levelId];
 }

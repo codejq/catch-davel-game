@@ -13,7 +13,7 @@ import type {
 } from '../workers/simulation-worker-protocol';
 import type { WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import type { DifficultyId } from '../sim/difficulty';
 import type { PlayerUpgradeLevels } from '../sim/player-upgrades';
 
@@ -26,7 +26,7 @@ export interface SimulationWorkerClientCallbacks {
 
 export interface SimulationWorkerClientOptions {
   readonly seed: string;
-  readonly levelId?: Chapter01LevelId;
+  readonly levelId?: PlayableLevelId;
   readonly initialCoins: number;
   readonly mode?: 'manual' | 'realtime';
   readonly unlockedWeaponMask?: number;
@@ -130,7 +130,7 @@ export class SimulationWorkerClient {
   reset(
     seed: string, initialCoins: number, agentRun: boolean,
     unlockedWeaponMask?: number, weaponUpgrades?: WeaponUpgradeLevels, encounter?: EncounterId,
-    levelId?: Chapter01LevelId, difficulty?: DifficultyId, playerUpgrades?: PlayerUpgradeLevels,
+    levelId?: PlayableLevelId, difficulty?: DifficultyId, playerUpgrades?: PlayerUpgradeLevels,
   ): Promise<SimulationWorkerComplete> {
     return this.requestComplete({
       type: 'reset', requestId: 0, seed, initialCoins, agentRun,

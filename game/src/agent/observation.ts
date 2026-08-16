@@ -4,7 +4,7 @@ import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, levelRows, worldCell } f
 import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import { levelDancePerformance } from '../sim/dance-performance';
 import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
@@ -53,7 +53,7 @@ export interface AgentObservation {
   readonly schemaVersion: 15;
   readonly tick: number;
   readonly seed: string;
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly difficulty: DifficultyId;
   readonly player: {
     readonly x: number;
@@ -207,7 +207,7 @@ function normalizeAngle(value: number): number {
 }
 
 function hasLineOfSight(
-  originX: number, originZ: number, targetX: number, targetZ: number, levelId: Chapter01LevelId,
+  originX: number, originZ: number, targetX: number, targetZ: number, levelId: PlayableLevelId,
 ): boolean {
   const deltaX = targetX - originX;
   const deltaZ = targetZ - originZ;
@@ -380,8 +380,8 @@ export function createObservation(state: GameState): AgentObservation {
   };
 }
 
-export function levelObservation(levelId: Chapter01LevelId = 'level-001'): {
-  readonly levelId: Chapter01LevelId;
+export function levelObservation(levelId: PlayableLevelId = 'level-001'): {
+  readonly levelId: PlayableLevelId;
   readonly rows: readonly string[];
   readonly cellSize: number;
   readonly originX: number;

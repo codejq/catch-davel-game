@@ -2,8 +2,8 @@ import type { PlayerState } from './player';
 import { cellAt, cellCenter, findCell, isPlayerPositionValidWithBlockers, worldCell, type CellCoordinate } from './level';
 import { FIXED_DT_SECONDS, PLAYER_RADIUS } from './constants';
 import { campaignRobotWaves, type EncounterId, type RobotState } from './robots';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
-import { chapter01Level } from '../content/levels/chapter-01';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
 import {
   hazardRuntimeProfile, mazeRuntimeProfile, type LevelInteractionRuntimeProfile,
 } from '../content/runtime-manifests';
@@ -74,13 +74,13 @@ export type LevelInteractionEvent = {
   readonly value?: number;
 };
 
-export const LEVEL_INTERACTION_DEFINITIONS: Readonly<Record<Chapter01LevelId, LevelInteractionRuntimeProfile>> =
-  Object.fromEntries(CHAPTER_01_LEVEL_IDS.map((levelId) => [
+export const LEVEL_INTERACTION_DEFINITIONS: Readonly<Record<PlayableLevelId, LevelInteractionRuntimeProfile>> =
+  Object.fromEntries(PLAYABLE_LEVEL_IDS.map((levelId) => [
     levelId,
-    mazeRuntimeProfile(chapter01Level(levelId).maze.templateSetId).interactions,
-  ])) as Readonly<Record<Chapter01LevelId, LevelInteractionRuntimeProfile>>;
+    mazeRuntimeProfile(campaignLevel(levelId).maze.templateSetId).interactions,
+  ])) as Readonly<Record<PlayableLevelId, LevelInteractionRuntimeProfile>>;
 
-function assertValidDefinition(levelId: Chapter01LevelId, definition: LevelInteractionRuntimeProfile): void {
+function assertValidDefinition(levelId: PlayableLevelId, definition: LevelInteractionRuntimeProfile): void {
   const placements = [
     definition.health, definition.key, definition.energy, definition.door, definition.checkpoint,
     ...(definition.coin === undefined ? [] : [definition.coin]),
@@ -94,7 +94,7 @@ function assertValidDefinition(levelId: Chapter01LevelId, definition: LevelInter
 }
 
 export function createLevelRuntime(
-  levelId: Chapter01LevelId = 'level-001', encounter: EncounterId = 'campaign',
+  levelId: PlayableLevelId = 'level-001', encounter: EncounterId = 'campaign',
 ): LevelRuntimeState {
   const definition = LEVEL_INTERACTION_DEFINITIONS[levelId];
   assertValidDefinition(levelId, definition);
@@ -113,7 +113,7 @@ export function createLevelRuntime(
   if (definition.secretCoin !== undefined) pickupDefinitions.push({
     id: 'secret-coin-cache', kind: 'coin', ...definition.secretCoin, amount: definition.secretCoin.amount ?? 12,
   });
-  const hazards: HazardRuntimeState[] = chapter01Level(levelId).maze.hazards.map((hazard) => {
+  const hazards: HazardRuntimeState[] = campaignLevel(levelId).maze.hazards.map((hazard) => {
     const profile = hazardRuntimeProfile(hazard.collisionProfileId);
     if (cellAt(profile.column, profile.row, levelId) === '#') {
       throw new Error(`${levelId} hazard ${hazard.id} enters a wall`);
@@ -156,7 +156,7 @@ export function queueNextEncounterWave(level: LevelRuntimeState, difficulty: Dif
 }
 
 export function stepEncounterWaves(
-  robots: RobotState[], level: LevelRuntimeState, levelId: Chapter01LevelId,
+  robots: RobotState[], level: LevelRuntimeState, levelId: PlayableLevelId,
 ): void {
   if (level.encounter.pendingTicks <= 0) return;
   level.encounter.pendingTicks -= 1;
@@ -171,7 +171,7 @@ export function stepEncounterWaves(
 }
 
 export function stepLevelHazards(
-  player: PlayerState, level: LevelRuntimeState, tick: number, levelId: Chapter01LevelId,
+  player: PlayerState, level: LevelRuntimeState, tick: number, levelId: PlayableLevelId,
 ): void {
   stepLevelHazardPhases(level, tick);
   for (const hazard of level.hazards) {

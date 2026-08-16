@@ -1,4 +1,4 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 import { BODY_POINT_COUNT } from '../sim/xpbd';
 import type { RenderRobotState } from './render-model';
 
@@ -8,7 +8,7 @@ export const DEFEAT_COLLAPSE_MAX_TRANSITION_GAP_TICKS = 8;
 type TrackedRobot = Pick<RenderRobotState, 'id' | 'x' | 'z' | 'health' | 'active' | 'body'>;
 
 export interface DefeatCollapseSnapshot {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly robots: readonly TrackedRobot[];
 }
@@ -29,7 +29,7 @@ export interface DefeatCollapsePose {
 export class DefeatCollapseTracker {
   private readonly activeByRobot = new Map<number, boolean>();
   private readonly effects = new Map<number, DefeatCollapseEffect>();
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
 
   reset(): void {

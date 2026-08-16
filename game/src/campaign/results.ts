@@ -1,5 +1,5 @@
-import { chapter01Level } from '../content/levels/chapter-01';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
 import type { ProfileV11 } from '../storage/profile';
 import type { RunMetrics } from '../sim/run-metrics';
 import { ROBOT_DEFINITIONS, type RobotArchetype } from '../sim/robots';
@@ -13,7 +13,7 @@ export interface ResultObjective {
 }
 
 export interface CampaignResultSummary {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly completionTicks: number;
   readonly previousBestTicks: number | null;
   readonly bestTicks: number;
@@ -22,7 +22,7 @@ export interface CampaignResultSummary {
   readonly parMedal: boolean;
   readonly coinsEarned: number;
   readonly availableCoins: number;
-  readonly nextLevelId: Chapter01LevelId | null;
+  readonly nextLevelId: PlayableLevelId | null;
   readonly score: number;
   readonly accuracyPermille: number | null;
   readonly damageTaken: number;
@@ -37,13 +37,13 @@ export interface CampaignResultSummary {
   readonly replayId: string;
 }
 
-export function standardParTicks(levelId: Chapter01LevelId): number {
+export function standardParTicks(levelId: PlayableLevelId): number {
   return standardCampaignParTicks(levelId);
 }
 
 export function campaignResultSummary(
   profile: ProfileV11,
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
   completionTicks: number,
   finalCoins: number,
   metrics: RunMetrics,
@@ -55,7 +55,7 @@ export function campaignResultSummary(
   if (!/^[0-9a-f]{16}$/.test(replayChecksum)) throw new Error('Replay checksum must be a 16-digit lowercase hash');
   const previousBestTicks = profile.levelProgress.find((entry) => entry.levelId === levelId)?.bestTicks ?? null;
   const parTicks = standardParTicks(levelId);
-  const index = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
+  const index = PLAYABLE_LEVEL_IDS.indexOf(levelId);
   const accuracyPermille = runAccuracyPermille(metrics);
   const robotsByArchetype: Record<RobotArchetype, number> = {
     'wobble-scout': 0, 'blue-slider': 0, 'yellow-spinner': 0,
@@ -66,7 +66,7 @@ export function campaignResultSummary(
     if (definition === undefined) throw new Error(`Run metrics reference unknown Davel ${robotId}`);
     robotsByArchetype[definition.archetype] += 1;
   }
-  const level = chapter01Level(levelId);
+  const level = campaignLevel(levelId);
   const totalSecrets = level.maze.secretCount;
   const parMedal = completionTicks <= parTicks;
   const accuracyObjective = accuracyPermille !== null && accuracyPermille >= 600;
@@ -93,7 +93,7 @@ export function campaignResultSummary(
     parMedal,
     coinsEarned,
     availableCoins: finalCoins,
-    nextLevelId: CHAPTER_01_LEVEL_IDS[index + 1] ?? null,
+    nextLevelId: PLAYABLE_LEVEL_IDS[index + 1] ?? null,
     score,
     accuracyPermille,
     damageTaken: metrics.damageTaken,

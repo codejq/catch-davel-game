@@ -1,7 +1,7 @@
 import './tooling.css';
-import { chapter01LevelTitle } from '../campaign/catalog';
-import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
-import { CHAPTER_01_LEVELS } from '../content/levels/chapter-01';
+import { campaignLevelTitle } from '../campaign/catalog';
+import { PLAYABLE_LEVEL_IDS, isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
+import { PLAYABLE_LEVELS } from '../content/levels/catalog';
 import type { LevelDefinition, MazeNodeSpec } from '../content/level-definition';
 import { createLevelRuntime } from '../sim/interactions';
 import { levelRows, worldCell } from '../sim/level';
@@ -35,17 +35,17 @@ const replayCommands = element<HTMLDivElement>('#replay-commands');
 const balanceSummary = element<HTMLDivElement>('#balance-summary');
 const balanceTableBody = element<HTMLTableSectionElement>('#balance-table tbody');
 
-for (const levelId of CHAPTER_01_LEVEL_IDS) {
+for (const levelId of PLAYABLE_LEVEL_IDS) {
   const option = document.createElement('option');
   option.value = levelId;
-  option.textContent = `${levelId.slice(-3)} · ${chapter01LevelTitle(levelId)}`;
+  option.textContent = `${levelId.slice(-3)} · ${campaignLevelTitle(levelId)}`;
   select.append(option);
 }
 
-function selectedLevelId(): Chapter01LevelId { return select.value as Chapter01LevelId; }
+function selectedLevelId(): PlayableLevelId { return select.value as PlayableLevelId; }
 
-function authored(levelId: Chapter01LevelId): LevelDefinition {
-  return CHAPTER_01_LEVELS.find((level) => level.id === levelId)!;
+function authored(levelId: PlayableLevelId): LevelDefinition {
+  return PLAYABLE_LEVELS.find((level) => level.id === levelId)!;
 }
 
 function load(levelId = selectedLevelId()): void {
@@ -74,7 +74,7 @@ function renderSummary(report: LevelToolingReport): void {
   addSummary('Provenance', `${report.provenanceAssetCount} referenced presentation assets resolved`);
 }
 
-function overlayMap(levelId: Chapter01LevelId): Map<string, string> {
+function overlayMap(levelId: PlayableLevelId): Map<string, string> {
   const runtime = createLevelRuntime(levelId);
   const overlay = new Map<string, string>();
   for (const pickup of runtime.pickups) {
@@ -90,7 +90,7 @@ function overlayMap(levelId: Chapter01LevelId): Map<string, string> {
 
 function renderMaze(level: LevelDefinition): void {
   maze.replaceChildren();
-  if (!isChapter01LevelId(level.id)) {
+  if (!isPlayableLevelId(level.id)) {
     maze.textContent = 'Runtime grid preview is reserved for Chapter 1 stable IDs.';
     return;
   }

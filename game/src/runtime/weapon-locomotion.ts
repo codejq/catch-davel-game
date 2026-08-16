@@ -1,4 +1,4 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 
 export const WEAPON_LOCOMOTION_MAX_X_PX = 7;
 export const WEAPON_LOCOMOTION_MAX_Y_PX = 5;
@@ -8,7 +8,7 @@ const ATTACK_PER_TICK = 0.18;
 const RELEASE_PER_TICK = 0.12;
 
 export interface WeaponLocomotionFrame {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly victory: boolean;
   readonly defeat: boolean;
@@ -45,7 +45,7 @@ function moveToward(current: number, target: number, maximumDelta: number): numb
  * terminal snapshots cannot carry motion from an earlier run or level.
  */
 export class WeaponLocomotionTracker {
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
   private lastX = 0;
   private lastZ = 0;

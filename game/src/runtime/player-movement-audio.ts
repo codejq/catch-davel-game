@@ -1,10 +1,10 @@
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 
 export const PLAYER_STEP_PHASE_INTERVAL = Math.PI;
 export const PLAYER_SPRINT_PHASE_RATE = 0.285;
 
 export interface PlayerMovementAudioSnapshot {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly player: {
     readonly x: number;
@@ -28,7 +28,7 @@ export interface PlayerMovementAudioRequest {
  * their phase so visibility changes and resyncs cannot replay a footstep burst.
  */
 export class PlayerMovementAudioSequencer {
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
   private lastPhase = 0;
   private lastX = 0;

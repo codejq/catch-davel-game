@@ -6,7 +6,7 @@ import type { AgentObservation } from '../agent/observation';
 import type { ReplayFile } from '../replay/replay';
 import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import type { RunMetrics } from '../sim/run-metrics';
 import type { DifficultyId } from '../sim/difficulty';
 import type { PlayerUpgradeLevels } from '../sim/player-upgrades';
@@ -14,7 +14,7 @@ import type { PlayerUpgradeLevels } from '../sim/player-upgrades';
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
   readonly seed: string;
-  readonly levelId?: Chapter01LevelId;
+  readonly levelId?: PlayableLevelId;
   readonly snapshotPort: MessagePort;
   readonly eventPort: MessagePort;
   readonly mode?: 'manual' | 'realtime';
@@ -37,7 +37,7 @@ export interface ResetSimulationWorker {
   readonly type: 'reset';
   readonly requestId: number;
   readonly seed: string;
-  readonly levelId?: Chapter01LevelId;
+  readonly levelId?: PlayableLevelId;
   readonly initialCoins?: number;
   readonly agentRun?: boolean;
   readonly unlockedWeaponMask?: number;

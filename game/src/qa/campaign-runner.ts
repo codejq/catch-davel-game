@@ -1,7 +1,7 @@
 import { BaselineCampaignAgent } from '../agent/baseline-policy';
 import { normalizeAgentAction } from '../agent/api';
 import { createObservation } from '../agent/observation';
-import { chapter01Level, CHAPTER_01_LEVELS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { campaignLevel, PLAYABLE_LEVELS, type PlayableLevelId } from '../content/levels/catalog';
 import { currentAgentValidationDependencies } from '../replay/replay';
 import { GameSimulation } from '../sim/game';
 import { stateChecksum } from '../sim/serialization';
@@ -10,7 +10,7 @@ import type { DifficultyId } from '../sim/difficulty';
 export type CampaignQaFailure = 'defeat' | 'illegal-action' | 'stuck' | 'tick-budget' | null;
 
 export interface CampaignQaResult {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly validationRunId: string;
   readonly seed: string;
   readonly finalTick: number;
@@ -34,8 +34,8 @@ function progressSignature(simulation: GameSimulation): string {
   ].join('|');
 }
 
-export function runCampaignLevel(levelId: Chapter01LevelId, validationRunId = 'standard-live'): CampaignQaResult {
-  const level = chapter01Level(levelId);
+export function runCampaignLevel(levelId: PlayableLevelId, validationRunId = 'standard-live'): CampaignQaResult {
+  const level = campaignLevel(levelId);
   const validation = level.agentValidation.runs.find(
     (run) => run.id === validationRunId && run.mode === 'live-agent',
   );
@@ -89,6 +89,6 @@ export function runCampaignLevel(levelId: Chapter01LevelId, validationRunId = 's
   };
 }
 
-export function runChapter01CampaignQa(): readonly CampaignQaResult[] {
-  return CHAPTER_01_LEVELS.map((level) => runCampaignLevel(level.id as Chapter01LevelId));
+export function runPlayableCampaignQa(): readonly CampaignQaResult[] {
+  return PLAYABLE_LEVELS.map((level) => runCampaignLevel(level.id as PlayableLevelId));
 }

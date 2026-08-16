@@ -1,0 +1,27 @@
+import type { LevelDefinition } from '../level-definition';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids';
+import { CHAPTER_01_LEVELS } from './chapter-01';
+
+export { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids';
+
+/**
+ * The only runtime registry of fully authored, validated campaign levels.
+ * Reserved 001–100 IDs do not become playable merely by existing in the public
+ * numbering envelope; a definition must be added here and pass catalog tests.
+ */
+export const PLAYABLE_LEVELS: readonly LevelDefinition[] = [...CHAPTER_01_LEVELS];
+
+const PLAYABLE_LEVEL_BY_ID: ReadonlyMap<PlayableLevelId, LevelDefinition> = new Map(
+  PLAYABLE_LEVELS.map((level) => [level.id as PlayableLevelId, level]),
+);
+
+if (PLAYABLE_LEVELS.length !== PLAYABLE_LEVEL_IDS.length
+  || PLAYABLE_LEVEL_IDS.some((levelId, index) => PLAYABLE_LEVELS[index]?.id !== levelId)) {
+  throw new Error('Playable level registry and ID order disagree');
+}
+
+export function campaignLevel(levelId: PlayableLevelId): LevelDefinition {
+  const level = PLAYABLE_LEVEL_BY_ID.get(levelId);
+  if (level === undefined) throw new Error(`Unknown playable campaign level ${levelId}`);
+  return level;
+}

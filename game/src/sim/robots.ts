@@ -4,7 +4,7 @@ import { decision, hashSeed } from './random';
 import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './balance';
 import type { PlayerState } from './player';
-import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { campaignLevel, type PlayableLevelId } from '../content/levels/catalog';
 import { levelDancePerformance } from './dance-performance';
 import { isKeyAmbushLevel } from './level-mechanics';
 import { difficultyProfile, difficultyRobotHealth, type DifficultyId } from './difficulty';
@@ -134,8 +134,8 @@ export const ROBOT_DEFINITIONS: readonly RobotDefinition[] = [
   },
 ] as const;
 
-function materializeCampaignRobotWaves(levelId: Chapter01LevelId): readonly (readonly number[])[] {
-  const level = chapter01Level(levelId);
+function materializeCampaignRobotWaves(levelId: PlayableLevelId): readonly (readonly number[])[] {
+  const level = campaignLevel(levelId);
   if (level.encounters.length !== 1) throw new Error(`${levelId} must resolve exactly one campaign encounter`);
   const used = new Set<number>();
   return level.encounters[0]!.waves.map((wave) => {
@@ -159,13 +159,13 @@ function materializeCampaignRobotWaves(levelId: Chapter01LevelId): readonly (rea
   });
 }
 
-const campaignWaveCache = new Map<Chapter01LevelId, readonly (readonly number[])[]>();
+const campaignWaveCache = new Map<PlayableLevelId, readonly (readonly number[])[]>();
 
-export function campaignRobotIds(levelId: Chapter01LevelId): readonly number[] {
+export function campaignRobotIds(levelId: PlayableLevelId): readonly number[] {
   return campaignRobotWaves(levelId).flat();
 }
 
-export function campaignRobotWaves(levelId: Chapter01LevelId): readonly (readonly number[])[] {
+export function campaignRobotWaves(levelId: PlayableLevelId): readonly (readonly number[])[] {
   let waves = campaignWaveCache.get(levelId);
   if (waves === undefined) {
     waves = materializeCampaignRobotWaves(levelId);
@@ -191,7 +191,7 @@ export function validateRobotDefinitions(): void {
 }
 
 export function createRobots(
-  encounter: EncounterId = 'campaign', levelId: Chapter01LevelId = 'level-001', difficulty: DifficultyId = 'standard',
+  encounter: EncounterId = 'campaign', levelId: PlayableLevelId = 'level-001', difficulty: DifficultyId = 'standard',
 ): RobotState[] {
   validateRobotDefinitions();
   const performance = levelDancePerformance(levelId);
@@ -218,7 +218,7 @@ export function createRobots(
 }
 
 function tryCombatMovement(
-  robot: RobotState, definition: RobotDefinition, player: PlayerState, levelId: Chapter01LevelId,
+  robot: RobotState, definition: RobotDefinition, player: PlayerState, levelId: PlayableLevelId,
   movementSpeedMultiplier: number,
 ): boolean {
   if (robot.combatState === 'telegraph') return true;
@@ -249,14 +249,14 @@ function tryCombatMovement(
   return moved;
 }
 
-function moveRobotWithMazeCollision(robot: RobotState, deltaX: number, deltaZ: number, levelId: Chapter01LevelId): void {
+function moveRobotWithMazeCollision(robot: RobotState, deltaX: number, deltaZ: number, levelId: PlayableLevelId): void {
   const nextX = robot.x + deltaX;
   const nextZ = robot.z + deltaZ;
   if (!isWallAtWorld(nextX, robot.z, levelId)) robot.x = nextX;
   if (!isWallAtWorld(robot.x, nextZ, levelId)) robot.z = nextZ;
 }
 
-export function resolveRobotCrowding(robots: RobotState[], levelId: Chapter01LevelId = 'level-001'): void {
+export function resolveRobotCrowding(robots: RobotState[], levelId: PlayableLevelId = 'level-001'): void {
   const active = robots.filter((robot) => robot.active).sort((first, second) => first.id - second.id);
   for (let firstIndex = 0; firstIndex < active.length; firstIndex += 1) {
     const first = active[firstIndex]!;
@@ -296,7 +296,7 @@ export function resolveRobotCrowding(robots: RobotState[], levelId: Chapter01Lev
 }
 
 export function stepRobots(
-  robots: RobotState[], seedText: string, player?: PlayerState, levelId: Chapter01LevelId = 'level-001',
+  robots: RobotState[], seedText: string, player?: PlayerState, levelId: PlayableLevelId = 'level-001',
   difficulty: DifficultyId = 'standard',
 ): void {
   const seed = hashSeed(seedText);

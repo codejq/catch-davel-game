@@ -1,4 +1,4 @@
-import { CHAPTER_01_LEVELS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { PLAYABLE_LEVELS, type PlayableLevelId } from '../content/levels/catalog';
 import { createLevelRuntime } from '../sim/interactions';
 import { campaignRobotWaves, ROBOT_DEFINITIONS } from '../sim/robots';
 import { MAX_WEAPON_UPGRADE_LEVEL, type WeaponUpgradeId } from '../sim/weapons';
@@ -20,7 +20,7 @@ export interface WaveBalanceReport {
 }
 
 export interface LevelBalanceReport {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly levelNumber: number;
   readonly objectiveTargetCount: number;
   readonly declaredPeakRobots: number;
@@ -92,8 +92,8 @@ function rosterSignature(entries: readonly { readonly archetype: string; readonl
 export function createChapter01BalanceReport(): Chapter01BalanceReport {
   let cumulativeGuaranteedCoins = 0;
   let cumulativeMaximumCoins = 0;
-  const levels = CHAPTER_01_LEVELS.map((level): LevelBalanceReport => {
-    const levelId = level.id as Chapter01LevelId;
+  const levels = PLAYABLE_LEVELS.map((level): LevelBalanceReport => {
+    const levelId = level.id as PlayableLevelId;
     const runtimeWaves = campaignRobotWaves(levelId);
     const waveReports = runtimeWaves.map((ids, index) => waveReport(ids, index, level.maze.hazards.length));
     const authoredWaves = level.encounters.flatMap((encounter) => encounter.waves);

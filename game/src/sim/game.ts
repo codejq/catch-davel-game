@@ -19,7 +19,7 @@ import { quantizeSimulationState } from './quantization';
 import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import { activateKeyAmbush, freezeDanceWindow } from './level-mechanics';
 import {
   createRunMetrics, recordDamageTaken, recordRangedAttack, recordRobotDefeat, type RunMetrics,
@@ -45,7 +45,7 @@ export interface GameEvent {
 export interface GameState {
   tick: number;
   readonly seed: string;
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly encounter: EncounterId;
   readonly difficulty: DifficultyId;
   readonly player: PlayerState;
@@ -78,7 +78,7 @@ export class GameSimulation {
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
-    levelId: Chapter01LevelId = 'level-001',
+    levelId: PlayableLevelId = 'level-001',
     difficulty: DifficultyId = 'standard',
     playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ) {
@@ -98,7 +98,7 @@ export class GameSimulation {
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
-    levelId: Chapter01LevelId = 'level-001',
+    levelId: PlayableLevelId = 'level-001',
     difficulty: DifficultyId = 'standard',
     playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ): void {
@@ -113,7 +113,7 @@ export class GameSimulation {
 
   private static initialState(
     seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels, encounter: EncounterId,
-    levelId: Chapter01LevelId, difficulty: DifficultyId, playerUpgrades: PlayerUpgradeLevels,
+    levelId: PlayableLevelId, difficulty: DifficultyId, playerUpgrades: PlayerUpgradeLevels,
   ): GameState {
     const state: GameState = {
       tick: 0, seed, levelId, encounter, difficulty,

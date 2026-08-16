@@ -4,7 +4,7 @@ import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, normalizeWeaponUpgradeLevels, weaponUnlocked,
   type WeaponId, type WeaponUpgradeLevels,
 } from './weapons';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import {
   DEFAULT_PLAYER_UPGRADES, normalizePlayerUpgradeLevels, playerMaxEnergy, playerMaxHealth,
   type PlayerUpgradeLevels,
@@ -45,7 +45,7 @@ export interface PlayerCommand {
 export function createPlayer(
   unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
   playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
 ): PlayerState {
   const start = findCell('S', levelId);
@@ -65,7 +65,7 @@ export function createPlayer(
 
 export function stepPlayer(
   player: PlayerState, command: PlayerCommand, blockedCells: readonly CellCoordinate[] = [],
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
 ): void {
   if (command.weapon !== undefined && command.weapon !== null && weaponUnlocked(player.unlockedWeaponMask, command.weapon)) player.selectedWeapon = command.weapon;
   player.yaw += command.yawDelta;

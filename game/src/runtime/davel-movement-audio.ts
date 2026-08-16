@@ -1,5 +1,5 @@
 import type { AudioCue } from '../audio/procedural-audio';
-import type { Chapter01LevelId } from '../content/level-ids';
+import type { PlayableLevelId } from '../content/level-ids';
 import type { RenderRobotState } from '../render/render-model';
 import { ROBOT_DEFINITIONS, type RobotArchetype } from '../sim/robots';
 
@@ -31,7 +31,7 @@ const STEPS_PER_DANCE_UNIT: Readonly<Record<RobotArchetype, number>> = {
 type MovementRobot = Pick<RenderRobotState, 'id' | 'x' | 'z' | 'active' | 'danceTime'>;
 
 export interface DavelMovementAudioSnapshot {
-  readonly levelId: Chapter01LevelId;
+  readonly levelId: PlayableLevelId;
   readonly tick: number;
   readonly player: { readonly x: number; readonly z: number };
   readonly robots: readonly MovementRobot[];
@@ -56,7 +56,7 @@ interface Candidate extends DavelMovementAudioRequest {
  */
 export class DavelMovementAudioSequencer {
   private readonly beatByRobot = new Map<number, number>();
-  private levelId: Chapter01LevelId | null = null;
+  private levelId: PlayableLevelId | null = null;
   private lastTick = -1;
 
   reset(): void {

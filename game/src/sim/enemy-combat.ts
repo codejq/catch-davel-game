@@ -7,7 +7,7 @@ import {
   ENEMY_FIREBALL_SPEED, ENEMY_MELEE_DAMAGE, ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED,
   ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP, ENEMY_SLIDER_BOLT_SPEED,
 } from './balance';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
 import { difficultyProfile, difficultyRobotHealth, type DifficultyId, type DifficultyProfile } from './difficulty';
 import { isDanceAttackOnset } from './dance-timing';
 
@@ -38,7 +38,7 @@ export interface EnemyCombatResult {
 
 function clearShot(
   fromX: number, fromZ: number, toX: number, toZ: number, maximumRange = ENEMY_ATTACK_RANGE,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
 ): boolean {
   const deltaX = toX - fromX;
   const deltaZ = toZ - fromZ;
@@ -77,7 +77,7 @@ function projectileDamage(kind: EnemyProjectileKind): number {
   return kind === 'fireball' ? ENEMY_FIREBALL_DAMAGE : ENEMY_PROJECTILE_DAMAGE;
 }
 
-function canBeginAttack(robot: RobotState, player: PlayerState, levelId: Chapter01LevelId): boolean {
+function canBeginAttack(robot: RobotState, player: PlayerState, levelId: PlayableLevelId): boolean {
   const definition = ROBOT_DEFINITIONS[robot.id]!;
   const distance = Math.hypot(player.x - robot.x, player.z - robot.z);
   if (definition.archetype === 'wobble-scout') return distance <= 1.85 && clearShot(robot.x, robot.z, player.x, player.z, 2.1, levelId);
@@ -111,7 +111,7 @@ export function stepEnemyCombat(
   projectiles: EnemyProjectile[],
   nextProjectileId: number,
   tick: number,
-  levelId: Chapter01LevelId = 'level-001',
+  levelId: PlayableLevelId = 'level-001',
   robotsFrozen = false,
   difficulty: DifficultyId = 'standard',
 ): EnemyCombatResult {

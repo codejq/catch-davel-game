@@ -8,8 +8,8 @@ import {
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
-import type { Chapter01LevelId } from '../content/level-ids';
-import { chapter01Level } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
 import { freezeDanceWindow } from '../sim/level-mechanics';
 import type { PulseEnergyCellEffect } from './presentation-particles';
@@ -111,7 +111,7 @@ export class WorldRenderer {
   private readonly davels: DavelRenderer;
   private instanceCount = 0;
   private staticInstanceCount = 0;
-  private worldLevelId: Chapter01LevelId = 'level-001';
+  private worldLevelId: PlayableLevelId = 'level-001';
   private skyColor: RuntimeRgb = [0.32, 0.83, 1];
 
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
@@ -219,9 +219,9 @@ export class WorldRenderer {
     this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale, settings.qualityTier);
   }
 
-  private buildWorldInstances(levelId: Chapter01LevelId): void {
+  private buildWorldInstances(levelId: PlayableLevelId): void {
     let instance = 0;
-    const level = chapter01Level(levelId);
+    const level = campaignLevel(levelId);
     const palette = paletteRuntimeProfile(level.palette.presetId);
     this.skyColor = palette.sky;
     instance = this.writeInstance(
