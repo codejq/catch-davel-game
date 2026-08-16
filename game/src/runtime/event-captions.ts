@@ -45,7 +45,9 @@ export function captionForEvent(
     case 'projectile-deflected': return { key: 'captionDeflect', dedupeKey: 'deflect' };
     case 'bomb-thrown': return { key: 'captionBombThrown', dedupeKey: 'player-weapon' };
     case 'laser-fired': return { key: 'captionLaser', dedupeKey: 'player-weapon' };
-    case 'robot-hit': return { key: 'captionHitConfirmed', dedupeKey: `robot-hit-${event.robotId ?? 0}`, direction };
+    case 'robot-hit': return event.value === 1
+      ? { key: 'captionWeakPoint', dedupeKey: `weak-point-${event.robotId ?? 0}`, direction }
+      : { key: 'captionHitConfirmed', dedupeKey: `robot-hit-${event.robotId ?? 0}`, direction };
     case 'robot-telegraph': return { key: 'captionAttackCharging', dedupeKey: `robot-attack-${event.robotId ?? 0}`, direction };
     case 'robot-fired': return { key: 'captionIncoming', dedupeKey: `robot-attack-${event.robotId ?? 0}`, direction };
     case 'robot-melee': return { key: 'captionMelee', dedupeKey: `robot-attack-${event.robotId ?? 0}`, direction };

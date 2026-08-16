@@ -30,6 +30,9 @@ describe('semantic combat captions', () => {
     expect(captionForEvent(event({ tick: 4, type: 'player-hit', robotId: 4 }), 'left')).toMatchObject({
       key: 'captionPlayerHit', direction: 'left',
     });
+    expect(captionForEvent(event({ tick: 4, type: 'robot-hit', robotId: 4, value: 1 }), 'right')).toEqual({
+      key: 'captionWeakPoint', dedupeKey: 'weak-point-4', direction: 'right',
+    });
     expect(captionForEvent(event({ tick: 5, type: 'checkpoint-activated' }))).toBeNull();
   });
 });

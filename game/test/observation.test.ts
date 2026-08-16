@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(12);
+    expect(observation.schemaVersion).toBe(13);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,
@@ -17,6 +17,7 @@ describe('agent observation contract', () => {
     });
     expect(observation.dancePerformance).toEqual({
       presetId: 'wobble-march', bpm: 96, visualIntensity: 0.65, motif: 'wobble-march',
+      absoluteStep: 0, barStep: 0, phase: 'neutral',
     });
     expect(observation.encounter).toEqual({ waveIndex: 0, waveCount: 1, pendingTicks: 0 });
     expect(observation.levelMechanic).toEqual({
@@ -28,10 +29,24 @@ describe('agent observation contract', () => {
     expect(observation.playerBombs).toEqual([]);
     expect(observation.robots).toHaveLength(6);
     expect(observation.robots.map((robot) => robot.id)).toEqual([0, 1, 2, 3, 4, 5]);
+    expect(observation.robots[0]!.weakPoint).toMatchObject({
+      active: false, damageMultiplier: 1.5, coinMultiplier: 2,
+    });
     expect(observation.pickups.map((pickup) => pickup.id)).toEqual(['repair-kit', 'workshop-key', 'pulse-cell']);
     expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
     expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });
     expect(levelObservation().rows.every((row) => row.length === 15)).toBe(true);
+  });
+
+  it('exposes the exact active weak-point target without hidden state', () => {
+    const game = new GameSimulation('agent-weak-point');
+    game.state.tick = 19;
+    const observation = createObservation(game.state);
+    expect(observation.dancePerformance).toMatchObject({ barStep: 2, phase: 'vulnerable' });
+    expect(observation.robots.every((robot) => robot.weakPoint.active)).toBe(true);
+    expect(observation.robots[0]!.weakPoint).toMatchObject({
+      radius: 0.221, damageMultiplier: 1.5, coinMultiplier: 2,
+    });
   });
 
   it('exposes ambush and freeze-dance phases without hidden agent state', () => {

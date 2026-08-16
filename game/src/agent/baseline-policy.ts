@@ -72,7 +72,9 @@ export class BaselineCampaignAgent {
     const visible = observation.robots.filter((robot) => robot.visible)
       .sort((first, second) => first.distance - second.distance || first.id - second.id)[0];
     if (visible !== undefined) {
-      const aligned = Math.abs(visible.bearing) < 0.055 && Math.abs(visible.elevation) < 0.045;
+      const targetBearing = visible.weakPoint.active ? visible.weakPoint.bearing : visible.bearing;
+      const targetElevation = visible.weakPoint.active ? visible.weakPoint.elevation : visible.elevation;
+      const aligned = Math.abs(targetBearing) < 0.055 && Math.abs(targetElevation) < 0.045;
       const projectileThreat = observation.hostileProjectiles
         .filter((projectile) => Math.hypot(projectile.relativeX, projectile.relativeZ) < 4.5)
         .sort((first, second) => first.id - second.id)[0];
@@ -80,8 +82,8 @@ export class BaselineCampaignAgent {
       return {
         forward: visible.distance > 7 ? 0.75 : visible.distance < 2.5 ? -0.35 : 0,
         strafe: dodge,
-        turn: clamp(visible.bearing * 0.72, -0.2, 0.2),
-        look: clamp(visible.elevation * 0.72, -0.12, 0.12),
+        turn: clamp(targetBearing * 0.72, -0.2, 0.2),
+        look: clamp(targetElevation * 0.72, -0.12, 0.12),
         fire: aligned,
       };
     }

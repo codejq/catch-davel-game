@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_DAMAGE } from '../src/sim/combat';
+import {
+  BOMB_DAMAGE, LASER_BASE_DAMAGE, PULSE_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_DAMAGE, fireLaser, firePulse,
+} from '../src/sim/combat';
 import { GameSimulation } from '../src/sim/game';
 import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
+import { PLAYER_EYE_HEIGHT } from '../src/sim/constants';
+import { ROBOT_DEFINITIONS } from '../src/sim/robots';
+import {
+  WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition,
+} from '../src/sim/weak-point';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
@@ -40,6 +47,49 @@ describe('pulse gun', () => {
     game.state.player.yaw = 0;
     game.step({ ...idle, fire: true });
     expect(target.health).toBe(100);
+  });
+
+  it('rewards precision only while the authored vulnerability beat is active', () => {
+    const game = new GameSimulation('weak-point-proof');
+    const target = game.state.robots[0]!;
+    for (const other of game.state.robots.slice(1)) other.active = false;
+    target.x = game.state.player.x;
+    target.z = game.state.player.z + 2;
+    target.heading = Math.PI;
+    game.state.player.yaw = Math.PI;
+    const definition = ROBOT_DEFINITIONS[target.id]!;
+    const core = weakPointPosition(target, definition);
+    game.state.player.pitch = Math.atan2(
+      core.y - PLAYER_EYE_HEIGHT, Math.hypot(core.x - game.state.player.x, core.z - game.state.player.z),
+    );
+
+    const normal = firePulse(game.state.player, game.state.robots, 0, -1_000);
+    expect(normal.weakPoint).toBe(false);
+    expect(target.health).toBe(100 - PULSE_DAMAGE);
+
+    target.health = 50;
+    game.state.player.energy = 100;
+    const vulnerable = firePulse(game.state.player, game.state.robots, 19, 0);
+    expect(vulnerable.weakPoint).toBe(true);
+    expect(vulnerable.defeatedRobotId).toBe(target.id);
+    expect(vulnerable.coinsAwarded).toBe(definition.coinReward * WEAK_POINT_COIN_MULTIPLIER);
+    expect(game.state.player.coins).toBe(definition.coinReward * WEAK_POINT_COIN_MULTIPLIER);
+  });
+
+  it('keeps an off-core body hit normal during a vulnerability beat', () => {
+    const game = new GameSimulation('weak-point-miss');
+    const target = game.state.robots[0]!;
+    for (const other of game.state.robots.slice(1)) other.active = false;
+    target.x = game.state.player.x;
+    target.z = game.state.player.z + 2;
+    target.heading = Math.PI / 2;
+    game.state.player.yaw = Math.PI;
+    game.state.player.pitch = Math.atan2(
+      ROBOT_DEFINITIONS[target.id]!.scale * 1.16 - PLAYER_EYE_HEIGHT, 2,
+    );
+    const hit = firePulse(game.state.player, game.state.robots, 19, -1_000);
+    expect(hit.weakPoint).toBe(false);
+    expect(target.health).toBe(100 - PULSE_DAMAGE);
   });
 });
 
@@ -97,6 +147,20 @@ describe('training arsenal', () => {
     expect(game.state.laserFocusTicks).toBe(1);
     expect(game.state.player.energy).toBeLessThan(100);
     expect(game.state.player.laserHeat).toBeGreaterThan(0);
+  });
+
+  it('applies the same vulnerability multiplier to a precisely aimed laser', () => {
+    const game = new GameSimulation('laser-weak-point', TRAINING_WEAPON_MASK);
+    const target = isolatedTarget(game)!;
+    target.heading = Math.PI;
+    game.state.player.yaw = Math.PI;
+    const core = weakPointPosition(target, ROBOT_DEFINITIONS[target.id]!);
+    game.state.player.pitch = Math.atan2(
+      core.y - PLAYER_EYE_HEIGHT, Math.hypot(core.x - game.state.player.x, core.z - game.state.player.z),
+    );
+    const result = fireLaser(game.state.player, game.state.robots, LASER_BASE_DAMAGE, 19);
+    expect(result.hit?.weakPoint).toBe(true);
+    expect(target.health).toBeCloseTo(100 - LASER_BASE_DAMAGE * WEAK_POINT_DAMAGE_MULTIPLIER, 5);
   });
 
   it('applies snapshotted weapon upgrades to damage, efficiency, capacity, and heat', () => {

@@ -33,6 +33,9 @@ import { levelDancePerformance } from '../sim/dance-performance';
 import { levelMechanicDependency } from '../sim/level-mechanics';
 import { AGENT_OBSERVATION_SCHEMA_VERSION } from '../agent/observation';
 import { DIFFICULTY_PROFILES } from '../sim/difficulty';
+import {
+  WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, WEAK_POINT_RADIUS_SCALE,
+} from '../sim/weak-point';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -90,6 +93,11 @@ function simulationLevelData(levelId: Chapter01LevelId): Readonly<Record<string,
   return {
     rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
     dancePerformance: levelDancePerformance(levelId),
+    danceCombatTiming: {
+      bpm: chapter01Level(levelId).dance.bpm,
+      attackBeats: chapter01Level(levelId).dance.attackBeats,
+      vulnerableBeats: chapter01Level(levelId).dance.vulnerableBeats,
+    },
     ...(mechanic === null ? {} : { mechanic }),
   };
 }
@@ -117,6 +125,11 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
         LASER_ENERGY_PER_TICK, LASER_HEAT_PER_TICK, LASER_HEAT_COOL_PER_TICK,
         LASER_OVERHEAT_RECOVERY, LASER_BASE_DAMAGE, LASER_MAX_FOCUS_BONUS,
         LASER_HEAT_REDUCTION_PER_UPGRADE,
+      },
+      weakPoint: {
+        damageMultiplier: WEAK_POINT_DAMAGE_MULTIPLIER,
+        coinMultiplier: WEAK_POINT_COIN_MULTIPLIER,
+        radiusScale: WEAK_POINT_RADIUS_SCALE,
       },
       enemyProjectile: {
         ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_ATTACK_RANGE,

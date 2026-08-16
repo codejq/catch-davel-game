@@ -1,7 +1,7 @@
 import type { AudioRuntimeProfile } from '../content/runtime-manifests';
 
 export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-detonate'
-  | 'laser' | 'robot-impact' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
+  | 'laser' | 'robot-impact' | 'weak-point' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
   | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
@@ -25,7 +25,7 @@ export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
 
 export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   pulse: 'combat', sword: 'combat', 'charged-sword': 'combat', deflect: 'combat', 'bomb-throw': 'combat',
-  'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'robot-shot': 'combat',
+  'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'weak-point': 'combat', 'robot-shot': 'combat',
   'robot-telegraph': 'combat', 'robot-melee': 'combat', 'dj-buff': 'combat', 'boss-phase': 'combat',
   'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
   checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
@@ -93,6 +93,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   'bomb-detonate': [noise('lowpass', 720, 0.48, 0.2), tone('sine', 74, 34, 0.52, 0.2), noise('highpass', 1800, 0.12, 0.09)],
   laser: [tone('sawtooth', 510, 390, 0.07, 0.045), tone('sine', 1020, 780, 0.06, 0.025)],
   'robot-impact': [noise('bandpass', 310, 0.09, 0.1), tone('square', 105, 62, 0.08, 0.07)],
+  'weak-point': [tone('square', 740, 1180, 0.13, 0.09), tone('sine', 1480, 880, 0.18, 0.075), noise('highpass', 2400, 0.08, 0.06)],
   'robot-shot': [tone('triangle', 220, 88, 0.2, 0.09), noise('highpass', 900, 0.08, 0.05)],
   'robot-telegraph': [tone('triangle', 280, 440, 0.24, 0.06), tone('sine', 140, 210, 0.24, 0.04)],
   'robot-melee': [noise('lowpass', 460, 0.15, 0.14), tone('square', 86, 48, 0.16, 0.1)],

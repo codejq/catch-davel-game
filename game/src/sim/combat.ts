@@ -6,6 +6,10 @@ import { applyRobotBodyImpulse } from './xpbd';
 import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { isDanceWeakPointActive } from './dance-timing';
+import {
+  WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition, weakPointRadius,
+} from './weak-point';
 
 export const PULSE_DAMAGE = 40;
 export const PULSE_DAMAGE_PER_UPGRADE = 6;
@@ -36,12 +40,14 @@ export interface ShotResult {
   readonly hitRobotId: number | null;
   readonly defeatedRobotId: number | null;
   readonly coinsAwarded: number;
+  readonly weakPoint: boolean;
 }
 
 export interface WeaponHit {
   readonly robotId: number;
   readonly defeated: boolean;
   readonly coinsAwarded: number;
+  readonly weakPoint: boolean;
 }
 
 export interface SwordResult {
@@ -64,12 +70,15 @@ export interface BombStepResult {
 interface AimTrace {
   readonly robot: RobotState | null;
   readonly distance: number;
+  readonly weakPoint: boolean;
   readonly directionX: number;
   readonly directionY: number;
   readonly directionZ: number;
 }
 
-const noShot: ShotResult = { fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0 };
+const noShot: ShotResult = {
+  fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false,
+};
 
 function clearLine(
   fromX: number, fromZ: number, toX: number, toZ: number, levelId: Chapter01LevelId,
@@ -114,7 +123,7 @@ function sphereDistance(
 }
 
 function traceAim(
-  player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: Chapter01LevelId,
+  player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: Chapter01LevelId, tick: number,
 ): AimTrace {
   const cosPitch = Math.cos(player.pitch);
   const directionX = Math.sin(player.yaw) * cosPitch;
@@ -123,6 +132,8 @@ function traceAim(
   const obstructionDistance = wallDistance(player.x, player.z, directionX, directionZ, maximumRange, levelId);
   let target: RobotState | null = null;
   let targetDistance = obstructionDistance;
+  let targetWeakPoint = false;
+  const vulnerabilityActive = isDanceWeakPointActive(levelId, tick);
   for (const robot of robots) {
     if (!robot.active) continue;
     const definition = ROBOT_DEFINITIONS[robot.id]!;
@@ -134,9 +145,20 @@ function traceAim(
     if (distance !== null && distance < targetDistance) {
       target = robot;
       targetDistance = distance;
+      if (vulnerabilityActive) {
+        const weakPoint = weakPointPosition(robot, definition);
+        targetWeakPoint = sphereDistance(
+          player.x, PLAYER_EYE_HEIGHT, player.z,
+          directionX, directionY, directionZ,
+          weakPoint.x, weakPoint.y, weakPoint.z, weakPointRadius(definition),
+        ) !== null;
+      } else targetWeakPoint = false;
     }
   }
-  return { robot: target, distance: targetDistance, directionX, directionY, directionZ };
+  return {
+    robot: target, distance: targetDistance, weakPoint: targetWeakPoint,
+    directionX, directionY, directionZ,
+  };
 }
 
 export function damageRobot(
@@ -146,17 +168,18 @@ export function damageRobot(
   impulseX: number,
   impulseY: number,
   impulseZ: number,
+  weakPoint = false,
 ): WeaponHit {
-  robot.health = Math.max(0, robot.health - damage);
+  robot.health = Math.max(0, robot.health - damage * (weakPoint ? WEAK_POINT_DAMAGE_MULTIPLIER : 1));
   robot.hitFlashTicks = 7;
   robot.knockbackX += impulseX;
   robot.knockbackZ += impulseZ;
   applyRobotBodyImpulse(robot, impulseX * 0.74, impulseY, impulseZ * 0.74);
-  if (robot.health > 0) return { robotId: robot.id, defeated: false, coinsAwarded: 0 };
+  if (robot.health > 0) return { robotId: robot.id, defeated: false, coinsAwarded: 0, weakPoint };
   robot.active = false;
-  const reward = ROBOT_DEFINITIONS[robot.id]!.coinReward;
+  const reward = ROBOT_DEFINITIONS[robot.id]!.coinReward * (weakPoint ? WEAK_POINT_COIN_MULTIPLIER : 1);
   player.coins += reward;
-  return { robotId: robot.id, defeated: true, coinsAwarded: reward };
+  return { robotId: robot.id, defeated: true, coinsAwarded: reward, weakPoint };
 }
 
 export function firePulse(
@@ -166,11 +189,18 @@ export function firePulse(
   const energyCost = Math.max(1, PULSE_ENERGY_COST - player.weaponUpgrades.pulseEfficiency * PULSE_ENERGY_REDUCTION_PER_UPGRADE);
   if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < energyCost) return noShot;
   player.energy -= energyCost;
-  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId);
-  if (trace.robot === null) return { fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0 };
+  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick);
+  if (trace.robot === null) {
+    return { fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0, weakPoint: false };
+  }
   const damage = PULSE_DAMAGE + player.weaponUpgrades.pulseDamage * PULSE_DAMAGE_PER_UPGRADE;
-  const hit = damageRobot(player, trace.robot, damage, trace.directionX * 0.075, 0.055, trace.directionZ * 0.075);
-  return { fired: true, hitRobotId: hit.robotId, defeatedRobotId: hit.defeated ? hit.robotId : null, coinsAwarded: hit.coinsAwarded };
+  const hit = damageRobot(
+    player, trace.robot, damage, trace.directionX * 0.075, 0.055, trace.directionZ * 0.075, trace.weakPoint,
+  );
+  return {
+    fired: true, hitRobotId: hit.robotId, defeatedRobotId: hit.defeated ? hit.robotId : null,
+    coinsAwarded: hit.coinsAwarded, weakPoint: hit.weakPoint,
+  };
 }
 
 export function swingSword(
@@ -224,12 +254,15 @@ export function swingSword(
 }
 
 export function fireLaser(
-  player: PlayerState, robots: RobotState[], damage: number, levelId: Chapter01LevelId = 'level-001',
+  player: PlayerState, robots: RobotState[], damage: number, tick: number,
+  levelId: Chapter01LevelId = 'level-001',
 ): LaserResult {
-  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId);
+  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId, tick);
   if (trace.robot === null) return { hit: null, beamDistance: trace.distance };
   return {
-    hit: damageRobot(player, trace.robot, damage, trace.directionX * 0.022, 0.012, trace.directionZ * 0.022),
+    hit: damageRobot(
+      player, trace.robot, damage, trace.directionX * 0.022, 0.012, trace.directionZ * 0.022, trace.weakPoint,
+    ),
     beamDistance: trace.distance,
   };
 }

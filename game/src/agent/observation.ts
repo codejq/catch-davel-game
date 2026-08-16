@@ -10,8 +10,12 @@ import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
 import { campaignRunScore, runAccuracyPermille } from '../sim/run-score';
 import type { DifficultyId } from '../sim/difficulty';
+import { authoritativeDanceTiming } from '../sim/dance-timing';
+import {
+  WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition, weakPointRadius,
+} from '../sim/weak-point';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 12;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 13;
 
 export interface RobotObservation {
   readonly id: number;
@@ -31,10 +35,21 @@ export interface RobotObservation {
   readonly combatTicks: number;
   readonly tempoBuffed: boolean;
   readonly bossPhase: 0 | 1 | 2 | 3;
+  readonly weakPoint: {
+    readonly active: boolean;
+    readonly relativeX: number;
+    readonly relativeY: number;
+    readonly relativeZ: number;
+    readonly bearing: number;
+    readonly elevation: number;
+    readonly radius: number;
+    readonly damageMultiplier: number;
+    readonly coinMultiplier: number;
+  };
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 12;
+  readonly schemaVersion: 13;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -90,6 +105,9 @@ export interface AgentObservation {
     readonly bpm: number;
     readonly visualIntensity: number;
     readonly motif: string;
+    readonly absoluteStep: number;
+    readonly barStep: number;
+    readonly phase: 'neutral' | 'attack' | 'vulnerable' | 'frozen';
   };
   readonly encounter: {
     readonly waveIndex: number;
@@ -195,24 +213,32 @@ function hasLineOfSight(
 
 export function createObservation(state: GameState): AgentObservation {
   const performance = levelDancePerformance(state.levelId);
+  const danceTiming = authoritativeDanceTiming(state.levelId, state.tick);
   const mechanicKind = levelMechanicKind(state.levelId);
   const freezeWindow = freezeDanceWindow(state.levelId, state.tick);
   const playerCell = worldCell(state.player.x, state.player.z);
   const robots = state.robots.filter((robot) => robot.active).map((robot): RobotObservation => {
+    const definition = ROBOT_DEFINITIONS[robot.id]!;
     const deltaX = robot.x - state.player.x;
     const deltaZ = robot.z - state.player.z;
     const absoluteBearing = Math.atan2(deltaX, -deltaZ);
+    const weakPoint = weakPointPosition(robot, definition);
+    const weakDeltaX = weakPoint.x - state.player.x;
+    const weakDeltaY = weakPoint.y - PLAYER_EYE_HEIGHT;
+    const weakDeltaZ = weakPoint.z - state.player.z;
+    const weakHorizontalDistance = Math.hypot(weakDeltaX, weakDeltaZ);
+    const weakAbsoluteBearing = Math.atan2(weakDeltaX, -weakDeltaZ);
     return {
       id: robot.id,
-      name: ROBOT_DEFINITIONS[robot.id]!.name,
-      dance: ROBOT_DEFINITIONS[robot.id]!.dance,
-      archetype: ROBOT_DEFINITIONS[robot.id]!.archetype,
-      rank: ROBOT_DEFINITIONS[robot.id]!.rank,
+      name: definition.name,
+      dance: definition.dance,
+      archetype: definition.archetype,
+      rank: definition.rank,
       relativeX: round(deltaX),
       relativeZ: round(deltaZ),
       distance: round(Math.hypot(deltaX, deltaZ)),
       bearing: round(normalizeAngle(absoluteBearing - state.player.yaw)),
-      elevation: round(Math.atan2(ROBOT_DEFINITIONS[robot.id]!.scale * 1.16 - PLAYER_EYE_HEIGHT, Math.hypot(deltaX, deltaZ)) - state.player.pitch),
+      elevation: round(Math.atan2(definition.scale * 1.16 - PLAYER_EYE_HEIGHT, Math.hypot(deltaX, deltaZ)) - state.player.pitch),
       heading: round(robot.heading),
       health: robot.health,
       visible: hasLineOfSight(state.player.x, state.player.z, robot.x, robot.z, state.levelId),
@@ -220,6 +246,15 @@ export function createObservation(state: GameState): AgentObservation {
       combatTicks: robot.combatTicks,
       tempoBuffed: robot.tempoBuffTicks > 0,
       bossPhase: robot.bossPhase,
+      weakPoint: {
+        active: danceTiming.phase === 'vulnerable',
+        relativeX: round(weakDeltaX), relativeY: round(weakDeltaY), relativeZ: round(weakDeltaZ),
+        bearing: round(normalizeAngle(weakAbsoluteBearing - state.player.yaw)),
+        elevation: round(Math.atan2(weakDeltaY, weakHorizontalDistance) - state.player.pitch),
+        radius: round(weakPointRadius(definition)),
+        damageMultiplier: WEAK_POINT_DAMAGE_MULTIPLIER,
+        coinMultiplier: WEAK_POINT_COIN_MULTIPLIER,
+      },
     };
   });
   return {
@@ -258,7 +293,7 @@ export function createObservation(state: GameState): AgentObservation {
     victory: state.victory,
     defeat: state.defeat,
     objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
-    dancePerformance: { ...performance },
+    dancePerformance: { ...performance, ...danceTiming },
     encounter: { ...state.level.encounter },
     levelMechanic: {
       kind: mechanicKind,

@@ -5,10 +5,10 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "d06573c4b4825196",
+          "balanceData": "e6895b2c7dd8293a",
           "effectiveLevel": "7f15c9e87217e556",
-          "policyOrReplay": "3ad3d50b71fe039f",
-          "simulationLevel": "d01839d053094148",
+          "policyOrReplay": "b13ba2d327b826a4",
+          "simulationLevel": "ab36213ee65614c6",
           "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Standard",

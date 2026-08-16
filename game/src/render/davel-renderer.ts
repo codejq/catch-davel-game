@@ -9,6 +9,8 @@ import { davelExpression, type DavelExpression } from './davel-expression';
 import { davelAccessory } from './davel-accessory';
 import { CoinBurstTracker, coinBurstPoint } from './coin-burst';
 import { fireballSmokePuff, mechanicalFragmentSegment } from './presentation-particles';
+import { isDanceWeakPointActive } from '../sim/dance-timing';
+import { weakPointPosition, weakPointRadius } from '../sim/weak-point';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -312,6 +314,7 @@ export class DavelRenderer {
     this.spheres.reset();
     this.capsules.reset();
     const quality = RENDER_QUALITY_PROFILES[qualityTier];
+    const weakPointsActive = isDanceWeakPointActive(state.levelId, state.tick);
     for (const effect of this.coinBursts.update(state)) {
       for (let coinIndex = 0; coinIndex < quality.coinBurstCount; coinIndex += 1) {
         const current = coinBurstPoint(effect, state.tick, coinIndex, state.player, motionScale);
@@ -330,7 +333,7 @@ export class DavelRenderer {
     for (const robot of state.robots) {
       if (robot.active) this.addRobot(
         robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale,
-        quality.hitSparkCount,
+        quality.hitSparkCount, weakPointsActive,
       );
     }
     for (const projectile of state.projectiles) {
@@ -396,7 +399,8 @@ export class DavelRenderer {
   }
 
   private addRobot(
-    robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number, hitSparkCount: number,
+    robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number,
+    hitSparkCount: number, weakPointActive: boolean,
   ): void {
     const basePose = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
     const expression = davelExpression(robot, motionScale);
@@ -413,6 +417,13 @@ export class DavelRenderer {
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
     this.addSphere({ x: robot.x, y: 0.045, z: robot.z }, 0.62 * scale, [0.035, 0.055, 0.09], 0.055, 0.76);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
+    if (weakPointActive) {
+      const core = weakPointPosition(robot, definition);
+      const radius = weakPointRadius(definition);
+      this.addSphere(core, radius * 1.28, [0.06, 0.08, 0.15], 1.06, 0.45);
+      this.addSphere(core, radius, [0.24, 1, 0.92], 1.08, 0.5);
+      this.addSphere(core, radius * 0.42, [1, 1, 0.72], 1.12, 0.55);
+    }
     if (robot.hitFlashTicks > 0 && flashScale > 0) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
       for (let index = 0; index < hitSparkCount; index += 1) {

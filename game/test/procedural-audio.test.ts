@@ -9,7 +9,7 @@ import { AUDIO_RUNTIME_PROFILES } from '../src/content/runtime-manifests';
 describe('project-original procedural audio contracts', () => {
   it('keeps every gameplay cue layered and bounded', () => {
     expect(() => validateProceduralAudioDefinitions()).not.toThrow();
-    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(33);
+    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(34);
     for (const layers of Object.values(AUDIO_CUE_DEFINITIONS)) {
       expect(layers.length).toBeGreaterThanOrEqual(2);
       expect(Math.max(...layers.map((layer) => layer.duration + (layer.delay ?? 0)))).toBeLessThan(0.8);

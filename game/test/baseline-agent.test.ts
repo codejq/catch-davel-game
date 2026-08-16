@@ -31,7 +31,7 @@ describe('public-observation baseline campaign agent', () => {
       key: first.state.level.keyCollected, door: first.state.level.door.open,
       checkpoint: first.state.level.checkpoint.activated, objective: first.state.level.objectiveComplete,
     };
-    expect(first.state.tick, JSON.stringify(result)).toBe(4_526);
+    expect(first.state.tick, JSON.stringify(result)).toBe(4_514);
     expect(stateChecksum(first.state)).toBe(LEVEL_001.agentValidation.runs[0].expectedChecksum);
     expect(first.state.defeat, JSON.stringify(result)).toBe(false);
     expect(first.state.victory).toBe(true);

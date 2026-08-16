@@ -777,9 +777,10 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'bomb-detonated') { showMessage(ui('bombDetonated')); sound('bomb-detonate'); }
     if (event.type === 'laser-fired' && event.tick % 4 === 0) sound('laser');
     if (event.type === 'robot-hit') {
-      crosshair.classList.add('hit');
-      window.setTimeout(() => crosshair.classList.remove('hit'), 90);
-      sound('robot-impact', event.robotId);
+      const hitClass = event.value === 1 ? 'weak-hit' : 'hit';
+      crosshair.classList.add(hitClass);
+      window.setTimeout(() => crosshair.classList.remove(hitClass), event.value === 1 ? 150 : 90);
+      sound(event.value === 1 ? 'weak-point' : 'robot-impact', event.robotId);
     }
     if (event.type === 'robot-fired') sound('robot-shot', event.robotId);
     if (event.type === 'robot-telegraph') {

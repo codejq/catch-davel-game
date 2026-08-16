@@ -5,10 +5,10 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "0dc6813050d5d6c5",
-          "policyOrReplay": "3ad3d50b71fe039f",
-          "simulationLevel": "7d360e3fbde5603b",
+          "balanceData": "e6895b2c7dd8293a",
+          "effectiveLevel": "97937399254bdc2c",
+          "policyOrReplay": "b13ba2d327b826a4",
+          "simulationLevel": "3644e3340b52e0fe",
           "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Standard",
@@ -31,14 +31,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "0dc6813050d5d6c5",
-          "policyOrReplay": "3ad3d50b71fe039f",
-          "simulationLevel": "7d360e3fbde5603b",
+          "balanceData": "e6895b2c7dd8293a",
+          "effectiveLevel": "97937399254bdc2c",
+          "policyOrReplay": "b13ba2d327b826a4",
+          "simulationLevel": "3644e3340b52e0fe",
           "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Story",
-        "expectedChecksum": "0672e827235a03ff",
+        "expectedChecksum": "d02b4aa202eea96a",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -57,14 +57,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "0dc6813050d5d6c5",
-          "policyOrReplay": "3ad3d50b71fe039f",
-          "simulationLevel": "7d360e3fbde5603b",
+          "balanceData": "e6895b2c7dd8293a",
+          "effectiveLevel": "97937399254bdc2c",
+          "policyOrReplay": "b13ba2d327b826a4",
+          "simulationLevel": "3644e3340b52e0fe",
           "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "b0b303b2c6345f89",
+        "expectedChecksum": "7d50586d97928dde",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,

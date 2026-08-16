@@ -1,3 +1,7 @@
+import { danceAbsoluteStepAtTick } from '../sim/dance-timing';
+
+export { danceAbsoluteStepAtTick } from '../sim/dance-timing';
+
 export type DanceBeatPhase = 'neutral' | 'attack' | 'vulnerable' | 'frozen';
 
 export interface DanceBeatPresentation {
@@ -5,11 +9,6 @@ export interface DanceBeatPresentation {
   readonly barStep: number;
   readonly quarterBeat: number;
   readonly phase: DanceBeatPhase;
-}
-
-export function danceAbsoluteStepAtTick(tick: number, bpm: number): number {
-  if (!Number.isFinite(bpm) || bpm <= 0) throw new Error('Dance BPM must be positive and finite');
-  return Math.floor(Math.max(0, tick) / (900 / bpm));
 }
 
 export function danceBeatPresentation(

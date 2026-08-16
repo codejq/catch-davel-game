@@ -31,21 +31,21 @@ interface Chapter01Recipe {
 
 const GLOBAL_DEPENDENCIES = {
   simulationSchema: 'b03f2f88cc38d8fb',
-  balanceData: 'd06573c4b4825196',
-  policyOrReplay: '3ad3d50b71fe039f',
+  balanceData: 'e6895b2c7dd8293a',
+  policyOrReplay: 'b13ba2d327b826a4',
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
-  'level-001': '89024bcb436256c9',
-  'level-002': 'd4ec176394742ce7',
-  'level-003': 'fef54884b2088ec7',
-  'level-004': 'e9781407b0e55536',
-  'level-005': '39c81753967df734',
-  'level-006': 'd01839d053094148',
-  'level-007': '952ec5ac5d627442',
-  'level-008': '6bcbc1989e7abfeb',
-  'level-009': '9d07cf100bca26b2',
-  'level-010': '7d360e3fbde5603b',
+  'level-001': 'fd7ff25ba218846f',
+  'level-002': '95cbee04191c2f3b',
+  'level-003': 'a49cdbde3d8080ff',
+  'level-004': '42bc75ae05cb44ac',
+  'level-005': '3a3edcda864ef8c8',
+  'level-006': 'ab36213ee65614c6',
+  'level-007': '03d9b8a0326c8722',
+  'level-008': '228dfc76d33f070e',
+  'level-009': '211a15d07d1a37e5',
+  'level-010': '3644e3340b52e0fe',
 };
 
 function pad(number: number): string {
@@ -238,8 +238,8 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
         requiredObjectiveIds: [requiredObjectiveId],
         expectedCompletion: true,
         expectedChecksum: difficulty === 'Story'
-          ? (recipe.number === 9 ? 'f95abd051e3d0a4b' : '0672e827235a03ff')
-          : (recipe.number === 9 ? '4eda95027f5aea94' : 'b0b303b2c6345f89'),
+          ? (recipe.number === 9 ? '378f0f6e454d66f2' : 'd02b4aa202eea96a')
+          : (recipe.number === 9 ? '34bf16403ab3bff6' : '7d50586d97928dde'),
         parTicks: 7_000 + recipe.number * 350,
         dependencyHashes: {
           ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',

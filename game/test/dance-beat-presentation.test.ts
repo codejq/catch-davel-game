@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { musicStepAtTick } from '../src/audio/music-sequencer';
 import { musicRuntimeProfile } from '../src/content/runtime-manifests';
 import { danceAbsoluteStepAtTick, danceBeatPresentation } from '../src/runtime/dance-beat-presentation';
+import { authoritativeDanceTiming, isDanceWeakPointActive } from '../src/sim/dance-timing';
 
 describe('accessible dance-beat presentation', () => {
   it('shares the exact tick/BPM clock used by procedural music', () => {
@@ -34,5 +35,14 @@ describe('accessible dance-beat presentation', () => {
     expect(frozen).toEqual({ ...active, phase: 'frozen' });
     expect(() => danceAbsoluteStepAtTick(0, 0)).toThrow(/BPM/);
     expect(() => danceAbsoluteStepAtTick(0, Number.NaN)).toThrow(/BPM/);
+  });
+
+  it('maps authored vulnerability beats to simulation ticks and suppresses them during freeze', () => {
+    expect(authoritativeDanceTiming('level-001', 19)).toEqual({
+      absoluteStep: 2, barStep: 2, phase: 'vulnerable',
+    });
+    expect(isDanceWeakPointActive('level-001', 19)).toBe(true);
+    expect(authoritativeDanceTiming('level-007', 17)).toMatchObject({ barStep: 2, phase: 'frozen' });
+    expect(isDanceWeakPointActive('level-007', 17)).toBe(false);
   });
 });

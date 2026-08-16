@@ -234,7 +234,8 @@ export class GameSimulation {
     if (player.laserHeat >= 100) player.laserOverheated = true;
     const focus = Math.min(1, this.state.laserFocusTicks / 90);
     const result = fireLaser(
-      player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus, this.state.levelId,
+      player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus,
+      this.state.tick, this.state.levelId,
     );
     recordRangedAttack(this.state.metrics, result.hit !== null);
     this.state.laserActive = true;
@@ -261,11 +262,14 @@ export class GameSimulation {
     this.state.events.push({ tick: this.state.tick, type: 'pulse-fired' });
     if (result.hitRobotId !== null) this.applyWeaponHit({
       robotId: result.hitRobotId, defeated: result.defeatedRobotId === result.hitRobotId, coinsAwarded: result.coinsAwarded,
+      weakPoint: result.weakPoint,
     });
   }
 
   private applyWeaponHit(hit: WeaponHit): void {
-    this.state.events.push({ tick: this.state.tick, type: 'robot-hit', robotId: hit.robotId });
+    this.state.events.push({
+      tick: this.state.tick, type: 'robot-hit', robotId: hit.robotId, value: hit.weakPoint ? 1 : 0,
+    });
     if (!hit.defeated) return;
     const awardedCoins = Math.max(1, Math.round(
       hit.coinsAwarded * difficultyProfile(this.state.difficulty).resourceMultiplier,

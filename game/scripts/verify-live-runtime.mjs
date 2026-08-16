@@ -87,6 +87,24 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pausedTickAfterWait = Number(document.body.dataset.snapshotTick);
 
+    await api.reset({ seed: 'live-weak-point-proof', mode: 'agent' });
+    const weakPointObservation = await api.step({ action: {}, ticks: 19 });
+    const weakPointDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.snapshotTick) < weakPointObservation.tick
+      && performance.now() < weakPointDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const weakPointProof = {
+      tick: weakPointObservation.tick,
+      presentedTick: Number(document.body.dataset.snapshotTick),
+      schemaVersion: weakPointObservation.schemaVersion,
+      phase: weakPointObservation.dancePerformance.phase,
+      active: weakPointObservation.robots[0]?.weakPoint.active,
+      radius: weakPointObservation.robots[0]?.weakPoint.radius,
+      damageMultiplier: weakPointObservation.robots[0]?.weakPoint.damageMultiplier,
+      coinMultiplier: weakPointObservation.robots[0]?.weakPoint.coinMultiplier,
+    };
+
     const levelEightObservation = await api.reset({ levelId: 'level-008', mode: 'agent' });
     const levelEightReplay = await api.saveReplay();
     const levelEightProof = {
@@ -254,6 +272,7 @@ try {
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
+      weakPointProof,
       levelEightProof,
       waveTransitionProof,
       arsenalProof,
@@ -285,8 +304,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 12
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v12 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 13
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v13 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -296,6 +315,11 @@ try {
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
+    [result.weakPointProof.tick === 19 && result.weakPointProof.presentedTick >= 19
+      && result.weakPointProof.schemaVersion === 13 && result.weakPointProof.phase === 'vulnerable'
+      && result.weakPointProof.active === true && result.weakPointProof.radius > 0
+      && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
+    'live Worker/presentation boundary did not expose the authored weak-point window'],
     [result.levelEightProof.levelId === 'level-008' && result.levelEightProof.replayLevelId === 'level-008'
       && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
     [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,
