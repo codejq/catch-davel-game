@@ -30,6 +30,7 @@ import {
   DEFAULT_INPUT_BINDINGS, INPUT_ACTIONS, inputCodeLabel, normalizeInputBindings, rebindInput,
   type InputAction, type InputBindings,
 } from '../storage/input-bindings';
+import { projectStandardGamepad } from './gamepad-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -627,6 +628,10 @@ export async function startBrowserGame(): Promise<void> {
   let resumeAfterVisibility = false;
   let touchForward = 0;
   let touchStrafe = 0;
+  let previousGamepadAlt = false;
+  let previousGamepadCycle = false;
+  let previousGamepadCampaign = false;
+  let previousGamepadShop = false;
   let movePointerId: number | null = null;
   let lookPointerId: number | null = null;
   let lookClientX = 0;
@@ -777,7 +782,10 @@ export async function startBrowserGame(): Promise<void> {
     event.stopImmediatePropagation();
     commitInputBinding(bindingCaptureAction, `Mouse${event.button}`);
   }, true);
-  window.addEventListener('blur', () => { pressed.clear(); fireHeld = false; clearTouchInput(); });
+  window.addEventListener('blur', () => {
+    pressed.clear(); fireHeld = false; clearTouchInput();
+    previousGamepadAlt = false; previousGamepadCycle = false; previousGamepadCampaign = false; previousGamepadShop = false;
+  });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
     yawDelta += event.movementX * LOOK_SCALE * activeProfile.settings.mouseSensitivity;
@@ -815,14 +823,35 @@ export async function startBrowserGame(): Promise<void> {
 
   const frame = (): void => {
     if (!agentController.isAgentControlled()) {
+      const gamepads = typeof navigator.getGamepads === 'function' ? navigator.getGamepads() : [];
+      const connectedGamepad = Array.from(gamepads).find((candidate) => candidate?.connected) ?? null;
+      const gamepad = projectStandardGamepad(connectedGamepad);
+      document.body.dataset.gamepad = gamepad.connected ? 'connected' : 'disconnected';
+      if (gamepad.campaign && !previousGamepadCampaign && !trainingMode) {
+        setCampaignMapOpen(!campaignMap.classList.contains('open'));
+      }
+      if (gamepad.shop && !previousGamepadShop && !trainingMode && !humanSessionStarted) {
+        shop.classList.toggle('open');
+      }
+      const gameInputAllowed = !campaignMap.classList.contains('open') && !shop.classList.contains('open');
+      if (gameInputAllowed && gamepad.altFire && !previousGamepadAlt) { fireQueued = true; altFireQueued = true; }
+      if (gameInputAllowed && gamepad.cycleWeapon && !previousGamepadCycle && renderState !== null) {
+        queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
+      }
+      if (gameInputAllowed && (Math.abs(gamepad.forward) > 0 || Math.abs(gamepad.strafe) > 0
+        || Math.abs(gamepad.yawDelta) > 0 || Math.abs(gamepad.pitchDelta) > 0 || gamepad.fire || gamepad.altFire)) {
+        beginHumanSession();
+      }
       const command: PlayerCommand = {
         forward: Math.max(-1, Math.min(1,
-          Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back)) + touchForward)),
+          Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back))
+          + touchForward + (gameInputAllowed ? gamepad.forward : 0))),
         strafe: Math.max(-1, Math.min(1,
-          Number(pressed.has(activeInputBindings.right)) - Number(pressed.has(activeInputBindings.left)) + touchStrafe)),
-        yawDelta,
-        pitchDelta,
-        fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire),
+          Number(pressed.has(activeInputBindings.right)) - Number(pressed.has(activeInputBindings.left))
+          + touchStrafe + (gameInputAllowed ? gamepad.strafe : 0))),
+        yawDelta: yawDelta + (gameInputAllowed ? gamepad.yawDelta : 0),
+        pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
+        fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire) || (gameInputAllowed && gamepad.fire),
         altFire: altFireQueued,
         weapon: queuedWeapon,
       };
@@ -832,6 +861,10 @@ export async function startBrowserGame(): Promise<void> {
       fireQueued = false;
       altFireQueued = false;
       queuedWeapon = null;
+      previousGamepadAlt = gamepad.altFire;
+      previousGamepadCycle = gamepad.cycleWeapon;
+      previousGamepadCampaign = gamepad.campaign;
+      previousGamepadShop = gamepad.shop;
     }
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
     requestAnimationFrame(frame);

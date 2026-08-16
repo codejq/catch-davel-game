@@ -82,6 +82,13 @@ try {
   if (result.campaignCards !== 10 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
+  await page.evaluate(() => {
+    const buttons = Array.from({ length: 16 }, () => ({ pressed: false, touched: false, value: 0 }));
+    const syntheticGamepad = { connected: true, axes: [0, 0, 0, 0], buttons };
+    Object.defineProperty(navigator, 'getGamepads', { configurable: true, value: () => [syntheticGamepad] });
+  });
+  await page.waitForFunction(() => document.body.dataset.gamepad === 'connected');
+  const gamepadDetected = await page.evaluate(() => document.body.dataset.gamepad);
   await page.click('#campaign-button');
   await page.waitForFunction(() => document.querySelector('#campaign-map')?.classList.contains('open') === true);
   await page.waitForTimeout(80);
@@ -382,7 +389,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
+    passed: true, ...result, gamepadDetected, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },
