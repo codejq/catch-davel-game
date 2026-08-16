@@ -51,6 +51,7 @@ import { PULSE_MAX_SPREAD_RADIANS } from '../sim/combat';
 import {
   PULSE_ENERGY_CELL_DURATION_TICKS, createPulseEnergyCellEffect,
 } from '../render/presentation-particles';
+import { LaserAudioSequencer, type LaserAudioRequest } from './laser-audio';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -263,6 +264,7 @@ export async function startBrowserGame(): Promise<void> {
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
   const davelMovementAudio = new DavelMovementAudioSequencer();
+  const laserAudio = new LaserAudioSequencer();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -621,12 +623,19 @@ export async function startBrowserGame(): Promise<void> {
     return audio;
   };
 
-  const sound = (cue: AudioCue, robotId?: number, gainScale = 1): void => {
+  const sound = (cue: AudioCue, robotId?: number, gainScale = 1, pitchScale = 1): void => {
     if (audio === null) return;
     const robot = robotId === undefined ? undefined : renderState?.robots.find((candidate) => candidate.id === robotId);
     const pan = robot === undefined || renderState === null
       ? 0 : Math.max(-1, Math.min(1, (robot.x - renderState.player.x) / 9));
-    audio.play(cue, pan, gainScale);
+    audio.play(cue, pan, gainScale, pitchScale);
+  };
+
+  const playLaserAudio = (request: LaserAudioRequest | null): void => {
+    if (request === null) return;
+    document.body.dataset.laserAudioTick = String(request.tick);
+    document.body.dataset.laserPitchScale = String(request.pitchScale);
+    sound('laser', undefined, 1, request.pitchScale);
   };
 
   const showMessage = (text: string): void => {
@@ -820,7 +829,13 @@ export async function startBrowserGame(): Promise<void> {
       showMessage(ui('bombDetonated'));
       sound('bomb-detonate');
     }
-    if (event.type === 'laser-fired' && event.tick % 4 === 0) sound('laser');
+    if (event.type === 'laser-fired') {
+      playLaserAudio(laserAudio.queue(event.tick, renderState === null ? null : {
+        tick: renderState.tick,
+        heat: renderState.player.laserHeat,
+        overheated: renderState.player.laserOverheated,
+      }));
+    }
     if (event.type === 'robot-hit') {
       const hitClass = event.value === 1 ? 'weak-hit' : 'hit';
       crosshair.classList.add(hitClass);
@@ -940,10 +955,14 @@ export async function startBrowserGame(): Promise<void> {
       onSnapshot: (state) => {
         if (renderState !== null && (state.tick < renderState.tick || state.levelId !== renderState.levelId)) {
           pendingPulseEffectTicks.length = 0;
+          laserAudio.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
         flushPulseEffects(state);
+        playLaserAudio(laserAudio.sample({
+          tick: state.tick, heat: state.player.laserHeat, overheated: state.player.laserOverheated,
+        }));
         updateHud(state);
         const activeRobots = state.robots.filter((robot) => robot.active).length;
         const combatIntensity = Math.min(1, 0.22 + activeRobots / Math.max(1, state.robots.length) * 0.58
@@ -967,6 +986,7 @@ export async function startBrowserGame(): Promise<void> {
       onEvent: processEvent,
       onResync: (state) => {
         davelMovementAudio.reset();
+        laserAudio.reset();
         pendingPulseEffectTicks.length = 0;
         renderer.clearPresentationEffects();
         renderState = state;

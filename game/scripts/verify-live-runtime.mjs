@@ -225,6 +225,33 @@ try {
       laserHeat: arsenalObservation.player.laserHeat,
       laserActive: arsenalObservation.laser.active,
     };
+    arsenalObservation = await api.act({ weapon: 'laser', fire: true }, 5);
+    const coldLaserCueTick = Math.floor((arsenalObservation.tick - 1) / 4) * 4;
+    const coldLaserDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.laserAudioTick) < coldLaserCueTick
+      || !Number.isFinite(Number(document.body.dataset.laserAudioTick))) {
+      if (performance.now() >= coldLaserDeadline) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const coldLaserAudio = {
+      tick: Number(document.body.dataset.laserAudioTick),
+      pitchScale: Number(document.body.dataset.laserPitchScale),
+      heat: arsenalObservation.player.laserHeat,
+    };
+    arsenalObservation = await api.act({ weapon: 'laser', fire: true }, 32);
+    const hotLaserCueTick = Math.floor((arsenalObservation.tick - 1) / 4) * 4;
+    const hotLaserDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.laserAudioTick) < hotLaserCueTick
+      || !Number.isFinite(Number(document.body.dataset.laserAudioTick))) {
+      if (performance.now() >= hotLaserDeadline) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const hotLaserAudio = {
+      tick: Number(document.body.dataset.laserAudioTick),
+      pitchScale: Number(document.body.dataset.laserPitchScale),
+      heat: arsenalObservation.player.laserHeat,
+    };
+    const laserAudioProof = { cold: coldLaserAudio, hot: hotLaserAudio };
     const bombDetonationObservation = await api.act({}, 90);
     const bombEffectDeadline = performance.now() + 2_000;
     while (Number(document.body.dataset.bombDetonationTick) > bombDetonationObservation.tick
@@ -302,6 +329,7 @@ try {
       levelEightProof,
       waveTransitionProof,
       arsenalProof,
+      laserAudioProof,
       bombDetonationProof,
       bossProof,
       bossHudProof,
@@ -379,6 +407,12 @@ try {
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
     [result.arsenalProof.bombCount === 2 && result.arsenalProof.liveBombs === 1, 'Worker bomb action did not create a thrown bomb'],
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
+    [Number.isFinite(result.laserAudioProof.cold.pitchScale)
+      && Number.isFinite(result.laserAudioProof.hot.pitchScale)
+      && result.laserAudioProof.hot.heat > result.laserAudioProof.cold.heat
+      && result.laserAudioProof.hot.pitchScale > result.laserAudioProof.cold.pitchScale
+      && result.laserAudioProof.hot.pitchScale <= 1.58,
+    'authoritative laser heat did not produce a bounded rising live audio pitch'],
     [result.bombDetonationProof.liveBombs === 0
       && Number.isFinite(result.bombDetonationProof.effectTick)
       && result.bombDetonationProof.effectTick <= result.bombDetonationProof.observationTick

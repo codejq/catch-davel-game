@@ -12,6 +12,10 @@ export const TRANSIENT_AUDIO_SOURCE_CAP = 48;
 export const AMBIENCE_SOURCE_CAP = 2;
 export const TOTAL_AUDIO_SOURCE_CAP = TRANSIENT_AUDIO_SOURCE_CAP + AMBIENCE_SOURCE_CAP;
 
+export function boundedAudioPitchScale(value: number): number {
+  return Number.isFinite(value) ? Math.max(0.5, Math.min(2, value)) : 1;
+}
+
 export interface AudioMixSettings {
   readonly combat: number;
   readonly world: number;
@@ -263,17 +267,18 @@ export class ProceduralAudio {
 
   get ambienceSourceCount(): number { return this.ambienceSources.length; }
 
-  play(cue: AudioCue, pan = 0, gainScale = 1): void {
+  play(cue: AudioCue, pan = 0, gainScale = 1, pitchScale = 1): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
     const boundedGain = Math.max(0, Math.min(1, gainScale));
+    const boundedPitch = boundedAudioPitchScale(pitchScale);
     if (boundedGain === 0) return;
     if (this.activeSources + layers.length > TRANSIENT_AUDIO_SOURCE_CAP) return;
     for (const layer of layers) {
-      this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain);
+      this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain, boundedPitch);
     }
   }
 
-  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus, gainScale: number): void {
+  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus, gainScale: number, pitchScale: number): void {
     const now = this.context.currentTime + (layer.delay ?? 0);
     const envelope = this.context.createGain();
     const panner = this.context.createStereoPanner();
@@ -287,13 +292,15 @@ export class ProceduralAudio {
     const source = layer.kind === 'tone' ? this.context.createOscillator() : this.context.createBufferSource();
     if (layer.kind === 'tone' && source instanceof OscillatorNode) {
       source.type = layer.wave;
-      source.frequency.setValueAtTime(layer.frequency * this.profile.pitchScale, now);
-      source.frequency.exponentialRampToValueAtTime(layer.endFrequency * this.profile.pitchScale, now + layer.duration);
+      source.frequency.setValueAtTime(layer.frequency * this.profile.pitchScale * pitchScale, now);
+      source.frequency.exponentialRampToValueAtTime(
+        layer.endFrequency * this.profile.pitchScale * pitchScale, now + layer.duration,
+      );
       source.connect(envelope);
     } else if (layer.kind === 'noise' && source instanceof AudioBufferSourceNode) {
       const filter = this.context.createBiquadFilter();
       filter.type = layer.filter;
-      filter.frequency.value = layer.frequency * this.profile.pitchScale;
+      filter.frequency.value = layer.frequency * this.profile.pitchScale * pitchScale;
       filter.Q.value = layer.filter === 'bandpass' ? 1.4 : 0.7;
       source.buffer = this.noiseBuffer;
       source.connect(filter).connect(envelope);

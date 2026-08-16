@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
   AMBIENCE_SOURCE_CAP, TOTAL_AUDIO_SOURCE_CAP, TRANSIENT_AUDIO_SOURCE_CAP,
-  proceduralAmbienceProfile, validateAudioMixSettings, validateProceduralAudioDefinitions,
+  boundedAudioPitchScale, proceduralAmbienceProfile, validateAudioMixSettings, validateProceduralAudioDefinitions,
 } from '../src/audio/procedural-audio';
 import { AUDIO_RUNTIME_PROFILES } from '../src/content/runtime-manifests';
 
@@ -67,5 +67,13 @@ describe('project-original procedural audio contracts', () => {
       expect(profile.filterFrequency).toBeGreaterThanOrEqual(400);
       expect(profile.filterFrequency).toBeLessThanOrEqual(1000);
     }
+  });
+
+  it('bounds per-cue pitch modulation without allocating another source', () => {
+    expect(boundedAudioPitchScale(0.2)).toBe(0.5);
+    expect(boundedAudioPitchScale(1.37)).toBe(1.37);
+    expect(boundedAudioPitchScale(5)).toBe(2);
+    expect(boundedAudioPitchScale(Number.NaN)).toBe(1);
+    expect(TOTAL_AUDIO_SOURCE_CAP).toBe(TRANSIENT_AUDIO_SOURCE_CAP + AMBIENCE_SOURCE_CAP);
   });
 });
