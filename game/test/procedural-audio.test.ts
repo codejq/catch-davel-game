@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  AUDIO_BUSES, AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
+  AUDIO_BUSES, AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, AUDIO_DISTANT_REPORT_CUES,
+  DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
   AMBIENCE_SOURCE_CAP, TOTAL_AUDIO_SOURCE_CAP, TRANSIENT_AUDIO_SOURCE_CAP,
   boundedAudioPitchScale, proceduralAmbienceProfile, proceduralCueVariation,
   validateAudioMixSettings, validateProceduralAudioDefinitions,
@@ -27,6 +28,9 @@ describe('project-original procedural audio contracts', () => {
     expect(AUDIO_CUE_BUS['wave-warning']).toBe('interface');
     expect(AUDIO_CUE_BUS['player-step']).toBe('environment');
     expect(AUDIO_CUE_BUS['wobble-step']).toBe('robots');
+    expect(AUDIO_DISTANT_REPORT_CUES).toContain('bomb-detonate');
+    expect(AUDIO_DISTANT_REPORT_CUES).toContain('robot-shot');
+    expect(new Set(AUDIO_DISTANT_REPORT_CUES).size).toBe(AUDIO_DISTANT_REPORT_CUES.length);
     for (const preset of Object.values(DYNAMIC_RANGE_PRESETS)) {
       expect(preset.threshold).toBeLessThan(0);
       expect(preset.knee).toBeGreaterThanOrEqual(0);

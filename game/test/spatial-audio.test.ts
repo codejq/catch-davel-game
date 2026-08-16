@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   WORLD_AUDIO_MAX_DISTANCE, WORLD_AUDIO_MIN_GAIN, WORLD_AUDIO_OCCLUDED_GAIN_SCALE,
-  WORLD_AUDIO_OCCLUDED_LOW_PASS_HZ, spatialAudioMix, spatialAudioObstruction,
+  WORLD_AUDIO_OCCLUDED_LOW_PASS_HZ, spatialAudioDistantReportScale, spatialAudioMix, spatialAudioObstruction,
 } from '../src/audio/spatial-audio';
 
 describe('listener-relative world audio projection', () => {
@@ -48,5 +48,15 @@ describe('listener-relative world audio projection', () => {
     });
     expect(spatialAudioObstruction(listener, source, (x) => x === 0 || x === 4).occluded).toBe(false);
     expect(() => spatialAudioObstruction(listener, source, () => false, 0)).toThrow(/positive/);
+  });
+
+  it('fades the distant report in monotonically only after the remote threshold', () => {
+    expect(spatialAudioDistantReportScale(0)).toBe(0);
+    expect(spatialAudioDistantReportScale(6.5)).toBe(0);
+    const middle = spatialAudioDistantReportScale(12.25);
+    expect(middle).toBeCloseTo(0.5);
+    expect(spatialAudioDistantReportScale(WORLD_AUDIO_MAX_DISTANCE)).toBe(1);
+    expect(spatialAudioDistantReportScale(WORLD_AUDIO_MAX_DISTANCE * 2)).toBe(1);
+    expect(() => spatialAudioDistantReportScale(-1)).toThrow(/non-negative/);
   });
 });

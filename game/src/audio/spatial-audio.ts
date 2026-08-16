@@ -4,6 +4,7 @@ export const WORLD_AUDIO_MIN_GAIN = 0.08;
 export const WORLD_AUDIO_OCCLUDED_GAIN_SCALE = 0.58;
 export const WORLD_AUDIO_OCCLUDED_LOW_PASS_HZ = 920;
 export const WORLD_AUDIO_OCCLUSION_SAMPLE_STEP = 0.15;
+export const WORLD_AUDIO_DISTANT_REPORT_START = 6.5;
 
 export interface SpatialAudioPoint {
   readonly x: number;
@@ -76,4 +77,19 @@ export function spatialAudioObstruction(
     }
   }
   return { occluded: false, gainScale: 1, lowPassHz: null };
+}
+
+/** Smoothly introduces a remote reflection/report character after roughly two maze cells. */
+export function spatialAudioDistantReportScale(
+  distance: number,
+  maximumDistance = WORLD_AUDIO_MAX_DISTANCE,
+): number {
+  if (!Number.isFinite(distance) || distance < 0 || !Number.isFinite(maximumDistance)
+    || maximumDistance <= WORLD_AUDIO_DISTANT_REPORT_START) {
+    throw new Error('Distant audio report requires a non-negative distance and valid maximum distance');
+  }
+  const normalized = Math.max(0, Math.min(1,
+    (distance - WORLD_AUDIO_DISTANT_REPORT_START) / (maximumDistance - WORLD_AUDIO_DISTANT_REPORT_START),
+  ));
+  return normalized * normalized * (3 - 2 * normalized);
 }

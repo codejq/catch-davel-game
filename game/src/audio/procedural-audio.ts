@@ -48,6 +48,10 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   'dj-step': 'robots', 'overlord-step': 'robots',
 };
 
+export const AUDIO_DISTANT_REPORT_CUES: readonly AudioCue[] = [
+  'bomb-detonate', 'robot-impact', 'weak-point', 'robot-shot', 'robot-defeat', 'boss-phase',
+];
+
 export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
   readonly threshold: number;
   readonly knee: number;
@@ -293,19 +297,31 @@ export class ProceduralAudio {
 
   get ambienceSourceCount(): number { return this.ambienceSources.length; }
 
-  play(cue: AudioCue, pan = 0, gainScale = 1, pitchScale = 1, lowPassHz: number | null = null): void {
+  play(
+    cue: AudioCue, pan = 0, gainScale = 1, pitchScale = 1, lowPassHz: number | null = null,
+    distantReportScale = 0,
+  ): boolean {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
     const boundedGain = Math.max(0, Math.min(1, gainScale));
     const boundedPitch = boundedAudioPitchScale(pitchScale);
     const boundedLowPass = lowPassHz === null ? null
       : Number.isFinite(lowPassHz) ? Math.max(400, Math.min(20_000, lowPassHz)) : null;
-    if (boundedGain === 0) return;
-    if (this.activeSources + layers.length > TRANSIENT_AUDIO_SOURCE_CAP) return;
+    const boundedReport = Number.isFinite(distantReportScale) ? Math.max(0, Math.min(1, distantReportScale)) : 0;
+    const hasDistantReport = boundedReport > 0 && AUDIO_DISTANT_REPORT_CUES.includes(cue);
+    const requiredSources = layers.length + (hasDistantReport ? 1 : 0);
+    if (boundedGain === 0) return false;
+    if (this.activeSources + requiredSources > TRANSIENT_AUDIO_SOURCE_CAP) return false;
     for (const layer of layers) {
       this.playLayer(
         layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain, boundedPitch, boundedLowPass,
       );
     }
+    if (hasDistantReport) {
+      this.playDistantReport(
+        Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain, boundedReport, boundedLowPass,
+      );
+    }
+    return hasDistantReport;
   }
 
   private playLayer(
@@ -348,6 +364,40 @@ export class ProceduralAudio {
     source.addEventListener('ended', () => { this.activeSources -= 1; }, { once: true });
     source.start(now);
     source.stop(now + layer.duration + 0.01);
+  }
+
+  private playDistantReport(
+    pan: number, bus: AudioBus, gainScale: number, reportScale: number, lowPassHz: number | null,
+  ): void {
+    const now = this.context.currentTime + 0.025 + reportScale * 0.035;
+    const duration = 0.2 + reportScale * 0.18;
+    const source = this.context.createBufferSource();
+    const characterFilter = this.context.createBiquadFilter();
+    const envelope = this.context.createGain();
+    const panner = this.context.createStereoPanner();
+    source.buffer = this.noiseBuffer;
+    characterFilter.type = 'bandpass';
+    characterFilter.frequency.value = 760 - reportScale * 240;
+    characterFilter.Q.value = 0.78;
+    envelope.gain.setValueAtTime(0.0001, now);
+    envelope.gain.exponentialRampToValueAtTime(
+      Math.max(0.0001, gainScale * reportScale * (0.028 + reportScale * 0.052)), now + 0.012,
+    );
+    envelope.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+    panner.pan.value = pan * 0.72;
+    source.connect(characterFilter).connect(envelope).connect(panner);
+    if (lowPassHz === null) panner.connect(this.buses[bus]);
+    else {
+      const obstructionFilter = this.context.createBiquadFilter();
+      obstructionFilter.type = 'lowpass';
+      obstructionFilter.frequency.value = lowPassHz;
+      obstructionFilter.Q.value = 0.65;
+      panner.connect(obstructionFilter).connect(this.buses[bus]);
+    }
+    this.activeSources += 1;
+    source.addEventListener('ended', () => { this.activeSources -= 1; }, { once: true });
+    source.start(now);
+    source.stop(now + duration + 0.01);
   }
 
   private applyOutputGain(immediate: boolean): void {

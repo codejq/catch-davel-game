@@ -582,6 +582,20 @@ try {
     || fallbackAudioObstruction.gain > 0.58 || fallbackAudioObstruction.lowPassHz !== 920) {
     throw new Error(`World audio did not apply bounded wall obstruction: ${JSON.stringify(fallbackAudioObstruction)}`);
   }
+  await fallbackPage.waitForFunction(() => Number(document.body.dataset.spatialAudioDistantReportCount) > 0, null, { timeout: 3_000 });
+  const fallbackDistantReport = await fallbackPage.evaluate(() => ({
+    count: Number(document.body.dataset.spatialAudioDistantReportCount),
+    cue: document.body.dataset.spatialAudioLastDistantReportCue,
+    distance: Number(document.body.dataset.spatialAudioLastDistantReportDistance),
+    scale: Number(document.body.dataset.spatialAudioLastDistantReportScale),
+  }));
+  if (fallbackDistantReport.count < 1
+    || !['bomb-detonate', 'robot-impact', 'weak-point', 'robot-shot', 'robot-defeat', 'boss-phase']
+      .includes(fallbackDistantReport.cue)
+    || fallbackDistantReport.distance <= 6.5
+    || fallbackDistantReport.scale <= 0 || fallbackDistantReport.scale > 1) {
+    throw new Error(`Remote world cue did not add its bounded distant report: ${JSON.stringify(fallbackDistantReport)}`);
+  }
   const contextLossStartTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
   const supportsContextLoss = await fallbackPage.evaluate(() => {
     const gl = document.querySelector('#game')?.getContext('webgl2');
@@ -768,6 +782,7 @@ try {
       pulseImpact: fallbackPulseImpact, pulseVariation: fallbackPulseVariation,
       bombFuse: fallbackBombFuse,
       bombDetonation: fallbackBombDetonation, audioObstruction: fallbackAudioObstruction,
+      distantReport: fallbackDistantReport,
       contextRecovery, browserErrors: fallbackErrors,
     },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },

@@ -64,7 +64,8 @@ import {
 import { BombFuseAudioSequencer, type BombFuseAudioRequest } from '../audio/bomb-fuse-sequencer';
 import { normalizePulseImpactKind } from '../render/pulse-impact';
 import {
-  spatialAudioMix, spatialAudioObstruction, type SpatialAudioMix, type SpatialAudioObstruction,
+  spatialAudioDistantReportScale, spatialAudioMix, spatialAudioObstruction,
+  type SpatialAudioMix, type SpatialAudioObstruction,
 } from '../audio/spatial-audio';
 import { isWallAtWorld, worldCell } from '../sim/level';
 
@@ -696,7 +697,11 @@ export async function startBrowserGame(): Promise<void> {
     return audio;
   };
 
-  type PositionedSoundResult = SpatialAudioMix & SpatialAudioObstruction & { readonly outputGainScale: number };
+  type PositionedSoundResult = SpatialAudioMix & SpatialAudioObstruction & {
+    readonly outputGainScale: number;
+    readonly distantReportScale: number;
+    readonly distantReportPlayed: boolean;
+  };
 
   const playPositionedSound = (
     cue: AudioCue, x: number, z: number, gainScale = 1, pitchScale = 1, attenuate = true,
@@ -723,13 +728,25 @@ export async function startBrowserGame(): Promise<void> {
     const finalGain = gainScale * variation.gainScale
       * (attenuate ? spatial.gainScale : 1) * obstruction.gainScale;
     const finalPitch = pitchScale * variation.pitchScale;
-    audio.play(cue, spatial.pan, finalGain, finalPitch, obstruction.lowPassHz);
+    const distantReportScale = spatialAudioDistantReportScale(spatial.distance);
+    const distantReportPlayed = audio.play(
+      cue, spatial.pan, finalGain, finalPitch, obstruction.lowPassHz, distantReportScale,
+    );
     document.body.dataset.spatialAudioCue = cue;
     document.body.dataset.spatialAudioPan = String(spatial.pan);
     document.body.dataset.spatialAudioGain = String(finalGain);
     document.body.dataset.spatialAudioDistance = String(spatial.distance);
     document.body.dataset.spatialAudioOccluded = String(obstruction.occluded);
     document.body.dataset.spatialAudioLowPassHz = String(obstruction.lowPassHz ?? 0);
+    document.body.dataset.spatialAudioDistantReportScale = String(distantReportScale);
+    if (distantReportPlayed) {
+      document.body.dataset.spatialAudioDistantReportCount = String(
+        Number(document.body.dataset.spatialAudioDistantReportCount ?? 0) + 1,
+      );
+      document.body.dataset.spatialAudioLastDistantReportCue = cue;
+      document.body.dataset.spatialAudioLastDistantReportDistance = String(spatial.distance);
+      document.body.dataset.spatialAudioLastDistantReportScale = String(distantReportScale);
+    }
     if (variationIdentity !== null) {
       document.body.dataset.audioVariationCue = cue;
       document.body.dataset.audioVariationIdentity = String(variationIdentity);
@@ -749,7 +766,9 @@ export async function startBrowserGame(): Promise<void> {
       document.body.dataset.spatialAudioLastOccludedGain = String(finalGain);
       document.body.dataset.spatialAudioLastOccludedLowPassHz = String(obstruction.lowPassHz);
     }
-    return { ...spatial, ...obstruction, outputGainScale: finalGain };
+    return {
+      ...spatial, ...obstruction, outputGainScale: finalGain, distantReportScale, distantReportPlayed,
+    };
   };
 
   const sound = (
