@@ -10,6 +10,8 @@ export interface FreezeDanceWindow {
 }
 
 export const BOMB_SEAL_BREAK_RADIUS = 6.5;
+export const MAGENTA_DRAIN_ACTIVATION_TICKS = [1500, 2700, 3900] as const;
+export const MAGENTA_DRAIN_WARNING_TICKS = 90;
 
 export function levelMechanicKind(levelId: PlayableLevelId): LevelMechanicKind {
   const level = campaignLevel(levelId);
@@ -30,6 +32,17 @@ export function isKeyAmbushLevel(levelId: PlayableLevelId): boolean {
 
 export function isCrimsonPairLevel(levelId: PlayableLevelId): boolean {
   return campaignLevel(levelId).tags.includes('synchronized-elite-duo');
+}
+
+export function isMagentaDrainLevel(levelId: PlayableLevelId): boolean {
+  return campaignLevel(levelId).tags.includes('rising-hazard-escape');
+}
+
+export function magentaDrainRiseProgress(levelId: PlayableLevelId, tick: number, stageIndex: number): number {
+  if (!isMagentaDrainLevel(levelId)) return 0;
+  const activationTick = MAGENTA_DRAIN_ACTIVATION_TICKS[stageIndex];
+  if (activationTick === undefined) return 0;
+  return Math.max(0, Math.min(1, (tick - (activationTick - MAGENTA_DRAIN_WARNING_TICKS)) / MAGENTA_DRAIN_WARNING_TICKS));
 }
 
 export function activateKeyAmbush(
@@ -66,6 +79,11 @@ export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Reco
     kind: 'destructible-route-choices', trigger: 'bomb-detonated', breakRadius: BOMB_SEAL_BREAK_RADIUS,
     requiredSealIds: ['ballroom-bomb-seal-center'],
     optionalShortcutIds: ['ballroom-bomb-shortcut-left', 'ballroom-bomb-shortcut-right'],
+  };
+  if (isMagentaDrainLevel(levelId)) return {
+    kind: 'rising-hazard-escape', clock: 'level-tick',
+    activationTicks: MAGENTA_DRAIN_ACTIVATION_TICKS, warningTicks: MAGENTA_DRAIN_WARNING_TICKS,
+    collision: 'permanent-stage-gates',
   };
   if (campaignLevel(levelId).tags.includes('bomb-seal')) return {
     kind: 'bomb-seal', trigger: 'bomb-detonated', activation: 'until-bomb',

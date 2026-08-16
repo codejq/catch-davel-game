@@ -10,7 +10,7 @@ import {
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
 import {
-  CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026,
+  CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027,
 } from '../src/content/levels/chapter-03';
 
 describe('Appendix A level-data contract', () => {
@@ -105,7 +105,9 @@ describe('Appendix A level-data contract', () => {
   });
 
   it('admits Pipework Promenade as the first Chapter 3 bomb tutorial', () => {
-    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026]);
+    expect(CHAPTER_03_LEVELS).toEqual([
+      LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027,
+    ]);
     expect(validateLevelDefinition(LEVEL_021)).toBe(LEVEL_021);
     expect(campaignLevel('level-021')).toBe(LEVEL_021);
     expect(LEVEL_021.chapterId).toBe('chapter-03');
@@ -138,6 +140,11 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_026.tags).toEqual(expect.arrayContaining(['bomb-seal', 'destructible-route-choices', 'detonator-danzon']));
     expect(LEVEL_026.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-026'));
+    expect(validateLevelDefinition(LEVEL_027)).toBe(LEVEL_027);
+    expect(campaignLevel('level-027')).toBe(LEVEL_027);
+    expect(LEVEL_027.tags).toEqual(expect.arrayContaining(['rising-hazard-escape', 'magenta-drain', 'drainpipe-rumba']));
+    expect(LEVEL_027.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-027'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

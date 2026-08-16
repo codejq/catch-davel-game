@@ -269,6 +269,16 @@ function targets(
     leftFootY += recoil * 0.18; rightFootY += fuse * 0.18;
     leftHand = [-0.9 - fuse * 0.22, 1.1 + recoil * 0.6, 0.42];
     rightHand = [0.9 + recoil * 0.22, 1.72 - fuse * 0.5, 0.2];
+  } else if (performance.motif === 'drainpipe-rumba') {
+    const climb = Math.max(0, beat); const dip = Math.max(0, -beat);
+    bounce += (climb * 0.12 + dip * 0.04) * intensity;
+    hipX = alternate * 0.32 * intensity; chestX = -alternate * 0.36 * intensity;
+    chestZ = climb * 0.16 - dip * 0.14; headX += alternate * 0.24; headZ = climb * 0.1;
+    leftFootX = -0.34 + dip * 0.18; rightFootX = 0.34 - climb * 0.18;
+    leftFootZ = dip * 0.38; rightFootZ = climb * 0.52;
+    leftFootY += dip * 0.14; rightFootY += climb * 0.28;
+    leftHand = [-0.74 - dip * 0.24, 1.78 + climb * 0.28, 0.24];
+    rightHand = [0.74 + climb * 0.24, 1.02 + dip * 0.42, 0.38];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

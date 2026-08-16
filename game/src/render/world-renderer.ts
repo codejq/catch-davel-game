@@ -11,7 +11,7 @@ import { DavelRenderer } from './davel-renderer';
 import type { PlayableLevelId } from '../content/level-ids';
 import { campaignLevel } from '../content/levels/catalog';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
-import { freezeDanceWindow } from '../sim/level-mechanics';
+import { freezeDanceWindow, magentaDrainRiseProgress } from '../sim/level-mechanics';
 import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
@@ -273,8 +273,17 @@ export class WorldRenderer {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.52, 0.9, 0.52, [0.12, 0.94, 1]);
       }
     }
-    for (const hazard of state.level.hazards) {
+    for (const [hazardIndex, hazard] of state.level.hazards.entries()) {
       if (hazard.kind === 'timed-door') {
+        if (state.levelId === 'level-027') {
+          const rise = magentaDrainRiseProgress(state.levelId, state.tick, hazardIndex);
+          const gateHeight = 0.1 + rise * 2.9;
+          const magenta: readonly [number, number, number] = hazard.active ? [1, 0.06, 0.62] : [0.62, 0.16, 0.72];
+          instance = this.writeInstance(instance, hazard.x, 0.035, hazard.z, 2.72, 0.07, 2.72, [0.34, 0.06, 0.42]);
+          instance = this.writeInstance(instance, hazard.x, gateHeight * 0.5, hazard.z, 2.5, gateHeight, 0.16, magenta);
+          instance = this.writeInstance(instance, hazard.x, Math.max(0.12, gateHeight - 0.08), hazard.z, 2.76, 0.12, 0.26, [1, 0.52, 0.9]);
+          continue;
+        }
         const gateColor: readonly [number, number, number] = hazard.active ? [1, 0.12, 0.62] : [0.12, 1, 0.72];
         const dimColor: readonly [number, number, number] = hazard.active ? [0.56, 0.08, 0.42] : [0.08, 0.56, 0.48];
         instance = this.writeInstance(instance, hazard.x, 0.04, hazard.z, 2.72, 0.08, 2.72, dimColor);

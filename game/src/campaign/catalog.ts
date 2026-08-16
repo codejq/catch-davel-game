@@ -27,6 +27,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-024': 'Valve Velocity',
   'level-025': 'The Crimson Pair',
   'level-026': 'Bombs in the Ballroom',
+  'level-027': 'Magenta Drain',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

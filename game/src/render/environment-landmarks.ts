@@ -47,7 +47,8 @@ export type LandmarkMotif =
   | 'fiesta-braziers'
   | 'pressure-valves'
   | 'crimson-duel'
-  | 'bomb-chandeliers';
+  | 'bomb-chandeliers'
+  | 'drain-risers';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -76,6 +77,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-024': 'pressure-valves',
   'level-025': 'crimson-duel',
   'level-026': 'bomb-chandeliers',
+  'level-027': 'drain-risers',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -321,6 +323,13 @@ function motifBoxes(
         box(anchorX + 0.54, y + 1.18, anchorZ, 0.18, 0.86, 0.18, accent, 0.82),
         box(anchorX - 0.54, y + 0.72, anchorZ, 0.58, 0.58, 0.58, primary, 0.66),
         box(anchorX + 0.54 + shift, y + 0.72, anchorZ, 0.58, 0.58, 0.58, primary, 0.66),
+      ];
+    case 'drain-risers':
+      return [
+        box(anchorX - 0.58, y + 0.5, anchorZ, 0.32, 1, 0.32, primary, 0.68),
+        box(anchorX, y + 0.9, anchorZ, 0.32, 1.8, 0.32, accent, 0.82),
+        box(anchorX + 0.58, y + 1.3, anchorZ, 0.32, 2.6, 0.32, primary, 0.9),
+        box(anchorX + shift, y + 1.68, anchorZ, 1.52, 0.14, 0.18, accent, 0.94),
       ];
   }
 }

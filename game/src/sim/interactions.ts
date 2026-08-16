@@ -153,7 +153,7 @@ export function createLevelRuntime(
       phaseOffsetTicks: profile.phaseOffsetTicks,
       active: profile.activation === 'before-key' || profile.activation === 'until-bomb'
         || profile.activation === 'until-bomb-optional'
-        || (profile.activation !== 'after-key' && phase < hazard.activeTicks),
+        || (profile.activation !== 'after-key' && profile.activation !== 'after-tick' && phase < hazard.activeTicks),
     };
   });
   const defense = definition.defense === undefined || encounter !== 'campaign' ? null : (() => {
@@ -268,7 +268,7 @@ export function stepLevelHazardPhases(
 
 function hazardActivation(
   levelId: PlayableLevelId, hazardId: string,
-): 'periodic' | 'before-key' | 'after-key' | 'until-bomb' | 'until-bomb-optional' {
+): 'periodic' | 'before-key' | 'after-key' | 'after-tick' | 'until-bomb' | 'until-bomb-optional' {
   const authored = campaignLevel(levelId).maze.hazards.find((hazard) => hazard.id === hazardId);
   if (authored === undefined) return 'periodic';
   return hazardRuntimeProfile(authored.collisionProfileId).activation ?? 'periodic';
@@ -280,6 +280,7 @@ export function hazardActiveAtTick(
   const activation = hazardActivation(levelId, hazard.id);
   if (activation === 'before-key') return !keyCollected;
   if (activation === 'after-key') return keyCollected;
+  if (activation === 'after-tick') return tick >= hazard.phaseOffsetTicks;
   if (activation === 'until-bomb' || activation === 'until-bomb-optional') return hazard.active;
   return (tick + hazard.phaseOffsetTicks) % hazard.periodTicks < hazard.activeTicks;
 }
@@ -287,7 +288,9 @@ export function hazardActiveAtTick(
 export function hazardTicksUntilToggle(
   hazard: HazardRuntimeState, tick: number, levelId: PlayableLevelId = 'level-001',
 ): number {
-  if (hazardActivation(levelId, hazard.id) !== 'periodic') return 0;
+  const activation = hazardActivation(levelId, hazard.id);
+  if (activation === 'after-tick') return Math.max(0, hazard.phaseOffsetTicks - tick);
+  if (activation !== 'periodic') return 0;
   const phase = (tick + hazard.phaseOffsetTicks) % hazard.periodTicks;
   return phase < hazard.activeTicks ? hazard.activeTicks - phase : hazard.periodTicks - phase;
 }

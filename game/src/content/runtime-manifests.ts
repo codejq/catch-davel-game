@@ -1,6 +1,6 @@
 export interface HazardRuntimeProfile {
   readonly kind: 'conveyor' | 'timed-door';
-  readonly activation?: 'periodic' | 'before-key' | 'after-key' | 'until-bomb' | 'until-bomb-optional';
+  readonly activation?: 'periodic' | 'before-key' | 'after-key' | 'after-tick' | 'until-bomb' | 'until-bomb-optional';
   readonly column: number;
   readonly row: number;
   readonly halfWidth: number;
@@ -214,6 +214,18 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
   'ballroom-blast-draft-v1': {
     kind: 'conveyor', column: 8, row: 9, halfWidth: 3.5, halfDepth: 1.1,
     directionX: 1, directionZ: 0, phaseOffsetTicks: 45,
+  },
+  'magenta-drain-lower-v1': {
+    kind: 'timed-door', activation: 'after-tick', column: 4, row: 6,
+    halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 1500,
+  },
+  'magenta-drain-middle-v1': {
+    kind: 'timed-door', activation: 'after-tick', column: 8, row: 8,
+    halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 2700,
+  },
+  'magenta-drain-upper-v1': {
+    kind: 'timed-door', activation: 'after-tick', column: 10, row: 12,
+    halfWidth: 1.25, halfDepth: 1.25, directionX: 0, directionZ: 0, phaseOffsetTicks: 3900,
   },
 };
 
@@ -578,6 +590,25 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 7, row: 5, amount: 28 },
     },
   },
+  'boiler-magenta-drain': {
+    openings: [
+      { column: 2, row: 2 }, { column: 6, row: 2 }, { column: 11, row: 2 },
+      { column: 4, row: 4 }, { column: 8, row: 4 }, { column: 12, row: 4 },
+      { column: 4, row: 6 }, { column: 8, row: 6 }, { column: 12, row: 6 },
+      { column: 6, row: 7 }, { column: 10, row: 7 },
+      { column: 4, row: 8 }, { column: 8, row: 8 }, { column: 10, row: 8 }, { column: 12, row: 8 },
+      { column: 2, row: 10 }, { column: 6, row: 10 }, { column: 10, row: 10 },
+      { column: 4, row: 12 }, { column: 8, row: 12 }, { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 13, row: 5, amount: 23 },
+      key: { column: 3, row: 3 },
+      energy: { column: 3, row: 11, amount: 30 },
+      door: { column: 10, row: 8 },
+      checkpoint: { column: 11, row: 11 },
+      coin: { column: 7, row: 5, amount: 29 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -591,7 +622,7 @@ export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 
   | 'turbo-shuffle' | 'giant-breakdown' | 'ticket-swing' | 'soft-shoe' | 'carousel-kick'
   | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut'
   | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step'
-  | 'duelling-tango' | 'detonator-danzon';
+  | 'duelling-tango' | 'detonator-danzon' | 'drainpipe-rumba';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -620,6 +651,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'pressure-step-paso': 'pressure-step',
   'duelling-tango': 'duelling-tango',
   'detonator-danzon': 'detonator-danzon',
+  'drainpipe-rumba': 'drainpipe-rumba',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -662,6 +694,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'pressure-step-paso': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'duelling-tango': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'detonator-danzon': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'drainpipe-rumba': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -705,6 +738,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-toxic-boiler-024': { roomSize: 0.9, decaySeconds: 0.8, dampingHz: 2450, wetMix: 0.37, pitchScale: 1.08 },
   'audio-toxic-boiler-025': { roomSize: 0.92, decaySeconds: 0.84, dampingHz: 2350, wetMix: 0.38, pitchScale: 0.96 },
   'audio-toxic-boiler-026': { roomSize: 0.96, decaySeconds: 0.88, dampingHz: 2250, wetMix: 0.4, pitchScale: 1.02 },
+  'audio-toxic-boiler-027': { roomSize: 0.88, decaySeconds: 0.78, dampingHz: 2500, wetMix: 0.36, pitchScale: 1.06 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -748,6 +782,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'pressure-step-paso': { rootMidi: 48, scale: [0, 2, 3, 6, 7, 10], leadPattern: [0, 4, 2, 5, 1, 3, 5, 2], bassPattern: [0, 2, 5, 3], swing: 0.16 },
   'duelling-tango': { rootMidi: 43, scale: [0, 1, 4, 6, 7, 10], leadPattern: [0, 5, 1, 4, 2, 5, 3, 1], bassPattern: [0, 4, 1, 5], swing: 0.2 },
   'detonator-danzon': { rootMidi: 46, scale: [0, 2, 3, 6, 7, 9], leadPattern: [0, 4, 1, 5, 2, 3, 5, 1], bassPattern: [0, 3, 5, 2], swing: 0.18 },
+  'drainpipe-rumba': { rootMidi: 49, scale: [0, 2, 3, 5, 7, 10], leadPattern: [0, 3, 1, 5, 2, 4, 1, 3], bassPattern: [0, 4, 2, 5], swing: 0.22 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -790,6 +825,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'toxic-boiler-24': { sky: [0.36, 0.9, 0.84], floor: [0.94, 0.86, 0.34], walls: [[0.02, 0.66, 0.62], [0.98, 0.36, 0.56], [0.96, 0.66, 0.08], [0.34, 0.2, 0.88]] },
   'toxic-boiler-25': { sky: [0.94, 0.52, 0.62], floor: [0.96, 0.86, 0.52], walls: [[0.74, 0.04, 0.12], [1, 0.24, 0.38], [0.1, 0.72, 0.78], [0.48, 0.16, 0.76]] },
   'toxic-boiler-26': { sky: [0.38, 0.82, 1], floor: [0.92, 0.88, 0.58], walls: [[1, 0.34, 0.08], [0.12, 0.72, 0.92], [0.92, 0.16, 0.48], [0.5, 0.22, 0.9]] },
+  'toxic-boiler-27': { sky: [0.82, 0.5, 0.94], floor: [0.88, 0.9, 0.66], walls: [[0.92, 0.08, 0.62], [0.18, 0.7, 0.9], [0.98, 0.48, 0.12], [0.38, 0.18, 0.78]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {
