@@ -63,6 +63,7 @@ import {
 } from '../render/sword-arc';
 import { BombFuseAudioSequencer, type BombFuseAudioRequest } from '../audio/bomb-fuse-sequencer';
 import { normalizePulseImpactKind } from '../render/pulse-impact';
+import { spatialAudioMix, type SpatialAudioMix } from '../audio/spatial-audio';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -682,12 +683,30 @@ export async function startBrowserGame(): Promise<void> {
     return audio;
   };
 
-  const sound = (cue: AudioCue, robotId?: number, gainScale = 1, pitchScale = 1): void => {
+  const playPositionedSound = (
+    cue: AudioCue, x: number, z: number, gainScale = 1, pitchScale = 1, attenuate = true,
+  ): SpatialAudioMix | null => {
+    if (audio === null || renderState === null) return null;
+    const spatial = spatialAudioMix(renderState.player, { x, z });
+    const finalGain = gainScale * (attenuate ? spatial.gainScale : 1);
+    audio.play(cue, spatial.pan, finalGain, pitchScale);
+    document.body.dataset.spatialAudioCue = cue;
+    document.body.dataset.spatialAudioPan = String(spatial.pan);
+    document.body.dataset.spatialAudioGain = String(finalGain);
+    document.body.dataset.spatialAudioDistance = String(spatial.distance);
+    return spatial;
+  };
+
+  const sound = (
+    cue: AudioCue, robotId?: number, gainScale = 1, pitchScale = 1, attenuate = true,
+  ): void => {
     if (audio === null) return;
     const robot = robotId === undefined ? undefined : renderState?.robots.find((candidate) => candidate.id === robotId);
-    const pan = robot === undefined || renderState === null
-      ? 0 : Math.max(-1, Math.min(1, (robot.x - renderState.player.x) / 9));
-    audio.play(cue, pan, gainScale, pitchScale);
+    if (robot !== undefined) {
+      playPositionedSound(cue, robot.x, robot.z, gainScale, pitchScale, attenuate);
+      return;
+    }
+    audio.play(cue, 0, gainScale, pitchScale);
   };
 
   const playBombFuseAudio = (request: BombFuseAudioRequest): void => {
@@ -695,8 +714,12 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.bombFuseId = String(request.bombId);
     document.body.dataset.bombFusePitchScale = String(request.pitchScale);
     if (audio === null || renderState === null) return;
-    const pan = Math.max(-1, Math.min(1, (request.x - renderState.player.x) / 9));
-    audio.play('bomb-fuse', pan, request.gainScale, request.pitchScale);
+    const spatial = playPositionedSound('bomb-fuse', request.x, request.z, request.gainScale, request.pitchScale);
+    if (spatial !== null) {
+      document.body.dataset.bombFusePan = String(spatial.pan);
+      document.body.dataset.bombFuseGain = String(spatial.gainScale * request.gainScale);
+      document.body.dataset.bombFuseDistance = String(spatial.distance);
+    }
   };
 
   const playLaserAudio = (request: LaserAudioRequest | null): void => {
@@ -914,7 +937,11 @@ export async function startBrowserGame(): Promise<void> {
         document.body.dataset.bombDetonationPosition = `${event.x},${event.y},${event.z}`;
       }
       showMessage(ui('bombDetonated'));
-      sound('bomb-detonate');
+      if (event.x !== undefined && event.z !== undefined) {
+        playPositionedSound('bomb-detonate', event.x, event.z);
+      } else {
+        sound('bomb-detonate');
+      }
     }
     if (event.type === 'laser-fired') {
       playLaserAudio(laserAudio.queue(event.tick, renderState === null ? null : {
@@ -954,7 +981,7 @@ export async function startBrowserGame(): Promise<void> {
       damageDirection.classList.add('show');
       window.clearTimeout(damageDirectionTimeout);
       damageDirectionTimeout = window.setTimeout(() => damageDirection.classList.remove('show'), 420);
-      sound('player-hit', event.robotId);
+      sound('player-hit');
     }
     if (event.type === 'key-collected') {
       showMessage(ui('keyAcquired'));
@@ -1068,7 +1095,7 @@ export async function startBrowserGame(): Promise<void> {
         }
         const ambienceActive = audio !== null && effectsActive;
         for (const request of davelMovementAudio.sample(state, ambienceActive && !frozen)) {
-          sound(request.cue, request.robotId, request.gainScale);
+          sound(request.cue, request.robotId, request.gainScale, 1, false);
         }
         const playerStep = playerMovementAudio.sample(state, ambienceActive);
         if (playerStep !== null) {

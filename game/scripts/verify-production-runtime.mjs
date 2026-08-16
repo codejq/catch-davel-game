@@ -531,9 +531,15 @@ try {
     milestone: Number(document.body.dataset.bombFuseTick),
     bombId: Number(document.body.dataset.bombFuseId),
     pitchScale: Number(document.body.dataset.bombFusePitchScale),
+    pan: Number(document.body.dataset.bombFusePan),
+    gain: Number(document.body.dataset.bombFuseGain),
+    distance: Number(document.body.dataset.bombFuseDistance),
   }));
   if (fallbackBombFuse.bombId !== 1 || ![75, 60, 45, 30, 24, 18, 12, 6].includes(fallbackBombFuse.milestone)
-    || fallbackBombFuse.pitchScale <= 0.88 || fallbackBombFuse.pitchScale >= 1.5) {
+    || fallbackBombFuse.pitchScale <= 0.88 || fallbackBombFuse.pitchScale >= 1.5
+    || !Number.isFinite(fallbackBombFuse.pan) || Math.abs(fallbackBombFuse.pan) > 1
+    || fallbackBombFuse.gain <= 0.08 || fallbackBombFuse.gain > 1
+    || fallbackBombFuse.distance <= 0) {
     throw new Error(`Main-thread bomb did not produce its bounded fuse cue: ${JSON.stringify(fallbackBombFuse)}`);
   }
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombDetonationTick)), null, { timeout: 3_000 });

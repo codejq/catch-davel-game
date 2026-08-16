@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **11 — bounded Davel defeat collapse implemented; physical devices remain certification-only**
+Revision: **12 — listener-relative spatial audio implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -15,6 +15,8 @@ Revision 9 records the implemented player-resource upgrade contract. Simulation 
 Revision 10 records the implemented player locomotion-audio pass. A presentation-only sequencer derives alternating footsteps from authoritative travelled-distance `bobPhase`, requires actual snapshot displacement, distinguishes the faster sprint cadence, and emits at most one current cue per presented snapshot. Hidden, paused, terminal, coalesced, rewind, and resync paths consume or re-prime phase without replaying a stale burst. The project-original two-layer cue uses the existing world bus, room response, dynamic-range controls, and fixed 50-source ceiling. It changes no simulation schema, replay dependency, transport contract, save profile, or LLM observation.
 
 Revision 11 records the implemented Davel defeat-collapse pass. A bounded renderer-local tracker recognizes only safely correlated active-to-zero-health transitions, copies the final 11-point XPBD pose, and topples that pose toward the floor for 36 presentation ticks while existing coins and mechanical fragments scatter. Coalesced gaps, spawns, non-fatal deactivation, rewinds, level changes, reactivation, and resynchronization cannot synthesize or retain a false collapse. Zero-motion presentation uses one immediate stable toppled silhouette. Authoritative defeat, collision removal, rewards, waves, snapshots, replay checksums, and LLM observations remain unchanged.
+
+Revision 12 records the implemented spatial-transient audio pass. Robot attacks, impacts, defeat/taunt cues, and positioned bomb fuse/detonation cues now use camera-relative stereo direction rather than absolute world X and follow one monotonic distance curve from a 1.5-unit full-gain radius to a bounded 8% critical-cue tail at 18 units. Snapshot-derived Davel movement already applies its own proximity gain and therefore receives direction without double attenuation. Player-hit, player weapons, pickups, objectives, and interface cues remain listener-local. The projection uses only the newest immutable player/robot transforms or finite positioned events and changes no authoritative or replay state.
 
 ## 1. Executive summary
 
