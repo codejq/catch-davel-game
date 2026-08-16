@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **16 — bounded distant-report audio implemented; physical devices remain certification-only**
+Revision: **17 — snapshot-derived combat music pacing implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -25,6 +25,8 @@ Revision 14 records the completed independent effects-bus persistence contract. 
 Revision 15 records the completed maze-obstruction and event-variation audio pass. Positioned Davel and bomb cues sample the open listener/source segment against static maze walls, the closed workshop door, and active timed gates using current immutable presentation state. An obstructed route applies a fixed 0.58 gain multiplier and a real 920 Hz per-transient low-pass node; endpoints are excluded so a listener or source touching a gate cannot self-occlude. Non-interface transported events also derive bounded 0.94–1.0 gain and 0.975–1.025 pitch variation from cue plus stable event ID, while interface cues remain exact and movement/laser/fuse sequencers retain their purpose-built modulation. No runtime random source, simulation state, replay dependency, transport field, save field, or LLM observation was added.
 
 Revision 16 records the completed distance-dependent report layer. Eligible remote explosions, shots, impacts, weak-point hits, boss phases, and defeats introduce one delayed filtered-noise reflection after 6.5 world units, fading smoothly to full report character at the existing 18-unit spatial limit. The report narrows toward the center, lengthens and darkens with distance, inherits wall/gate low-pass response, and is counted before allocation inside the unchanged 48-transient/50-total hard ceiling. Near cues and ineligible/UI cues allocate no report source. This remains presentation-only and changes no authoritative contract or checksum.
+
+Revision 17 records the completed combat-music pacing director. The previous active-robot ratio kept the score near full intensity even while threats were distant; a bounded presentation tracker now derives exploration, engaged, escalating, wave-transition, objective-clear, and terminal phases from immutable snapshots. Proximity, telegraphs, hostile projectile count, player health pressure, and boss phase build the target; a pending wave rises from 0.52 toward 0.86, objective completion releases to 0.08, and terminal state reaches zero. Attack and release slew at fixed per-authoritative-tick rates, reset across rewinds/resyncs, and feed the existing tick/BPM procedural sequencer and ambience without adding timers, simulation state, replay dependencies, or LLM-only information.
 
 ## 1. Executive summary
 

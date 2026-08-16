@@ -68,6 +68,7 @@ import {
   type SpatialAudioMix, type SpatialAudioObstruction,
 } from '../audio/spatial-audio';
 import { isWallAtWorld, worldCell } from '../sim/level';
+import { CombatPacingTracker } from './combat-pacing';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -296,6 +297,7 @@ export async function startBrowserGame(): Promise<void> {
   const playerMovementAudio = new PlayerMovementAudioSequencer();
   const laserAudio = new LaserAudioSequencer();
   const bombFuseAudio = new BombFuseAudioSequencer();
+  const combatPacing = new CombatPacingTracker();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -1166,6 +1168,7 @@ export async function startBrowserGame(): Promise<void> {
           pendingSwordArcEvents.length = 0;
           laserAudio.reset();
           bombFuseAudio.reset();
+          combatPacing.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
@@ -1175,9 +1178,11 @@ export async function startBrowserGame(): Promise<void> {
           tick: state.tick, heat: state.player.laserHeat, overheated: state.player.laserOverheated,
         }));
         updateHud(state);
-        const activeRobots = state.robots.filter((robot) => robot.active).length;
-        const combatIntensity = Math.min(1, 0.22 + activeRobots / Math.max(1, state.robots.length) * 0.58
-          + Math.min(0.2, state.projectiles.length * 0.025));
+        const pacing = combatPacing.sample(state);
+        const combatIntensity = pacing.intensity;
+        document.body.dataset.combatPacingPhase = pacing.phase;
+        document.body.dataset.combatPacingTarget = String(pacing.targetIntensity);
+        document.body.dataset.combatPacingIntensity = String(pacing.intensity);
         const bossPhase = state.robots.reduce((phase, robot) => Math.max(phase, robot.bossPhase), 0);
         const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
         const presentationVisible = document.visibilityState !== 'hidden';
@@ -1211,6 +1216,7 @@ export async function startBrowserGame(): Promise<void> {
         playerMovementAudio.reset();
         laserAudio.reset();
         bombFuseAudio.reset();
+        combatPacing.reset();
         pendingPulseEffectTicks.length = 0;
         pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();

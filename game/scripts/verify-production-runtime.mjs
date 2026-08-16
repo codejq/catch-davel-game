@@ -498,9 +498,18 @@ try {
     webgl2: document.querySelector('#game')?.getContext('webgl2') !== null,
     tick: Number(document.body.dataset.snapshotTick),
     agentApiExposed: window.CatchDavelAgent !== undefined,
+    pacingPhase: document.body.dataset.combatPacingPhase,
+    pacingTarget: Number(document.body.dataset.combatPacingTarget),
+    pacingIntensity: Number(document.body.dataset.combatPacingIntensity),
   }));
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
+  if (!['exploration', 'engaged', 'escalating', 'wave-transition', 'objective-clear', 'terminal']
+    .includes(fallback.pacingPhase)
+    || fallback.pacingTarget < 0 || fallback.pacingTarget > 1
+    || fallback.pacingIntensity < 0 || fallback.pacingIntensity > 1) {
+    throw new Error(`Snapshot-derived combat pacing did not initialize: ${JSON.stringify(fallback)}`);
+  }
   await fallbackPage.click('#game');
   await fallbackPage.keyboard.press('Digit2');
   await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'sword');
