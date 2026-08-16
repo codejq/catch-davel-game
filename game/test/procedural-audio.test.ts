@@ -11,7 +11,7 @@ import { AUDIO_RUNTIME_PROFILES } from '../src/content/runtime-manifests';
 describe('project-original procedural audio contracts', () => {
   it('keeps every gameplay cue layered and bounded', () => {
     expect(() => validateProceduralAudioDefinitions()).not.toThrow();
-    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(36);
+    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(37);
     for (const layers of Object.values(AUDIO_CUE_DEFINITIONS)) {
       expect(layers.length).toBeGreaterThanOrEqual(2);
       expect(Math.max(...layers.map((layer) => layer.duration + (layer.delay ?? 0)))).toBeLessThan(0.8);
@@ -27,6 +27,7 @@ describe('project-original procedural audio contracts', () => {
     expect(AUDIO_CUE_BUS['robot-taunt']).toBe('voice');
     expect(AUDIO_CUE_BUS['wave-warning']).toBe('interface');
     expect(AUDIO_CUE_BUS['player-step']).toBe('environment');
+    expect(AUDIO_CUE_BUS['projectile-near-miss']).toBe('robots');
     expect(AUDIO_CUE_BUS['wobble-step']).toBe('robots');
     expect(AUDIO_DISTANT_REPORT_CUES).toContain('bomb-detonate');
     expect(AUDIO_DISTANT_REPORT_CUES).toContain('robot-shot');

@@ -31,6 +31,7 @@ import {
 import { combatStateMarkers } from './combat-state-markers';
 import { robotHealthBar } from './robot-health-bar';
 import { difficultyRobotHealth } from '../sim/difficulty';
+import { projectileWakeSegments } from './projectile-wake';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -464,24 +465,19 @@ export class DavelRenderer {
     for (const effect of defeatCollapses) this.addDefeatCollapse(effect, state.tick, motionScale);
     for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
-      const trail = {
-        x: projectile.x - projectile.velocityX * 0.055,
-        y: projectile.y - projectile.velocityY * 0.055,
-        z: projectile.z - projectile.velocityZ * 0.055,
-      };
+      for (const wake of projectileWakeSegments(projectile)) {
+        this.addCapsule(wake.start, wake.end, wake.radius, wake.color, wake.emission);
+      }
       if (projectile.kind === 'fireball') {
         for (let puffIndex = quality.fireSmokeCount - 1; puffIndex >= 0; puffIndex -= 1) {
           const puff = fireballSmokePuff(projectile, puffIndex, motionScale);
           this.addSphere(puff, puff.radius, puff.color, 1.1, 0.7);
         }
-        this.addCapsule(trail, center, 0.15, [1, 0.08, 0.02]);
         this.addSphere(center, 0.3, [1, 0.28, 0.035]);
         this.addSphere(center, 0.14, [1, 0.96, 0.38]);
       } else if (projectile.kind === 'slider-bolt') {
-        this.addCapsule(trail, center, 0.08, [0.12, 0.72, 1]);
         this.addSphere(center, 0.13, [0.58, 0.95, 1]);
       } else {
-        this.addCapsule(trail, center, 0.075, [1, 0.18, 0.72]);
         this.addSphere(center, 0.16, [1, 0.82, 0.08]);
         this.addSphere(center, 0.075, [1, 1, 0.72]);
       }

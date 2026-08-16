@@ -71,6 +71,7 @@ import { isWallAtWorld, worldCell } from '../sim/level';
 import { CombatPacingTracker } from './combat-pacing';
 import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
+import { ProjectileNearMissTracker } from './projectile-near-miss';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -306,6 +307,7 @@ export async function startBrowserGame(): Promise<void> {
   const combatPacing = new CombatPacingTracker();
   const objectiveClearTracker = new ObjectiveClearTransitionTracker();
   const weaponLocomotion = new WeaponLocomotionTracker();
+  const projectileNearMiss = new ProjectileNearMissTracker();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -1201,6 +1203,7 @@ export async function startBrowserGame(): Promise<void> {
           combatPacing.reset();
           objectiveClearTracker.reset();
           weaponLocomotion.reset();
+          projectileNearMiss.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
@@ -1234,6 +1237,18 @@ export async function startBrowserGame(): Promise<void> {
           document.body.dataset.playerStepPitch = String(playerStep.pitchScale);
           document.body.dataset.playerStepSprint = String(playerStep.sprinting);
         }
+        for (const request of projectileNearMiss.sample(state, ambienceActive)) {
+          const spatial = playPositionedSound(
+            request.cue, request.x, request.z, request.gainScale, request.pitchScale, true, request.projectileId,
+          );
+          document.body.dataset.projectileNearMissCount = String(
+            Number(document.body.dataset.projectileNearMissCount ?? '0') + 1,
+          );
+          document.body.dataset.projectileNearMissId = String(request.projectileId);
+          document.body.dataset.projectileNearMissKind = request.kind;
+          document.body.dataset.projectileNearMissDistance = String(request.distance);
+          if (spatial !== null) document.body.dataset.projectileNearMissPan = String(spatial.pan);
+        }
         audio?.setAmbience(ambienceActive, combatIntensity, frozen);
         document.body.dataset.ambienceActive = String(ambienceActive);
         music?.update(
@@ -1251,6 +1266,7 @@ export async function startBrowserGame(): Promise<void> {
         combatPacing.reset();
         objectiveClearTracker.reset();
         weaponLocomotion.reset();
+        projectileNearMiss.reset();
         pendingPulseEffectTicks.length = 0;
         pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();

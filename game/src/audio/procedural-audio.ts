@@ -1,7 +1,8 @@
 import type { AudioRuntimeProfile } from '../content/runtime-manifests';
 
 export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-fuse' | 'bomb-detonate'
-  | 'laser' | 'robot-impact' | 'weak-point' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
+  | 'laser' | 'robot-impact' | 'weak-point' | 'robot-shot' | 'projectile-near-miss' | 'robot-telegraph'
+  | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
   | 'player-step' | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
@@ -38,7 +39,8 @@ export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
 export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   pulse: 'weapons', sword: 'weapons', 'charged-sword': 'weapons', deflect: 'weapons', 'bomb-throw': 'weapons',
   'bomb-fuse': 'weapons', 'bomb-detonate': 'weapons', laser: 'weapons',
-  'robot-impact': 'robots', 'weak-point': 'robots', 'robot-shot': 'robots', 'robot-telegraph': 'robots',
+  'robot-impact': 'robots', 'weak-point': 'robots', 'robot-shot': 'robots', 'projectile-near-miss': 'robots',
+  'robot-telegraph': 'robots',
   'robot-melee': 'robots', 'dj-buff': 'robots', 'boss-phase': 'robots', 'player-hit': 'robots',
   key: 'environment', health: 'environment', energy: 'environment', coin: 'environment', door: 'environment',
   checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'robots', 'robot-taunt': 'voice', victory: 'interface',
@@ -114,6 +116,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   'robot-impact': [noise('bandpass', 310, 0.09, 0.1), tone('square', 105, 62, 0.08, 0.07)],
   'weak-point': [tone('square', 740, 1180, 0.13, 0.09), tone('sine', 1480, 880, 0.18, 0.075), noise('highpass', 2400, 0.08, 0.06)],
   'robot-shot': [tone('triangle', 220, 88, 0.2, 0.09), noise('highpass', 900, 0.08, 0.05)],
+  'projectile-near-miss': [noise('bandpass', 1320, 0.22, 0.105), tone('triangle', 260, 118, 0.18, 0.052, 0.012)],
   'robot-telegraph': [tone('triangle', 280, 440, 0.24, 0.06), tone('sine', 140, 210, 0.24, 0.04)],
   'robot-melee': [noise('lowpass', 460, 0.15, 0.14), tone('square', 86, 48, 0.16, 0.1)],
   'dj-buff': [tone('sawtooth', 520, 260, 0.36, 0.09), tone('square', 130, 65, 0.34, 0.08)],
