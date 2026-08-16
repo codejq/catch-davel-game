@@ -5,6 +5,8 @@ export interface RenderPlayerState {
   readonly pitch: number;
   readonly health: number;
   readonly energy: number;
+  readonly maxHealth: number;
+  readonly maxEnergy: number;
   readonly coins: number;
   readonly bobPhase: number;
   readonly selectedWeapon: 'pulse' | 'sword' | 'bomb' | 'laser';

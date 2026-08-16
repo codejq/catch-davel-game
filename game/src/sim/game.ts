@@ -25,6 +25,7 @@ import {
   createRunMetrics, recordDamageTaken, recordRangedAttack, recordRobotDefeat, type RunMetrics,
 } from './run-metrics';
 import { difficultyProfile, type DifficultyId } from './difficulty';
+import { DEFAULT_PLAYER_UPGRADES, type PlayerUpgradeLevels } from './player-upgrades';
 
 export interface GameEvent {
   readonly tick: number;
@@ -79,8 +80,11 @@ export class GameSimulation {
     encounter: EncounterId = 'campaign',
     levelId: Chapter01LevelId = 'level-001',
     difficulty: DifficultyId = 'standard',
+    playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ) {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty);
+    this.state = GameSimulation.initialState(
+      seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
+    );
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -96,8 +100,11 @@ export class GameSimulation {
     encounter: EncounterId = 'campaign',
     levelId: Chapter01LevelId = 'level-001',
     difficulty: DifficultyId = 'standard',
+    playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ): void {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty);
+    this.state = GameSimulation.initialState(
+      seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
+    );
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
@@ -106,10 +113,11 @@ export class GameSimulation {
 
   private static initialState(
     seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels, encounter: EncounterId,
-    levelId: Chapter01LevelId, difficulty: DifficultyId,
+    levelId: Chapter01LevelId, difficulty: DifficultyId, playerUpgrades: PlayerUpgradeLevels,
   ): GameState {
     const state: GameState = {
-      tick: 0, seed, levelId, encounter, difficulty, player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId),
+      tick: 0, seed, levelId, encounter, difficulty,
+      player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId, playerUpgrades),
       robots: createRobots(encounter, levelId, difficulty), events: [],
       lastShotTick: -1_000, pulseBurstShots: 0, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
@@ -178,7 +186,7 @@ export class GameSimulation {
       this.state.defeat = true;
       this.state.events.push({ tick: this.state.tick, type: 'defeat' });
     }
-    this.state.player.energy = Math.min(100, this.state.player.energy + 0.12);
+    this.state.player.energy = Math.min(this.state.player.maxEnergy, this.state.player.energy + 0.12);
     if (!this.state.defeat && !this.state.victory) this.stepSelectedWeapon(command);
     const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs, this.state.levelId);
     for (const detonation of detonatedBombs.detonations) this.state.events.push({

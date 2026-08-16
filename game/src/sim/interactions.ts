@@ -231,18 +231,18 @@ export function collectLevelInteractions(
   const resourceMultiplier = difficultyProfile(difficulty).resourceMultiplier;
   for (const pickup of level.pickups) {
     if (!pickup.active || !near(player, pickup.x, pickup.z, 0.82)) continue;
-    if (pickup.kind === 'health' && player.health >= 100) continue;
-    if (pickup.kind === 'energy' && player.energy >= 100) continue;
+    if (pickup.kind === 'health' && player.health >= player.maxHealth) continue;
+    if (pickup.kind === 'energy' && player.energy >= player.maxEnergy) continue;
     pickup.active = false;
     if (pickup.kind === 'key') {
       level.keyCollected = true;
       events.push({ type: 'key-collected' });
     } else if (pickup.kind === 'health') {
-      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), 100 - player.health);
+      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), player.maxHealth - player.health);
       player.health += recovered;
       events.push({ type: 'health-collected', value: recovered });
     } else if (pickup.kind === 'energy') {
-      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), 100 - player.energy);
+      const recovered = Math.min(Math.round(pickup.amount * resourceMultiplier), player.maxEnergy - player.energy);
       player.energy += recovered;
       events.push({ type: 'energy-collected', value: recovered });
     } else {

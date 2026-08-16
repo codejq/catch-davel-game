@@ -4,13 +4,13 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **8 — deterministic sprint contract implemented; physical devices remain certification-only**
+Revision: **9 — deterministic player-resource upgrades implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
 Revision 2 fixes deterministic-simulation contradictions, separates simulation and rendering workers, reconciles the robot budget, selects hitscan for the pulse gun, adds content tooling and agent-driven campaign QA, defines a provisional device matrix, makes packaged saves file-backed, protects production progress from agent automation, and adds the level-data contract in Appendix A.
 
-Revision 8 records the implemented movement contract: simulation schema v17 adds a normalized boolean sprint command with a fixed 1.55 multiplier; replay format v2 records that command and explicitly rejects incompatible replay v1 files; agent API v2 exposes the same action; and profile v9 persists hold/toggle accessibility state while migrating v8 saves checksum-first and clearing incompatible schema-v16 checkpoints. Remappable Shift, gamepad left-stick press, mobile RUN, tests, replay, and LLM control all converge on the same authoritative command. Physical-device suites remain mandatory before a corresponding platform release claim, but their current unavailability never blocks implementation or the active goal.
+Revision 9 records the implemented player-resource upgrade contract. Simulation schema v18 derives maximum health and energy from two bounded three-level upgrades; pickups and regeneration clamp to those authoritative caps. Replay format v3, RenderSnapshot transport v13, observation v15, Worker resets, HUD, workbench purchases, tests, and profile v10 all carry the same state. The checksum-first v9→v10 migration bounds the previously reserved upgrade fields and clears schema-v17 checkpoints. Agent and training resets deliberately retain zero upgrades. The existing schema-v17 sprint command and API v2 remain unchanged. Physical-device suites remain mandatory before a corresponding platform release claim, but their current unavailability never blocks implementation or the active goal.
 
 ## 1. Executive summary
 
@@ -866,7 +866,7 @@ XPBD is selected because it makes articulated compliant motion practical while r
 - Generate state checksums periodically.
 - Replays store version, seed, initial configuration, tick-tagged commands, checksums, and optional recovery keyframes.
 - Exact replay compatibility is guaranteed within a declared simulation schema version; migrations are explicit.
-- The current implementation uses simulation schema v17 and replay format v2 for the authoritative `sprint` boolean. Replay v1 is explicitly incompatible and rejected because movement checksums can differ.
+- Sprint was introduced by simulation schema v17 and replay format v2. The current schema v18/replay v3 retains that authoritative boolean and additionally records player-resource caps; replay v2 and earlier are explicitly incompatible and rejected.
 
 ### 15.6 Physics scope
 
@@ -1136,7 +1136,7 @@ High-level accessibility/research actions:
 
 High-level actions are translated into the same low-level command stream and obey visibility, movement, cooldown, ammunition, and collision rules.
 
-The current public contract is agent API v2. Its `sprint: boolean` action enters the same schema-v17 `PlayerCommand` used by human input and replay v2; the browser verifier measures the fixed 1.55 walk-to-sprint distance ratio through the live Worker.
+The current public contract is agent API v2. Its `sprint: boolean` action enters the same schema-v18 `PlayerCommand` used by human input and replay v3; observation v15 exposes maximum health/energy and their bounded upgrade levels. Agent resets use zero upgrades, and the browser verifier measures the fixed 1.55 walk-to-sprint distance ratio through the live Worker.
 
 ### 16.4 Deterministic stepping
 
@@ -1198,7 +1198,7 @@ The current public contract is agent API v2. Its `sprint: boolean` action enters
 - last clean shutdown marker;
 - integrity checksum for accidental-corruption detection, not anti-cheat security.
 
-The current profile contract is v9. It stores `sprintMode: "hold" | "toggle"`; checksum-valid v8 profiles migrate with `hold` as the explicit default and discard schema-v16 checkpoints that cannot resume under schema v17.
+The current profile contract is v10. It stores `sprintMode: "hold" | "toggle"` plus bounded `maxHealth` and `maxEnergy` upgrade levels. Checksum-valid v9 profiles migrate those reserved fields into the strict contract and discard schema-v17 checkpoints that cannot resume under schema v18.
 
 ### 17.3 Reliability
 

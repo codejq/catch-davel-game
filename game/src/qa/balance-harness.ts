@@ -2,7 +2,10 @@ import { CHAPTER_01_LEVELS, type Chapter01LevelId } from '../content/levels/chap
 import { createLevelRuntime } from '../sim/interactions';
 import { campaignRobotWaves, ROBOT_DEFINITIONS } from '../sim/robots';
 import { MAX_WEAPON_UPGRADE_LEVEL, type WeaponUpgradeId } from '../sim/weapons';
-import { WEAPON_UPGRADE_CATALOG, weaponUpgradeCost } from '../storage/economy';
+import { MAX_PLAYER_UPGRADE_LEVEL, type PlayerUpgradeId } from '../sim/player-upgrades';
+import {
+  PLAYER_UPGRADE_CATALOG, WEAPON_UPGRADE_CATALOG, playerUpgradeCost, weaponUpgradeCost,
+} from '../storage/economy';
 
 export interface WaveBalanceReport {
   readonly waveIndex: number;
@@ -32,7 +35,7 @@ export interface LevelBalanceReport {
 }
 
 export interface UpgradeCostReport {
-  readonly id: WeaponUpgradeId;
+  readonly id: WeaponUpgradeId | PlayerUpgradeId;
   readonly fullCost: number;
   readonly firstGuaranteedAffordableLevel: number | null;
 }
@@ -67,6 +70,12 @@ function waveReport(robotIds: readonly number[], waveIndex: number, hazardCount:
 function fullUpgradeCost(id: WeaponUpgradeId): number {
   let total = 0;
   for (let level = 0; level < MAX_WEAPON_UPGRADE_LEVEL; level += 1) total += weaponUpgradeCost(id, level);
+  return total;
+}
+
+function fullPlayerUpgradeCost(id: PlayerUpgradeId): number {
+  let total = 0;
+  for (let level = 0; level < MAX_PLAYER_UPGRADE_LEVEL; level += 1) total += playerUpgradeCost(id, level);
   return total;
 }
 
@@ -117,8 +126,10 @@ export function createChapter01BalanceReport(): Chapter01BalanceReport {
       waves: waveReports,
     };
   });
-  const upgradeCosts = WEAPON_UPGRADE_CATALOG.map((upgrade): UpgradeCostReport => {
-    const fullCost = fullUpgradeCost(upgrade.id);
+  const upgradeCosts = [...WEAPON_UPGRADE_CATALOG, ...PLAYER_UPGRADE_CATALOG].map((upgrade): UpgradeCostReport => {
+    const fullCost = 'maxHealth' === upgrade.id || 'maxEnergy' === upgrade.id
+      ? fullPlayerUpgradeCost(upgrade.id)
+      : fullUpgradeCost(upgrade.id);
     return {
       id: upgrade.id, fullCost,
       firstGuaranteedAffordableLevel: levels.find((level) => level.cumulativeGuaranteedCoins >= fullCost)?.levelNumber ?? null,

@@ -16,7 +16,7 @@ import {
 } from '../sim/weak-point';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 14;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 15;
 
 export interface RobotObservation {
   readonly id: number;
@@ -50,7 +50,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 14;
+  readonly schemaVersion: 15;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -64,6 +64,8 @@ export interface AgentObservation {
     readonly pitch: number;
     readonly health: number;
     readonly energy: number;
+    readonly maxHealth: number;
+    readonly maxEnergy: number;
     readonly coins: number;
     readonly selectedWeapon: WeaponId;
     readonly unlockedWeapons: readonly WeaponId[];
@@ -79,6 +81,10 @@ export interface AgentObservation {
       readonly swordCooling: number;
       readonly bombCapacity: number;
       readonly laserCooling: number;
+    };
+    readonly playerUpgrades: {
+      readonly maxHealth: number;
+      readonly maxEnergy: number;
     };
   };
   readonly robots: readonly RobotObservation[];
@@ -271,7 +277,8 @@ export function createObservation(state: GameState): AgentObservation {
       x: round(state.player.x), z: round(state.player.z),
       cellColumn: playerCell.column, cellRow: playerCell.row,
       yaw: round(state.player.yaw), pitch: round(state.player.pitch),
-      health: round(state.player.health), energy: round(state.player.energy), coins: state.player.coins,
+      health: round(state.player.health), energy: round(state.player.energy),
+      maxHealth: state.player.maxHealth, maxEnergy: state.player.maxEnergy, coins: state.player.coins,
       selectedWeapon: state.player.selectedWeapon,
       unlockedWeapons: WEAPON_IDS.filter((weapon) => weaponUnlocked(state.player.unlockedWeaponMask, weapon)),
       bombs: state.player.bombs,
@@ -280,6 +287,7 @@ export function createObservation(state: GameState): AgentObservation {
       pulseBurstShots,
       pulseSpreadRadians: round(pulseSpreadRadians(pulseBurstShots)),
       weaponUpgrades: { ...state.player.weaponUpgrades },
+      playerUpgrades: { ...state.player.playerUpgrades },
     },
     robots,
     remainingRobots: robots.length,

@@ -122,7 +122,7 @@ describe('authoritative Story, Standard, and Hard difficulty', () => {
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/difficulty bounds/);
   });
 
-  it('persists difficulty in profile v9 and rejects non-contract values', () => {
+  it('persists difficulty in profile v10 and rejects non-contract values', () => {
     for (const difficulty of DIFFICULTY_IDS) {
       const profile = updateProfile(createDefaultProfile(`profile-${difficulty}`), {
         settings: { ...createDefaultProfile().settings, difficulty },

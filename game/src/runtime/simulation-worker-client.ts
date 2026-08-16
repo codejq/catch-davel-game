@@ -15,6 +15,7 @@ import type { WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import type { DifficultyId } from '../sim/difficulty';
+import type { PlayerUpgradeLevels } from '../sim/player-upgrades';
 
 export interface SimulationWorkerClientCallbacks {
   readonly onSnapshot: (state: RenderGameState, latencyMs: number) => void;
@@ -30,6 +31,7 @@ export interface SimulationWorkerClientOptions {
   readonly mode?: 'manual' | 'realtime';
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
+  readonly playerUpgrades?: PlayerUpgradeLevels;
   readonly encounter?: EncounterId;
   readonly difficulty?: DifficultyId;
   readonly callbacks: SimulationWorkerClientCallbacks;
@@ -79,6 +81,7 @@ export class SimulationWorkerClient {
       ...(options.levelId === undefined ? {} : { levelId: options.levelId }),
       ...(options.unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask: options.unlockedWeaponMask }),
       ...(options.weaponUpgrades === undefined ? {} : { weaponUpgrades: options.weaponUpgrades }),
+      ...(options.playerUpgrades === undefined ? {} : { playerUpgrades: options.playerUpgrades }),
       ...(options.encounter === undefined ? {} : { encounter: options.encounter }),
       ...(options.difficulty === undefined ? {} : { difficulty: options.difficulty }),
       snapshotPort: this.snapshotChannel.port1, eventPort: this.eventChannel.port1,
@@ -127,13 +130,14 @@ export class SimulationWorkerClient {
   reset(
     seed: string, initialCoins: number, agentRun: boolean,
     unlockedWeaponMask?: number, weaponUpgrades?: WeaponUpgradeLevels, encounter?: EncounterId,
-    levelId?: Chapter01LevelId, difficulty?: DifficultyId,
+    levelId?: Chapter01LevelId, difficulty?: DifficultyId, playerUpgrades?: PlayerUpgradeLevels,
   ): Promise<SimulationWorkerComplete> {
     return this.requestComplete({
       type: 'reset', requestId: 0, seed, initialCoins, agentRun,
       ...(levelId === undefined ? {} : { levelId }),
       ...(unlockedWeaponMask === undefined ? {} : { unlockedWeaponMask }),
       ...(weaponUpgrades === undefined ? {} : { weaponUpgrades }),
+      ...(playerUpgrades === undefined ? {} : { playerUpgrades }),
       ...(encounter === undefined ? {} : { encounter }),
       ...(difficulty === undefined ? {} : { difficulty }),
     });

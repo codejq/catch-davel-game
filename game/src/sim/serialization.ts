@@ -13,6 +13,10 @@ import { isKeyAmbushLevel } from './level-mechanics';
 import type { RunMetrics } from './run-metrics';
 import { difficultyProfile, difficultyRobotHealth, isDifficultyId, type DifficultyId } from './difficulty';
 import { PULSE_MAX_BURST_SHOTS } from './combat';
+import {
+  normalizePlayerUpgradeLevels, playerMaxEnergy, playerMaxHealth, PLAYER_UPGRADE_IDS,
+  type PlayerUpgradeLevels,
+} from './player-upgrades';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -75,7 +79,11 @@ export interface SimulationSnapshotV1 {
 }
 
 function copyPlayer(player: PlayerState): PlayerState {
-  return { ...player, weaponUpgrades: { ...player.weaponUpgrades } };
+  return {
+    ...player,
+    weaponUpgrades: { ...player.weaponUpgrades },
+    playerUpgrades: { ...player.playerUpgrades },
+  };
 }
 
 function snapshotRobot(robot: RobotState): RobotSnapshotV1 {
@@ -185,8 +193,9 @@ function numberArray(value: unknown, length: number, label: string): number[] {
 function validatePlayer(value: unknown): PlayerState {
   assertRecord(value, 'snapshot.player');
   assertExactKeys(value, [
-    'x', 'z', 'yaw', 'pitch', 'health', 'energy', 'coins', 'bobPhase', 'selectedWeapon', 'unlockedWeaponMask',
-    'bombs', 'swordHeat', 'laserHeat', 'laserOverheated', 'weaponUpgrades',
+    'x', 'z', 'yaw', 'pitch', 'health', 'energy', 'maxHealth', 'maxEnergy', 'coins', 'bobPhase',
+    'selectedWeapon', 'unlockedWeaponMask', 'bombs', 'swordHeat', 'laserHeat', 'laserOverheated',
+    'weaponUpgrades', 'playerUpgrades',
   ], 'snapshot.player');
   if (!isWeaponId(value.selectedWeapon)) throw new Error('player.selectedWeapon is invalid');
   const unlockedWeaponMask = integer(value.unlockedWeaponMask, 'player.unlockedWeaponMask', 1);
@@ -198,16 +207,34 @@ function validatePlayer(value: unknown): PlayerState {
   const rawUpgrades: Record<string, number> = {};
   for (const id of WEAPON_UPGRADE_IDS) rawUpgrades[id] = integer(value.weaponUpgrades[id], `player.weaponUpgrades.${id}`);
   const weaponUpgrades: WeaponUpgradeLevels = normalizeWeaponUpgradeLevels(rawUpgrades);
+  assertRecord(value.playerUpgrades, 'player.playerUpgrades');
+  assertExactKeys(value.playerUpgrades, PLAYER_UPGRADE_IDS, 'player.playerUpgrades');
+  const rawPlayerUpgrades: Record<string, number> = {};
+  for (const id of PLAYER_UPGRADE_IDS) {
+    rawPlayerUpgrades[id] = integer(value.playerUpgrades[id], `player.playerUpgrades.${id}`);
+  }
+  const playerUpgrades: PlayerUpgradeLevels = normalizePlayerUpgradeLevels(rawPlayerUpgrades);
+  const maxHealth = integer(value.maxHealth, 'player.maxHealth', 1);
+  const maxEnergy = integer(value.maxEnergy, 'player.maxEnergy', 1);
+  if (maxHealth !== playerMaxHealth(playerUpgrades) || maxEnergy !== playerMaxEnergy(playerUpgrades)) {
+    throw new Error('player resource caps do not match player upgrades');
+  }
+  const health = finite(value.health, 'player.health');
+  const energy = finite(value.energy, 'player.energy');
+  if (health < 0 || health > maxHealth || energy < 0 || energy > maxEnergy) {
+    throw new Error('player resources are outside their upgraded bounds');
+  }
   return {
     x: finite(value.x, 'player.x'), z: finite(value.z, 'player.z'),
     yaw: finite(value.yaw, 'player.yaw'), pitch: finite(value.pitch, 'player.pitch'),
-    health: finite(value.health, 'player.health'), energy: finite(value.energy, 'player.energy'),
+    health, energy, maxHealth, maxEnergy,
     coins: integer(value.coins, 'player.coins'), bobPhase: finite(value.bobPhase, 'player.bobPhase'),
     selectedWeapon: value.selectedWeapon, unlockedWeaponMask,
     bombs: integer(value.bombs, 'player.bombs'), swordHeat: finite(value.swordHeat, 'player.swordHeat'),
     laserHeat: finite(value.laserHeat, 'player.laserHeat'),
     laserOverheated: booleanValue(value.laserOverheated, 'player.laserOverheated'),
     weaponUpgrades,
+    playerUpgrades,
   };
 }
 

@@ -178,7 +178,10 @@ try {
     captionsLabel: document.querySelector('#sound-captions')?.getAttribute('aria-label') ?? '',
     campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
+    healthValue: document.querySelector('#health')?.textContent ?? '',
+    energyValue: document.querySelector('#energy')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
+    shopUpgrades: [...document.querySelectorAll('#shop button[data-upgrade]')].map((button) => button.textContent ?? ''),
     touchFire: document.querySelector('#touch-fire')?.textContent ?? '',
     touchSprint: document.querySelector('#touch-sprint')?.textContent ?? '',
     forwardBinding: document.querySelector('#input-binding-grid button[data-input-action="forward"] kbd')?.textContent ?? '',
@@ -253,7 +256,12 @@ try {
     || !accessibilitySettings.objective.includes('متبقٍ')
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'
+    || accessibilitySettings.healthValue !== '100 / 100'
+    || accessibilitySettings.energyValue !== '100 / 100'
     || accessibilitySettings.shopTitle !== 'ورشة كوانتم'
+    || accessibilitySettings.shopUpgrades.length !== 7
+    || !accessibilitySettings.shopUpgrades.some((label) => label.includes('البدلة المعززة'))
+    || !accessibilitySettings.shopUpgrades.some((label) => label.includes('خلية موسعة'))
     || accessibilitySettings.touchFire !== 'إطلاق'
     || accessibilitySettings.touchSprint !== 'ركض'
     || accessibilitySettings.forwardBinding !== 'UP'
@@ -293,18 +301,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v9.json'
-    || exportedProfile.profileSchemaVersion !== 9
+  if (download.suggestedFilename() !== 'catch-davel-profile-v10.json'
+    || exportedProfile.profileSchemaVersion !== 10
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v9 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v10 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v9.json',
+    name: 'catch-davel-profile-v10.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -691,7 +699,7 @@ try {
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
     || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 10
     || !toolingProof.balanceSummary.includes('Guaranteed 283 coins')
-    || !toolingProof.balanceSummary.includes('full upgrade catalog 156')
+    || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {
     throw new Error(`Content Workbench did not render the canonical Level 8 projections: ${JSON.stringify(toolingProof)}`);

@@ -89,9 +89,11 @@ const ENGLISH_UI = {
   upgradeInstalled: '{name} INSTALLED', upgradeFailed: 'UPGRADE FAILED',
   pulseDamageName: 'Pulse Overcharge', pulseEfficiencyName: 'Quantum Capacitor', swordCoolingName: 'Cryo Hilt',
   bombCapacityName: 'Bomb Pockets', laserCoolingName: 'Prism Cooling',
+  maxHealthName: 'Reinforced Suit', maxEnergyName: 'Expanded Cell',
   pulseDamageDescription: '+6 pulse damage per level', pulseEfficiencyDescription: '-0.5 pulse energy cost per level',
   swordCoolingDescription: '-12% sword heat per level', bombCapacityDescription: '+1 starting bomb per level',
   laserCoolingDescription: '-12% laser heat per level',
+  maxHealthDescription: '+15 maximum health per level', maxEnergyDescription: '+12 maximum energy per level',
 } as const;
 
 type RuntimeUiKey = keyof typeof ENGLISH_UI;
@@ -187,9 +189,11 @@ const ARABIC_UI: Record<RuntimeUiKey, string> = {
   upgradeInstalled: 'تم تثبيت {name}', upgradeFailed: 'فشلت الترقية',
   pulseDamageName: 'شحن النبضة', pulseEfficiencyName: 'مكثف كوانتم', swordCoolingName: 'مقبض التبريد',
   bombCapacityName: 'جيوب القنابل', laserCoolingName: 'تبريد المنشور',
+  maxHealthName: 'البدلة المعززة', maxEnergyName: 'خلية موسعة',
   pulseDamageDescription: '+6 ضرر نبضي لكل مستوى', pulseEfficiencyDescription: '-0.5 من استهلاك طاقة النبضة لكل مستوى',
   swordCoolingDescription: '-12٪ من حرارة السيف لكل مستوى', bombCapacityDescription: '+1 قنبلة بداية لكل مستوى',
   laserCoolingDescription: '-12٪ من حرارة الليزر لكل مستوى',
+  maxHealthDescription: '+15 صحة قصوى لكل مستوى', maxEnergyDescription: '+12 طاقة قصوى لكل مستوى',
 };
 
 const CATALOGS: Readonly<Record<'en' | 'ar', Readonly<Record<RuntimeUiKey, string>>>> = {

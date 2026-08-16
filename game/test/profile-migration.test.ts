@@ -8,7 +8,7 @@ describe('profile schema migrations', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v1.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 9,
+      profileSchemaVersion: 10,
       profileId: 'migration-v1',
       totalCoins: 12,
       spendableCoins: 7,
@@ -25,7 +25,7 @@ describe('profile schema migrations', () => {
       'created:v1', 'v1->v2:independent-motion-controls', 'v2->v3:render-quality-preference',
       'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
-      'v8->v9:sprint-controls',
+      'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
@@ -47,15 +47,16 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v2 fixture without altering prior settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v2.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(9);
+    expect(migrated.profileSchemaVersion).toBe(10);
     expect(migrated.settings).toMatchObject({
       language: 'ar', reducedMotion: true, cameraMotion: 0, flashIntensity: 0, renderQuality: 'auto', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-7)).toEqual([
+    expect(migrated.migrationHistory.slice(-8)).toEqual([
       'v2->v3:render-quality-preference', 'v3->v4:first-release-accessibility',
       'v4->v5:touch-control-accessibility', 'v5->v6:audio-mix-accessibility',
       'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
+      'v9->v10:player-upgrades',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     corrupted.spendableCoins = 6;
@@ -65,15 +66,15 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v3 fixture into first-release accessibility settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v3.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(9);
+    expect(migrated.profileSchemaVersion).toBe(10);
     expect(migrated.settings).toMatchObject({
       renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false, difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-6)).toEqual([
+    expect(migrated.migrationHistory.slice(-7)).toEqual([
       'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
-      'v8->v9:sprint-controls',
+      'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).renderQuality = 'high';
@@ -83,16 +84,17 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v4 fixture into touch-control accessibility settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v4.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(9);
+    expect(migrated.profileSchemaVersion).toBe(10);
     expect(migrated.settings).toMatchObject({
       language: 'ar', textScale: 1.2, captions: false, photosensitivitySafe: true,
       touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
       touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-5)).toEqual([
+    expect(migrated.migrationHistory.slice(-6)).toEqual([
       'v4->v5:touch-control-accessibility', 'v5->v6:audio-mix-accessibility',
       'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
+      'v9->v10:player-upgrades',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).touchControlScale = 1.5;
@@ -102,16 +104,16 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v5 fixture into independent audio buses', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v5.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(9);
+    expect(migrated.profileSchemaVersion).toBe(10);
     expect(migrated.settings).toMatchObject({
       language: 'ar', touchControlScale: 1.25, touchControlOpacity: 0.7, touchVerticalOffset: 48,
       touchHandedness: 'left', touchDeadZone: 0.2, touchFireMode: 'toggle',
       combatVolume: 1, worldVolume: 1, interfaceVolume: 1, dynamicRange: 'balanced', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-4)).toEqual([
+    expect(migrated.migrationHistory.slice(-5)).toEqual([
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
-      'v8->v9:sprint-controls',
+      'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).effectsVolume = 0.2;
@@ -122,7 +124,7 @@ describe('profile schema migrations', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v6.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 9,
+      profileSchemaVersion: 10,
       profileId: 'migration-v6',
       settings: { language: 'ar', combatVolume: 0.6, worldVolume: 0.7, interfaceVolume: 0.8, difficulty: 'standard', sprintMode: 'hold' },
       levelProgress: [{
@@ -132,6 +134,7 @@ describe('profile schema migrations', () => {
     });
     expect(migrated.migrationHistory).toEqual([
       'created:v6', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
+      'v9->v10:player-upgrades',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
   });
@@ -151,10 +154,12 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 9,
+      profileSchemaVersion: 10,
       settings: { difficulty: 'standard', sprintMode: 'hold' },
       campaignCheckpoint: null,
-      migrationHistory: ['created:v7', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls'],
+      migrationHistory: [
+        'created:v7', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
+      ],
     });
   });
 
@@ -173,11 +178,32 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 9,
+      profileSchemaVersion: 10,
       settings: { sprintMode: 'hold' },
       inputMappings: { sprint: 'ShiftLeft' },
       campaignCheckpoint: null,
-      migrationHistory: ['created:v8', 'v8->v9:sprint-controls'],
+      migrationHistory: ['created:v8', 'v8->v9:sprint-controls', 'v9->v10:player-upgrades'],
+    });
+  });
+
+  it('migrates v9 upgrade storage into the bounded authoritative player-upgrade contract', () => {
+    const current = createDefaultProfile('migration-v9');
+    const { integrityChecksum: _checksum, ...currentBody } = current;
+    const legacyBody = {
+      ...currentBody,
+      profileSchemaVersion: 9,
+      migrationHistory: ['created:v9'],
+      playerUpgrades: { maxHealth: 2, maxEnergy: 1 },
+      campaignCheckpoint: { obsoleteSimulationSchema: 17 },
+    };
+    const migrated = parseProfile(JSON.stringify({
+      ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
+    }));
+    expect(migrated).toMatchObject({
+      profileSchemaVersion: 10,
+      playerUpgrades: { maxHealth: 2, maxEnergy: 1 },
+      campaignCheckpoint: null,
+      migrationHistory: ['created:v9', 'v9->v10:player-upgrades'],
     });
   });
 

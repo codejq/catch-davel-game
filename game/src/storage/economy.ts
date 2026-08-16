@@ -1,10 +1,20 @@
 import {
   MAX_WEAPON_UPGRADE_LEVEL, normalizeWeaponUpgradeLevels, type WeaponUpgradeId,
 } from '../sim/weapons';
-import { updateProfile, type ProfileV9 } from './profile';
+import { updateProfile, type ProfileV10 } from './profile';
+import {
+  MAX_PLAYER_UPGRADE_LEVEL, normalizePlayerUpgradeLevels, type PlayerUpgradeId,
+} from '../sim/player-upgrades';
 
 export interface WeaponUpgradeDefinition {
   readonly id: WeaponUpgradeId;
+  readonly name: string;
+  readonly description: string;
+  readonly baseCost: number;
+}
+
+export interface PlayerUpgradeDefinition {
+  readonly id: PlayerUpgradeId;
   readonly name: string;
   readonly description: string;
   readonly baseCost: number;
@@ -18,6 +28,11 @@ export const WEAPON_UPGRADE_CATALOG: readonly WeaponUpgradeDefinition[] = Object
   { id: 'laserCooling', name: 'Prism Cooling', description: '-12% laser heat per level', baseCost: 6 },
 ]);
 
+export const PLAYER_UPGRADE_CATALOG: readonly PlayerUpgradeDefinition[] = Object.freeze([
+  { id: 'maxHealth', name: 'Reinforced Suit', description: '+15 maximum health per level', baseCost: 6 },
+  { id: 'maxEnergy', name: 'Expanded Cell', description: '+12 maximum energy per level', baseCost: 5 },
+]);
+
 export function weaponUpgradeCost(id: WeaponUpgradeId, currentLevel: number): number {
   const definition = WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id);
   if (definition === undefined) throw new Error(`Unknown weapon upgrade ${id}`);
@@ -27,7 +42,7 @@ export function weaponUpgradeCost(id: WeaponUpgradeId, currentLevel: number): nu
   return definition.baseCost * (currentLevel + 1);
 }
 
-export function purchaseWeaponUpgrade(profile: ProfileV9, id: WeaponUpgradeId): ProfileV9 {
+export function purchaseWeaponUpgrade(profile: ProfileV10, id: WeaponUpgradeId): ProfileV10 {
   const levels = normalizeWeaponUpgradeLevels(profile.weaponUpgrades);
   const currentLevel = levels[id];
   const cost = weaponUpgradeCost(id, currentLevel);
@@ -35,6 +50,27 @@ export function purchaseWeaponUpgrade(profile: ProfileV9, id: WeaponUpgradeId): 
   return updateProfile(profile, {
     spendableCoins: profile.spendableCoins - cost,
     weaponUpgrades: { ...profile.weaponUpgrades, [id]: currentLevel + 1 },
+    campaignCheckpoint: null,
+  });
+}
+
+export function playerUpgradeCost(id: PlayerUpgradeId, currentLevel: number): number {
+  const definition = PLAYER_UPGRADE_CATALOG.find((entry) => entry.id === id);
+  if (definition === undefined) throw new Error(`Unknown player upgrade ${id}`);
+  if (!Number.isSafeInteger(currentLevel) || currentLevel < 0 || currentLevel >= MAX_PLAYER_UPGRADE_LEVEL) {
+    throw new Error(`${id} cannot be upgraded from level ${currentLevel}`);
+  }
+  return definition.baseCost * (currentLevel + 1);
+}
+
+export function purchasePlayerUpgrade(profile: ProfileV10, id: PlayerUpgradeId): ProfileV10 {
+  const levels = normalizePlayerUpgradeLevels(profile.playerUpgrades);
+  const currentLevel = levels[id];
+  const cost = playerUpgradeCost(id, currentLevel);
+  if (profile.spendableCoins < cost) throw new Error(`Need ${cost} coins for ${id}`);
+  return updateProfile(profile, {
+    spendableCoins: profile.spendableCoins - cost,
+    playerUpgrades: { ...levels, [id]: currentLevel + 1 },
     campaignCheckpoint: null,
   });
 }

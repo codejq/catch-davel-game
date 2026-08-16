@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(14);
+    expect(observation.schemaVersion).toBe(15);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,
@@ -26,7 +26,10 @@ describe('agent observation contract', () => {
     expect(observation.levelId).toBe('level-001');
     expect(observation.player.selectedWeapon).toBe('pulse');
     expect(observation.player.unlockedWeapons).toEqual(['pulse']);
-    expect(observation.player).toMatchObject({ pulseBurstShots: 0, pulseSpreadRadians: 0 });
+    expect(observation.player).toMatchObject({
+      maxHealth: 100, maxEnergy: 100, playerUpgrades: { maxHealth: 0, maxEnergy: 0 },
+      pulseBurstShots: 0, pulseSpreadRadians: 0,
+    });
     expect(observation.playerBombs).toEqual([]);
     expect(observation.robots).toHaveLength(6);
     expect(observation.robots.map((robot) => robot.id)).toEqual([0, 1, 2, 3, 4, 5]);

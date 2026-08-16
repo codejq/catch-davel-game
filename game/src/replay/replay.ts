@@ -45,8 +45,12 @@ import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, WEAK_POINT_RADIUS_SCALE,
 } from '../sim/weak-point';
 import { DANCE_ATTACK_SCHEDULE_VERSION } from '../sim/dance-timing';
+import {
+  BASE_PLAYER_MAX_ENERGY, BASE_PLAYER_MAX_HEALTH, MAX_ENERGY_PER_UPGRADE, MAX_HEALTH_PER_UPGRADE,
+  MAX_PLAYER_UPGRADE_LEVEL,
+} from '../sim/player-upgrades';
 
-export const REPLAY_FORMAT_VERSION = 2;
+export const REPLAY_FORMAT_VERSION = 3;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
 export const MAX_REPLAY_TICKS = 3_600_000;
 
@@ -68,8 +72,8 @@ export interface ReplayChecksum {
   readonly checksum: string;
 }
 
-export interface ReplayFileV2 {
-  readonly replayFormatVersion: 2;
+export interface ReplayFileV3 {
+  readonly replayFormatVersion: 3;
   readonly simulationSchemaVersion: number;
   readonly levelId: Chapter01LevelId;
   readonly seed: string;
@@ -80,7 +84,7 @@ export interface ReplayFileV2 {
   readonly checksums: readonly ReplayChecksum[];
 }
 
-export type ReplayFile = ReplayFileV2;
+export type ReplayFile = ReplayFileV3;
 
 function robotBalanceData(): unknown {
   return ROBOT_DEFINITIONS.map((definition) => ({
@@ -131,6 +135,10 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
         PULSE_MAX_SPREAD_RADIANS,
       },
       playerMovement: { PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER },
+      playerUpgrades: {
+        BASE_PLAYER_MAX_HEALTH, BASE_PLAYER_MAX_ENERGY, MAX_HEALTH_PER_UPGRADE,
+        MAX_ENERGY_PER_UPGRADE, MAX_PLAYER_UPGRADE_LEVEL,
+      },
       sword: {
         SWORD_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_RANGE, SWORD_CHARGED_RANGE,
         SWORD_HEAT_COOL_PER_TICK, SWORD_HEAT_REDUCTION_PER_UPGRADE,
@@ -223,7 +231,7 @@ export class ReplayRecorder {
     }
   }
 
-  finish(): ReplayFileV2 {
+  finish(): ReplayFileV3 {
     const finalTick = this.simulation.state.tick;
     const finalChecksums = this.checksums.map((checksum) => ({ ...checksum }));
     if (finalChecksums.at(-1)?.tick !== finalTick) finalChecksums.push({ tick: finalTick, checksum: stateChecksum(this.simulation.state) });
@@ -292,7 +300,7 @@ function parseDependencies(value: unknown): ReplayDependencyHashes {
   return dependencies as unknown as ReplayDependencyHashes;
 }
 
-export function parseReplay(serialized: string): ReplayFileV2 {
+export function parseReplay(serialized: string): ReplayFileV3 {
   const value = record(JSON.parse(serialized) as unknown, 'replay');
   exactKeys(value, [
     'replayFormatVersion', 'simulationSchemaVersion', 'levelId', 'seed', 'agentRun', 'dependencyHashes',
@@ -333,7 +341,7 @@ export function parseReplay(serialized: string): ReplayFileV2 {
     throw new Error('Replay must checksum its initial and final ticks');
   }
   return {
-    replayFormatVersion: 2,
+    replayFormatVersion: 3,
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
     levelId: value.levelId,
     seed: value.seed,

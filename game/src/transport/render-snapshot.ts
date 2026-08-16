@@ -9,14 +9,14 @@ import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const TRANSPORT_CONTRACT_VERSION = 12;
+export const TRANSPORT_CONTRACT_VERSION = 13;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
 export const MAX_RENDER_HAZARDS = 64;
 export const MAX_RENDER_PLAYER_BOMBS = 16;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 80;
-export const RENDER_PLAYER_FLOATS = 9;
+export const RENDER_PLAYER_FLOATS = 11;
 export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
@@ -141,8 +141,8 @@ function uint32(value: number, label: string): number {
 
 function writePlayer(data: Float32Array, player: RenderPlayerState): void {
   data.set([
-    player.x, player.z, player.yaw, player.pitch, player.health, player.energy, player.bobPhase,
-    player.swordHeat, player.laserHeat,
+    player.x, player.z, player.yaw, player.pitch, player.health, player.energy, player.maxHealth,
+    player.maxEnergy, player.bobPhase, player.swordHeat, player.laserHeat,
   ], 0);
 }
 
@@ -266,11 +266,12 @@ export function writeRenderSnapshot(
 function readPlayer(data: Float32Array, header: DataView, coins: number): RenderPlayerState {
   return {
     x: data[0]!, z: data[1]!, yaw: data[2]!, pitch: data[3]!,
-    health: data[4]!, energy: data[5]!, coins, bobPhase: data[6]!,
+    health: data[4]!, energy: data[5]!, maxHealth: data[6]!, maxEnergy: data[7]!, coins,
+    bobPhase: data[8]!,
     selectedWeapon: decodeWeapon(header.getUint32(HEADER_PLAYER_WEAPON, true)),
     unlockedWeaponMask: header.getUint32(HEADER_UNLOCKED_WEAPON_MASK, true),
     bombs: header.getUint32(HEADER_PLAYER_BOMBS, true),
-    swordHeat: data[7]!, laserHeat: data[8]!,
+    swordHeat: data[9]!, laserHeat: data[10]!,
     laserOverheated: (header.getUint32(HEADER_FLAGS, true) & 8) !== 0,
   };
 }

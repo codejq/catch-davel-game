@@ -114,6 +114,7 @@ try {
     worker.postMessage({
       type: 'reset', requestId: 10, seed: 'worker-upgrade-proof', initialCoins: 12,
       weaponUpgrades: { pulseDamage: 1, pulseEfficiency: 1, swordCooling: 1, bombCapacity: 2, laserCooling: 1 },
+      playerUpgrades: { maxHealth: 3, maxEnergy: 2 },
     });
     await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 10));
     const upgraded = responses.find((message) => message.type === 'complete' && message.requestId === 10).observation;
@@ -127,7 +128,14 @@ try {
         coalescedDuringStall: realtimeEnd.transport.coalesced - realtimeStart.transport.coalesced,
         newestTick: realtimeNewestTick,
       },
-      upgradeProof: { coins: upgraded.player.coins, bombs: upgraded.player.bombs, levels: upgraded.player.weaponUpgrades },
+      upgradeProof: {
+        coins: upgraded.player.coins,
+        bombs: upgraded.player.bombs,
+        weaponLevels: upgraded.player.weaponUpgrades,
+        playerLevels: upgraded.player.playerUpgrades,
+        maxHealth: upgraded.player.maxHealth,
+        maxEnergy: upgraded.player.maxEnergy,
+      },
     };
   });
   const failures = [...errors];
@@ -138,7 +146,10 @@ try {
   if (result.realtime.ticksDuringMainStall < 10) failures.push('Simulation Worker did not continue through the main-thread stall');
   if (result.realtime.coalescedDuringStall < 1) failures.push('Realtime stall did not exercise snapshot coalescing');
   if (result.realtime.newestTick !== result.realtime.endTick) failures.push('Realtime recovery did not deliver the newest completed tick');
-  if (result.upgradeProof.coins !== 12 || result.upgradeProof.bombs !== 5 || result.upgradeProof.levels.bombCapacity !== 2) {
+  if (result.upgradeProof.coins !== 12 || result.upgradeProof.bombs !== 5
+    || result.upgradeProof.weaponLevels.bombCapacity !== 2
+    || result.upgradeProof.playerLevels.maxHealth !== 3 || result.upgradeProof.playerLevels.maxEnergy !== 2
+    || result.upgradeProof.maxHealth !== 145 || result.upgradeProof.maxEnergy !== 124) {
     failures.push('Worker reset did not install authoritative profile upgrades');
   }
   if (failures.length > 0) throw new Error(failures.join('; '));

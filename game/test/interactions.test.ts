@@ -53,6 +53,26 @@ describe('authoritative Level 1 interactions', () => {
     expect(energy.active).toBe(false);
   });
 
+  it('clamps pickups and regeneration to authoritative upgraded resource caps', () => {
+    const game = new GameSimulation(
+      'upgraded-pickup-proof', undefined, undefined, 'campaign', 'level-001', 'standard',
+      { maxHealth: 2, maxEnergy: 3 },
+    );
+    expect(game.state.player).toMatchObject({ health: 130, maxHealth: 130, energy: 136, maxEnergy: 136 });
+    const repair = game.state.level.pickups.find((pickup) => pickup.kind === 'health')!;
+    game.state.player.health = 120;
+    game.state.player.x = repair.x;
+    game.state.player.z = repair.z;
+    game.step(idle);
+    expect(game.state.player.health).toBe(130);
+    expect(game.state.events).toContainEqual(expect.objectContaining({ type: 'health-collected', value: 10 }));
+    game.state.player.energy = 135.95;
+    game.state.player.x = game.state.level.checkpoint.x + 1;
+    game.state.player.z = game.state.level.checkpoint.z + 1;
+    game.step(idle);
+    expect(game.state.player.energy).toBe(136);
+  });
+
   it('awards deterministic branch and secret coin caches once', () => {
     const game = new GameSimulation('coin-cache-proof', undefined, undefined, 'campaign', 'level-004');
     const caches = game.state.level.pickups.filter((pickup) => pickup.kind === 'coin');

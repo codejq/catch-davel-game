@@ -17,9 +17,10 @@ describe('Chapter 1 robot-wave and coin-economy balance harness', () => {
 
   it('funds the complete current upgrade catalog from guaranteed first-clear combat income', () => {
     expect(report.guaranteedChapterCoins).toBeGreaterThanOrEqual(report.fullUpgradeCatalogCost);
-    expect(report.fullCatalogGuaranteedAffordableLevel).not.toBeNull();
+    expect(report.fullUpgradeCatalogCost).toBe(222);
+    expect(report.fullCatalogGuaranteedAffordableLevel).toBe(9);
     expect(report.maximumChapterCoins).toBe(report.guaranteedChapterCoins + report.optionalCacheCoins);
-    expect(report.upgradeCosts).toHaveLength(5);
+    expect(report.upgradeCosts).toHaveLength(7);
     expect(report.upgradeCosts.every((upgrade) => upgrade.firstGuaranteedAffordableLevel !== null)).toBe(true);
   });
 

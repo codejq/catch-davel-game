@@ -20,6 +20,9 @@ import type {
   SimulationWorkerRequest, SimulationWorkerResponse, WorkerEventBatchMessage, WorkerEventConsumerMessage,
   WorkerReturnSnapshotMessage, WorkerSnapshotMessage,
 } from './simulation-worker-protocol';
+import {
+  DEFAULT_PLAYER_UPGRADES, normalizePlayerUpgradeLevels, type PlayerUpgradeLevels,
+} from '../sim/player-upgrades';
 
 const scope = self as DedicatedWorkerGlobalScope;
 let simulation: GameSimulation | null = null;
@@ -122,6 +125,7 @@ function resetRuntime(
   encounter: EncounterId = 'campaign',
   levelId: Chapter01LevelId = 'level-001',
   difficulty: DifficultyId = 'standard',
+  playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
 ): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
@@ -133,6 +137,7 @@ function resetRuntime(
   if (!isDifficultyId(difficulty)) throw new Error('Worker difficulty is invalid');
   simulation = new GameSimulation(
     seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId, difficulty,
+    normalizePlayerUpgradeLevels(playerUpgrades),
   );
   simulation.state.player.coins = initialCoins;
   simulation.state.metrics.startingCoins = initialCoins;
@@ -245,6 +250,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',
         request.difficulty ?? 'standard',
+        request.playerUpgrades ?? DEFAULT_PLAYER_UPGRADES,
       );
       setMode(request.mode ?? 'manual');
       post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
@@ -311,6 +317,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',
         request.difficulty ?? 'standard',
+        request.playerUpgrades ?? DEFAULT_PLAYER_UPGRADES,
       );
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);

@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v12', () => {
+describe('self-contained RenderSnapshot v13', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -19,11 +19,12 @@ describe('self-contained RenderSnapshot v12', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_864);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(12);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_872);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(13);
     expect(decoded.state.difficulty).toBe('standard');
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
+    expect(decoded.state.player).toMatchObject({ maxHealth: 100, maxEnergy: 100 });
     expect(decoded.state.run).toEqual({ score: 1_455, currentCombo: 2, highestCombo: 3 });
     expect(decoded.state.player.selectedWeapon).toBe('pulse');
     expect(decoded.state.pulseBurstShots).toBe(3);
@@ -100,6 +101,6 @@ describe('self-contained RenderSnapshot v12', () => {
     const simulation = new GameSimulation('render-cache', undefined, undefined, 'campaign', 'level-004');
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
     expect(decoded.state.level.pickups.filter((pickup) => pickup.kind === 'coin')).toHaveLength(2);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_864);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_872);
   });
 });

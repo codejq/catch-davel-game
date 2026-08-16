@@ -36,7 +36,7 @@ describe('versioned deterministic replays', () => {
     expect(replay.commandRuns.length).toBeLessThan(720);
     expect(replay.checksums.map((entry) => entry.tick)).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720]);
     const serialized = serializeReplay(replay);
-    expect(replay.replayFormatVersion).toBe(2);
+    expect(replay.replayFormatVersion).toBe(3);
     expect(replay.commandRuns.some((run) => run.command.sprint)).toBe(true);
     expect(serializeReplay(parseReplay(serialized))).toBe(serialized);
     const verified = verifyReplay(replay);
@@ -44,9 +44,9 @@ describe('versioned deterministic replays', () => {
     expect(verified.finalChecksum).toBe(stateChecksum(simulation.state));
   });
 
-  it('uses an explicit incompatible-v1 policy after the authoritative sprint schema change', () => {
+  it('uses an explicit incompatible-v2 policy after authoritative player-resource caps changed', () => {
     const { replay } = recordRun(90);
-    const legacy = { ...structuredClone(replay), replayFormatVersion: 1 };
+    const legacy = { ...structuredClone(replay), replayFormatVersion: 2 };
     expect(() => parseReplay(JSON.stringify(legacy))).toThrow(/Unsupported replay format version/);
   });
 
@@ -83,5 +83,21 @@ describe('versioned deterministic replays', () => {
     expect(verifyReplay(replay).simulation.state.levelId).toBe('level-005');
     const substituted = { ...replay, levelId: 'level-006' as const };
     expect(() => verifyReplay(substituted)).toThrow(/level does not match/);
+  });
+
+  it('retains upgraded resource caps in the complete replay initial snapshot', () => {
+    const simulation = new GameSimulation(
+      'upgraded-replay-proof', undefined, undefined, 'campaign', 'level-001', 'standard',
+      { maxHealth: 2, maxEnergy: 3 },
+    );
+    const recorder = new ReplayRecorder(simulation);
+    simulation.step(scriptedCommand(0));
+    recorder.record(scriptedCommand(0));
+    const replay = recorder.finish();
+    expect(replay.initialSnapshot.player).toMatchObject({
+      health: 130, maxHealth: 130, energy: 136, maxEnergy: 136,
+      playerUpgrades: { maxHealth: 2, maxEnergy: 3 },
+    });
+    expect(verifyReplay(replay).simulation.state.player.maxHealth).toBe(130);
   });
 });

@@ -4,15 +4,20 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV9 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV10 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
 import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
-  type WeaponId, type WeaponUpgradeId,
+  MAX_WEAPON_UPGRADE_LEVEL, type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
-import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../storage/economy';
+import {
+  playerUpgradeCost, purchasePlayerUpgrade, purchaseWeaponUpgrade, weaponUpgradeCost,
+} from '../storage/economy';
+import {
+  MAX_PLAYER_UPGRADE_LEVEL, PLAYER_UPGRADE_IDS, normalizePlayerUpgradeLevels, type PlayerUpgradeId,
+} from '../sim/player-upgrades';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
@@ -62,7 +67,9 @@ const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
 };
 
-const UPGRADE_UI_KEYS: Readonly<Record<WeaponUpgradeId, {
+type ShopUpgradeId = WeaponUpgradeId | PlayerUpgradeId;
+
+const UPGRADE_UI_KEYS: Readonly<Record<ShopUpgradeId, {
   readonly name: RuntimeUiKey;
   readonly description: RuntimeUiKey;
 }>> = {
@@ -71,7 +78,13 @@ const UPGRADE_UI_KEYS: Readonly<Record<WeaponUpgradeId, {
   swordCooling: { name: 'swordCoolingName', description: 'swordCoolingDescription' },
   bombCapacity: { name: 'bombCapacityName', description: 'bombCapacityDescription' },
   laserCooling: { name: 'laserCoolingName', description: 'laserCoolingDescription' },
+  maxHealth: { name: 'maxHealthName', description: 'maxHealthDescription' },
+  maxEnergy: { name: 'maxEnergyName', description: 'maxEnergyDescription' },
 };
+
+function isPlayerUpgradeId(id: ShopUpgradeId): id is PlayerUpgradeId {
+  return (PLAYER_UPGRADE_IDS as readonly string[]).includes(id);
+}
 
 const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
   forward: 'controlForward', back: 'controlBack', left: 'controlLeft', right: 'controlRight',
@@ -237,7 +250,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV9;
+  let activeProfile: ProfileV10;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -544,7 +557,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV9): void => {
+  const persistProfile = (profile: ProfileV10): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -764,8 +777,8 @@ export async function startBrowserGame(): Promise<void> {
       segment.classList.toggle('attack', activeLevel.dance.attackBeats.includes(index));
       segment.classList.toggle('vulnerable', activeLevel.dance.vulnerableBeats.includes(index));
     }
-    healthHud.textContent = String(Math.ceil(state.player.health));
-    energyHud.textContent = String(Math.floor(state.player.energy));
+    healthHud.textContent = `${Math.ceil(state.player.health)} / ${state.player.maxHealth}`;
+    energyHud.textContent = `${Math.floor(state.player.energy)} / ${state.player.maxEnergy}`;
     coinsHud.textContent = String(state.player.coins);
     runScoreHud.textContent = state.run.score.toLocaleString(activeProfile.settings.language);
     runComboHud.textContent = `×${state.run.currentCombo}`;
@@ -1021,6 +1034,7 @@ export async function startBrowserGame(): Promise<void> {
     mode: 'manual',
     unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
     ...(trainingMode ? {} : { weaponUpgrades: normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades) }),
+    ...(trainingMode ? {} : { playerUpgrades: normalizePlayerUpgradeLevels(activeProfile.playerUpgrades) }),
     encounter: bossTraining ? 'boss-training' : 'campaign',
     difficulty: activeProfile.settings.difficulty,
     callbacks: {
@@ -1098,6 +1112,7 @@ export async function startBrowserGame(): Promise<void> {
       bossTraining ? 'boss-training' : 'campaign',
       activeLevelId,
       activeProfile.settings.difficulty,
+      trainingMode ? undefined : normalizePlayerUpgradeLevels(activeProfile.playerUpgrades),
     );
     await client.setMode('realtime');
     humanSessionStarted = false;
@@ -1226,17 +1241,23 @@ export async function startBrowserGame(): Promise<void> {
   });
 
   const renderShop = (): void => {
-    const levels = normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades);
+    const weaponLevels = normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades);
+    const playerLevels = normalizePlayerUpgradeLevels(activeProfile.playerUpgrades);
     shopCoins.textContent = String(activeProfile.spendableCoins);
     for (const button of shop.querySelectorAll<HTMLButtonElement>('button[data-upgrade]')) {
-      const id = button.dataset.upgrade as WeaponUpgradeId;
+      const id = button.dataset.upgrade as ShopUpgradeId;
       const localization = UPGRADE_UI_KEYS[id];
       const name = ui(localization.name);
-      const level = levels[id];
-      button.disabled = level >= 3;
-      button.textContent = level >= 3
+      const level = isPlayerUpgradeId(id) ? playerLevels[id] : weaponLevels[id];
+      const maximumLevel = isPlayerUpgradeId(id) ? MAX_PLAYER_UPGRADE_LEVEL : MAX_WEAPON_UPGRADE_LEVEL;
+      button.disabled = level >= maximumLevel;
+      button.textContent = level >= maximumLevel
         ? ui('upgradeMax', { name })
-        : ui('upgradePrice', { name, level: `${level} → ${level + 1}`, cost: weaponUpgradeCost(id, level) });
+        : ui('upgradePrice', {
+          name,
+          level: `${level} → ${level + 1}`,
+          cost: isPlayerUpgradeId(id) ? playerUpgradeCost(id, level) : weaponUpgradeCost(id, level),
+        });
       button.title = ui(localization.description);
     }
   };
@@ -1245,9 +1266,11 @@ export async function startBrowserGame(): Promise<void> {
   shop.addEventListener('click', (event) => {
     const button = (event.target as Element).closest<HTMLButtonElement>('button[data-upgrade]');
     if (button === null || trainingMode || humanSessionStarted || agentController.isAgentControlled()) return;
-    const id = button.dataset.upgrade as WeaponUpgradeId;
+    const id = button.dataset.upgrade as ShopUpgradeId;
     try {
-      const upgraded = purchaseWeaponUpgrade(activeProfile, id);
+      const upgraded = isPlayerUpgradeId(id)
+        ? purchasePlayerUpgrade(activeProfile, id)
+        : purchaseWeaponUpgrade(activeProfile, id);
       persistProfile(upgraded);
       renderShop();
       void client.reset(
@@ -1255,6 +1278,7 @@ export async function startBrowserGame(): Promise<void> {
         normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
         'campaign', activeLevelId,
         upgraded.settings.difficulty,
+        normalizePlayerUpgradeLevels(upgraded.playerUpgrades),
       ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
       showMessage(ui('upgradeInstalled', { name: ui(UPGRADE_UI_KEYS[id].name) }));
     } catch (error) {

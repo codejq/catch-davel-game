@@ -4,8 +4,9 @@ import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 import { isCampaignLevelId } from '../content/level-ids';
 import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 import { isDifficultyId, type DifficultyId } from '../sim/difficulty';
+import { normalizePlayerUpgradeLevels, type PlayerUpgradeLevels } from '../sim/player-upgrades';
 
-export const PROFILE_SCHEMA_VERSION = 9;
+export const PROFILE_SCHEMA_VERSION = 10;
 
 export type TouchHandedness = 'right' | 'left';
 export type TouchFireMode = 'hold' | 'toggle';
@@ -47,8 +48,8 @@ export interface LevelProgressV1 {
   readonly lastResult: StoredLevelResultV1 | null;
 }
 
-export interface ProfileBodyV9 {
-  readonly profileSchemaVersion: 9;
+export interface ProfileBodyV10 {
+  readonly profileSchemaVersion: 10;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -57,7 +58,7 @@ export interface ProfileBodyV9 {
   readonly totalCoins: number;
   readonly spendableCoins: number;
   readonly weaponUpgrades: Readonly<Record<string, number>>;
-  readonly playerUpgrades: Readonly<Record<string, number>>;
+  readonly playerUpgrades: PlayerUpgradeLevels;
   readonly cosmetics: readonly string[];
   readonly achievements: readonly string[];
   readonly settings: {
@@ -94,23 +95,23 @@ export interface ProfileBodyV9 {
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV9 extends ProfileBodyV9 {
+export interface ProfileV10 extends ProfileBodyV10 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV9): ProfileBodyV9 {
+function profileBody(profile: ProfileV10): ProfileBodyV10 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV9): ProfileV9 {
+export function sealProfile(body: ProfileBodyV10): ProfileV10 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV9 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV10 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v9'],
+    migrationHistory: ['created:v10'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
@@ -350,7 +351,7 @@ function profileDifficulty(value: unknown): DifficultyId {
   return value;
 }
 
-function validateProfileV9(profile: Record<string, unknown>): ProfileV9 {
+function validateProfileV10(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -384,7 +385,7 @@ function validateProfileV9(profile: Record<string, unknown>): ProfileV9 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 9,
+    profileSchemaVersion: 10,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -393,7 +394,7 @@ function validateProfileV9(profile: Record<string, unknown>): ProfileV9 {
     totalCoins: integer(profile.totalCoins, 'profile.totalCoins'),
     spendableCoins: integer(profile.spendableCoins, 'profile.spendableCoins'),
     weaponUpgrades: numericRecord(profile.weaponUpgrades, 'profile.weaponUpgrades'),
-    playerUpgrades: numericRecord(profile.playerUpgrades, 'profile.playerUpgrades'),
+    playerUpgrades: normalizePlayerUpgradeLevels(numericRecord(profile.playerUpgrades, 'profile.playerUpgrades')),
     cosmetics: strings(profile.cosmetics, 'profile.cosmetics'),
     achievements: strings(profile.achievements, 'profile.achievements'),
     settings: {
@@ -435,7 +436,28 @@ function validateProfileV9(profile: Record<string, unknown>): ProfileV9 {
   return result;
 }
 
-function migrateProfileV8(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV9(profile: Record<string, unknown>): ProfileV10 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  const playerUpgrades = normalizePlayerUpgradeLevels(
+    numericRecord(profile.playerUpgrades, 'profile.playerUpgrades'),
+  );
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 10 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v9->v10:player-upgrades'],
+    playerUpgrades,
+    campaignCheckpoint: null,
+  };
+  return validateProfileV10({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV8(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -461,10 +483,10 @@ function migrateProfileV8(profile: Record<string, unknown>): ProfileV9 {
     inputMappings: { ...inputMappings, sprint: inputMappings.sprint ?? DEFAULT_INPUT_BINDINGS.sprint },
     campaignCheckpoint: null,
   };
-  return validateProfileV9({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV9({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV7(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV7(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -491,7 +513,7 @@ function migrateProfileV7(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV8({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV6(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV6(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -525,7 +547,7 @@ function migrateProfileV6(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV7({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV5(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV5(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -555,7 +577,7 @@ function migrateProfileV5(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV6({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV4(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV4(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -586,7 +608,7 @@ function migrateProfileV4(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV5({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV3(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV3(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -608,7 +630,7 @@ function migrateProfileV3(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV2(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -630,7 +652,7 @@ function migrateProfileV2(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV9 {
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV10 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -658,7 +680,7 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV9 {
   return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV9 {
+export function validateProfile(value: unknown): ProfileV10 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
@@ -671,17 +693,18 @@ export function validateProfile(value: unknown): ProfileV9 {
   if (profile.profileSchemaVersion === 6) return migrateProfileV6(profile);
   if (profile.profileSchemaVersion === 7) return migrateProfileV7(profile);
   if (profile.profileSchemaVersion === 8) return migrateProfileV8(profile);
-  return validateProfileV9(profile);
+  if (profile.profileSchemaVersion === 9) return migrateProfileV9(profile);
+  return validateProfileV10(profile);
 }
 
-export function serializeProfile(profile: ProfileV9): string {
+export function serializeProfile(profile: ProfileV10): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV9 {
+export function parseProfile(serialized: string): ProfileV10 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV9, changes: Partial<ProfileBodyV9>): ProfileV9 {
+export function updateProfile(profile: ProfileV10, changes: Partial<ProfileBodyV10>): ProfileV10 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }

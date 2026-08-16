@@ -3,7 +3,9 @@ import { GameSimulation } from '../src/sim/game';
 import { createSimulationSnapshot } from '../src/sim/serialization';
 import { createDefaultProfile, parseProfile, serializeProfile, updateProfile, validateProfile } from '../src/storage/profile';
 import { MemoryKeyValueStore, ProfileRepository, profileStorageKeys } from '../src/storage/repository';
-import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../src/storage/economy';
+import {
+  playerUpgradeCost, purchasePlayerUpgrade, purchaseWeaponUpgrade, weaponUpgradeCost,
+} from '../src/storage/economy';
 import {
   bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../src/campaign/progression';
@@ -45,7 +47,7 @@ describe('versioned profile persistence', () => {
   it('rejects corruption and never silently accepts a newer schema', () => {
     const profile = createDefaultProfile('validation-proof');
     expect(() => validateProfile({ ...profile, spendableCoins: 1 })).toThrow(/checksum mismatch/);
-    expect(() => validateProfile({ ...profile, profileSchemaVersion: 10 })).toThrow(/newer than supported/);
+    expect(() => validateProfile({ ...profile, profileSchemaVersion: 11 })).toThrow(/newer than supported/);
     expect(() => updateProfile(profile, {
       settings: { ...profile.settings, difficulty: 'nightmare' as 'hard' },
     })).toThrow(/difficulty/);
@@ -62,6 +64,19 @@ describe('versioned profile persistence', () => {
     })).toThrow(/dynamicRange/);
     expect(() => updateProfile(profile, { spendableCoins: 5 })).toThrow(/cannot exceed/);
     expect(() => updateProfile(profile, { weaponUpgrades: { ...profile.weaponUpgrades, laserCooling: 4 } })).toThrow(/0 to 3/);
+    expect(() => updateProfile(profile, { playerUpgrades: { ...profile.playerUpgrades, maxHealth: 4 } })).toThrow(/0 to 3/);
+  });
+
+  it('spends coins on bounded player upgrades and invalidates stale checkpoints', () => {
+    const simulation = new GameSimulation('player-upgrade-checkpoint');
+    const funded = updateProfile(createDefaultProfile('player-upgrade-proof'), {
+      totalCoins: 40, spendableCoins: 40, campaignCheckpoint: createSimulationSnapshot(simulation.state),
+    });
+    const upgraded = purchasePlayerUpgrade(funded, 'maxHealth');
+    expect(playerUpgradeCost('maxHealth', 0)).toBe(6);
+    expect(upgraded.spendableCoins).toBe(34);
+    expect(upgraded.playerUpgrades.maxHealth).toBe(1);
+    expect(upgraded.campaignCheckpoint).toBeNull();
   });
 
   it('spends coins on bounded weapon upgrades and invalidates stale checkpoints', () => {

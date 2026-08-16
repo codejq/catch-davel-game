@@ -390,8 +390,8 @@ try {
     [result.workerStatus === 'ready', 'live Worker status is not ready'],
     [result.profileReady === 'true', 'profile repository was not ready'],
     [result.realtimeEndTick > result.realtimeStartTick, 'realtime Worker clock did not advance'],
-    [result.sprintProof.apiVersion === 2 && result.sprintProof.simulationSchemaVersion === 17
-      && result.sprintProof.replayFormatVersion === 2 && result.sprintProof.actionType === 'boolean'
+    [result.sprintProof.apiVersion === 2 && result.sprintProof.simulationSchemaVersion === 18
+      && result.sprintProof.replayFormatVersion === 3 && result.sprintProof.actionType === 'boolean'
       && result.sprintProof.walkDistance > 0 && result.sprintProof.ratio > 1.54
       && result.sprintProof.ratio < 1.56,
     'public agent API v2 did not expose the authoritative deterministic sprint action'],
@@ -412,8 +412,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 14
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v14 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 15
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v15 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -424,7 +424,7 @@ try {
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [result.weakPointProof.tick === 19 && result.weakPointProof.presentedTick >= 19
-      && result.weakPointProof.schemaVersion === 14 && result.weakPointProof.phase === 'vulnerable'
+      && result.weakPointProof.schemaVersion === 15 && result.weakPointProof.phase === 'vulnerable'
       && result.weakPointProof.active === true && result.weakPointProof.radius > 0
       && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
     'live Worker/presentation boundary did not expose the authored weak-point window'],

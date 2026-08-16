@@ -28,4 +28,12 @@ describe('fixed-step player movement', () => {
     expect(sprinted / walked).toBeCloseTo(PLAYER_SPRINT_MULTIPLIER, 10);
     expect(isPlayerPositionValid(sprinting.x, sprinting.z)).toBe(true);
   });
+
+  it('derives deterministic health and energy caps from bounded upgrade levels', () => {
+    const player = createPlayer(undefined, undefined, undefined, { maxHealth: 3, maxEnergy: 2 });
+    expect(player).toMatchObject({
+      health: 145, maxHealth: 145, energy: 124, maxEnergy: 124,
+      playerUpgrades: { maxHealth: 3, maxEnergy: 2 },
+    });
+  });
 });

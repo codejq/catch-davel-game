@@ -5,6 +5,10 @@ import {
   type WeaponId, type WeaponUpgradeLevels,
 } from './weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import {
+  DEFAULT_PLAYER_UPGRADES, normalizePlayerUpgradeLevels, playerMaxEnergy, playerMaxHealth,
+  type PlayerUpgradeLevels,
+} from './player-upgrades';
 
 export interface PlayerState {
   x: number;
@@ -13,6 +17,8 @@ export interface PlayerState {
   pitch: number;
   health: number;
   energy: number;
+  readonly maxHealth: number;
+  readonly maxEnergy: number;
   coins: number;
   bobPhase: number;
   selectedWeapon: WeaponId;
@@ -22,6 +28,7 @@ export interface PlayerState {
   laserHeat: number;
   laserOverheated: boolean;
   readonly weaponUpgrades: WeaponUpgradeLevels;
+  readonly playerUpgrades: PlayerUpgradeLevels;
 }
 
 export interface PlayerCommand {
@@ -39,14 +46,20 @@ export function createPlayer(
   unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
   levelId: Chapter01LevelId = 'level-001',
+  playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
 ): PlayerState {
   const start = findCell('S', levelId);
   const point = cellCenter(start.column, start.row);
+  const normalizedPlayerUpgrades = normalizePlayerUpgradeLevels(playerUpgrades);
+  const maxHealth = playerMaxHealth(normalizedPlayerUpgrades);
+  const maxEnergy = playerMaxEnergy(normalizedPlayerUpgrades);
   return {
-    x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0,
+    x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: maxHealth, energy: maxEnergy,
+    maxHealth, maxEnergy, coins: 0, bobPhase: 0,
     selectedWeapon: 'pulse', unlockedWeaponMask, bombs: 3 + weaponUpgrades.bombCapacity,
     swordHeat: 0, laserHeat: 0, laserOverheated: false,
     weaponUpgrades: normalizeWeaponUpgradeLevels(weaponUpgrades),
+    playerUpgrades: normalizedPlayerUpgrades,
   };
 }
 
