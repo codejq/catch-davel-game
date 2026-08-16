@@ -31,6 +31,7 @@ import {
 } from '../sim/balance';
 import { levelDancePerformance } from '../sim/dance-performance';
 import { levelMechanicDependency } from '../sim/level-mechanics';
+import { AGENT_OBSERVATION_SCHEMA_VERSION } from '../agent/observation';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -130,12 +131,18 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
 
 export function currentAgentValidationDependencies(levelId: Chapter01LevelId = 'level-001'): AgentValidationRunSpec['dependencyHashes'] {
   const replay = currentReplayDependencies(levelId);
+  const validation = chapter01Level(levelId).agentValidation.runs[0];
+  if (validation === undefined) throw new Error(`${levelId} has no agent validation run`);
   return {
     simulationSchema: replay.simulationSchema,
     effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
     simulationLevel: checksumCanonical(simulationLevelData(levelId)),
     balanceData: replay.balanceData,
-    policyOrReplay: replay.replayPolicy,
+    policyOrReplay: validation.mode === 'live-agent' ? checksumCanonical({
+      policyId: validation.policyId,
+      policyVersion: validation.policyVersion,
+      observationSchemaVersion: AGENT_OBSERVATION_SCHEMA_VERSION,
+    }) : replay.replayPolicy,
   };
 }
 

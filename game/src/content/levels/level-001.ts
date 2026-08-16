@@ -70,7 +70,7 @@ export const LEVEL_001 = {
       requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '2fc12133dec4df02', parTicks: 5_000,
       dependencyHashes: {
         simulationSchema: '572b496e43a67168', effectiveLevel: '40633774af0752bc', simulationLevel: '89024bcb436256c9',
-        balanceData: 'd06573c4b4825196', policyOrReplay: 'd3d7c87fc057d2d4',
+        balanceData: 'd06573c4b4825196', policyOrReplay: '715429b6b3e652e6',
       },
     }],
   },

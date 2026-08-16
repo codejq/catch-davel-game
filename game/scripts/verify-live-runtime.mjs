@@ -133,6 +133,12 @@ try {
     }
     const baselineMetrics = api.getMetrics();
     const profilesAfterAgent = await readProfileRecords();
+    const presentationDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.snapshotTick) < baselineObservation.tick && performance.now() < presentationDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, 10));
+    }
+    const baselineScoreHud = document.querySelector('#run-score')?.textContent;
+    const baselineComboHud = document.querySelector('#run-combo')?.textContent;
 
     await api.releaseControl();
     const releasedTick = Number(document.body.dataset.snapshotTick);
@@ -159,6 +165,10 @@ try {
       baselineDefeat: baselineObservation.defeat,
       baselineChecksum: baselineMetrics.checksum,
       baselineRunMetrics: baselineMetrics.runMetrics,
+      baselineObservationSchemaVersion: baselineObservation.schemaVersion,
+      baselineRunObservation: baselineObservation.run,
+      baselineScoreHud,
+      baselineComboHud,
       baselineExpectedChecksum: baselineRun.expectedChecksum,
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
@@ -185,6 +195,11 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
+    [result.baselineObservationSchemaVersion === 11
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v11 did not expose run progress'],
+    [typeof result.baselineScoreHud === 'string'
+      && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
+      && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],

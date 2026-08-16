@@ -97,6 +97,11 @@ export interface RenderGameState {
   readonly laserFocusTicks: number;
   readonly victory: boolean;
   readonly defeat: boolean;
+  readonly run: {
+    readonly score: number;
+    readonly currentCombo: number;
+    readonly highestCombo: number;
+  };
   readonly level: RenderLevelState;
 }
 

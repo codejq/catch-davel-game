@@ -8,6 +8,9 @@ import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from '../sim/dance-performance';
 import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
+import { campaignRunScore, runAccuracyPermille } from '../sim/run-score';
+
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 11;
 
 export interface RobotObservation {
   readonly id: number;
@@ -30,7 +33,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 10;
+  readonly schemaVersion: 11;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -60,6 +63,19 @@ export interface AgentObservation {
   };
   readonly robots: readonly RobotObservation[];
   readonly remainingRobots: number;
+  readonly run: {
+    readonly elapsedTicks: number;
+    readonly score: number;
+    readonly rangedAttacksFired: number;
+    readonly rangedAttacksHit: number;
+    readonly accuracyPermille: number | null;
+    readonly damageTaken: number;
+    readonly robotsDefeated: number;
+    readonly coinsCollected: number;
+    readonly secretsFound: number;
+    readonly currentCombo: number;
+    readonly highestCombo: number;
+  };
   readonly victory: boolean;
   readonly defeat: boolean;
   readonly objective: {
@@ -205,7 +221,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 10,
+    schemaVersion: AGENT_OBSERVATION_SCHEMA_VERSION,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
@@ -223,6 +239,19 @@ export function createObservation(state: GameState): AgentObservation {
     },
     robots,
     remainingRobots: robots.length,
+    run: {
+      elapsedTicks: state.tick,
+      score: campaignRunScore(state.levelId, state.tick, state.victory, state.player.coins, state.metrics),
+      rangedAttacksFired: state.metrics.rangedAttacksFired,
+      rangedAttacksHit: state.metrics.rangedAttacksHit,
+      accuracyPermille: runAccuracyPermille(state.metrics),
+      damageTaken: state.metrics.damageTaken,
+      robotsDefeated: state.metrics.defeatedRobotIds.length,
+      coinsCollected: state.player.coins - state.metrics.startingCoins,
+      secretsFound: state.metrics.secretsFound,
+      currentCombo: state.metrics.currentCombo,
+      highestCombo: state.metrics.highestCombo,
+    },
     victory: state.victory,
     defeat: state.defeat,
     objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },

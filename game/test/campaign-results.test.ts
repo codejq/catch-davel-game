@@ -15,8 +15,8 @@ describe('campaign result summary', () => {
     const summary = campaignResultSummary(profile, 'level-001', 4_800, 17, metrics, '0123456789abcdef');
     expect(summary).toMatchObject({
       previousBestTicks: null, bestTicks: 4_800, newBest: true, parTicks: 5_000,
-      parMedal: true, coinsEarned: 17, nextLevelId: 'level-002',
-      accuracyPermille: 800, damageTaken: 0, highestCombo: 3, medalTier: 'quantum',
+      parMedal: true, coinsEarned: 17, availableCoins: 17, nextLevelId: 'level-002',
+      score: 3_445, accuracyPermille: 800, damageTaken: 0, highestCombo: 3, medalTier: 'quantum',
       seed: 'campaign-level-001-v1', replayChecksum: '0123456789abcdef',
     });
     expect(summary.robotsByArchetype).toEqual({

@@ -32,7 +32,7 @@ interface Chapter01Recipe {
 const GLOBAL_DEPENDENCIES = {
   simulationSchema: '572b496e43a67168',
   balanceData: 'd06573c4b4825196',
-  policyOrReplay: 'd3d7c87fc057d2d4',
+  policyOrReplay: '715429b6b3e652e6',
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {

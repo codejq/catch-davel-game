@@ -47,9 +47,9 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 ## Frozen campaign QA
 
-`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v10. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v10 makes the authored branch, key-ambush, and freeze/hunt phases explicit; it does not grant an alternate control or simulation path. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.
+`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v11. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v11 exposes elapsed ticks, score, accuracy counters, damage, defeats, collected coins, secrets, and combo alongside the prior public mechanics; it does not grant hidden state or another simulation path.
 
-The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v3 deliberately re-froze the simulation hash and checksums after schema v14 added authoritative run metrics; all final ticks remained unchanged. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
+The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v4 contains the schema-v14 checksum re-freeze and binds live-agent runs to policy ID/version plus observation schema v11. All final ticks remained unchanged. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
 
 ## Profile v7
 
@@ -61,7 +61,7 @@ Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browse
 
 ## Presentation snapshot and ownership
 
-`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 9 is a fixed 9,840-byte binary projection containing campaign-level identity, complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, up to eight typed resource/coin pickups, up to 64 typed hazards/gates, up to 16 player bombs, door/checkpoint/exit/objective/wave state, laser state, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
+`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 10 is a fixed 9,856-byte binary projection containing campaign-level identity, complete player/HUD state, live score/current/best combo, up to 24 articulated render bodies, 64 hostile projectiles, eight pickups, 64 hazards/gates, 16 player bombs, level/laser/terminal state, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
 
 The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract, and capable browsers pass its decoded immutable copy through a bounded one-in-flight/latest-pending mailbox to the unchanged `WorldRenderer` in an OffscreenCanvas Worker. Unsupported or failed initialization uses the same renderer on the main thread, so the enhancement introduces neither another gameplay implementation nor an unbounded browser message queue.
 

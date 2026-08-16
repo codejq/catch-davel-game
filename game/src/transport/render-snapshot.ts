@@ -4,14 +4,16 @@ import type {
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import type { GameState } from '../sim/game';
+import { campaignRunScore } from '../sim/run-score';
 
-export const TRANSPORT_CONTRACT_VERSION = 9;
+export const TRANSPORT_CONTRACT_VERSION = 10;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
 export const MAX_RENDER_HAZARDS = 64;
 export const MAX_RENDER_PLAYER_BOMBS = 16;
-export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
+export const RENDER_SNAPSHOT_HEADER_BYTES = 80;
 export const RENDER_PLAYER_FLOATS = 9;
 export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
@@ -43,6 +45,9 @@ const HEADER_UNLOCKED_WEAPON_MASK = 48;
 const HEADER_PLAYER_BOMBS = 52;
 const HEADER_PLAYER_BOMB_COUNT = 56;
 const HEADER_LEVEL_ID = 60;
+const HEADER_RUN_SCORE = 64;
+const HEADER_CURRENT_COMBO = 72;
+const HEADER_HIGHEST_COMBO = 76;
 
 function levelCode(levelId: Chapter01LevelId): number { return CHAPTER_01_LEVEL_IDS.indexOf(levelId); }
 function decodeLevel(code: number): Chapter01LevelId {
@@ -134,7 +139,7 @@ function writePlayer(data: Float32Array, player: RenderPlayerState): void {
 
 export function writeRenderSnapshot(
   buffer: ArrayBuffer,
-  state: RenderGameState,
+  state: RenderGameState | GameState,
   metadata: RenderSnapshotMetadata = { eventEpoch: 0, eventHighWatermark: 0, resyncRequired: false },
 ): ArrayBuffer {
   if (buffer.byteLength !== RENDER_SNAPSHOT_BYTES) throw new Error(`RenderSnapshot buffer must be ${RENDER_SNAPSHOT_BYTES} bytes`);
@@ -171,6 +176,14 @@ export function writeRenderSnapshot(
   header.setUint32(HEADER_PLAYER_BOMBS, uint32(state.player.bombs, 'player.bombs'), true);
   header.setUint32(HEADER_PLAYER_BOMB_COUNT, state.playerBombs.length, true);
   header.setUint32(HEADER_LEVEL_ID, levelCode(state.levelId), true);
+  const run = 'run' in state ? state.run : {
+    score: campaignRunScore(state.levelId, state.tick, state.victory, state.player.coins, state.metrics),
+    currentCombo: state.metrics.currentCombo,
+    highestCombo: state.metrics.highestCombo,
+  };
+  header.setFloat64(HEADER_RUN_SCORE, run.score, true);
+  header.setUint32(HEADER_CURRENT_COMBO, uint32(run.currentCombo, 'run.currentCombo'), true);
+  header.setUint32(HEADER_HIGHEST_COMBO, uint32(run.highestCombo, 'run.highestCombo'), true);
   const data = new Float32Array(buffer, RENDER_SNAPSHOT_HEADER_BYTES);
   writePlayer(data, state.player);
   let offset = RENDER_PLAYER_FLOATS;
@@ -347,6 +360,11 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
       laserFocusTicks: data[effectOffset + 1]!,
       victory: (flags & 1) !== 0,
       defeat: (flags & 2) !== 0,
+      run: {
+        score: header.getFloat64(HEADER_RUN_SCORE, true),
+        currentCombo: header.getUint32(HEADER_CURRENT_COMBO, true),
+        highestCombo: header.getUint32(HEADER_HIGHEST_COMBO, true),
+      },
       level: {
         pickups,
         hazards,

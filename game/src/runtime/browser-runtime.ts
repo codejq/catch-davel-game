@@ -95,6 +95,9 @@ export async function startBrowserGame(): Promise<void> {
   const healthHud = requireElement<HTMLElement>('#health');
   const energyHud = requireElement<HTMLElement>('#energy');
   const coinsHud = requireElement<HTMLElement>('#coins');
+  const runScoreHud = requireElement<HTMLElement>('#run-score');
+  const runComboHud = requireElement<HTMLElement>('#run-combo');
+  const runStatsHud = requireElement<HTMLElement>('#run-stats');
   const remainingHud = requireElement<HTMLElement>('#remaining');
   const objectiveTitle = requireElement<HTMLElement>('#objective-title');
   const crosshair = requireElement<HTMLElement>('#crosshair');
@@ -118,6 +121,7 @@ export async function startBrowserGame(): Promise<void> {
   const resultsBest = requireElement<HTMLElement>('#results-best');
   const resultsPar = requireElement<HTMLElement>('#results-par');
   const resultsCoins = requireElement<HTMLElement>('#results-coins');
+  const resultsWallet = requireElement<HTMLElement>('#results-wallet');
   const resultsScore = requireElement<HTMLElement>('#results-score');
   const resultsAccuracy = requireElement<HTMLElement>('#results-accuracy');
   const resultsDamage = requireElement<HTMLElement>('#results-damage');
@@ -379,6 +383,7 @@ export async function startBrowserGame(): Promise<void> {
     resultsBest.textContent = formatCampaignTicks(summary.bestTicks);
     resultsPar.textContent = formatCampaignTicks(summary.parTicks);
     resultsCoins.textContent = `+${summary.coinsEarned}`;
+    resultsWallet.textContent = String(summary.availableCoins);
     resultsScore.textContent = summary.score.toLocaleString(activeProfile.settings.language);
     resultsAccuracy.textContent = summary.accuracyPermille === null ? '—' : `${summary.accuracyPermille / 10}%`;
     resultsDamage.textContent = String(Math.round(summary.damageTaken));
@@ -582,6 +587,9 @@ export async function startBrowserGame(): Promise<void> {
     healthHud.textContent = String(Math.ceil(state.player.health));
     energyHud.textContent = String(Math.floor(state.player.energy));
     coinsHud.textContent = String(state.player.coins);
+    runScoreHud.textContent = state.run.score.toLocaleString(activeProfile.settings.language);
+    runComboHud.textContent = `×${state.run.currentCombo}`;
+    runStatsHud.classList.toggle('combo-active', state.run.currentCombo > 1);
     const remaining = state.robots.filter((robot) => robot.active).length;
     remainingHud.textContent = state.victory ? ui('mazeClear')
       : state.level.objectiveComplete ? ui('reachExit')

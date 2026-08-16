@@ -3,6 +3,7 @@ import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-id
 import type { ProfileV7 } from '../storage/profile';
 import type { RunMetrics } from '../sim/run-metrics';
 import { ROBOT_DEFINITIONS, type RobotArchetype } from '../sim/robots';
+import { campaignRunScore, runAccuracyPermille, standardCampaignParTicks } from '../sim/run-score';
 
 export type MedalTier = 'bronze' | 'silver' | 'gold' | 'quantum';
 
@@ -20,6 +21,7 @@ export interface CampaignResultSummary {
   readonly parTicks: number;
   readonly parMedal: boolean;
   readonly coinsEarned: number;
+  readonly availableCoins: number;
   readonly nextLevelId: Chapter01LevelId | null;
   readonly score: number;
   readonly accuracyPermille: number | null;
@@ -36,9 +38,7 @@ export interface CampaignResultSummary {
 }
 
 export function standardParTicks(levelId: Chapter01LevelId): number {
-  const run = chapter01Level(levelId).agentValidation.runs.find((candidate) => candidate.difficulty === 'Standard');
-  if (run === undefined) throw new Error(`${levelId} has no Standard par time`);
-  return run.parTicks;
+  return standardCampaignParTicks(levelId);
 }
 
 export function campaignResultSummary(
@@ -56,18 +56,15 @@ export function campaignResultSummary(
   const previousBestTicks = profile.levelProgress.find((entry) => entry.levelId === levelId)?.bestTicks ?? null;
   const parTicks = standardParTicks(levelId);
   const index = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
-  const accuracyPermille = metrics.rangedAttacksFired === 0 ? null
-    : Math.round(metrics.rangedAttacksHit * 1_000 / metrics.rangedAttacksFired);
+  const accuracyPermille = runAccuracyPermille(metrics);
   const robotsByArchetype: Record<RobotArchetype, number> = {
     'wobble-scout': 0, 'blue-slider': 0, 'yellow-spinner': 0,
     'red-firemouth': 0, 'cyan-dj': 0, 'invoice-overlord': 0,
   };
-  let robotScore = 0;
   for (const robotId of metrics.defeatedRobotIds) {
     const definition = ROBOT_DEFINITIONS[robotId];
     if (definition === undefined) throw new Error(`Run metrics reference unknown Davel ${robotId}`);
     robotsByArchetype[definition.archetype] += 1;
-    robotScore += definition.rank === 'boss' ? 1_000 : definition.rank === 'elite' ? 250 : 100;
   }
   const level = chapter01Level(levelId);
   const totalSecrets = level.maze.secretCount;
@@ -80,10 +77,7 @@ export function campaignResultSummary(
   }));
   const flawless = metrics.damageTaken === 0;
   const allSecrets = metrics.secretsFound === totalSecrets;
-  const score = robotScore + coinsEarned * 10 + (accuracyPermille ?? 0)
-    + metrics.highestCombo * 75 + metrics.secretsFound * 500
-    + (parMedal ? 1_000 : 0) + (flawless ? 500 : 0);
-  if (!Number.isSafeInteger(score)) throw new Error('Result score exceeds the safe-integer range');
+  const score = campaignRunScore(levelId, completionTicks, true, finalCoins, metrics);
   const medalTier: MedalTier = parMedal && (accuracyPermille === null || accuracyPermille >= 750)
     && flawless && allSecrets ? 'quantum'
     : parMedal && accuracyObjective ? 'gold'
@@ -98,6 +92,7 @@ export function campaignResultSummary(
     parTicks,
     parMedal,
     coinsEarned,
+    availableCoins: finalCoins,
     nextLevelId: CHAPTER_01_LEVEL_IDS[index + 1] ?? null,
     score,
     accuracyPermille,
