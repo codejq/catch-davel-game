@@ -4,6 +4,8 @@ import { FIXED_DT_SECONDS, LOOK_SCALE } from './sim/constants';
 import { GameSimulation } from './sim/game';
 import type { GameEvent } from './sim/game';
 import { AgentController } from './agent/api';
+import { createBrowserProfileRepository } from './storage/indexeddb';
+import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from './storage/profile';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -35,7 +37,10 @@ const combatMessage = requireElement<HTMLElement>('#combat-message');
 const renderer = new WorldRenderer(gl, canvas);
 const simulation = new GameSimulation();
 const agentController = new AgentController(simulation);
-agentController.install();
+if (import.meta.env.DEV || import.meta.env.VITE_AGENT_API === '1') agentController.install();
+const profileRepository = createBrowserProfileRepository();
+let activeProfile: ProfileV1 | null = null;
+let profileWrite: Promise<void> = Promise.resolve();
 const pressed = new Set<string>();
 let yawDelta = 0;
 let pitchDelta = 0;
@@ -44,6 +49,38 @@ let previousTime = performance.now();
 let accumulator = 0;
 let messageTimeout = 0;
 let audioContext: AudioContext | null = null;
+
+function updateLevelProgress(profile: ProfileV1, update: (progress: LevelProgressV1) => LevelProgressV1): readonly LevelProgressV1[] {
+  return profile.levelProgress.map((progress) => progress.levelId === 'level-001' ? update(progress) : progress);
+}
+
+function persistProfile(profile: ProfileV1): void {
+  activeProfile = profile;
+  profileWrite = profileWrite.then(() => profileRepository.save(profile)).catch((error: unknown) => {
+    console.warn('Catch Davel profile save failed', error);
+  });
+}
+
+async function initializeProfile(): Promise<void> {
+  try {
+    const loaded = await profileRepository.load('default');
+    const profile = loaded ?? createDefaultProfile();
+    activeProfile = profile;
+    if (!agentController.isAgentControlled()) {
+      simulation.state.player.coins = profile.spendableCoins;
+      persistProfile(updateProfile(profile, {
+        lastCleanShutdown: false,
+        levelProgress: updateLevelProgress(profile, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
+      }));
+    }
+    document.body.dataset.profileReady = 'true';
+  } catch (error) {
+    document.body.dataset.profileReady = 'error';
+    console.warn('Catch Davel profile load failed; continuing without persistence', error);
+  }
+}
+
+void initializeProfile();
 
 new ResizeObserver(() => renderer.resize()).observe(canvas);
 renderer.resize();
@@ -106,11 +143,50 @@ function processEvents(events: readonly GameEvent[]): void {
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
       sound(68, 0.2, 0.075, 'sawtooth');
     }
-    if (event.type === 'robot-defeated') showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
-    if (event.type === 'victory') showMessage('MAZE STABILIZED!');
-    if (event.type === 'defeat') showMessage('SYSTEM DOWN — DAVELS WIN');
+    if (event.type === 'robot-defeated') {
+      showMessage(`DAVEL DOWN  +${event.coins ?? 0} COINS`);
+      if (activeProfile !== null && !agentController.isAgentControlled()) {
+        const reward = event.coins ?? 0;
+        persistProfile(updateProfile(activeProfile, {
+          totalCoins: activeProfile.totalCoins + reward,
+          spendableCoins: simulation.state.player.coins,
+          levelProgress: updateLevelProgress(activeProfile, (progress) => ({
+            ...progress, robotsDefeated: progress.robotsDefeated + 1,
+          })),
+        }));
+      }
+    }
+    if (event.type === 'victory') {
+      showMessage('MAZE STABILIZED!');
+      if (activeProfile !== null && !agentController.isAgentControlled()) {
+        const unlocked = activeProfile.unlockedLevelIds.includes('level-002')
+          ? activeProfile.unlockedLevelIds
+          : [...activeProfile.unlockedLevelIds, 'level-002'];
+        persistProfile(updateProfile(activeProfile, {
+          unlockedLevelIds: unlocked,
+          campaignCheckpoint: null,
+          levelProgress: updateLevelProgress(activeProfile, (progress) => ({
+            ...progress,
+            completed: true,
+            bestTicks: progress.bestTicks === null ? simulation.state.tick : Math.min(progress.bestTicks, simulation.state.tick),
+          })),
+        }));
+      }
+    }
+    if (event.type === 'defeat') {
+      showMessage('SYSTEM DOWN — DAVELS WIN');
+      if (activeProfile !== null && !agentController.isAgentControlled()) {
+        persistProfile(updateProfile(activeProfile, {
+          levelProgress: updateLevelProgress(activeProfile, (progress) => ({ ...progress, defeats: progress.defeats + 1 })),
+        }));
+      }
+    }
   }
 }
+
+window.addEventListener('pagehide', () => {
+  if (activeProfile !== null && !agentController.isAgentControlled()) persistProfile(updateProfile(activeProfile, { lastCleanShutdown: true }));
+});
 
 function updateHud(): void {
   healthHud.textContent = String(Math.ceil(simulation.state.player.health));
@@ -138,7 +214,7 @@ function frame(now: number): void {
     }
     simulation.step(command);
     processEvents(simulation.state.events);
-    agentController.afterStep();
+    agentController.afterStep(command);
     yawDelta = 0;
     pitchDelta = 0;
     fireQueued = false;

@@ -2,6 +2,7 @@ import { createPlayer, stepPlayer, type PlayerCommand, type PlayerState } from '
 import { createRobots, stepRobots, type RobotState } from './robots';
 import { firePulse, type ShotResult } from './combat';
 import { stepEnemyCombat, type EnemyProjectile } from './enemy-combat';
+import { restoreSimulationState, type SimulationSnapshotV1 } from './serialization';
 
 export interface GameEvent {
   readonly tick: number;
@@ -25,10 +26,28 @@ export interface GameState {
 }
 
 export class GameSimulation {
-  readonly state: GameState;
+  state: GameState;
 
   constructor(seed = 'first-playable-v1') {
-    this.state = {
+    this.state = GameSimulation.initialState(seed);
+  }
+
+  static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
+    const simulation = new GameSimulation(snapshot.seed);
+    simulation.loadSnapshot(snapshot);
+    return simulation;
+  }
+
+  reset(seed = 'first-playable-v1'): void {
+    this.state = GameSimulation.initialState(seed);
+  }
+
+  loadSnapshot(snapshot: SimulationSnapshotV1): void {
+    this.state = restoreSimulationState(snapshot);
+  }
+
+  private static initialState(seed: string): GameState {
+    return {
       tick: 0, seed, player: createPlayer(), robots: createRobots(), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,

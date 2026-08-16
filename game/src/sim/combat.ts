@@ -3,6 +3,7 @@ import { isWallAtWorld } from './level';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import type { PlayerState } from './player';
 import { applyRobotBodyImpulse } from './xpbd';
+import { ROBOT_BASE_COIN_REWARD, ROBOT_COIN_REWARD_PER_ID } from './balance';
 
 export const PULSE_DAMAGE = 40;
 export const PULSE_COOLDOWN_TICKS = 10;
@@ -74,7 +75,7 @@ export function firePulse(player: PlayerState, robots: RobotState[], tick: numbe
   applyRobotBodyImpulse(target, directionX * 0.055, 0.055, directionZ * 0.055);
   if (target.health > 0) return { fired: true, hitRobotId: target.id, defeatedRobotId: null, coinsAwarded: 0 };
   target.active = false;
-  const reward = 10 + target.id * 3;
+  const reward = ROBOT_BASE_COIN_REWARD + target.id * ROBOT_COIN_REWARD_PER_ID;
   player.coins += reward;
   return { fired: true, hitRobotId: target.id, defeatedRobotId: target.id, coinsAwarded: reward };
 }

@@ -21,22 +21,35 @@ npm run game:test
 
 ## LLM/browser-agent control
 
-The same `GameSimulation` used by the human controller is available through `window.CatchDavelAgent`:
+Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.
+
+The same `GameSimulation` used by the human controller is available through `window.CatchDavelAgent` in an enabled build:
 
 ```js
-const map = window.CatchDavelAgent.level();
-const before = window.CatchDavelAgent.observe();
-const after = await window.CatchDavelAgent.act(
-  { forward: 1, strafe: 0, turn: -0.02, look: 0, fire: false },
-  12,
-);
-const replay = window.CatchDavelAgent.replayLog();
-window.CatchDavelAgent.releaseControl();
+const api = window.CatchDavelAgent;
+api.reset({ levelId: 'level-001', seed: 'example', difficulty: 'standard', mode: 'agent' });
+const map = api.level();
+const before = api.observe();
+const after = await api.step({
+  action: { forward: 1, strafe: 0, turn: -0.02, look: 0, fire: false },
+  ticks: 12,
+});
+const replay = api.saveReplay();
+api.reset({ seed: 'another-run' });
+api.loadReplay(replay); // validates dependencies and every recorded checksum
 ```
 
-Calling `act` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty.
+Calling `act` or `step` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty. Agent sessions are marked in replays and never write campaign coins, medals, attempts, or other human profile progress.
 
-The version-1 observation includes the tick/seed, player pose and resources, stable robot IDs, names, dances, relative positions, range, bearing, heading, health, line of sight, remaining count, and victory state. Inputs are bounded and normalized before they enter the fixed-step simulation; the normalized commands are retained in the replay log.
+The version-1 observation includes the tick/seed, player pose and resources, stable robot IDs, names, dances, relative positions, range, bearing, heading, health, line of sight, fireball trajectories, remaining count, and terminal state. Inputs are bounded and normalized before they enter the fixed-step simulation. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
+
+## Persistence and replay guarantees
+
+- Complete v1 snapshots include every authoritative player, robot, XPBD, AI, projectile, economy, and terminal-state field; presentation events are deliberately excluded.
+- Canonical key-sorted JSON and 64-bit deterministic checksums are used for state drift detection and accidental profile-corruption detection.
+- Replays include schema/level/balance/policy dependency hashes, a complete initial snapshot, contiguous compressed command runs, and checksums at the initial tick, every 60 ticks, and the final tick.
+- Browser profiles use IndexedDB with alternating records. A newly written record is read back and validated before the active pointer changes, leaving the previous known-good record available for recovery.
+- JSON profile imports reject unknown fields, corruption, and newer unsupported schema versions instead of silently resetting progress.
 
 ## Current slice
 
@@ -47,5 +60,6 @@ The version-1 observation includes the tick/seed, player pose and resources, sta
 - pulse hitscan with wall occlusion, energy/cooldown, damage, hit flash, knockback, defeat, coins, and victory;
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - deterministic simulation/agent contracts covered by automated tests.
+- canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
 
 Physical-device evidence is not an implementation prerequisite. It remains required before a release claims support for the corresponding platform.

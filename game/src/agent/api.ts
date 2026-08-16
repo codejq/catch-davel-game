@@ -1,6 +1,11 @@
 import type { GameSimulation } from '../sim/game';
 import type { PlayerCommand } from '../sim/player';
 import { createObservation, levelObservation, type AgentObservation } from './observation';
+import {
+  REPLAY_FORMAT_VERSION, ReplayRecorder, parseReplay, verifyReplay, type ReplayFileV1,
+} from '../replay/replay';
+import { GAME_SCHEMA_VERSION } from '../sim/constants';
+import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 
 export interface AgentAction {
   readonly forward?: number;
@@ -24,9 +29,23 @@ interface QueuedAction {
 
 export interface CatchDavelAgentApi {
   readonly version: 1;
+  getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
+  getActionSchema(): Readonly<Record<string, unknown>>;
+  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): AgentObservation;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
+  step(request: { readonly action: AgentAction; readonly ticks?: number }): Promise<AgentObservation>;
+  saveReplay(): ReplayFileV1;
+  loadReplay(replay: ReplayFileV1 | string): AgentObservation;
+  getMetrics(): {
+    readonly tick: number;
+    readonly checksum: string;
+    readonly commandRuns: number;
+    readonly checksumRecords: number;
+    readonly controlled: boolean;
+    readonly queuedActions: number;
+  };
   releaseControl(): void;
   replayLog(): readonly ReplayEntry[];
 }
@@ -51,18 +70,51 @@ export class AgentController {
   private readonly queue: QueuedAction[] = [];
   private readonly replay: ReplayEntry[] = [];
   private controlled = false;
+  private recorder: ReplayRecorder;
 
-  constructor(private readonly simulation: GameSimulation) {}
+  constructor(private readonly simulation: GameSimulation) {
+    this.recorder = new ReplayRecorder(simulation);
+  }
+
+  isAgentControlled(): boolean { return this.controlled; }
 
   install(): CatchDavelAgentApi {
     const api: CatchDavelAgentApi = {
       version: 1,
+      getVersion: () => ({ apiVersion: 1, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
+      getActionSchema: () => Object.freeze({
+        type: 'object',
+        additionalProperties: false,
+        properties: Object.freeze({
+          forward: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
+          strafe: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
+          turn: Object.freeze({ type: 'number', minimum: -0.2, maximum: 0.2 }),
+          look: Object.freeze({ type: 'number', minimum: -0.12, maximum: 0.12 }),
+          fire: Object.freeze({ type: 'boolean' }),
+        }),
+      }),
+      reset: (options = {}) => this.resetSession(options),
       observe: () => createObservation(this.simulation.state),
       level: () => levelObservation(),
       act: (action, ticks = 1) => this.enqueue(action, ticks),
+      step: (request) => this.enqueue(request.action, request.ticks ?? 1),
+      saveReplay: () => this.recorder.finish(),
+      loadReplay: (replay) => this.loadReplay(replay),
+      getMetrics: () => {
+        const replay = this.recorder.finish();
+        return {
+          tick: this.simulation.state.tick,
+          checksum: stateChecksum(this.simulation.state),
+          commandRuns: replay.commandRuns.length,
+          checksumRecords: replay.checksums.length,
+          controlled: this.controlled,
+          queuedActions: this.queue.length,
+        };
+      },
       releaseControl: () => this.release(),
       replayLog: () => this.replay.map((entry) => ({ ...entry, action: { ...entry.action } })),
     };
+    Object.freeze(api);
     window.CatchDavelAgent = api;
     return api;
   }
@@ -80,7 +132,8 @@ export class AgentController {
     };
   }
 
-  afterStep(): void {
+  afterStep(command: PlayerCommand): void {
+    this.recorder.record(command);
     if (!this.controlled) return;
     const next = this.queue[0];
     if (next === undefined) return;
@@ -94,6 +147,7 @@ export class AgentController {
     if (!Number.isInteger(ticksValue) || ticksValue < 1 || ticksValue > 600) throw new Error('Agent ticks must be an integer from 1 to 600');
     const normalized = normalizeAction(action);
     this.controlled = true;
+    this.recorder.markAgentRun();
     this.replay.push({ tick: this.simulation.state.tick, ticks: ticksValue, action: normalized });
     return new Promise((resolve) => this.queue.push({ action: normalized, remaining: ticksValue, resolve }));
   }
@@ -102,10 +156,37 @@ export class AgentController {
     if (this.queue.length > 0) throw new Error('Cannot release agent control while actions are queued');
     this.controlled = false;
   }
+
+  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): AgentObservation {
+    if (this.queue.length > 0) throw new Error('Cannot reset while agent actions are queued');
+    if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
+    if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
+    if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
+    const seed = options.seed ?? 'first-playable-v1';
+    if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
+    this.simulation.reset(seed);
+    this.controlled = true;
+    this.replay.length = 0;
+    this.recorder = new ReplayRecorder(this.simulation);
+    this.recorder.markAgentRun();
+    return createObservation(this.simulation.state);
+  }
+
+  private loadReplay(replayValue: ReplayFileV1 | string): AgentObservation {
+    if (this.queue.length > 0) throw new Error('Cannot load a replay while agent actions are queued');
+    const replay = typeof replayValue === 'string' ? parseReplay(replayValue) : replayValue;
+    const verified = verifyReplay(replay);
+    this.simulation.loadSnapshot(createSimulationSnapshot(verified.simulation.state));
+    this.controlled = true;
+    this.replay.length = 0;
+    this.recorder = new ReplayRecorder(this.simulation);
+    this.recorder.markAgentRun();
+    return createObservation(this.simulation.state);
+  }
 }
 
 declare global {
   interface Window {
-    CatchDavelAgent: CatchDavelAgentApi;
+    CatchDavelAgent?: CatchDavelAgentApi;
   }
 }

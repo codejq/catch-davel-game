@@ -2,6 +2,7 @@ import { FIXED_DT_SECONDS } from './constants';
 import { cellAt, cellCenter, isWallAtWorld, type CellCoordinate } from './level';
 import { decision, hashSeed } from './random';
 import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
+import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP, ROBOT_STARTING_HEALTH } from './balance';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 
@@ -99,9 +100,9 @@ export function createRobots(): RobotState[] {
     const robot: Omit<RobotState, 'body'> = {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
-      health: 100, active: true,
+      health: ROBOT_STARTING_HEALTH, active: true,
       hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
-      attackCooldownTicks: 75 + id * 23,
+      attackCooldownTicks: ENEMY_INITIAL_COOLDOWN_BASE + id * ENEMY_INITIAL_COOLDOWN_STEP,
     };
     return { ...robot, body: createRobotBody(robot.x, robot.z, robot.heading, robot.danceTime, definition) };
   });
