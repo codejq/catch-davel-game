@@ -4,7 +4,7 @@ Status: **Pre-implementation design for review**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **3 — transport, calibrated performance, and validation review applied**
+Revision: **4 — transport state-machine and CI gate precision review applied**
 
 > This document defines the proposed product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. It intentionally contains no gameplay implementation. Decisions marked **Review required** should be approved before production begins.
 
@@ -818,7 +818,9 @@ Node test or harness
 
 OffscreenCanvas is an enhancement, not a separate game mode or renderer implementation. If unsupported or unreliable on a target WebView, the same renderer module runs on the main thread while simulation remains isolated. Snapshot serialization, interpolation, visual event deduplication, and camera behavior are shared and tested against both hosting locations.
 
-The safe-default snapshot transport is bounded, per-consumer transferable `ArrayBuffer` double-buffering. The simulation Worker owns one two-buffer pool for the renderer consumer and another for the main-thread UI/audio consumer. It writes the same versioned snapshot contract into each consumer's available buffer, transfers ownership through a dedicated `MessagePort`, and accepts that buffer back only after the consumer finishes reading it. If a consumer has not returned a buffer, the producer may replace its pending unread snapshot with the newest complete snapshot, but it may never allocate an unbounded queue or stall the authoritative tick. Ordered gameplay/audio events use their own tick- and event-ID-tagged channel so snapshot coalescing cannot drop them.
+The safe-default snapshot transport uses a bounded three-buffer state machine per consumer: at most two transferable `ArrayBuffer` slots may be in flight, and exactly one slot always remains owned by the simulation Worker as the newest-snapshot staging buffer. The renderer and main-thread UI/audio consumer have separate three-slot pools and dedicated `MessagePort`s. The producer writes only into its locally owned staging slot. It transfers that slot only when another free or returned slot can become staging immediately; it never transfers its final locally owned slot. While two buffers are in flight, each newer tick overwrites the legal producer-owned staging slot and increments a coalescing counter. When capacity returns, the producer posts that newest staged state and reassigns the returned slot as staging. Thus a stalled consumer cannot block the authoritative tick or cause unbounded allocation, and the newest complete state is delivered when capacity resumes.
+
+Ordered gameplay/audio events use a separate tick- and event-ID-tagged channel so snapshot coalescing cannot drop them. Each consumer buffers a transform-dependent event until it presents a snapshot whose tick is at least the event tick. If delivery or coalescing has already advanced presentation beyond that tick, the consumer applies the event once, immediately, using the newest available transform and presentation code must tolerate that approximation. Event IDs provide deduplication across retries. Audio scheduling maps event ticks to the presentation clock with bounded lookahead and may use the newest available spatial transform at its scheduling deadline; it never waits for a late UI snapshot long enough to exceed the audio-jitter budget.
 
 `SharedArrayBuffer` is an optional, measured optimization only for deployments that explicitly enable and test cross-origin isolation. It is not required by the engine, build, static hosting, Tauri package, replay system, or LLM API. The transferable-buffer path remains the compatibility and correctness baseline.
 
@@ -1249,7 +1251,8 @@ Initial budgets are targets to validate in Phase -1, not promises:
 - Mobile target: stable 60 FPS on supported mid-range devices; 30 FPS quality fallback only if required.
 - Whole simulation-tick budget: p95 under 4 ms on the baseline desktop and under 7 ms on target mobile, including authoritative physics, AI, navigation, combat, hazards, objectives, economy, events, and snapshot construction.
 - Desktop tick sub-budget: XPBD integration, constraints, and collision resolution use at most 2 ms p95 of the 4 ms tick; all remaining simulation work—including AI/pathfinding, broadphase, projectiles, hazards, objectives, economy, event production, and snapshot serialization—shares the remaining at-most-2 ms p95. Both the total and the component breakdown must pass; unused time in one component is headroom, not permission to hide a failing component.
-- Snapshot fan-out budget: snapshot serialization is included in the simulation budget; post-to-receive transport latency is measured separately at p95 with both consumers active, initially targeting at most 1.5 ms desktop and 3 ms mobile. Buffer-pool misses, coalesced render snapshots, returned-buffer latency, bytes per snapshot, and event-channel backlog are reported.
+- Snapshot fan-out budget: snapshot serialization is included in the simulation budget. With both consumers active, render-Worker post-to-receive latency initially targets at most 1.5 ms p95 desktop and 3 ms p95 mobile; during active, unpaused gameplay, main-thread UI/audio snapshot receipt has a looser diagnostic target of at most 5 ms p95 desktop and 8 ms p95 mobile because its task queue is less predictable. A late main-thread snapshot may never delay Render-Worker delivery or push audio timing outside its separate jitter budget. Buffer-pool saturation, coalesced snapshots by consumer, returned-buffer latency, bytes per snapshot, and event-channel backlog are reported.
+- Audio event timing: tick-to-audio presentation error initially targets at most 10 ms p95 desktop and 20 ms p95 mobile. The audio scheduler consumes the ordered event stream with bounded lookahead independently of UI snapshot receipt and falls back to the newest spatial transform when necessary.
 - Main-thread UI/input/audio scheduling: under 3 ms typical frame.
 - GPU frame: under 12 ms at selected resolution for 60 FPS headroom.
 - Draw calls: target under 80, preferably under 40 through instancing.
@@ -1309,6 +1312,8 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 - OffscreenCanvas path and main-thread fallback.
 - Context loss/restoration.
 - Visual snapshots for palettes, robot silhouettes, HUD, and effects.
+- Injected render/main-consumer stalls prove that no more than two buffers per consumer are in flight, one writable staging slot remains producer-owned, ticks never stall, allocation stays bounded, and the newest coalesced snapshot is delivered when a slot returns.
+- Independently delayed/reordered snapshot and event messages prove tick correlation, exactly-once event IDs, skipped-snapshot fallback transforms, Render-Worker independence, and the audio-jitter limit.
 - Pointer Lock, keyboard, mouse, touch, gyro if enabled, and gamepad.
 - Desktop/mobile viewport and safe-area tests.
 - Network-blocked offline load.
@@ -1352,9 +1357,10 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 ### 20.8 CI performance gates
 
 - `perf:sim` runs the authoritative simulation without rendering using a fixed stress seed, 24 active robots, two substeps, eight solver iterations, and 6,000 measured ticks after warm-up.
-- Phase -1 runs one frozen calibration workload on both the named baseline desktop and the pinned CI runner, then records both distributions. The checked-in benchmark manifest stores hardware/runtime metadata, workload and simulation schema hashes, warm-up/sample counts, median/p95 tick costs, total duration, and the reviewed calibration inputs.
-- Define `calibrationFactor = baselineCalibrationTime / runnerCalibrationTime` and `baselineEquivalentMs = runnerMeasuredMs * calibrationFactor`. Pinned performance CI gates the baseline-equivalent values, while retaining raw runner measurements for diagnosis. A hardware, OS, runtime, power-policy, or calibration-workload change requires explicit recalibration rather than carrying the old factor forward.
-- Pinned performance CI fails if baseline-equivalent p95 whole-tick cost exceeds 4 ms, the XPBD/collision component exceeds 2 ms p95, baseline-equivalent total time exceeds its approved hard threshold, or baseline-equivalent median regresses by more than 20% from the approved baseline without a reviewed benchmark update.
+- Phase -1 runs the identical frozen `perf:sim` scenario on both the named baseline desktop and the pinned CI runner, but records independent distributions rather than assuming one scalar converts different workload shapes between CPUs. The checked-in benchmark manifest stores hardware/runtime metadata, workload and simulation schema hashes, warm-up/sample counts, whole-tick and named-component median/p95 costs, total duration, and approved runner margins.
+- The baseline desktop is the absolute certification: at Phase -1 approval and each required recertification, its measured whole-tick p95 must remain at or below 4 ms and its XPBD/collision p95 at or below 2 ms. The Android and iOS devices similarly certify their declared absolute budgets. Real-device certification results are release evidence, not values inferred from CI hardware.
+- The pinned runner is a regression gate against its own Phase -1 reference. CI fails if whole-tick or named-component median regresses by more than 20%, if a p95 exceeds that runner component's recorded p95 plus its reviewed noise margin, or if total duration exceeds the runner-specific hard threshold. No cross-machine calibration factor is used.
+- Changing runner or baseline hardware, OS/runtime version, power policy, frozen workload, or benchmark instrumentation invalidates the affected reference. Performance-sensitive simulation/serialization changes and release candidates trigger baseline-device recertification; reference or margin changes require a pull-request explanation and before/after measurements.
 - Ordinary hosted CI also runs a shorter regression smoke but does not pretend noisy shared-runner timing is a hardware certification.
 - Separate browser smoke records render FPS, GPU time where available, worker snapshot latency, memory, and draw calls on the device matrix.
 - Performance-baseline changes require a pull-request explanation and before/after measurements; developers may not silently raise thresholds.
@@ -1376,7 +1382,7 @@ Deliverables:
 - simulation-only and combined simulation/render measurements, with whole-tick and component timings proving XPBD/collision at or below 2 ms p95 and all other tick work within the remaining 2 ms p95 on the desktop baseline;
 - transferable-buffer snapshot construction and two-consumer fan-out measurements covering serialization cost, bytes, post-to-receive p95 latency, returned-buffer latency, pool misses, coalescing, and ordered-event backlog;
 - measurements on all three provisional baseline devices where hardware is available;
-- the frozen calibration workload run on the baseline desktop and pinned CI runner, with a reviewed calibration factor and baseline-equivalent CI thresholds;
+- the identical frozen workload run separately on the baseline desktop and pinned CI runner, producing absolute device certification plus runner-local whole-tick/component reference distributions, noise margins, and hard thresholds;
 - benchmark report covering tick median/p95 and component breakdown, render frame time, worker messaging, snapshot fan-out, memory, thermal behavior, and failure modes.
 
 Exit gate:
@@ -1528,7 +1534,8 @@ Deliverables:
 - versioned profile save;
 - medals/statistics/upgrades;
 - atomic recovery and export/import;
-- save migration fixtures.
+- save migration fixtures;
+- unconditional save-schema, chapter, and stable level-ID reservations through Level 100 so either monolithic or staged release scope remains possible when Decision 22 is made in Phase 10.
 
 Exit gate:
 
@@ -1641,6 +1648,8 @@ The final game remains a 100-level campaign. Two release strategies are possible
 - **Option B — staged public release (recommended):** version 1.0 contains polished Chapters 1–3 (30 levels) and all foundational systems; Chapters 4–10 arrive as free, open-source campaign updates on a published schedule. “Campaign Complete” is declared only when all 100 levels ship.
 
 No chapter may be marketed as complete until it passes the same automated, agent, performance, accessibility, asset, and human-playtest gates. The selected option must be approved in Section 26 before external release promises are made.
+
+Phase 8 implements save continuity and stable ID reservations through Level 100 regardless of which option is later selected. Decision 22 may therefore remain a Phase 10 content/release lock without forcing a persistence redesign.
 
 ### 25.2 Definition of done for the complete 100-level campaign
 
@@ -1989,13 +1998,13 @@ Each `AgentValidationRunSpec` declares:
 | `expectedCompletion` | boolean | True for every released campaign validation run |
 | `expectedChecksum` | string or null | Non-null only for the frozen checksum benchmark set |
 | `parTicks` | integer | Balance comparison, distinct from hard max |
-| `dependencyHashes` | record | Simulation schema, level data, balance data, policy/replay format |
+| `dependencyHashes` | record | Simulation schema, post-resolution canonical effective level data hashes (full content and simulation-affecting subset, including preset versions/content), balance data, and policy/replay format |
 
 Every ordinary released level requires at least one `live-agent` Standard run. Boss and named-elite levels should use that mode when practical but may substitute a reviewed `reference-replay` run for bespoke mechanics. Every difficulty and supported assist combination receives static graph, objective, lock/key, resource, and timing validation; selected named benchmark levels also receive Story/Hard/assist execution spot checks.
 
-Only the canonical run for a frozen six-level set—initially `level-001`, `level-020`, `level-040`, `level-060`, `level-080`, and `level-100` as those chapters enter the released set—pins `expectedChecksum`. All other campaign runs set it to null and gate on completion, objective set, legality, stuck timeout, and tick budget, avoiding routine checksum churn across 100 levels. The IDs, selection rationale, canonical run IDs, and approved checksums live in a versioned benchmark manifest; changing the set is a reviewed benchmark change.
+Only the canonical run for a frozen six-level set—initially `level-001` (tutorial), `level-023` (ordinary archetype introduction), `level-046` (weapon unlock), `level-065` (teleporting elite), `level-085` (named elite squad), and `level-100` (final boss)—pins `expectedChecksum` as those chapters enter the released set. This keeps five non-boss, agent-robustness-oriented coverage points and only one boss while spanning early, middle, and late systems; selection alone does not grant a reference-replay exception. All other campaign runs set the checksum to null and gate on completion, objective set, legality, stuck timeout, and tick budget, avoiding routine checksum churn across 100 levels. The IDs, selection rationale, canonical run IDs, and approved checksums live in a versioned benchmark manifest; changing the set is a reviewed benchmark change.
 
-Any simulation-schema, simulation-affecting balance, level-data, policy, or replay-format change that alters a dependency hash invalidates the affected reference replay/checksum. Its named owner must review and re-record it, and the pull request must explain the invalidation and provide before/after validation results. A level can still fail human review for being confusing, boring, unfair, or badly paced.
+Dependency hashing occurs after every `PresetBinding` is resolved and canonical effective level data is materialized. The manifest records both full resolved-content provenance and a simulation-affecting effective-data hash; editing a shared difficulty, economy, checkpoint, or other simulation-affecting preset therefore invalidates every dependent replay/checksum, while a proven presentation-only change need not create simulation checksum churn. Any simulation-schema, simulation-affecting balance, effective level-data, policy, or replay-format change that alters a replay dependency requires the named owner to review and re-record the affected reference; the pull request explains the invalidation and provides before/after validation results. A level can still fail human review for being confusing, boring, unfair, or badly paced.
 
 ### A.12 `PerformanceSpec`
 
@@ -2034,7 +2043,7 @@ Release export fails unless all invariants pass:
 
 ### A.14 Minimal conceptual Level 1 record
 
-This non-executable illustration shows how the fields connect; exact serialization is generated by the tooling phase. Its numeric values are illustrative draft inputs, not approved balance targets:
+This non-executable illustration shows how the fields connect; exact serialization is generated by the tooling phase. Its numeric values are illustrative draft inputs, not approved balance targets. Agent tick budgets come from measured agent runs and safety margins, never by converting the human 5–12-minute session target into ticks:
 
 ```text
 schemaVersion: 1
