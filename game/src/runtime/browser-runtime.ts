@@ -138,6 +138,9 @@ export async function startBrowserGame(): Promise<void> {
       sound(92, 0.08, 0.04, 'square');
     }
     if (event.type === 'robot-fired') sound(155, 0.18, 0.035, 'triangle');
+    if (event.type === 'robot-telegraph') sound(260, 0.22, 0.025, 'triangle');
+    if (event.type === 'robot-melee') sound(74, 0.14, 0.06, 'square');
+    if (event.type === 'robot-buff') { showMessage('DJ GRIN DROPPED THE EVIL BEAT'); sound(520, 0.35, 0.04, 'sawtooth'); }
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);

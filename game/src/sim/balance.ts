@@ -1,8 +1,12 @@
 export const ROBOT_STARTING_HEALTH = 100;
-export const ROBOT_BASE_COIN_REWARD = 10;
-export const ROBOT_COIN_REWARD_PER_ID = 3;
 export const ENEMY_PROJECTILE_SPEED = 4.7;
 export const ENEMY_PROJECTILE_DAMAGE = 9;
+export const ENEMY_SLIDER_BOLT_SPEED = 6.2;
+export const ENEMY_FIREBALL_SPEED = 3.8;
+export const ENEMY_FIREBALL_DAMAGE = 14;
+export const ENEMY_MELEE_DAMAGE = 7;
+export const ENEMY_DJ_BUFF_RADIUS = 7;
+export const ENEMY_DJ_BUFF_TICKS = 240;
 export const ENEMY_ATTACK_RANGE = 12;
 export const ENEMY_INITIAL_COOLDOWN_BASE = 75;
 export const ENEMY_INITIAL_COOLDOWN_STEP = 23;

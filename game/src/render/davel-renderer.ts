@@ -243,9 +243,18 @@ export class DavelRenderer {
         y: projectile.y - projectile.velocityY * 0.055,
         z: projectile.z - projectile.velocityZ * 0.055,
       };
-      this.addCapsule(trail, center, 0.075, [1, 0.18, 0.035]);
-      this.addSphere(center, 0.16, [1, 0.72, 0.08]);
-      this.addSphere(center, 0.075, [1, 1, 0.72]);
+      if (projectile.kind === 'fireball') {
+        this.addCapsule(trail, center, 0.15, [1, 0.08, 0.02]);
+        this.addSphere(center, 0.3, [1, 0.28, 0.035]);
+        this.addSphere(center, 0.14, [1, 0.96, 0.38]);
+      } else if (projectile.kind === 'slider-bolt') {
+        this.addCapsule(trail, center, 0.08, [0.12, 0.72, 1]);
+        this.addSphere(center, 0.13, [0.58, 0.95, 1]);
+      } else {
+        this.addCapsule(trail, center, 0.075, [1, 0.18, 0.72]);
+        this.addSphere(center, 0.16, [1, 0.82, 0.08]);
+        this.addSphere(center, 0.075, [1, 1, 0.72]);
+      }
     }
     for (const bomb of state.playerBombs) {
       const center = { x: bomb.x, y: bomb.y, z: bomb.z };
@@ -289,8 +298,10 @@ export class DavelRenderer {
     const p = pose(robot);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
-    const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1] : definition.bodyColor;
-    const accentColor: Color = robot.hitFlashTicks > 0 ? [0.6, 1, 1] : definition.accentColor;
+    const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1]
+      : robot.combatState === 'telegraph' ? [1, 0.22, 0.16] : definition.bodyColor;
+    const accentColor: Color = robot.hitFlashTicks > 0 ? [0.6, 1, 1]
+      : robot.tempoBuffTicks > 0 ? [0.18, 1, 0.72] : definition.accentColor;
     const shoulderLeft = localPoint(robot, -0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
@@ -320,6 +331,9 @@ export class DavelRenderer {
     const eyeRight = localPoint(robot, headRadius * 0.36, eyeY, eyeForward);
     this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25, 0.55);
     this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25, 0.55);
+    if (definition.archetype === 'blue-slider') {
+      this.addCapsule(eyeLeft, eyeRight, headRadius * 0.14, [0.08, 0.16, 0.34]);
+    }
     const browLeftStart = localPoint(robot, -headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
     const browLeftEnd = localPoint(robot, -headRadius * 0.16, eyeY + headRadius * 0.13, eyeForward * 1.03);
     const browRightStart = localPoint(robot, headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
@@ -331,6 +345,18 @@ export class DavelRenderer {
     const smileRight = localPoint(robot, headRadius * 0.42, eyeY - headRadius * 0.36, eyeForward * 1.02);
     this.addCapsule(smileLeft, smileMiddle, headRadius * 0.045, jointColor);
     this.addCapsule(smileMiddle, smileRight, headRadius * 0.045, jointColor);
+    if (definition.archetype === 'red-firemouth') {
+      const nozzleBase = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 0.84);
+      const nozzleTip = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 1.55);
+      this.addCapsule(nozzleBase, nozzleTip, headRadius * 0.2, [0.18, 0.07, 0.05]);
+      this.addSphere(nozzleTip, headRadius * 0.22, robot.combatState === 'telegraph' ? [1, 0.78, 0.08] : [0.45, 0.1, 0.04]);
+    }
+    if (definition.archetype === 'cyan-dj') {
+      this.addSphere(shoulderLeft, 0.25 * scale, [0.04, 0.12, 0.18], 1.15, 0.68);
+      this.addSphere(shoulderRight, 0.25 * scale, [0.04, 0.12, 0.18], 1.15, 0.68);
+      this.addSphere(shoulderLeft, 0.11 * scale, accentColor, 1.15, 0.45);
+      this.addSphere(shoulderRight, 0.11 * scale, accentColor, 1.15, 0.45);
+    }
     const antennaBase = localPoint(robot, 0, p.head.y + headRadius * 0.8, 0);
     const antennaTip = localPoint(robot, (robot.id % 2 === 0 ? -0.08 : 0.08) * scale, p.head.y + headRadius * 1.35, 0);
     this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);

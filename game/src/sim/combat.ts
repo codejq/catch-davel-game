@@ -3,7 +3,6 @@ import { isWallAtWorld } from './level';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import type { PlayerState } from './player';
 import { applyRobotBodyImpulse } from './xpbd';
-import { ROBOT_BASE_COIN_REWARD, ROBOT_COIN_REWARD_PER_ID } from './balance';
 import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
 
@@ -143,7 +142,7 @@ export function damageRobot(
   applyRobotBodyImpulse(robot, impulseX * 0.74, impulseY, impulseZ * 0.74);
   if (robot.health > 0) return { robotId: robot.id, defeated: false, coinsAwarded: 0 };
   robot.active = false;
-  const reward = ROBOT_BASE_COIN_REWARD + robot.id * ROBOT_COIN_REWARD_PER_ID;
+  const reward = ROBOT_DEFINITIONS[robot.id]!.coinReward;
   player.coins += reward;
   return { robotId: robot.id, defeated: true, coinsAwarded: reward };
 }

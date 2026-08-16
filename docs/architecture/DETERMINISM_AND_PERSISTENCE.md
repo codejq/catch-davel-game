@@ -24,7 +24,7 @@ The strict parser rejects unknown/missing fields, non-finite numbers, malformed 
 
 Canonical JSON sorts every object key, preserves declared array order, normalizes negative zero, and rejects unsupported/non-finite values. The current deterministic drift checksum is FNV-1a 64 over UTF-8 canonical snapshot bytes. It is a regression/corruption checksum, not a security signature.
 
-Simulation schema v4 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, and projectile position/velocity to eight decimal places at initial-state creation and after every mutating fixed tick. The precision is part of the simulation dependency hash. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
+Simulation schema v5 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, and typed projectile position/velocity to eight decimal places at initial-state creation and after every mutating fixed tick. Davel telegraph/recovery, strafe direction, and tempo-buff timers are also snapshotted and replayed. The precision is part of the simulation dependency hash. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
 
 Snapshot tests prove that a checkpoint restored at tick 420 and continued to tick 900 has the same complete state and checksum as an uninterrupted run. Presentation events can differ without affecting it.
 

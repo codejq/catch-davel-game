@@ -18,7 +18,8 @@ import { CAMPAIGN_LEVEL_1_WEAPON_MASK, type PlayerBomb } from './weapons';
 export interface GameEvent {
   readonly tick: number;
   readonly type: 'pulse-fired' | 'sword-swung' | 'sword-charged' | 'projectile-deflected'
-    | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-fired' | 'player-hit' | 'victory' | 'defeat'
+    | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-telegraph'
+    | 'robot-fired' | 'robot-melee' | 'robot-buff' | 'player-hit' | 'victory' | 'defeat'
     | 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened' | 'checkpoint-activated'
     | 'objective-complete' | 'exit-unlocked';
   readonly robotId?: number;
@@ -102,13 +103,16 @@ export class GameSimulation {
       this.state.tick += 1;
       return;
     }
-    stepRobots(this.state.robots, this.state.seed);
+    stepRobots(this.state.robots, this.state.seed, this.state.player);
     this.coolWeapons();
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId,
     );
     this.state.nextProjectileId = enemyCombat.nextProjectileId;
+    for (const robotId of enemyCombat.telegraphRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-telegraph', robotId });
     for (const robotId of enemyCombat.firedRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-fired', robotId });
+    for (const robotId of enemyCombat.meleeRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-melee', robotId });
+    for (const robotId of enemyCombat.buffRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-buff', robotId });
     for (const robotId of enemyCombat.playerHitRobotIds) this.state.events.push({ tick: this.state.tick, type: 'player-hit', robotId });
     if (this.state.player.health <= 0 && !this.state.defeat) {
       this.state.defeat = true;

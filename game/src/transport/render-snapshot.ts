@@ -4,15 +4,15 @@ import type {
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 
-export const TRANSPORT_CONTRACT_VERSION = 3;
+export const TRANSPORT_CONTRACT_VERSION = 4;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
 export const MAX_RENDER_PLAYER_BOMBS = 16;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
 export const RENDER_PLAYER_FLOATS = 9;
-export const RENDER_ROBOT_FLOATS = 8 + BODY_POINT_COUNT * 3;
-export const RENDER_PROJECTILE_FLOATS = 9;
+export const RENDER_ROBOT_FLOATS = 12 + BODY_POINT_COUNT * 3;
+export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
 export const RENDER_LEVEL_FLOATS = 9;
 export const RENDER_PLAYER_BOMB_FLOATS = 8;
@@ -44,6 +44,32 @@ function decodeWeapon(code: number): WeaponId {
   const weapon = WEAPON_IDS[code];
   if (weapon === undefined) throw new Error(`Unknown render weapon code ${code}`);
   return weapon;
+}
+
+function combatStateCode(state: RenderRobotState['combatState']): number {
+  if (state === 'patrol') return 0;
+  if (state === 'telegraph') return 1;
+  return 2;
+}
+
+function decodeCombatState(code: number): RenderRobotState['combatState'] {
+  if (code === 0) return 'patrol';
+  if (code === 1) return 'telegraph';
+  if (code === 2) return 'recover';
+  throw new Error(`Unknown robot combat state code ${code}`);
+}
+
+function projectileKindCode(kind: RenderProjectileState['kind']): number {
+  if (kind === 'slider-bolt') return 0;
+  if (kind === 'beat-bolt') return 1;
+  return 2;
+}
+
+function decodeProjectileKind(code: number): RenderProjectileState['kind'] {
+  if (code === 0) return 'slider-bolt';
+  if (code === 1) return 'beat-bolt';
+  if (code === 2) return 'fireball';
+  throw new Error(`Unknown projectile kind code ${code}`);
 }
 
 function pickupKindCode(kind: RenderPickupState['kind']): number {
@@ -122,16 +148,20 @@ export function writeRenderSnapshot(
     data[offset + 5] = robot.health;
     data[offset + 6] = robot.hitFlashTicks;
     data[offset + 7] = robot.danceTime;
+    data[offset + 8] = combatStateCode(robot.combatState);
+    data[offset + 9] = robot.combatTicks;
+    data[offset + 10] = robot.strafeDirection;
+    data[offset + 11] = robot.tempoBuffTicks;
     if (robot.body.positions.length !== BODY_POINT_COUNT * 3) throw new Error(`Robot ${robot.id} has malformed render body`);
     for (let pointValue = 0; pointValue < BODY_POINT_COUNT * 3; pointValue += 1) {
-      data[offset + 8 + pointValue] = robot.body.positions[pointValue]!;
+      data[offset + 12 + pointValue] = robot.body.positions[pointValue]!;
     }
     offset += RENDER_ROBOT_FLOATS;
   }
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS;
   for (const projectile of state.projectiles) {
     data.set([
-      projectile.id, projectile.ownerRobotId, projectile.x, projectile.y, projectile.z,
+      projectile.id, projectile.ownerRobotId, projectileKindCode(projectile.kind), projectile.x, projectile.y, projectile.z,
       projectile.velocityX, projectile.velocityY, projectile.velocityZ, projectile.lifeTicks,
     ], offset);
     offset += RENDER_PROJECTILE_FLOATS;
@@ -194,11 +224,13 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   let offset = RENDER_PLAYER_FLOATS;
   for (let index = 0; index < robotCount; index += 1) {
     const positions = new Float32Array(BODY_POINT_COUNT * 3);
-    positions.set(data.subarray(offset + 8, offset + RENDER_ROBOT_FLOATS));
+    positions.set(data.subarray(offset + 12, offset + RENDER_ROBOT_FLOATS));
     robots.push({
       id: data[offset]!, active: data[offset + 1] === 1,
       x: data[offset + 2]!, z: data[offset + 3]!, heading: data[offset + 4]!,
       health: data[offset + 5]!, hitFlashTicks: data[offset + 6]!, danceTime: data[offset + 7]!,
+      combatState: decodeCombatState(data[offset + 8]!), combatTicks: data[offset + 9]!,
+      strafeDirection: data[offset + 10] === -1 ? -1 : 1, tempoBuffTicks: data[offset + 11]!,
       body: { positions },
     });
     offset += RENDER_ROBOT_FLOATS;
@@ -207,10 +239,10 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   offset = RENDER_PLAYER_FLOATS + MAX_RENDER_ROBOTS * RENDER_ROBOT_FLOATS;
   for (let index = 0; index < projectileCount; index += 1) {
     projectiles.push({
-      id: data[offset]!, ownerRobotId: data[offset + 1]!,
-      x: data[offset + 2]!, y: data[offset + 3]!, z: data[offset + 4]!,
-      velocityX: data[offset + 5]!, velocityY: data[offset + 6]!, velocityZ: data[offset + 7]!,
-      lifeTicks: data[offset + 8]!,
+      id: data[offset]!, ownerRobotId: data[offset + 1]!, kind: decodeProjectileKind(data[offset + 2]!),
+      x: data[offset + 3]!, y: data[offset + 4]!, z: data[offset + 5]!,
+      velocityX: data[offset + 6]!, velocityY: data[offset + 7]!, velocityZ: data[offset + 8]!,
+      lifeTicks: data[offset + 9]!,
     });
     offset += RENDER_PROJECTILE_FLOATS;
   }

@@ -1,5 +1,5 @@
 import { GAME_SCHEMA_VERSION } from './constants';
-import type { EnemyProjectile } from './enemy-combat';
+import type { EnemyProjectile, EnemyProjectileKind } from './enemy-combat';
 import type { GameState } from './game';
 import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
@@ -25,6 +25,10 @@ export interface RobotSnapshotV1 {
   readonly knockbackX: number;
   readonly knockbackZ: number;
   readonly attackCooldownTicks: number;
+  readonly combatState: 'patrol' | 'telegraph' | 'recover';
+  readonly combatTicks: number;
+  readonly strafeDirection: 1 | -1;
+  readonly tempoBuffTicks: number;
   readonly body: {
     readonly positions: readonly number[];
     readonly previous: readonly number[];
@@ -77,6 +81,10 @@ function snapshotRobot(robot: RobotState): RobotSnapshotV1 {
     knockbackX: robot.knockbackX,
     knockbackZ: robot.knockbackZ,
     attackCooldownTicks: robot.attackCooldownTicks,
+    combatState: robot.combatState,
+    combatTicks: robot.combatTicks,
+    strafeDirection: robot.strafeDirection,
+    tempoBuffTicks: robot.tempoBuffTicks,
     body: {
       positions: [...robot.body.positions],
       previous: [...robot.body.previous],
@@ -192,12 +200,18 @@ function validateRobot(value: unknown, expectedId: number): RobotState {
   assertRecord(value, `robots[${expectedId}]`);
   assertExactKeys(value, [
     'id', 'x', 'z', 'heading', 'targetIndex', 'routeDirection', 'holdTicks', 'arrivalCount', 'danceTime', 'health',
-    'active', 'hitFlashTicks', 'knockbackX', 'knockbackZ', 'attackCooldownTicks', 'body',
+    'active', 'hitFlashTicks', 'knockbackX', 'knockbackZ', 'attackCooldownTicks', 'combatState', 'combatTicks',
+    'strafeDirection', 'tempoBuffTicks', 'body',
   ], `robots[${expectedId}]`);
   const id = integer(value.id, `robots[${expectedId}].id`);
   if (id !== expectedId) throw new Error(`robots must have stable ordered IDs; expected ${expectedId}`);
   const routeDirection = finite(value.routeDirection, `robots[${id}].routeDirection`);
   if (routeDirection !== 1 && routeDirection !== -1) throw new Error(`robots[${id}].routeDirection must be -1 or 1`);
+  const strafeDirection = finite(value.strafeDirection, `robots[${id}].strafeDirection`);
+  if (strafeDirection !== 1 && strafeDirection !== -1) throw new Error(`robots[${id}].strafeDirection must be -1 or 1`);
+  if (value.combatState !== 'patrol' && value.combatState !== 'telegraph' && value.combatState !== 'recover') {
+    throw new Error(`robots[${id}].combatState is invalid`);
+  }
   const targetIndex = integer(value.targetIndex, `robots[${id}].targetIndex`);
   if (targetIndex >= ROBOT_DEFINITIONS[id]!.route.length) throw new Error(`robots[${id}].targetIndex is outside its route`);
   assertRecord(value.body, `robots[${id}].body`);
@@ -216,6 +230,10 @@ function validateRobot(value: unknown, expectedId: number): RobotState {
     knockbackX: finite(value.knockbackX, `robots[${id}].knockbackX`),
     knockbackZ: finite(value.knockbackZ, `robots[${id}].knockbackZ`),
     attackCooldownTicks: integer(value.attackCooldownTicks, `robots[${id}].attackCooldownTicks`, -10_000),
+    combatState: value.combatState,
+    combatTicks: integer(value.combatTicks, `robots[${id}].combatTicks`, -10_000),
+    strafeDirection,
+    tempoBuffTicks: integer(value.tempoBuffTicks, `robots[${id}].tempoBuffTicks`),
     body: {
       positions: new Float64Array(numberArray(value.body.positions, BODY_POINT_COUNT * 3, `robots[${id}].body.positions`)),
       previous: new Float64Array(numberArray(value.body.previous, BODY_POINT_COUNT * 3, `robots[${id}].body.previous`)),
@@ -226,11 +244,14 @@ function validateRobot(value: unknown, expectedId: number): RobotState {
 
 function validateProjectile(value: unknown, index: number): EnemyProjectile {
   assertRecord(value, `projectiles[${index}]`);
-  assertExactKeys(value, ['id', 'ownerRobotId', 'x', 'y', 'z', 'velocityX', 'velocityY', 'velocityZ', 'lifeTicks'], `projectiles[${index}]`);
+  assertExactKeys(value, ['id', 'ownerRobotId', 'kind', 'x', 'y', 'z', 'velocityX', 'velocityY', 'velocityZ', 'lifeTicks'], `projectiles[${index}]`);
   const ownerRobotId = integer(value.ownerRobotId, `projectiles[${index}].ownerRobotId`);
   if (ownerRobotId >= ROBOT_DEFINITIONS.length) throw new Error(`projectiles[${index}].ownerRobotId is invalid`);
+  if (value.kind !== 'slider-bolt' && value.kind !== 'beat-bolt' && value.kind !== 'fireball') {
+    throw new Error(`projectiles[${index}].kind is invalid`);
+  }
   return {
-    id: integer(value.id, `projectiles[${index}].id`, 1), ownerRobotId,
+    id: integer(value.id, `projectiles[${index}].id`, 1), ownerRobotId, kind: value.kind as EnemyProjectileKind,
     x: finite(value.x, `projectiles[${index}].x`), y: finite(value.y, `projectiles[${index}].y`), z: finite(value.z, `projectiles[${index}].z`),
     velocityX: finite(value.velocityX, `projectiles[${index}].velocityX`),
     velocityY: finite(value.velocityY, `projectiles[${index}].velocityY`),

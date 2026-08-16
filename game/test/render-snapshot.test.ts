@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v3', () => {
+describe('self-contained RenderSnapshot v4', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -15,8 +15,8 @@ describe('self-contained RenderSnapshot v3', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(7_056);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(3);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(7_696);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(4);
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
     expect(decoded.state.player.selectedWeapon).toBe('pulse');
@@ -27,6 +27,7 @@ describe('self-contained RenderSnapshot v3', () => {
     expect(decoded.state.level.door.open).toBe(false);
     expect(decoded.state.level.objectiveComplete).toBe(false);
     expect(decoded.state.robots[0]!.body.positions).toHaveLength(33);
+    expect(decoded.state.robots[0]!.combatState).toBe(simulation.state.robots[0]!.combatState);
     expect(decoded.state.robots[0]!.body.positions[0]).toBeCloseTo(simulation.state.robots[0]!.body.positions[0]!, 4);
     expect(decoded.metadata).toEqual({ eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
   });
@@ -38,7 +39,7 @@ describe('self-contained RenderSnapshot v3', () => {
     expect(() => decodeRenderSnapshot(wrongVersion)).toThrow(/version/);
     const simulation = new GameSimulation();
     const projectile = {
-      id: 1, ownerRobotId: 0, x: 0, y: 1, z: 0,
+      id: 1, ownerRobotId: 0, kind: 'beat-bolt' as const, x: 0, y: 1, z: 0,
       velocityX: 0, velocityY: 0, velocityZ: 0, lifeTicks: 1,
     };
     simulation.state.projectiles.push(...Array.from({ length: MAX_RENDER_PROJECTILES + 1 }, (_, id) => ({ ...projectile, id: id + 1 })));

@@ -9,6 +9,8 @@ export interface RobotObservation {
   readonly id: number;
   readonly name: string;
   readonly dance: string;
+  readonly archetype: string;
+  readonly rank: 'ordinary' | 'elite';
   readonly relativeX: number;
   readonly relativeZ: number;
   readonly distance: number;
@@ -17,6 +19,9 @@ export interface RobotObservation {
   readonly heading: number;
   readonly health: number;
   readonly visible: boolean;
+  readonly combatState: 'patrol' | 'telegraph' | 'recover';
+  readonly combatTicks: number;
+  readonly tempoBuffed: boolean;
 }
 
 export interface AgentObservation {
@@ -77,6 +82,7 @@ export interface AgentObservation {
   readonly hostileProjectiles: readonly {
     readonly id: number;
     readonly ownerRobotId: number;
+    readonly kind: 'slider-bolt' | 'beat-bolt' | 'fireball';
     readonly relativeX: number;
     readonly relativeY: number;
     readonly relativeZ: number;
@@ -133,6 +139,8 @@ export function createObservation(state: GameState): AgentObservation {
       id: robot.id,
       name: ROBOT_DEFINITIONS[robot.id]!.name,
       dance: ROBOT_DEFINITIONS[robot.id]!.dance,
+      archetype: ROBOT_DEFINITIONS[robot.id]!.archetype,
+      rank: ROBOT_DEFINITIONS[robot.id]!.rank,
       relativeX: round(deltaX),
       relativeZ: round(deltaZ),
       distance: round(Math.hypot(deltaX, deltaZ)),
@@ -141,6 +149,9 @@ export function createObservation(state: GameState): AgentObservation {
       heading: round(robot.heading),
       health: robot.health,
       visible: hasLineOfSight(state.player.x, state.player.z, robot.x, robot.z),
+      combatState: robot.combatState,
+      combatTicks: robot.combatTicks,
+      tempoBuffed: robot.tempoBuffTicks > 0,
     };
   });
   return {
@@ -191,6 +202,7 @@ export function createObservation(state: GameState): AgentObservation {
     hostileProjectiles: state.projectiles.map((projectile) => ({
       id: projectile.id,
       ownerRobotId: projectile.ownerRobotId,
+      kind: projectile.kind,
       relativeX: round(projectile.x - state.player.x),
       relativeY: round(projectile.y - PLAYER_EYE_HEIGHT),
       relativeZ: round(projectile.z - state.player.z),

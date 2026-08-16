@@ -22,8 +22,9 @@ import {
 import { XPBD_ITERATIONS, XPBD_SUBSTEPS } from '../sim/xpbd';
 import {
   ENEMY_ATTACK_RANGE, ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP,
+  ENEMY_DJ_BUFF_RADIUS, ENEMY_DJ_BUFF_TICKS, ENEMY_FIREBALL_DAMAGE, ENEMY_FIREBALL_SPEED, ENEMY_MELEE_DAMAGE,
   ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP,
-  ROBOT_BASE_COIN_REWARD, ROBOT_COIN_REWARD_PER_ID, ROBOT_STARTING_HEALTH,
+  ENEMY_SLIDER_BOLT_SPEED, ROBOT_STARTING_HEALTH,
 } from '../sim/balance';
 
 export const REPLAY_FORMAT_VERSION = 1;
@@ -63,6 +64,9 @@ export interface ReplayFileV1 {
 function robotBalanceData(): unknown {
   return ROBOT_DEFINITIONS.map((definition) => ({
     dance: definition.dance,
+    archetype: definition.archetype,
+    rank: definition.rank,
+    coinReward: definition.coinReward,
     route: definition.route,
     scale: definition.scale,
     headScale: definition.headScale,
@@ -84,7 +88,6 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
     balanceData: checksumCanonical({
       pulse: {
         PULSE_DAMAGE, PULSE_COOLDOWN_TICKS, PULSE_ENERGY_COST, PULSE_MAX_RANGE,
-        ROBOT_BASE_COIN_REWARD, ROBOT_COIN_REWARD_PER_ID,
       },
       sword: { SWORD_DAMAGE, SWORD_CHARGED_DAMAGE, SWORD_RANGE, SWORD_CHARGED_RANGE, SWORD_HEAT_COOL_PER_TICK },
       bomb: { BOMB_FUSE_TICKS, BOMB_COOLDOWN_TICKS, BOMB_BLAST_RADIUS, BOMB_DAMAGE },
@@ -94,6 +97,8 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
       },
       enemyProjectile: {
         ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_ATTACK_RANGE,
+        ENEMY_SLIDER_BOLT_SPEED, ENEMY_FIREBALL_SPEED, ENEMY_FIREBALL_DAMAGE, ENEMY_MELEE_DAMAGE,
+        ENEMY_DJ_BUFF_RADIUS, ENEMY_DJ_BUFF_TICKS,
         ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP,
         ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP,
       },

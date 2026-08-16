@@ -27,6 +27,9 @@ export const EVENT_KIND = {
   bombThrown: 18,
   bombDetonated: 19,
   laserFired: 20,
+  robotTelegraph: 21,
+  robotMelee: 22,
+  robotBuff: 23,
 } as const;
 
 export interface EventTransportConfig {
@@ -87,6 +90,9 @@ function encodeKind(event: GameEvent): { readonly kind: number; readonly eventCl
     case 'bomb-thrown': return { kind: EVENT_KIND.bombThrown, eventClass: EVENT_CLASS.presentationOnly };
     case 'bomb-detonated': return { kind: EVENT_KIND.bombDetonated, eventClass: EVENT_CLASS.presentationOnly };
     case 'laser-fired': return { kind: EVENT_KIND.laserFired, eventClass: EVENT_CLASS.presentationOnly };
+    case 'robot-telegraph': return { kind: EVENT_KIND.robotTelegraph, eventClass: EVENT_CLASS.presentationOnly };
+    case 'robot-melee': return { kind: EVENT_KIND.robotMelee, eventClass: EVENT_CLASS.presentationOnly };
+    case 'robot-buff': return { kind: EVENT_KIND.robotBuff, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-fired': return { kind: EVENT_KIND.robotFired, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-hit': return { kind: EVENT_KIND.robotHit, eventClass: EVENT_CLASS.stateCritical };
     case 'robot-defeated': return { kind: EVENT_KIND.robotDefeated, eventClass: EVENT_CLASS.stateCritical };
@@ -125,6 +131,9 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.bombThrown: return 'bomb-thrown';
     case EVENT_KIND.bombDetonated: return 'bomb-detonated';
     case EVENT_KIND.laserFired: return 'laser-fired';
+    case EVENT_KIND.robotTelegraph: return 'robot-telegraph';
+    case EVENT_KIND.robotMelee: return 'robot-melee';
+    case EVENT_KIND.robotBuff: return 'robot-buff';
     default: throw new Error(`Unknown event kind ${kind}`);
   }
 }

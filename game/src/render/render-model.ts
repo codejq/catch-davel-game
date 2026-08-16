@@ -35,12 +35,17 @@ export interface RenderRobotState {
   readonly active: boolean;
   readonly hitFlashTicks: number;
   readonly danceTime: number;
+  readonly combatState: 'patrol' | 'telegraph' | 'recover';
+  readonly combatTicks: number;
+  readonly strafeDirection: 1 | -1;
+  readonly tempoBuffTicks: number;
   readonly body: { readonly positions: ArrayLike<number> };
 }
 
 export interface RenderProjectileState {
   readonly id: number;
   readonly ownerRobotId: number;
+  readonly kind: 'slider-bolt' | 'beat-bolt' | 'fireball';
   readonly x: number;
   readonly y: number;
   readonly z: number;

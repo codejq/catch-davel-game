@@ -23,7 +23,7 @@ describe('pulse gun', () => {
       game.step({ ...idle, fire: true });
     }
     expect(target.active).toBe(false);
-    expect(game.state.player.coins).toBe(10);
+    expect(game.state.player.coins).toBe(2);
     expect(game.state.level.objectiveComplete).toBe(true);
     expect(game.state.victory).toBe(false);
     game.state.player.x = game.state.level.exit.x;
@@ -57,7 +57,7 @@ describe('training arsenal', () => {
     const fast = new GameSimulation('sword-fast', TRAINING_WEAPON_MASK);
     const fastTarget = isolatedTarget(fast)!;
     fast.state.projectiles.push({
-      id: 1, ownerRobotId: 0, x: fast.state.player.x, y: 1.2, z: fast.state.player.z + 1,
+      id: 1, ownerRobotId: 0, kind: 'beat-bolt', x: fast.state.player.x, y: 1.2, z: fast.state.player.z + 1,
       velocityX: 0, velocityY: 0, velocityZ: -1, lifeTicks: 100,
     });
     fast.step({ ...idle, weapon: 'sword', fire: true });
