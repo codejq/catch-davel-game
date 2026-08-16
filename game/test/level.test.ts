@@ -55,7 +55,7 @@ describe('first playable maze', () => {
       }
       expect(visited.has(`${exit.column},${exit.row}`), levelId).toBe(true);
     }
-    expect(new Set(PLAYABLE_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(15);
+    expect(new Set(PLAYABLE_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(16);
   });
 
   it('keeps the key reachable before the lock and every interaction reachable after it opens', () => {

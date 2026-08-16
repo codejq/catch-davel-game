@@ -159,6 +159,15 @@ function targets(
     leftFootY += Math.max(0, alternate) * 0.1; rightFootY += Math.max(0, -alternate) * 0.1;
     leftHand = [-0.38 - snap * 0.5, 1.24 + snap * 0.55, 0.2];
     rightHand = [0.38 + snap * 0.5, 1.24 + snap * 0.55, 0.2];
+  } else if (performance.motif === 'mirror-lindy') {
+    const kick = Math.max(0, alternate); const counterKick = Math.max(0, -alternate);
+    bounce += Math.abs(beat) * 0.08 * intensity; hipX = -alternate * 0.18 * intensity;
+    chestX = alternate * 0.28 * intensity; headX += -alternate * 0.3;
+    leftFootX = -0.28 - kick * 0.12; rightFootX = 0.28 + counterKick * 0.12;
+    leftFootZ = kick * 0.62 - counterKick * 0.18; rightFootZ = counterKick * 0.62 - kick * 0.18;
+    leftFootY += kick * 0.18; rightFootY += counterKick * 0.18;
+    leftHand = [-0.82 + counterKick * 0.36, 1.62 - kick * 0.34, 0.16];
+    rightHand = [0.82 - kick * 0.36, 1.62 - counterKick * 0.34, 0.16];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

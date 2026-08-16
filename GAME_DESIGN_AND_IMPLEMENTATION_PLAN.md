@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **30 — playable Level 15 Tempo Tent Takeover implemented and deterministically validated**
+Revision: **31 — playable Level 16 Laughing Mirrors implemented and deterministically validated**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -53,6 +53,8 @@ Revision 28 records playable Level 13, **Spinner's Midway**. Three timed arena g
 Revision 29 records playable Level 14, **Firebreather Funhouse**. Two opposite vertical conveyor lanes and an independently timed fire-ring gate combine earlier Chapter 2 lessons inside a new maze. Three acts split ten stable Davels into a masked welcome, a spinner/firemouth ring, and the elite Foreman/DJ finale without reusing an identity across waves. The 132 BPM `flame-fan-fandango` adds counter-leaning, wide flame-fan arms and forward torso accents; a hot orange/red/blue/violet palette and emissive flame marquee complete the visual identity. Standard clears deterministically at tick 4,101 with checksum `0b08e95e10bc61f8`. The campaign now contains fourteen playable levels, 42 localized content strings per release locale, and 140 provenance-resolved assets. Levels 15–100 remain reserved and fail closed until authored; physical-device evidence remains certification-only.
 
 Revision 30 records playable Level 15, **Tempo Tent Takeover**. Four independently phased timed gates surround a new Copper Carnival arena, forcing the player to read a rotating route instead of following one opening. Three acts stage ten stable Davels without identity reuse and culminate in an elite Red Firemouth and Cyan DJ. The 136 BPM `tempo-tent-twist` choreography adds a deterministic 30-tick stop-beat inside every 150-tick cycle, while the copper carnival palette and emissive speaker-tent landmark give the level its own bright silhouette. Standard clears deterministically at tick 4,412 with checksum `fd4014ee346c75ff`. The campaign now contains fifteen playable levels, 45 localized content strings per release locale, and 150 provenance-resolved assets. Levels 16–100 remain reserved and fail closed until authored; physical-device evidence remains certification-only.
+
+Revision 31 records playable Level 16, **Laughing Mirrors**. A symmetric maze adds two optional false-corridor loops and three mirror shutters that open on separate thirds of a 210-tick cycle. Three acts stage ten stable Davels from a mixed reflection rehearsal through an elite Firemouth/DJ last laugh. The 140 BPM `mirrorball-lindy` gives articulated bodies opposing heel kicks, counter-leaning torsos, mirrored arm folds, and exaggerated head snaps; a bright silver/blue/pink palette and emissive framed mirror-gallery landmarks keep the deception readable rather than dark. Standard clears deterministically at tick 2,583 with checksum `15372f1ae713e641`. The campaign now contains sixteen playable levels, 48 localized content strings per release locale, and 160 provenance-resolved assets. Levels 17–100 remain reserved and fail closed until authored; physical-device evidence remains certification-only.
 
 ## 1. Executive summary
 
