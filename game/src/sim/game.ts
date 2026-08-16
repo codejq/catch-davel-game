@@ -207,11 +207,17 @@ export class GameSimulation {
     if (brokenBombSeals.length > 0 && this.state.robots.every((robot) => !robot.active)
       && this.state.level.encounter.waveIndex === this.state.level.encounter.waveCount - 1
       && this.state.level.encounter.pendingTicks === 0) {
-      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId)) {
+      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId, this.state.tick)) {
         this.state.events.push({ tick: this.state.tick, ...interaction });
       }
     }
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
+    if (this.state.robots.every((robot) => !robot.active && robot.spawned)
+      && this.state.level.encounter.pendingTicks === 0) {
+      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId, this.state.tick)) {
+        this.state.events.push({ tick: this.state.tick, ...interaction });
+      }
+    }
     stepLevelHazardPhases(this.state.level, this.state.tick + 1, this.state.levelId);
     quantizeSimulationState(this.state);
     this.state.tick += 1;
@@ -328,7 +334,7 @@ export class GameSimulation {
     if (this.state.robots.every((robot) => !robot.active)) {
       if (this.state.level.encounter.pendingTicks > 0) return;
       if (queueNextEncounterWave(this.state.level, this.state.difficulty)) return;
-      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId)) {
+      for (const interaction of completePrimaryObjective(this.state.level, this.state.levelId, this.state.tick)) {
         this.state.events.push({ tick: this.state.tick, ...interaction });
       }
     }

@@ -160,6 +160,13 @@
       "pitchScale": 1.04,
       "roomSize": 0.86,
       "wetMix": 0.35
+    },
+    "audio-toxic-boiler-024": {
+      "dampingHz": 2450,
+      "decaySeconds": 0.8,
+      "pitchScale": 1.08,
+      "roomSize": 0.9,
+      "wetMix": 0.37
     }
   },
   "danceGameplayProfiles": {
@@ -253,6 +260,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "pressure-step-paso": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "reverse-circus-strut": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -318,6 +331,7 @@
     "moonlit-swing-off": "moonlit-swing",
     "pipe-tap-tango": "pipe-tap",
     "pocket-robot-pop": "robot-pop",
+    "pressure-step-paso": "pressure-step",
     "reverse-circus-strut": "reverse-strut",
     "side-to-side-shuffle": "side-shuffle",
     "sideways-soft-shoe": "soft-shoe",
@@ -730,6 +744,36 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 0,
       "row": 7
+    },
+    "velocity-valve-center-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.25,
+      "halfWidth": 1.25,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 80,
+      "row": 6
+    },
+    "velocity-valve-east-v1": {
+      "column": 12,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.25,
+      "halfWidth": 1.25,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 160,
+      "row": 6
+    },
+    "velocity-valve-west-v1": {
+      "column": 4,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.25,
+      "halfWidth": 1.25,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 6
     }
   },
   "manifestId": "campaign-runtime-v1",
@@ -1053,6 +1097,119 @@
         },
         {
           "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "boiler-valve-velocity": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 26,
+          "column": 7,
+          "row": 9
+        },
+        "door": {
+          "column": 12,
+          "row": 8
+        },
+        "energy": {
+          "amount": 27,
+          "column": 3,
+          "row": 11
+        },
+        "health": {
+          "amount": 21,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 9,
+          "row": 2
+        },
+        {
+          "column": 12,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 7,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 4,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        },
+        {
+          "column": 12,
           "row": 12
         }
       ]
@@ -2781,6 +2938,34 @@
       ],
       "swing": 0.04
     },
+    "pressure-step-paso": {
+      "bassPattern": [
+        0,
+        2,
+        5,
+        3
+      ],
+      "leadPattern": [
+        0,
+        4,
+        2,
+        5,
+        1,
+        3,
+        5,
+        2
+      ],
+      "rootMidi": 48,
+      "scale": [
+        0,
+        2,
+        3,
+        6,
+        7,
+        10
+      ],
+      "swing": 0.16
+    },
     "reverse-circus-strut": {
       "bassPattern": [
         4,
@@ -3778,6 +3963,40 @@
           0.74,
           0.18,
           0.62
+        ]
+      ]
+    },
+    "toxic-boiler-24": {
+      "floor": [
+        0.94,
+        0.86,
+        0.34
+      ],
+      "sky": [
+        0.36,
+        0.9,
+        0.84
+      ],
+      "walls": [
+        [
+          0.02,
+          0.66,
+          0.62
+        ],
+        [
+          0.98,
+          0.36,
+          0.56
+        ],
+        [
+          0.96,
+          0.66,
+          0.08
+        ],
+        [
+          0.34,
+          0.2,
+          0.88
         ]
       ]
     }

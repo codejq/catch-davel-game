@@ -73,6 +73,7 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
   { level: '021', palette: 'toxic-boiler-21', mazeTemplate: 'boiler-pipework-promenade', audio: 'audio-toxic-boiler-021', dance: 'pipe-tap-tango', sourcePath: 'game/src/content/levels/level-021.ts' },
   { level: '022', palette: 'toxic-boiler-22', mazeTemplate: 'boiler-green-steam', audio: 'audio-toxic-boiler-022', dance: 'toxic-toe-tango', sourcePath: 'game/src/content/levels/level-022.ts' },
   { level: '023', palette: 'toxic-boiler-23', mazeTemplate: 'boiler-firemouth-fiesta', audio: 'audio-toxic-boiler-023', dance: 'flame-lick-flamenco', sourcePath: 'game/src/content/levels/level-023.ts' },
+  { level: '024', palette: 'toxic-boiler-24', mazeTemplate: 'boiler-valve-velocity', audio: 'audio-toxic-boiler-024', dance: 'pressure-step-paso', sourcePath: 'game/src/content/levels/level-024.ts' },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {

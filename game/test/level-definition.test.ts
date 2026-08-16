@@ -9,7 +9,7 @@ import {
   LEVEL_018, LEVEL_019, LEVEL_020,
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
-import { CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023 } from '../src/content/levels/chapter-03';
+import { CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024 } from '../src/content/levels/chapter-03';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -103,7 +103,7 @@ describe('Appendix A level-data contract', () => {
   });
 
   it('admits Pipework Promenade as the first Chapter 3 bomb tutorial', () => {
-    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021, LEVEL_022, LEVEL_023]);
+    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024]);
     expect(validateLevelDefinition(LEVEL_021)).toBe(LEVEL_021);
     expect(campaignLevel('level-021')).toBe(LEVEL_021);
     expect(LEVEL_021.chapterId).toBe('chapter-03');
@@ -121,6 +121,11 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_023.tags).toEqual(expect.arrayContaining(['red-firemouth', 'flame-shutters', 'flame-lick-flamenco']));
     expect(LEVEL_023.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-023'));
+    expect(validateLevelDefinition(LEVEL_024)).toBe(LEVEL_024);
+    expect(campaignLevel('level-024')).toBe(LEVEL_024);
+    expect(LEVEL_024.objectives[0]).toMatchObject({ completionMode: 'timer', durationTicks: 3_600 });
+    expect(LEVEL_024.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-024'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

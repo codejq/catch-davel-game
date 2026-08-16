@@ -49,6 +49,11 @@ export function freezeDanceWindow(levelId: PlayableLevelId, tick: number): Freez
 }
 
 export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Record<string, unknown>> | null {
+  const primaryObjective = campaignLevel(levelId).objectives.find((objective) => objective.required)!;
+  if (primaryObjective.completionMode === 'timer') return {
+    kind: 'timed-objective', clock: 'level-tick', durationTicks: primaryObjective.durationTicks,
+    completionRequires: 'all-encounter-robots-defeated',
+  };
   if (campaignLevel(levelId).tags.includes('bomb-seal')) return {
     kind: 'bomb-seal', trigger: 'bomb-detonated', activation: 'until-bomb',
     breakRadius: BOMB_SEAL_BREAK_RADIUS,

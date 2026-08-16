@@ -990,6 +990,9 @@ export async function startBrowserGame(): Promise<void> {
       bossStatusHealth.dataset.health = String(health);
     }
     const remaining = state.robots.filter((robot) => robot.active).length;
+    const primaryObjective = activeLevel.objectives[0]!;
+    const valveTicksRemaining = primaryObjective.completionMode === 'timer'
+      ? Math.max(0, primaryObjective.durationTicks! - state.tick) : 0;
     document.body.dataset.defenseHealth = String(state.level.defense?.health ?? 0);
     document.body.dataset.defenseMaxHealth = String(state.level.defense?.maxHealth ?? 0);
     remainingHud.textContent = state.victory ? ui('mazeClear')
@@ -999,7 +1002,9 @@ export async function startBrowserGame(): Promise<void> {
       })
       : bossTraining
         ? ui('bossHealth', { health: Math.ceil(state.robots[0]?.health ?? 0), phase: state.robots[0]?.bossPhase ?? 1 })
-        : state.level.encounter.pendingTicks > 0
+        : primaryObjective.completionMode === 'timer' && valveTicksRemaining > 0
+          ? ui('valvePressure', { count: remaining, seconds: (valveTicksRemaining / 60).toFixed(1) })
+          : state.level.encounter.pendingTicks > 0
           ? ui('shift', {
             wave: state.level.encounter.waveIndex + 2,
             waves: state.level.encounter.waveCount,

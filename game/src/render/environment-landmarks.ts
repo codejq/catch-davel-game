@@ -44,7 +44,8 @@ export type LandmarkMotif =
   | 'ringmaster-crown'
   | 'pipe-valves'
   | 'steam-canisters'
-  | 'fiesta-braziers';
+  | 'fiesta-braziers'
+  | 'pressure-valves';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -70,6 +71,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-021': 'pipe-valves',
   'level-022': 'steam-canisters',
   'level-023': 'fiesta-braziers',
+  'level-024': 'pressure-valves',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -291,6 +293,14 @@ function motifBoxes(
         box(anchorX - 0.62, y + 1.08, anchorZ, 0.72, 0.48, 0.58, accent, 0.9),
         box(anchorX + 0.62, y + 1.08, anchorZ, 0.72, 0.48, 0.58, accent, 0.9),
         box(anchorX + shift, y + 1.52, anchorZ, 1.54, 0.18, 0.24, primary, 0.84),
+      ];
+    case 'pressure-valves':
+      return [
+        box(anchorX, y + 0.66, anchorZ, 0.86, 1.32, 0.38, primary, 0.48),
+        box(anchorX, y + 1.46, anchorZ, 1.36, 0.18, 0.22, accent, 0.88),
+        box(anchorX - 0.5, y + 1.46, anchorZ, 0.18, 0.68, 0.18, accent, 0.9),
+        box(anchorX + 0.5, y + 1.46, anchorZ, 0.18, 0.68, 0.18, accent, 0.9),
+        box(anchorX + shift, y + 1.46, anchorZ, 1.14, 0.18, 0.18, accent, 0.92),
       ];
   }
 }

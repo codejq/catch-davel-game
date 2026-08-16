@@ -368,10 +368,12 @@ export function collectLevelInteractions(
 
 export function completePrimaryObjective(
   level: LevelRuntimeState, levelId: PlayableLevelId = 'level-001',
+  tick = 0,
 ): LevelInteractionEvent[] {
+  const primaryObjective = campaignLevel(levelId).objectives.find((objective) => objective.required)!;
   if (level.objectiveComplete || level.hazards.some(
     (hazard) => hazard.active && hazardActivation(levelId, hazard.id) === 'until-bomb',
-  )) return [];
+  ) || (primaryObjective.completionMode === 'timer' && tick < primaryObjective.durationTicks!)) return [];
   level.objectiveComplete = true;
   return [{ type: 'objective-complete' }, { type: 'exit-unlocked' }];
 }

@@ -239,6 +239,16 @@ function targets(
     leftFootY += clap * 0.22; rightFootY += stamp * 0.22;
     leftHand = [-1.02, 1.18 + stamp * 0.62, 0.16 + clap * 0.24];
     rightHand = [1.02, 1.18 + clap * 0.62, 0.16 + stamp * 0.24];
+  } else if (performance.motif === 'pressure-step') {
+    const pump = Math.max(0, beat); const release = Math.max(0, -beat);
+    bounce += (pump * 0.08 + release * 0.04) * intensity;
+    hipX = -alternate * 0.28 * intensity; chestX = alternate * 0.34 * intensity;
+    chestZ = pump * 0.18 - release * 0.08; headX += -alternate * 0.2; headZ = pump * 0.1;
+    leftFootX = -0.3 - pump * 0.2; rightFootX = 0.3 + release * 0.2;
+    leftFootZ = release * 0.34; rightFootZ = pump * 0.34;
+    leftFootY += release * 0.18; rightFootY += pump * 0.18;
+    leftHand = [-0.72 - pump * 0.34, 1.74 + release * 0.2, 0.3];
+    rightHand = [0.72 + release * 0.34, 1.04 + pump * 0.48, 0.34];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
