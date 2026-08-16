@@ -9,7 +9,7 @@ import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const TRANSPORT_CONTRACT_VERSION = 15;
+export const TRANSPORT_CONTRACT_VERSION = 16;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -116,12 +116,15 @@ function decodePickupKind(code: number): RenderPickupState['kind'] {
 }
 
 function hazardKindCode(kind: RenderGameState['level']['hazards'][number]['kind']): number {
-  return kind === 'conveyor' ? 1 : 2;
+  if (kind === 'conveyor') return 1;
+  if (kind === 'timed-door') return 2;
+  return 3;
 }
 
 function decodeHazardKind(code: number): RenderGameState['level']['hazards'][number]['kind'] {
   if (code === 1) return 'conveyor';
   if (code === 2) return 'timed-door';
+  if (code === 3) return 'ice';
   throw new Error(`Unknown render hazard kind ${code}`);
 }
 

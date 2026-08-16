@@ -23,7 +23,7 @@ export interface PickupState {
 
 export interface HazardRuntimeState {
   readonly id: string;
-  readonly kind: 'conveyor' | 'timed-door';
+  readonly kind: 'conveyor' | 'ice' | 'timed-door';
   readonly column: number;
   readonly row: number;
   readonly x: number;
@@ -255,9 +255,9 @@ export function stepLevelHazards(
 ): void {
   stepLevelHazardPhases(level, tick, levelId);
   for (const hazard of level.hazards) {
-    if (hazard.kind !== 'conveyor' || !hazard.active
+    if ((hazard.kind !== 'conveyor' && hazard.kind !== 'ice') || !hazard.active
       || Math.abs(player.x - hazard.x) > hazard.halfWidth || Math.abs(player.z - hazard.z) > hazard.halfDepth) continue;
-    const distance = 2.1 * FIXED_DT_SECONDS;
+    const distance = (hazard.kind === 'ice' ? 1.35 : 2.1) * FIXED_DT_SECONDS;
     const nextX = player.x + hazard.directionX * distance;
     const nextZ = player.z + hazard.directionZ * distance;
     const blockers = closedDoorCells(level);

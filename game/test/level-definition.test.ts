@@ -13,6 +13,7 @@ import {
   CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027, LEVEL_028,
   LEVEL_029, LEVEL_030,
 } from '../src/content/levels/chapter-03';
+import { CHAPTER_04_LEVELS, LEVEL_031 } from '../src/content/levels/chapter-04';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -166,6 +167,17 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_030.tags).toEqual(expect.arrayContaining(['fire-spitting-boss', 'inferno-flamenco-finale']));
     expect(LEVEL_030.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-030'));
+  });
+
+  it('admits Cold Reception as the first Chapter 4 ice-movement level', () => {
+    expect(CHAPTER_04_LEVELS).toEqual([LEVEL_031]);
+    expect(validateLevelDefinition(LEVEL_031)).toBe(LEVEL_031);
+    expect(campaignLevel('level-031')).toBe(LEVEL_031);
+    expect(LEVEL_031.chapterId).toBe('chapter-04');
+    expect(LEVEL_031.maze.hazards).toHaveLength(3);
+    expect(LEVEL_031.tags).toEqual(expect.arrayContaining(['ice-movement-tutorial', 'chilly-funk-walk']));
+    expect(LEVEL_031.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-031'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "4267114f68ace5b8",
+          "effectiveLevel": "4ee330897e80670e",
           "policyOrReplay": "33ce82519e6acf00",
-          "simulationLevel": "042561dfffe467b1",
+          "simulationLevel": "af693b5ee94f0d79",
           "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Standard",
@@ -23,48 +23,48 @@
         "policyVersion": 1,
         "referenceReplayId": null,
         "requiredObjectiveIds": [
-          "clear-fever-tunnels"
+          "clear-cold-reception"
         ],
-        "seed": "campaign-level-029-v1",
+        "seed": "campaign-level-031-v1",
         "stuckTimeoutTicks": 2000
       }
     ],
     "tier": "ordinary"
   },
   "audio": {
-    "presetId": "audio-toxic-boiler-029"
+    "presetId": "audio-cold-storage-031"
   },
-  "briefingKey": "levels.029.briefing",
-  "chapterId": "chapter-03",
+  "briefingKey": "levels.031.briefing",
+  "chapterId": "chapter-04",
   "checkpoints": [
     {
-      "presetId": "checkpoint-029"
+      "presetId": "checkpoint-031"
     }
   ],
   "dance": {
-    "armPatternId": "feverish-salsa-arms-v1",
+    "armPatternId": "chilly-funk-walk-arms-v1",
     "attackBeats": [
       1,
-      4,
+      5,
       9,
-      12
+      13
     ],
     "barsPerPhrase": 4,
-    "bpm": 158,
-    "footPatternId": "feverish-salsa-feet-v1",
+    "bpm": 118,
+    "footPatternId": "chilly-funk-walk-feet-v1",
     "grammarVersion": 1,
-    "headAccentId": "feverish-salsa-head-v1",
-    "pathPatternId": "feverish-salsa-path-v1",
-    "presetId": "feverish-salsa",
-    "reducedMotionPresetId": "feverish-salsa-reduced-v1",
+    "headAccentId": "chilly-funk-walk-head-v1",
+    "pathPatternId": "chilly-funk-walk-path-v1",
+    "presetId": "chilly-funk-walk",
+    "reducedMotionPresetId": "chilly-funk-walk-reduced-v1",
     "timeSignature": "4/4",
-    "torsoPatternId": "feverish-salsa-torso-v1",
+    "torsoPatternId": "chilly-funk-walk-torso-v1",
     "transitionIds": [
-      "toxic-cross-step",
-      "boiling-encore",
+      "slippery-service",
+      "chilly-encore",
       "objective-clear"
     ],
-    "visualIntensity": 1,
+    "visualIntensity": 0.92,
     "vulnerableBeats": [
       3,
       7,
@@ -73,59 +73,59 @@
     ]
   },
   "difficulty": {
-    "presetId": "standard-chapter-03-029"
+    "presetId": "standard-chapter-04-031"
   },
   "economy": {
-    "presetId": "economy-chapter-03-029"
+    "presetId": "economy-chapter-04-031"
   },
   "encounters": [
     {
       "arenaLock": true,
       "checkpointOnComplete": null,
       "completion": "all-defeated",
-      "id": "fever-tunnel-company",
-      "rewardId": "chapter-03-clear-029",
-      "roomNodeId": "fever-floor",
+      "id": "cold-reception-company",
+      "rewardId": "chapter-04-clear-031",
+      "roomNodeId": "cold-reception",
       "trigger": "on-enter",
       "triggerRef": null,
       "waves": [
         {
           "completion": "all-defeated",
           "danceTransitionId": null,
-          "id": "fever-warmup",
-          "interGroupDelayTicks": 6,
+          "id": "icy-welcome",
+          "interGroupDelayTicks": 7,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 3,
           "spawnGroups": [
             {
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "wobble-scout",
               "count": 2,
-              "dancePresetId": "feverish-salsa",
-              "id": "warmup-wobblers",
+              "dancePresetId": "chilly-funk-walk",
+              "id": "welcome-wobblers",
               "modifierIds": [
-                "fever-grin"
+                "mittens-and-menace"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-1.wobblers",
-              "spawnPointSetId": "level-029-arena-1"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-1.wobblers",
+              "spawnPointSetId": "level-031-arena-1"
             },
             {
               "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "yellow-spinner",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
-              "id": "warmup-spinner",
+              "dancePresetId": "chilly-funk-walk",
+              "id": "welcome-spinner",
               "modifierIds": [
-                "thermometer-spin"
+                "snowflake-spin"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-1.spinner",
-              "spawnPointSetId": "level-029-arena-1"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-1.spinner",
+              "spawnPointSetId": "level-031-arena-1"
             }
           ],
           "startCondition": "encounter-start",
@@ -133,128 +133,128 @@
         },
         {
           "completion": "all-defeated",
-          "danceTransitionId": "toxic-cross-step",
-          "id": "toxic-cross-step",
-          "interGroupDelayTicks": 6,
+          "danceTransitionId": "slippery-service",
+          "id": "slippery-service",
+          "interGroupDelayTicks": 7,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 3,
           "spawnGroups": [
             {
               "accessibilityVerificationId": "silhouette-blue-slider-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "blue-slider",
               "count": 2,
-              "dancePresetId": "feverish-salsa",
-              "id": "cross-step-sliders",
+              "dancePresetId": "chilly-funk-walk",
+              "id": "service-sliders",
               "modifierIds": [
-                "poison-skates"
+                "ice-skates"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-2.sliders",
-              "spawnPointSetId": "level-029-arena-2"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-2.sliders",
+              "spawnPointSetId": "level-031-arena-2"
             },
             {
               "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "red-firemouth",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
-              "id": "cross-step-firemouth",
+              "dancePresetId": "chilly-funk-walk",
+              "id": "service-firemouth",
               "modifierIds": [
-                "fever-flare"
+                "freezer-burn"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-2.firemouth",
-              "spawnPointSetId": "level-029-arena-2"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-2.firemouth",
+              "spawnPointSetId": "level-031-arena-2"
             }
           ],
           "startCondition": "previous-wave-complete",
-          "startDelayTicks": 16
+          "startDelayTicks": 18
         },
         {
           "completion": "all-defeated",
-          "danceTransitionId": "boiling-encore",
-          "id": "boiling-encore",
-          "interGroupDelayTicks": 5,
+          "danceTransitionId": "chilly-encore",
+          "id": "chilly-encore",
+          "interGroupDelayTicks": 6,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 4,
           "spawnGroups": [
             {
               "accessibilityVerificationId": "silhouette-cyan-dj-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "cyan-dj",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
+              "dancePresetId": "chilly-funk-walk",
               "id": "encore-dj",
               "modifierIds": [
-                "fever-conductor"
+                "subzero-conductor"
               ],
               "rank": "elite",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-3.dj",
-              "spawnPointSetId": "level-029-arena-3"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-3.dj",
+              "spawnPointSetId": "level-031-arena-3"
             },
             {
               "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "red-firemouth",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
+              "dancePresetId": "chilly-funk-walk",
               "id": "encore-foreman",
               "modifierIds": [
-                "boiling-foreman"
+                "cold-front-foreman"
               ],
               "rank": "elite",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-3.foreman",
-              "spawnPointSetId": "level-029-arena-3"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-3.foreman",
+              "spawnPointSetId": "level-031-arena-3"
             },
             {
               "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "yellow-spinner",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
+              "dancePresetId": "chilly-funk-walk",
               "id": "encore-spinner",
               "modifierIds": [
-                "toxic-pinwheel"
+                "snow-globe"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-3.spinner",
-              "spawnPointSetId": "level-029-arena-3"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-3.spinner",
+              "spawnPointSetId": "level-031-arena-3"
             },
             {
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-03-stage-29",
+              "aiProfileId": "chapter-04-stage-31",
               "archetypeId": "wobble-scout",
               "count": 1,
-              "dancePresetId": "feverish-salsa",
+              "dancePresetId": "chilly-funk-walk",
               "id": "encore-wobbler",
               "modifierIds": [
-                "sickly-smile"
+                "chattering-grin"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-03-coins-29",
-              "rngStream": "encounter.level-029.wave-3.wobbler",
-              "spawnPointSetId": "level-029-arena-3"
+              "rewardProfileId": "chapter-04-coins-31",
+              "rngStream": "encounter.level-031.wave-3.wobbler",
+              "spawnPointSetId": "level-031-arena-3"
             }
           ],
           "startCondition": "previous-wave-complete",
-          "startDelayTicks": 14
+          "startDelayTicks": 16
         }
       ]
     }
   ],
-  "id": "level-029",
+  "id": "level-031",
   "mastery": [
     {
-      "presetId": "level-029-par-time"
+      "presetId": "level-031-par-time"
     },
     {
-      "presetId": "level-029-no-fever-hit"
+      "presetId": "level-031-no-ice-wall-hit"
     }
   ],
   "maze": {
@@ -266,122 +266,115 @@
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "fever-entry",
-        "id": "entry-locker",
+        "from": "thaw-entry",
+        "id": "entry-coat-check",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "filter-locker",
+        "to": "coat-check",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "workshop-lock",
-        "from": "filter-locker",
-        "id": "locker-flame",
-        "requiredKeyId": "fever-filter-key",
+        "from": "coat-check",
+        "id": "coat-check-ice",
+        "requiredKeyId": "frost-key",
         "stateTrigger": "key-collected",
-        "to": "west-flame-throat",
+        "to": "welcome-ice",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "west-flame-throat",
-        "id": "flame-crossflow",
+        "from": "welcome-ice",
+        "id": "ice-reception",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "poison-crossflow",
-        "traversalCost": 1
-      },
-      {
-        "bidirectional": true,
-        "doorType": "open",
-        "from": "poison-crossflow",
-        "id": "crossflow-floor",
-        "requiredKeyId": null,
-        "stateTrigger": null,
-        "to": "fever-floor",
+        "to": "cold-reception",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "arena-lock",
-        "from": "fever-floor",
-        "id": "floor-checkpoint",
+        "from": "cold-reception",
+        "id": "reception-packing",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "fever-checkpoint",
+        "to": "packing-lane",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "fever-checkpoint",
+        "from": "packing-lane",
+        "id": "packing-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "cold-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "cold-checkpoint",
         "id": "checkpoint-exit",
         "requiredKeyId": null,
         "stateTrigger": "primary-objective",
-        "to": "antidote-exit",
+        "to": "freezer-exit",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "poison-crossflow",
-        "id": "crossflow-cache",
+        "from": "coat-check",
+        "id": "coat-office",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "antidote-cache",
+        "to": "heated-office",
         "traversalCost": 2
       },
       {
         "bidirectional": true,
         "doorType": "workshop-lock",
-        "from": "antidote-cache",
-        "id": "cache-floor",
-        "requiredKeyId": "fever-filter-key",
+        "from": "heated-office",
+        "id": "office-reception",
+        "requiredKeyId": "frost-key",
         "stateTrigger": "key-collected",
-        "to": "fever-floor",
+        "to": "cold-reception",
         "traversalCost": 2
       }
     ],
-    "entranceNodeId": "fever-entry",
-    "exitNodeId": "antidote-exit",
+    "entranceNodeId": "thaw-entry",
+    "exitNodeId": "freezer-exit",
     "generationAttempts": 1,
     "generatorVersion": 1,
     "hazards": [
       {
-        "activeTicks": 72,
-        "collisionProfileId": "fever-flame-west-v1",
-        "id": "fever-flame-west",
-        "nodeId": "west-flame-throat",
-        "periodTicks": 180
-      },
-      {
-        "activeTicks": 72,
-        "collisionProfileId": "fever-flame-east-v1",
-        "id": "fever-flame-east",
-        "nodeId": "poison-crossflow",
-        "periodTicks": 180
-      },
-      {
-        "activeTicks": 168,
-        "collisionProfileId": "fever-poison-north-v1",
-        "id": "fever-poison-north",
-        "nodeId": "poison-crossflow",
+        "activeTicks": 240,
+        "collisionProfileId": "cold-reception-ice-east-v1",
+        "id": "welcome-ice-east",
+        "nodeId": "welcome-ice",
         "periodTicks": 240
       },
       {
-        "activeTicks": 168,
-        "collisionProfileId": "fever-poison-south-v1",
-        "id": "fever-poison-south",
-        "nodeId": "fever-floor",
+        "activeTicks": 240,
+        "collisionProfileId": "cold-reception-ice-west-v1",
+        "id": "reception-ice-west",
+        "nodeId": "cold-reception",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "cold-reception-ice-north-v1",
+        "id": "packing-ice-north",
+        "nodeId": "packing-lane",
         "periodTicks": 240
       }
     ],
     "keys": [
       {
-        "id": "fever-filter-key",
-        "placementNodeId": "filter-locker"
+        "id": "frost-key",
+        "placementNodeId": "coat-check"
       }
     ],
     "maxBranchDepth": 1,
@@ -390,7 +383,7 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "fever-entry",
+        "id": "thaw-entry",
         "pickupIds": [
           "repair-kit"
         ],
@@ -398,77 +391,63 @@
         "sizeClass": "small",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
-          "fever-gate"
+          "cold-storage",
+          "warm-airlock"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "filter-locker",
+        "id": "coat-check",
         "pickupIds": [
-          "fever-filter-key"
+          "frost-key"
         ],
         "role": "corridor",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
-          "filter-key"
+          "cold-storage",
+          "reception-key"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "west-flame-throat",
+        "id": "welcome-ice",
         "pickupIds": [
           "pulse-cell"
         ],
         "role": "corridor",
-        "sizeClass": "medium",
-        "storyIds": [],
-        "templateTags": [
-          "toxic-boiler",
-          "flame-shutter"
-        ]
-      },
-      {
-        "checkpointId": null,
-        "criticalPath": true,
-        "encounterIds": [],
-        "id": "poison-crossflow",
-        "pickupIds": [],
-        "role": "corridor",
         "sizeClass": "large",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
-          "poison-conveyor"
+          "cold-storage",
+          "ice-tutorial"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [
-          "fever-tunnel-company"
+          "cold-reception-company"
         ],
-        "id": "fever-floor",
+        "id": "cold-reception",
         "pickupIds": [],
         "role": "arena",
         "sizeClass": "large",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
-          "fire-poison-mix"
+          "cold-storage",
+          "icy-arena"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": false,
         "encounterIds": [],
-        "id": "antidote-cache",
+        "id": "heated-office",
         "pickupIds": [
           "coin-cache"
         ],
@@ -476,21 +455,35 @@
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
-          "optional-antidote"
+          "cold-storage",
+          "optional-warmth"
         ]
       },
       {
-        "checkpointId": "checkpoint-029",
+        "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "fever-checkpoint",
+        "id": "packing-lane",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "cross-ice"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-031",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "cold-checkpoint",
         "pickupIds": [],
         "role": "checkpoint",
         "sizeClass": "small",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
+          "cold-storage",
           "recovery"
         ]
       },
@@ -498,13 +491,13 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "antidote-exit",
+        "id": "freezer-exit",
         "pickupIds": [],
         "role": "exit",
         "sizeClass": "small",
         "storyIds": [],
         "templateTags": [
-          "toxic-boiler",
+          "cold-storage",
           "objective-exit"
         ]
       }
@@ -514,52 +507,52 @@
       "minimum": 1
     },
     "secretCount": 0,
-    "templateSetId": "boiler-fever-tunnels",
+    "templateSetId": "cold-storage-reception",
     "validationProfile": "authored-grid-v1"
   },
-  "nameKey": "levels.029.name",
-  "number": 29,
+  "nameKey": "levels.031.name",
+  "number": 31,
   "objectives": [
     {
       "completionMode": "count",
       "dependsOn": [],
       "durationTicks": null,
-      "id": "clear-fever-tunnels",
+      "id": "clear-cold-reception",
       "markerPolicy": "always",
       "required": true,
       "targetCount": 10,
       "targetIds": [
-        "fever-warmup",
-        "toxic-cross-step",
-        "boiling-encore"
+        "icy-welcome",
+        "slippery-service",
+        "chilly-encore"
       ],
-      "titleKey": "objectives.level_029",
+      "titleKey": "objectives.level_031",
       "type": "deactivate"
     }
   ],
   "palette": {
-    "presetId": "toxic-boiler-29"
+    "presetId": "cold-storage-31"
   },
   "performance": {
     "benchmarkScenarioIds": [
-      "level-029-standard-live"
+      "level-031-standard-live"
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
     "maxActivePickups": 4,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
-    "maxHazards": 4,
+    "maxHazards": 3,
     "maxMazeNodes": 10,
     "maxRenderInstances": 1024
   },
   "schemaVersion": 1,
-  "seed": "campaign-level-029-v1",
+  "seed": "campaign-level-031-v1",
   "tags": [
-    "chapter-03",
-    "toxic-boiler",
-    "fire-poison-remix",
-    "fever-tunnels",
-    "feverish-salsa"
+    "chapter-04",
+    "cold-storage",
+    "ice-movement-tutorial",
+    "opposing-ice-lanes",
+    "chilly-funk-walk"
   ]
 }

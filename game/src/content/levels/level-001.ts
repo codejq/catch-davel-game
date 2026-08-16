@@ -70,7 +70,7 @@ export const LEVEL_001 = {
       requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: 'da7d3f41d0849a18', parTicks: 5_000,
       dependencyHashes: {
         simulationSchema: '6cafd562c735e11d', effectiveLevel: 'e6712698dcfd120a', simulationLevel: '1cb437a2803b4cd4',
-        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
+        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
       },
     }, {
       id: 'story-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
@@ -79,7 +79,7 @@ export const LEVEL_001 = {
       requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '38929f729f37bd4f', parTicks: 5_500,
       dependencyHashes: {
         simulationSchema: '6cafd562c735e11d', effectiveLevel: 'e6712698dcfd120a', simulationLevel: '1cb437a2803b4cd4',
-        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
+        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
       },
     }, {
       id: 'hard-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
@@ -88,7 +88,7 @@ export const LEVEL_001 = {
       requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '246332eb827dc928', parTicks: 7_000,
       dependencyHashes: {
         simulationSchema: '6cafd562c735e11d', effectiveLevel: 'e6712698dcfd120a', simulationLevel: '1cb437a2803b4cd4',
-        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
+        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
       },
     }],
   },

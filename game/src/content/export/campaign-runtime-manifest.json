@@ -1,5 +1,12 @@
 {
   "audioProfiles": {
+    "audio-cold-storage-031": {
+      "dampingHz": 6100,
+      "decaySeconds": 0.98,
+      "pitchScale": 1.08,
+      "roomSize": 0.88,
+      "wetMix": 0.46
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -218,6 +225,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "chilly-funk-walk": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "clockwork-charleston": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -395,6 +408,7 @@
   },
   "danceMotifs": {
     "carousel-kick": "carousel-kick",
+    "chilly-funk-walk": "chilly-funk-walk",
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",
     "corner-peek-groove": "corner-peek",
@@ -518,6 +532,36 @@
       "halfDepth": 1.45,
       "halfWidth": 1.45,
       "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "cold-reception-ice-east-v1": {
+      "column": 5,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 4.1,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "cold-reception-ice-north-v1": {
+      "column": 11,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.25,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 10
+    },
+    "cold-reception-ice-west-v1": {
+      "column": 9,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 4.1,
+      "kind": "ice",
       "phaseOffsetTicks": 0,
       "row": 8
     },
@@ -2970,6 +3014,103 @@
         }
       ]
     },
+    "cold-storage-reception": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 33,
+          "column": 9,
+          "row": 5
+        },
+        "door": {
+          "column": 9,
+          "row": 8
+        },
+        "energy": {
+          "amount": 32,
+          "column": 3,
+          "row": 11
+        },
+        "health": {
+          "amount": 24,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 8,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 5,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 9,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 8,
+          "row": 12
+        },
+        {
+          "column": 12,
+          "row": 12
+        }
+      ]
+    },
     "workshop-basic": {
       "interactions": {
         "checkpoint": {
@@ -3468,6 +3609,33 @@
         10
       ],
       "swing": 0.16
+    },
+    "chilly-funk-walk": {
+      "bassPattern": [
+        0,
+        2,
+        4,
+        1
+      ],
+      "leadPattern": [
+        0,
+        3,
+        1,
+        4,
+        2,
+        0,
+        4,
+        1
+      ],
+      "rootMidi": 58,
+      "scale": [
+        0,
+        2,
+        5,
+        7,
+        10
+      ],
+      "swing": 0.2
     },
     "clockwork-charleston": {
       "bassPattern": [
@@ -4264,6 +4432,40 @@
     }
   },
   "paletteProfiles": {
+    "cold-storage-31": {
+      "floor": [
+        0.84,
+        0.96,
+        1
+      ],
+      "sky": [
+        0.62,
+        0.91,
+        1
+      ],
+      "walls": [
+        [
+          0.08,
+          0.56,
+          0.96
+        ],
+        [
+          0.22,
+          0.88,
+          1
+        ],
+        [
+          0.72,
+          0.28,
+          1
+        ],
+        [
+          1,
+          0.46,
+          0.78
+        ]
+      ]
+    },
     "copper-carnival-11": {
       "floor": [
         0.88,

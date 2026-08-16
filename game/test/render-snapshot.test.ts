@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v15', () => {
+describe('self-contained RenderSnapshot v16', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -20,7 +20,7 @@ describe('self-contained RenderSnapshot v15', () => {
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
     expect(RENDER_SNAPSHOT_BYTES).toBe(9_896);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(15);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(16);
     expect(decoded.state.difficulty).toBe('standard');
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);

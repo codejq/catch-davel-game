@@ -84,7 +84,9 @@ function overlayMap(levelId: PlayableLevelId): Map<string, string> {
   overlay.set(`${runtime.door.column},${runtime.door.row}`, 'D');
   const checkpoint = worldCell(runtime.checkpoint.x, runtime.checkpoint.z);
   overlay.set(`${checkpoint.column},${checkpoint.row}`, 'C');
-  for (const hazard of runtime.hazards) overlay.set(`${hazard.column},${hazard.row}`, hazard.kind === 'timed-door' ? '⏱' : '⇢');
+  for (const hazard of runtime.hazards) {
+    overlay.set(`${hazard.column},${hazard.row}`, hazard.kind === 'timed-door' ? '⏱' : hazard.kind === 'ice' ? '❄' : '⇢');
+  }
   return overlay;
 }
 

@@ -442,8 +442,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 17
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v17 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 18
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v18 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -460,7 +460,7 @@ try {
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [result.weakPointProof.tick === 19 && result.weakPointProof.presentedTick >= 19
-      && result.weakPointProof.schemaVersion === 17 && result.weakPointProof.phase === 'vulnerable'
+      && result.weakPointProof.schemaVersion === 18 && result.weakPointProof.phase === 'vulnerable'
       && result.weakPointProof.active === true && result.weakPointProof.radius > 0
       && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
     'live Worker/presentation boundary did not expose the authored weak-point window'],

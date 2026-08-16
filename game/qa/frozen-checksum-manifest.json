@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "suiteId": "chapter-01-frozen-checksums",
-  "suiteVersion": 13,
+  "suiteVersion": 14,
   "policyId": "baseline-campaign-agent",
   "policyVersion": 1,
   "levels": [
@@ -15,7 +15,7 @@
         "effectiveLevel": "e6712698dcfd120a",
         "simulationLevel": "1cb437a2803b4cd4",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     },
     {
@@ -28,7 +28,7 @@
         "effectiveLevel": "54a0088fa5b73f07",
         "simulationLevel": "c37af5a68eb0346e",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     },
     {
@@ -41,7 +41,7 @@
         "effectiveLevel": "b7654c2e740d2791",
         "simulationLevel": "c6433b941d4d5b93",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     },
     {
@@ -54,7 +54,7 @@
         "effectiveLevel": "7f15c9e87217e556",
         "simulationLevel": "44c81df1671fe2cb",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     },
     {
@@ -67,7 +67,7 @@
         "effectiveLevel": "713c20b1eb916831",
         "simulationLevel": "0f8997387e91d233",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     },
     {
@@ -80,7 +80,7 @@
         "effectiveLevel": "4a5adef8b315daeb",
         "simulationLevel": "f3591d9b0ef0a949",
         "balanceData": "1f697b70870c7801",
-        "policyOrReplay": "5eedcddff4365989"
+        "policyOrReplay": "33ce82519e6acf00"
       }
     }
   ]

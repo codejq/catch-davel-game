@@ -142,7 +142,7 @@ const draft: LevelDefinition = {
         effectiveLevel: ZERO_HASH,
         simulationLevel: '542d63184f1def41',
         balanceData: '1f697b70870c7801',
-        policyOrReplay: '5eedcddff4365989',
+        policyOrReplay: '33ce82519e6acf00',
       },
     }],
   },

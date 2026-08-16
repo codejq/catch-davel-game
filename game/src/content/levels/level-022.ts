@@ -84,7 +84,7 @@ const draft: LevelDefinition = {
       parTicks: 9_800,
       dependencyHashes: {
         simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'ed22c5c39b4e5213',
-        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
+        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
       },
     }],
   },

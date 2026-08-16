@@ -318,6 +318,25 @@ export class WorldRenderer {
         }
         continue;
       }
+      if (hazard.kind === 'ice') {
+        const iceColor: readonly [number, number, number] = hazard.active ? [0.2, 0.82, 1] : [0.42, 0.62, 0.72];
+        instance = this.writeInstance(
+          instance, hazard.x, 0.028, hazard.z,
+          hazard.halfWidth * 2, 0.056, hazard.halfDepth * 2, iceColor,
+        );
+        const glint = (state.tick % 72) / 72;
+        instance = this.writeInstance(
+          instance,
+          hazard.x + hazard.directionX * (glint - 0.5) * hazard.halfWidth * 1.55,
+          0.073,
+          hazard.z + hazard.directionZ * (glint - 0.5) * hazard.halfDepth * 1.55,
+          hazard.directionX === 0 ? hazard.halfWidth * 1.3 : 0.18,
+          0.045,
+          hazard.directionZ === 0 ? hazard.halfDepth * 1.3 : 0.18,
+          [0.9, 0.99, 1],
+        );
+        continue;
+      }
       const color: readonly [number, number, number] = hazard.active ? [1, 0.22, 0.08] : [0.25, 0.32, 0.4];
       instance = this.writeInstance(
         instance, hazard.x, 0.035, hazard.z, hazard.halfWidth * 2, 0.07, hazard.halfDepth * 2, color,

@@ -320,6 +320,18 @@ function targets(
     leftFootY += smolder * 0.22; rightFootY += blaze * 0.3;
     leftHand = [-1.18 - blaze * 0.22, 1.9 + smolder * 0.18, 0.16];
     rightHand = [1.18 + smolder * 0.22, 1.08 + blaze * 0.78, 0.4];
+  } else if (performance.motif === 'chilly-funk-walk') {
+    const glide = Math.max(0, beat); const brake = Math.max(0, -beat);
+    const chatter = Math.sin(performanceTime * Math.PI * 5);
+    bounce += (glide * 0.035 + Math.abs(chatter) * 0.025) * intensity;
+    hipX = (alternate * 0.34 + chatter * 0.055) * intensity;
+    chestX = (-alternate * 0.42 - chatter * 0.04) * intensity;
+    chestZ = glide * 0.16 - brake * 0.2; headX += alternate * 0.28; headZ = chatter * 0.055;
+    leftFootX = -0.38 - glide * 0.18; rightFootX = 0.38 + brake * 0.18;
+    leftFootZ = brake * 0.64 - glide * 0.12; rightFootZ = glide * 0.64 - brake * 0.12;
+    leftFootY += brake * 0.065; rightFootY += glide * 0.065;
+    leftHand = [-0.94 - brake * 0.18, 1.5 + chatter * 0.18, 0.3];
+    rightHand = [0.94 + glide * 0.18, 1.22 - chatter * 0.18, 0.36];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

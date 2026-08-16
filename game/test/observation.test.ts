@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(17);
+    expect(observation.schemaVersion).toBe(18);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,

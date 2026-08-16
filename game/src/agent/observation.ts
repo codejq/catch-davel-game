@@ -19,7 +19,7 @@ import {
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 import { campaignLevel } from '../content/levels/catalog';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 17;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 18;
 
 export interface RobotObservation {
   readonly id: number;
@@ -53,7 +53,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 17;
+  readonly schemaVersion: 18;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: PlayableLevelId;
@@ -159,7 +159,7 @@ export interface AgentObservation {
   }[];
   readonly hazards: readonly {
     readonly id: string;
-    readonly kind: 'conveyor' | 'timed-door';
+    readonly kind: 'conveyor' | 'ice' | 'timed-door';
     readonly relativeX: number;
     readonly relativeZ: number;
     readonly halfWidth: number;
