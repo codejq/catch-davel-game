@@ -18,6 +18,7 @@ import {
   BombDetonationTracker, bombFlashRadius, bombPressureRingSegment, bombRadialSparkSegment,
   type BombDetonationEffect,
 } from './bomb-detonation';
+import { laserContactSparkSegment } from './laser-contact';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -423,14 +424,39 @@ export class DavelRenderer {
       const directionX = Math.sin(player.yaw) * cosPitch;
       const directionY = Math.sin(player.pitch);
       const directionZ = -Math.cos(player.yaw) * cosPitch;
-      const start = { x: player.x, y: PLAYER_EYE_HEIGHT - 0.09, z: player.z };
-      const end = {
-        x: start.x + directionX * state.laserBeamDistance,
-        y: start.y + directionY * state.laserBeamDistance,
-        z: start.z + directionZ * state.laserBeamDistance,
+      const eye = { x: player.x, y: PLAYER_EYE_HEIGHT, z: player.z };
+      const muzzleForward = Math.min(0.28, state.laserBeamDistance * 0.35);
+      const start = {
+        x: eye.x + directionX * muzzleForward,
+        y: eye.y + directionY * muzzleForward - 0.12,
+        z: eye.z + directionZ * muzzleForward,
       };
-      this.addCapsule(start, end, 0.035, state.laserFocusTicks > 45 ? [1, 0.22, 0.52] : [0.18, 1, 0.9]);
-      this.addSphere(end, 0.1, [0.8, 1, 1]);
+      const end = {
+        x: eye.x + directionX * state.laserBeamDistance,
+        y: eye.y + directionY * state.laserBeamDistance,
+        z: eye.z + directionZ * state.laserBeamDistance,
+      };
+      const focused = state.laserFocusTicks > 45;
+      this.addCapsule(start, end, focused ? 0.045 : 0.035, focused ? [1, 0.22, 0.52] : [0.18, 1, 0.9]);
+      const contact = {
+        x: end.x - directionX * 0.14,
+        y: end.y - directionY * 0.14,
+        z: end.z - directionZ * 0.14,
+      };
+      this.addSphere(contact, focused ? 0.14 : 0.1, focused ? [1, 0.72, 0.9] : [0.8, 1, 1]);
+      const sparkCount = motionScale === 0
+        ? Math.min(2, quality.laserContactSparkCount) : quality.laserContactSparkCount;
+      for (let sparkIndex = 0; sparkIndex < sparkCount; sparkIndex += 1) {
+        const spark = laserContactSparkSegment(
+          contact, { x: directionX, y: directionY, z: directionZ },
+          state.tick, sparkIndex, motionScale, state.laserFocusTicks,
+        );
+        this.addCapsule(
+          spark.start, spark.end, spark.radius,
+          sparkIndex % 2 === 0 ? [0.72, 1, 1] : focused ? [1, 0.2, 0.56] : [1, 0.94, 0.42],
+        );
+        this.addSphere(spark.end, spark.radius * 1.45, sparkIndex % 2 === 0 ? [0.72, 1, 1] : [1, 0.72, 0.24]);
+      }
     }
     this.gl.useProgram(this.program);
     this.gl.uniformMatrix4fv(this.viewProjectionLocation, false, viewProjection);
