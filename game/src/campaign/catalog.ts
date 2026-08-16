@@ -32,6 +32,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-029': 'Fever Tunnels',
   'level-030': 'Furnace Mouth',
   'level-031': 'Cold Reception',
+  'level-032': 'Slippery Smiles',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

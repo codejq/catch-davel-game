@@ -7,6 +7,13 @@
       "roomSize": 0.88,
       "wetMix": 0.46
     },
+    "audio-cold-storage-032": {
+      "dampingHz": 6600,
+      "decaySeconds": 0.99,
+      "pitchScale": 1.12,
+      "roomSize": 0.94,
+      "wetMix": 0.48
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -309,6 +316,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "ice-slide-moonwalk": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "inferno-flamenco-finale": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -422,6 +435,7 @@
     "flashlight-freeze-dance": "freeze-dance",
     "giant-wobble-breakdown": "giant-breakdown",
     "heavy-boot-two-step": "heavy-two-step",
+    "ice-slide-moonwalk": "ice-slide-moonwalk",
     "inferno-flamenco-finale": "inferno-flamenco-finale",
     "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
@@ -1008,6 +1022,46 @@
       "kind": "conveyor",
       "phaseOffsetTicks": 80,
       "row": 9
+    },
+    "slippery-smiles-ice-east-v1": {
+      "column": 7,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.2,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "slippery-smiles-ice-north-v1": {
+      "column": 12,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.25,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 10
+    },
+    "slippery-smiles-ice-south-v1": {
+      "column": 4,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.25,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "slippery-smiles-ice-west-v1": {
+      "column": 11,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.2,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
     },
     "tempo-gate-east-v1": {
       "column": 12,
@@ -3111,6 +3165,107 @@
         }
       ]
     },
+    "cold-storage-slippery-smiles": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 34,
+          "column": 13,
+          "row": 5
+        },
+        "door": {
+          "column": 8,
+          "row": 6
+        },
+        "energy": {
+          "amount": 33,
+          "column": 3,
+          "row": 11
+        },
+        "health": {
+          "amount": 25,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 3
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 2
+        },
+        {
+          "column": 12,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 4,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 2,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 8
+        },
+        {
+          "column": 11,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 2,
+          "row": 12
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "workshop-basic": {
       "interactions": {
         "checkpoint": {
@@ -3994,6 +4149,33 @@
       ],
       "swing": 0.02
     },
+    "ice-slide-moonwalk": {
+      "bassPattern": [
+        0,
+        4,
+        1,
+        3
+      ],
+      "leadPattern": [
+        4,
+        2,
+        0,
+        3,
+        1,
+        4,
+        2,
+        0
+      ],
+      "rootMidi": 61,
+      "scale": [
+        0,
+        2,
+        3,
+        7,
+        10
+      ],
+      "swing": 0.24
+    },
     "inferno-flamenco-finale": {
       "bassPattern": [
         0,
@@ -4463,6 +4645,40 @@
           1,
           0.46,
           0.78
+        ]
+      ]
+    },
+    "cold-storage-32": {
+      "floor": [
+        0.9,
+        0.98,
+        1
+      ],
+      "sky": [
+        0.7,
+        0.86,
+        1
+      ],
+      "walls": [
+        [
+          0.1,
+          0.34,
+          0.94
+        ],
+        [
+          0.12,
+          0.86,
+          0.96
+        ],
+        [
+          0.88,
+          0.22,
+          0.94
+        ],
+        [
+          0.66,
+          0.92,
+          0.18
         ]
       ]
     },

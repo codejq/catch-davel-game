@@ -1,0 +1,565 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "8ec9c1d860e5c587",
+          "policyOrReplay": "33ce82519e6acf00",
+          "simulationLevel": "69859c228e2e161c",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 16000,
+        "mode": "live-agent",
+        "parTicks": 12500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-slippery-smiles"
+        ],
+        "seed": "campaign-level-032-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-cold-storage-032"
+  },
+  "briefingKey": "levels.032.briefing",
+  "chapterId": "chapter-04",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-032"
+    }
+  ],
+  "dance": {
+    "armPatternId": "ice-slide-moonwalk-arms-v1",
+    "attackBeats": [
+      2,
+      6,
+      10,
+      14
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 122,
+    "footPatternId": "ice-slide-moonwalk-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "ice-slide-moonwalk-head-v1",
+    "pathPatternId": "ice-slide-moonwalk-path-v1",
+    "presetId": "ice-slide-moonwalk",
+    "reducedMotionPresetId": "ice-slide-moonwalk-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "ice-slide-moonwalk-torso-v1",
+    "transitionIds": [
+      "crossfire-grins",
+      "moonwalk-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.96,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-04-032"
+  },
+  "economy": {
+    "presetId": "economy-chapter-04-032"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "slippery-smiles-squad",
+      "rewardId": "chapter-04-clear-032",
+      "roomNodeId": "smile-rink",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "slider-salute",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "salute-sliders",
+              "modifierIds": [
+                "crossfire-skates"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-1.sliders",
+              "spawnPointSetId": "level-032-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "salute-heckler",
+              "modifierIds": [
+                "slippery-smile"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-1.heckler",
+              "spawnPointSetId": "level-032-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "crossfire-grins",
+          "id": "crossfire-grins",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "crossfire-firemouth",
+              "modifierIds": [
+                "ricochet-grin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-2.firemouth",
+              "spawnPointSetId": "level-032-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "crossfire-spinners",
+              "modifierIds": [
+                "range-spotter"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-2.spinners",
+              "spawnPointSetId": "level-032-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "crossfire-heckler",
+              "modifierIds": [
+                "slippery-smile"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-2.heckler",
+              "spawnPointSetId": "level-032-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 16
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "moonwalk-encore",
+          "id": "moonwalk-encore",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "encore-dj",
+              "modifierIds": [
+                "moonwalk-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-3.dj",
+              "spawnPointSetId": "level-032-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "encore-foreman",
+              "modifierIds": [
+                "cold-crossfire-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-3.foreman",
+              "spawnPointSetId": "level-032-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-32",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "ice-slide-moonwalk",
+              "id": "encore-heckler",
+              "modifierIds": [
+                "moonwalk-mime"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-32",
+              "rngStream": "encounter.level-032.wave-3.heckler",
+              "spawnPointSetId": "level-032-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 14
+        }
+      ]
+    }
+  ],
+  "id": "level-032",
+  "mastery": [
+    {
+      "presetId": "level-032-par-time"
+    },
+    {
+      "presetId": "level-032-no-crossfire-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "loading-entry",
+        "id": "entry-rack",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "skate-rack",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "skate-rack",
+        "id": "rack-chute",
+        "requiredKeyId": "skate-key",
+        "stateTrigger": "key-collected",
+        "to": "crossfire-chute",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "crossfire-chute",
+        "id": "chute-rink",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "smile-rink",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "smile-rink",
+        "id": "rink-moonwalk",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "moonwalk-lane",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "moonwalk-lane",
+        "id": "moonwalk-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "rink-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "rink-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "smile-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "skate-rack",
+        "id": "rack-booth",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "warming-booth",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "warming-booth",
+        "id": "booth-rink",
+        "requiredKeyId": "skate-key",
+        "stateTrigger": "key-collected",
+        "to": "smile-rink",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "loading-entry",
+    "exitNodeId": "smile-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "slippery-smiles-ice-south-v1",
+        "id": "chute-ice-south",
+        "nodeId": "crossfire-chute",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "slippery-smiles-ice-east-v1",
+        "id": "rink-ice-east",
+        "nodeId": "smile-rink",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "slippery-smiles-ice-west-v1",
+        "id": "rink-ice-west",
+        "nodeId": "smile-rink",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "slippery-smiles-ice-north-v1",
+        "id": "moonwalk-ice-north",
+        "nodeId": "moonwalk-lane",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "skate-key",
+        "placementNodeId": "skate-rack"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "loading-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "loading-airlock"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "skate-rack",
+        "pickupIds": [
+          "skate-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "slider-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "crossfire-chute",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "crossfire-ice"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "slippery-smiles-squad"
+        ],
+        "id": "smile-rink",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "mobile-ranged-arena"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "warming-booth",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "optional-warmth"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "moonwalk-lane",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "moonwalk-ice"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-032",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "rink-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "smile-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "cold-storage-slippery-smiles",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.032.name",
+  "number": 32,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-slippery-smiles",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "slider-salute",
+        "crossfire-grins",
+        "moonwalk-encore"
+      ],
+      "titleKey": "objectives.level_032",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "cold-storage-32"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-032-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-032-v1",
+  "tags": [
+    "chapter-04",
+    "cold-storage",
+    "mobile-ranged-squads",
+    "crossfire-ice",
+    "ice-slide-moonwalk"
+  ]
+}

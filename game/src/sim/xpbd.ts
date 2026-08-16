@@ -332,6 +332,19 @@ function targets(
     leftFootY += brake * 0.065; rightFootY += glide * 0.065;
     leftHand = [-0.94 - brake * 0.18, 1.5 + chatter * 0.18, 0.3];
     rightHand = [0.94 + glide * 0.18, 1.22 - chatter * 0.18, 0.36];
+  } else if (performance.motif === 'ice-slide-moonwalk') {
+    const moon = Math.sin(performanceTime * Math.PI * 2);
+    const toe = Math.sin(performanceTime * Math.PI * 4 + Math.PI * 0.5);
+    const glide = Math.max(0, moon); const retreat = Math.max(0, -moon);
+    bounce += (Math.abs(toe) * 0.035 + glide * 0.025) * intensity;
+    hipX = (alternate * 0.46 + toe * 0.06) * intensity;
+    chestX = (-alternate * 0.5 - toe * 0.04) * intensity;
+    chestZ = retreat * 0.24 - glide * 0.12; headX += alternate * 0.34; headZ = -toe * 0.08;
+    leftFootX = -0.42 - retreat * 0.22; rightFootX = 0.42 + glide * 0.22;
+    leftFootZ = glide * 0.24 - retreat * 0.72; rightFootZ = retreat * 0.24 - glide * 0.72;
+    leftFootY += Math.max(0, toe) * 0.08; rightFootY += Math.max(0, -toe) * 0.08;
+    leftHand = [-1.06 - retreat * 0.2, 1.1 + glide * 0.68, 0.42];
+    rightHand = [1.06 + glide * 0.2, 1.72 - retreat * 0.5, 0.18];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
