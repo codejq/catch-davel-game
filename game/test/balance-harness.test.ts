@@ -5,7 +5,7 @@ const report = createCampaignBalanceReport();
 
 describe('playable campaign robot-wave and coin-economy balance harness', () => {
   it('reconciles every runtime roster, objective target, and peak budget', () => {
-    expect(report.levels).toHaveLength(28);
+    expect(report.levels).toHaveLength(29);
     for (const level of report.levels) {
       expect(level.objectiveTargetCount, level.levelId).toBe(level.waves.reduce((sum, wave) => sum + wave.robotCount, 0));
       expect(level.declaredPeakRobots, level.levelId).toBe(level.actualPeakRobots);

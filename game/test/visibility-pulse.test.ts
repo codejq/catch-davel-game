@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  GREEN_STEAM_VISIBILITY_PERIOD_TICKS, visibilityPulseFog,
+  FEVER_TUNNELS_VISIBILITY_PERIOD_TICKS, GREEN_STEAM_VISIBILITY_PERIOD_TICKS, visibilityPulseFog,
 } from '../src/render/visibility-pulse';
 
 describe('Green Steam visibility pulse', () => {
@@ -17,5 +17,15 @@ describe('Green Steam visibility pulse', () => {
   it('becomes a stable mild haze when flash intensity is zero', () => {
     expect(visibilityPulseFog('level-022', 0, 0)).toEqual(visibilityPulseFog('level-022', 90, 0));
     expect(visibilityPulseFog('level-022', 90, 0).greenMix).toBeGreaterThan(0);
+  });
+
+  it('gives Fever Tunnels a faster, stronger but still periodic presentation pulse', () => {
+    const start = visibilityPulseFog('level-029', -25);
+    const dense = visibilityPulseFog('level-029', 50);
+    expect(dense.near).toBeLessThan(start.near);
+    expect(dense.far).toBeLessThan(start.far);
+    expect(dense.greenMix).toBeGreaterThan(start.greenMix);
+    expect(visibilityPulseFog('level-029', FEVER_TUNNELS_VISIBILITY_PERIOD_TICKS - 25)).toEqual(start);
+    expect(dense.greenMix).toBeGreaterThan(visibilityPulseFog('level-022', 90).greenMix);
   });
 });

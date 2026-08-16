@@ -294,6 +294,20 @@ function targets(
     rightFootY += cha * 0.18 + Math.max(0, -triple) * 0.1;
     leftHand = [-0.88 - cha * 0.2, 1.14 + lock * 0.58, 0.34];
     rightHand = [0.88 + lock * 0.2, 1.72 - cha * 0.42, 0.18];
+  } else if (performance.motif === 'feverish-salsa') {
+    const flare = Math.max(0, beat); const shiver = Math.max(0, -beat);
+    const fever = Math.sin(performanceTime * Math.PI * 8);
+    bounce += (flare * 0.1 + Math.abs(fever) * 0.045) * intensity;
+    hipX = (alternate * 0.38 + fever * 0.12) * intensity;
+    chestX = (-alternate * 0.44 - fever * 0.08) * intensity;
+    chestZ = flare * 0.2 - shiver * 0.14; headX += alternate * 0.32; headZ = fever * 0.1;
+    leftFootX = -0.4 - Math.max(0, fever) * 0.2; rightFootX = 0.4 + Math.max(0, -fever) * 0.2;
+    leftFootZ = shiver * 0.42 + Math.max(0, fever) * 0.26;
+    rightFootZ = flare * 0.5 + Math.max(0, -fever) * 0.26;
+    leftFootY += shiver * 0.18 + Math.max(0, fever) * 0.12;
+    rightFootY += flare * 0.22 + Math.max(0, -fever) * 0.12;
+    leftHand = [-1.02 - flare * 0.18, 1.2 + shiver * 0.62, 0.38];
+    rightHand = [1.02 + shiver * 0.18, 1.84 - flare * 0.5, 0.22];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

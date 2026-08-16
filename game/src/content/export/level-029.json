@@ -1,0 +1,565 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "4267114f68ace5b8",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "042561dfffe467b1",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 16000,
+        "mode": "live-agent",
+        "parTicks": 12500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-fever-tunnels"
+        ],
+        "seed": "campaign-level-029-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-029"
+  },
+  "briefingKey": "levels.029.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-029"
+    }
+  ],
+  "dance": {
+    "armPatternId": "feverish-salsa-arms-v1",
+    "attackBeats": [
+      1,
+      4,
+      9,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 158,
+    "footPatternId": "feverish-salsa-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "feverish-salsa-head-v1",
+    "pathPatternId": "feverish-salsa-path-v1",
+    "presetId": "feverish-salsa",
+    "reducedMotionPresetId": "feverish-salsa-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "feverish-salsa-torso-v1",
+    "transitionIds": [
+      "toxic-cross-step",
+      "boiling-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-029"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-029"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "fever-tunnel-company",
+      "rewardId": "chapter-03-clear-029",
+      "roomNodeId": "fever-floor",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "fever-warmup",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "feverish-salsa",
+              "id": "warmup-wobblers",
+              "modifierIds": [
+                "fever-grin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-1.wobblers",
+              "spawnPointSetId": "level-029-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "warmup-spinner",
+              "modifierIds": [
+                "thermometer-spin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-1.spinner",
+              "spawnPointSetId": "level-029-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "toxic-cross-step",
+          "id": "toxic-cross-step",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "feverish-salsa",
+              "id": "cross-step-sliders",
+              "modifierIds": [
+                "poison-skates"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-2.sliders",
+              "spawnPointSetId": "level-029-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "cross-step-firemouth",
+              "modifierIds": [
+                "fever-flare"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-2.firemouth",
+              "spawnPointSetId": "level-029-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 16
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "boiling-encore",
+          "id": "boiling-encore",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "encore-dj",
+              "modifierIds": [
+                "fever-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-3.dj",
+              "spawnPointSetId": "level-029-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "encore-foreman",
+              "modifierIds": [
+                "boiling-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-3.foreman",
+              "spawnPointSetId": "level-029-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "encore-spinner",
+              "modifierIds": [
+                "toxic-pinwheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-3.spinner",
+              "spawnPointSetId": "level-029-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-29",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "feverish-salsa",
+              "id": "encore-wobbler",
+              "modifierIds": [
+                "sickly-smile"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-29",
+              "rngStream": "encounter.level-029.wave-3.wobbler",
+              "spawnPointSetId": "level-029-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 14
+        }
+      ]
+    }
+  ],
+  "id": "level-029",
+  "mastery": [
+    {
+      "presetId": "level-029-par-time"
+    },
+    {
+      "presetId": "level-029-no-fever-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "fever-entry",
+        "id": "entry-locker",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "filter-locker",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "filter-locker",
+        "id": "locker-flame",
+        "requiredKeyId": "fever-filter-key",
+        "stateTrigger": "key-collected",
+        "to": "west-flame-throat",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "west-flame-throat",
+        "id": "flame-crossflow",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "poison-crossflow",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "poison-crossflow",
+        "id": "crossflow-floor",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "fever-floor",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "fever-floor",
+        "id": "floor-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "fever-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "fever-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "antidote-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "poison-crossflow",
+        "id": "crossflow-cache",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "antidote-cache",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "antidote-cache",
+        "id": "cache-floor",
+        "requiredKeyId": "fever-filter-key",
+        "stateTrigger": "key-collected",
+        "to": "fever-floor",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "fever-entry",
+    "exitNodeId": "antidote-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 72,
+        "collisionProfileId": "fever-flame-west-v1",
+        "id": "fever-flame-west",
+        "nodeId": "west-flame-throat",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 72,
+        "collisionProfileId": "fever-flame-east-v1",
+        "id": "fever-flame-east",
+        "nodeId": "poison-crossflow",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 168,
+        "collisionProfileId": "fever-poison-north-v1",
+        "id": "fever-poison-north",
+        "nodeId": "poison-crossflow",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 168,
+        "collisionProfileId": "fever-poison-south-v1",
+        "id": "fever-poison-south",
+        "nodeId": "fever-floor",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "fever-filter-key",
+        "placementNodeId": "filter-locker"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "fever-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "fever-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "filter-locker",
+        "pickupIds": [
+          "fever-filter-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "filter-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "west-flame-throat",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "flame-shutter"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "poison-crossflow",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "poison-conveyor"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "fever-tunnel-company"
+        ],
+        "id": "fever-floor",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "fire-poison-mix"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "antidote-cache",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-antidote"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-029",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "fever-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "antidote-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-fever-tunnels",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.029.name",
+  "number": 29,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-fever-tunnels",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "fever-warmup",
+        "toxic-cross-step",
+        "boiling-encore"
+      ],
+      "titleKey": "objectives.level_029",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-29"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-029-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-029-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "fire-poison-remix",
+    "fever-tunnels",
+    "feverish-salsa"
+  ]
+}

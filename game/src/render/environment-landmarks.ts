@@ -49,7 +49,8 @@ export type LandmarkMotif =
   | 'crimson-duel'
   | 'bomb-chandeliers'
   | 'drain-risers'
-  | 'triple-key-totems';
+  | 'triple-key-totems'
+  | 'fever-thermometers';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -80,6 +81,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-026': 'bomb-chandeliers',
   'level-027': 'drain-risers',
   'level-028': 'triple-key-totems',
+  'level-029': 'fever-thermometers',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -341,6 +343,14 @@ function motifBoxes(
         box(anchorX - 0.58, y + 1.48, anchorZ, 0.56, 0.28, 0.18, accent, 0.92),
         box(anchorX + shift, y + 2.08, anchorZ, 0.56, 0.28, 0.18, primary, 0.96),
         box(anchorX + 0.58, y + 1.48, anchorZ, 0.56, 0.28, 0.18, accent, 0.92),
+      ];
+    case 'fever-thermometers':
+      return [
+        box(anchorX - 0.46, y + 0.82, anchorZ, 0.22, 1.64, 0.22, primary, 0.72),
+        box(anchorX + 0.46, y + 0.82, anchorZ, 0.22, 1.64, 0.22, accent, 0.78),
+        box(anchorX - 0.46, y + 0.18, anchorZ, 0.48, 0.48, 0.28, accent, 0.9),
+        box(anchorX + 0.46 + shift, y + 0.18, anchorZ, 0.48, 0.48, 0.28, primary, 0.92),
+        box(anchorX, y + 1.72, anchorZ, 1.42, 0.16, 0.18, accent, 0.96),
       ];
   }
 }
