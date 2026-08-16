@@ -25,6 +25,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Versioned replay recording/playback with compressed contiguous commands, initial/60-tick/final checksums, and simulation/level/balance/policy dependency hashes.
 - Versioned IndexedDB profiles with human-readable JSON, integrity checking, alternating verified records, active-pointer switching, and previous-record recovery.
 - Agent sessions are replay-marked and isolated from human campaign persistence.
+- A player-facing Chapter 1 campaign map lists all ten named missions, current/locked/cleared states, and durable best-tick records. `M` pauses and resumes the authoritative Worker around the map; victory clears the checkpoint, records the best run, unlocks the next mission, and opens the refreshed map.
 - Fixed 9,584-byte self-contained `RenderSnapshot` v7 with campaign-level identity and capacity for 24 Davels/bosses, 64 typed hostile projectiles, 64 hazards, 16 player bombs, complete combat/tempo/boss/laser/wave state, transport epoch/high-watermark metadata, and a renderer-facing model decoupled from mutable authority.
 - Bounded three-buffer snapshot ownership with tested `producerOwned >= 1`, `inFlight <= 2`, coalescing, newest-state delivery, and independent consumer copies.
 - The live main-thread renderer consumes only decoded immutable Worker snapshots; no authoritative `GameSimulation` runs in the browser entry point.
@@ -43,13 +44,14 @@ Implementation is active. Missing physical devices do not block development; the
 ## Verification evidence
 
 - Production build: passed.
-- Automated tests: 18 files, 66 tests passed, including deterministic Standard completion of all ten Chapter 1 IDs twice each, nine distinct same-Davel motion signatures, Level 6 conveyor phase checks, Level 9 wave/save/restore and multi-defeat checks, and boss-training wave isolation.
+- Automated tests: 18 files, 67 tests passed, including deterministic Standard completion of all ten Chapter 1 IDs twice each, nine distinct same-Davel motion signatures, durable sequential unlock/best-time progression, Level 6 conveyor phase checks, Level 9 wave/save/restore and multi-defeat checks, and boss-training wave isolation.
 - Long robot route check: 3,600 fixed ticks per test run with no wall entry.
 - Browser WebGL check: 1280×720 Chrome run with no page or console errors.
 - Browser agent check: a 30-tick command advanced exactly from tick 0 to tick 30 and remained paused at tick 30 during a 250 ms model-think interval.
 - Browser replay check: two command runs advanced to tick 30, saved and verified, survived reset to another seed, restored the identical checksum, and remained paused at tick 30.
 - Browser persistence check: IndexedDB advanced atomically from slot `a` revision 1 to slot `b` revision 2 across reload; a subsequent 240-tick agent session did not change the human revision.
 - Production API check: the default built artifact loaded with profile storage ready and did not expose `window.CatchDavelAgent`.
+- Campaign browser check: a fresh production profile rendered ten map cards with only Level 1 unlocked; opening the map held the Worker at tick 26 for 250 ms, and closing it resumed to tick 42.
 - Worker determinism/stall check: a 240-tick browser Worker run matched the direct checksum, retained two in-flight/one producer-owned buffer, coalesced 239 snapshots under a deliberate consumer stall, and delivered tick 240 when capacity returned.
 - Autonomous-clock check: while the main browser thread was deliberately blocked for 300 ms, the simulation Worker advanced 18 fixed ticks, coalesced 17 snapshots, and delivered its newest tick 259 after recovery.
 - Live-runtime check: realtime advanced during its 300 ms windows, the agent reset and stepped exactly to tick 30, replay reload restored checksum `d2d1d9128fbb398f`, manual mode stayed paused during a 250 ms think interval, the human IndexedDB profile did not change, and releasing control resumed realtime ticking.

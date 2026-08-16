@@ -4,6 +4,8 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #game { display: block; width: 100%; height: 100%; background: linear-gradient(#55ddff 0 58%, #ffd66b 58%); }
 #hud { position: fixed; inset: 0; pointer-events: none; text-shadow: 0 2px 2px #17335c99; }
 #brand { position: absolute; top: 18px; left: 22px; color: #14284e; font-size: 13px; font-weight: 900; letter-spacing: .18em; text-shadow: none; }
+#campaign-button { position: absolute; top: 16px; left: 338px; padding: 7px 10px; border: 2px solid #14284e; border-radius: 7px; background: #eefdffdb; color: #14284e; font: inherit; font-size: 11px; font-weight: 950; letter-spacing: .1em; pointer-events: auto; cursor: pointer; }
+#level-name { position: absolute; top: 84px; left: 22px; color: #14284e; font-size: 11px; font-weight: 950; letter-spacing: .12em; text-shadow: 0 1px #fff9; }
 #objective { position: absolute; top: 42px; left: 22px; padding: 8px 12px; border-radius: 8px; background: #14284ed9; font-weight: 750; }
 #stats { position: absolute; top: 18px; right: 22px; display: flex; gap: 8px; }
 #stats span { padding: 8px 11px; border: 2px solid #fff8; border-radius: 8px; background: #14284ee6; font-size: 12px; font-weight: 800; letter-spacing: .08em; }
@@ -17,6 +19,24 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #shop button:hover:not(:disabled) { background: #315b9b; translate: 2px 0; }
 #shop button:disabled { opacity: .48; cursor: default; }
 #shop small { color: #9feeff; }
+#campaign-map { display: none; position: absolute; left: 50%; top: 50%; width: min(850px, calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow: auto; translate: -50% -50%; padding: 22px; border: 3px solid #c6fbff; border-radius: 18px; background: linear-gradient(150deg, #0d1836f7, #17366af5); pointer-events: auto; box-shadow: 0 22px 80px #071126b8, inset 0 0 42px #42e8ff18; }
+#campaign-map.open { display: block; }
+#campaign-map header { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+#campaign-map h2, #campaign-map p { margin: 0 0 10px; }
+#campaign-map h2 { color: #72f4ff; letter-spacing: .11em; }
+#campaign-map header small { color: #ffe56c; font-weight: 950; letter-spacing: .16em; }
+#campaign-close { padding: 8px 12px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
+#campaign-levels { display: grid; grid-template-columns: repeat(5, minmax(120px, 1fr)); gap: 10px; margin: 18px 0 14px; }
+.level-card { min-height: 112px; padding: 12px; border: 2px solid #5cddea; border-radius: 12px; background: #1b315de8; color: #fff; text-align: left; font: inherit; cursor: pointer; transition: translate .12s, background .12s; }
+.level-card:hover:not(:disabled) { translate: 0 -3px; background: #28528c; }
+.level-card.active { border-color: #ffe56c; box-shadow: 0 0 18px #ffe56c55; }
+.level-card.completed { background: linear-gradient(145deg, #176358, #1b315d); }
+.level-card:disabled { border-color: #55617c; color: #7f8da8; background: #121c33; cursor: not-allowed; }
+.level-card b, .level-card span, .level-card small { display: block; }
+.level-card b { color: #ffe56c; font-size: 12px; letter-spacing: .1em; }
+.level-card span { min-height: 36px; margin: 5px 0; font-weight: 900; }
+.level-card small { color: #a9edff; }
+@media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #level-name { top: 142px; } }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; translate: -50% -50%; }
 #crosshair::before, #crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 4px #14284e; }
 #crosshair::before { left: 8px; width: 2px; height: 18px; }

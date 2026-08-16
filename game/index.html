@@ -11,6 +11,8 @@
     <canvas id="game" aria-label="Catch Davel first-person game"></canvas>
     <div id="hud">
       <div id="brand">QUANTUM BILLING // CATCH DAVEL</div>
+      <button id="campaign-button" type="button">M · LEVELS</button>
+      <div id="level-name">LEVEL 01 · WOBBLE WORKSHOP</div>
       <div id="objective">Find and deactivate the dancing Davels · <b id="remaining">6 remain</b></div>
       <div id="stats"><span>HEALTH <b id="health">100</b></span><span>ENERGY <b id="energy">100</b></span><span>COINS <b id="coins">0</b></span></div>
       <div id="weapon-status">PULSE</div>
@@ -24,9 +26,18 @@
         <button data-upgrade="laserCooling"></button>
         <small>Press U to close</small>
       </section>
+      <section id="campaign-map" aria-label="Chapter 1 campaign map" aria-hidden="true">
+        <header>
+          <div><small>CHAPTER 1</small><h2>THE NEON WORKSHOP</h2></div>
+          <button id="campaign-close" type="button">CLOSE</button>
+        </header>
+        <p>Hunt the dancing Davels, bank coins, and unlock the route to Chief Wobble.</p>
+        <div id="campaign-levels"></div>
+        <small>Completed levels stay replayable. Locked levels open in order.</small>
+      </section>
       <div id="crosshair" aria-hidden="true"></div>
       <div id="combat-message" aria-live="polite"></div>
-      <div id="prompt">CLICK TO ENTER THE MAZE<br><small>WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · Esc release</small></div>
+      <div id="prompt">CLICK TO ENTER THE MAZE<br><small>WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · M levels · Esc release</small></div>
       <div id="weapon" aria-hidden="true"><i></i><b></b></div>
     </div>
     <script type="module" src="/src/main.ts"></script>

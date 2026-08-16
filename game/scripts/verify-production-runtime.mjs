@@ -48,10 +48,29 @@ try {
     rendererMode: document.body.dataset.rendererMode,
     workerStatus: document.body.dataset.workerStatus,
     profileReady: document.body.dataset.profileReady,
+    campaignCards: document.querySelectorAll('#campaign-levels .level-card').length,
+    campaignUnlockedCards: document.querySelectorAll('#campaign-levels .level-card:not(:disabled)').length,
+    campaignButtonVisible: !document.querySelector('#campaign-button')?.hidden,
   }), startTick);
   if (result.agentApiExposed) throw new Error('Default production build exposed the mutation-capable agent API');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
+  if (result.campaignCards !== 10 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+    throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
+  }
+  await page.click('#campaign-button');
+  await page.waitForFunction(() => document.querySelector('#campaign-map')?.classList.contains('open') === true);
+  await page.waitForTimeout(80);
+  const pausedStartTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.waitForTimeout(250);
+  const pausedEndTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.click('#campaign-close');
+  await page.waitForTimeout(250);
+  const resumedAfterMapTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  const campaignFlow = { pausedStartTick, pausedEndTick, resumedAfterMapTick };
+  if (pausedEndTick !== pausedStartTick || resumedAfterMapTick <= pausedEndTick) {
+    throw new Error(`Campaign map did not pause and resume the authoritative Worker clock: ${JSON.stringify(campaignFlow)}`);
+  }
   if (errors.length > 0) throw new Error(`Production browser errors: ${errors.join('; ')}`);
 
   const fallbackPage = await browser.newPage();
@@ -93,7 +112,7 @@ try {
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, browserErrors: errors,
+    passed: true, ...result, campaignFlow, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
   }, null, 2));

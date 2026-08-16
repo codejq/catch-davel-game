@@ -4,7 +4,7 @@ import type { RenderGameState } from '../render/render-model';
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createBrowserProfileRepository } from '../storage/indexeddb';
-import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV1 } from '../storage/profile';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
 import {
@@ -14,6 +14,10 @@ import {
 import { purchaseWeaponUpgrade, weaponUpgradeCost, WEAPON_UPGRADE_CATALOG } from '../storage/economy';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
+import {
+  completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
+} from '../campaign/progression';
+import { chapter01LevelTitle } from '../campaign/catalog';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -51,6 +55,11 @@ export async function startBrowserGame(): Promise<void> {
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
   const shop = requireElement<HTMLElement>('#shop');
   const shopCoins = requireElement<HTMLElement>('#shop-coins');
+  const campaignButton = requireElement<HTMLButtonElement>('#campaign-button');
+  const campaignMap = requireElement<HTMLElement>('#campaign-map');
+  const campaignClose = requireElement<HTMLButtonElement>('#campaign-close');
+  const campaignLevels = requireElement<HTMLElement>('#campaign-levels');
+  const levelName = requireElement<HTMLElement>('#level-name');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
   document.body.dataset.encounter = bossTraining ? 'boss-training' : 'campaign';
   const profileRepository = createBrowserProfileRepository();
@@ -70,6 +79,7 @@ export async function startBrowserGame(): Promise<void> {
     activeLevel = chapter01Level(activeLevelId);
   }
   document.body.dataset.levelId = activeLevelId;
+  levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${chapter01LevelTitle(activeLevelId).toUpperCase()}`;
   let renderState: RenderGameState | null = null;
   let messageTimeout = 0;
   let audioContext: AudioContext | null = null;
@@ -77,14 +87,27 @@ export async function startBrowserGame(): Promise<void> {
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
 
-  const updateLevelProgress = (profile: ProfileV1, update: (progress: LevelProgressV1) => LevelProgressV1): readonly LevelProgressV1[] => (
-    profile.levelProgress.some((progress) => progress.levelId === activeLevelId)
-      ? profile.levelProgress.map((progress) => progress.levelId === activeLevelId ? update(progress) : progress)
-      : [...profile.levelProgress, update({
-        levelId: activeLevelId, completed: false, medals: [], bestTicks: null, bestReplayId: null,
-        attempts: 0, defeats: 0, robotsDefeated: 0,
-      })]
-  );
+  const renderCampaignMap = (): void => {
+    campaignLevels.replaceChildren(...CHAPTER_01_LEVEL_IDS.map((levelId, index) => {
+      const button = document.createElement('button');
+      const progress = activeProfile.levelProgress.find((entry) => entry.levelId === levelId);
+      const unlocked = activeProfile.unlockedLevelIds.includes(levelId);
+      button.type = 'button';
+      button.className = `level-card${levelId === activeLevelId ? ' active' : ''}${progress?.completed ? ' completed' : ''}`;
+      button.dataset.levelId = levelId;
+      button.disabled = !unlocked;
+      const number = document.createElement('b');
+      number.textContent = `LEVEL ${String(index + 1).padStart(2, '0')}`;
+      const title = document.createElement('span');
+      title.textContent = chapter01LevelTitle(levelId);
+      const status = document.createElement('small');
+      status.textContent = !unlocked ? 'LOCKED' : progress?.completed
+        ? `CLEARED · BEST ${progress.bestTicks ?? '—'} TICKS` : levelId === activeLevelId ? 'CURRENT MISSION' : 'READY';
+      button.append(number, title, status);
+      return button;
+    }));
+  };
+  renderCampaignMap();
 
   const persistProfile = (profile: ProfileV1): void => {
     activeProfile = profile;
@@ -98,10 +121,7 @@ export async function startBrowserGame(): Promise<void> {
     if (humanSessionStarted || agentController?.isAgentControlled()) return;
     humanSessionStarted = true;
     shop.classList.remove('open');
-    persistProfile(updateProfile(activeProfile, {
-      lastCleanShutdown: false,
-      levelProgress: updateLevelProgress(activeProfile, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
-    }));
+    persistProfile(recordCampaignAttempt(activeProfile, activeLevelId));
   };
 
   const sound = (frequency: number, duration: number, volume: number, wave: OscillatorType): void => {
@@ -209,34 +229,26 @@ export async function startBrowserGame(): Promise<void> {
         persistProfile(updateProfile(activeProfile, {
           totalCoins: activeProfile.totalCoins + reward,
           spendableCoins: renderState.player.coins,
-          levelProgress: updateLevelProgress(activeProfile, (progress) => ({ ...progress, robotsDefeated: progress.robotsDefeated + 1 })),
+          levelProgress: recordCampaignRobotDefeat(activeProfile, activeLevelId).levelProgress,
         }));
       }
     }
     if (event.type === 'victory') {
       showMessage('MAZE STABILIZED!');
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
-        const currentIndex = CHAPTER_01_LEVEL_IDS.indexOf(activeLevelId);
-        const nextLevelId = CHAPTER_01_LEVEL_IDS[currentIndex + 1];
-        const unlocked = nextLevelId === undefined || activeProfile.unlockedLevelIds.includes(nextLevelId)
-          ? activeProfile.unlockedLevelIds : [...activeProfile.unlockedLevelIds, nextLevelId];
-        persistProfile(updateProfile(activeProfile, {
-          unlockedLevelIds: unlocked,
-          campaignCheckpoint: null,
-          levelProgress: updateLevelProgress(activeProfile, (progress) => ({
-            ...progress,
-            completed: true,
-            bestTicks: progress.bestTicks === null ? renderState!.tick : Math.min(progress.bestTicks, renderState!.tick),
-          })),
-        }));
+        persistProfile(completeCampaignLevel(activeProfile, activeLevelId, renderState.tick));
+        renderCampaignMap();
+        window.setTimeout(() => {
+          campaignMap.classList.add('open');
+          campaignMap.setAttribute('aria-hidden', 'false');
+          document.exitPointerLock();
+        }, 700);
       }
     }
     if (event.type === 'defeat') {
       showMessage('SYSTEM DOWN — DAVELS WIN');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
-        persistProfile(updateProfile(activeProfile, {
-          levelProgress: updateLevelProgress(activeProfile, (progress) => ({ ...progress, defeats: progress.defeats + 1 })),
-        }));
+        persistProfile(recordCampaignDefeat(activeProfile, activeLevelId));
       }
     }
   };
@@ -286,6 +298,37 @@ export async function startBrowserGame(): Promise<void> {
   if (import.meta.env.DEV || import.meta.env.VITE_AGENT_API === '1') agentController.install();
   document.body.dataset.workerStatus = 'ready';
 
+  let resumeAfterCampaignMap = false;
+  const setCampaignMapOpen = (open: boolean): void => {
+    campaignMap.classList.toggle('open', open);
+    campaignMap.setAttribute('aria-hidden', String(!open));
+    if (open) {
+      resumeAfterCampaignMap = !renderState?.victory && !renderState?.defeat;
+      shop.classList.remove('open');
+      document.exitPointerLock();
+      void client.setMode('manual');
+    } else if (resumeAfterCampaignMap && !renderState?.victory && !renderState?.defeat) {
+      resumeAfterCampaignMap = false;
+      void client.setMode('realtime');
+    }
+  };
+  campaignButton.hidden = trainingMode;
+  campaignMap.hidden = trainingMode;
+  campaignButton.addEventListener('click', () => setCampaignMapOpen(!campaignMap.classList.contains('open')));
+  campaignClose.addEventListener('click', () => setCampaignMapOpen(false));
+  campaignLevels.addEventListener('click', (event) => {
+    const button = (event.target as Element).closest<HTMLButtonElement>('button[data-level-id]');
+    const levelId = button?.dataset.levelId;
+    if (button === null || button.disabled || levelId === undefined || !isChapter01LevelId(levelId)) return;
+    if (levelId === activeLevelId) {
+      setCampaignMapOpen(false);
+      return;
+    }
+    const nextParameters = new URLSearchParams(location.search);
+    nextParameters.set('level', levelId);
+    location.search = nextParameters.toString();
+  });
+
   const renderShop = (): void => {
     const levels = normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades);
     shopCoins.textContent = String(activeProfile.spendableCoins);
@@ -332,6 +375,11 @@ export async function startBrowserGame(): Promise<void> {
   let queuedWeapon: WeaponId | null = null;
 
   window.addEventListener('keydown', (event: KeyboardEvent) => {
+    if (event.code === 'KeyM' && !trainingMode && !agentController.isAgentControlled()) {
+      event.preventDefault();
+      setCampaignMapOpen(!campaignMap.classList.contains('open'));
+      return;
+    }
     if (event.code === 'KeyU' && !trainingMode && !humanSessionStarted && !agentController.isAgentControlled()) {
       event.preventDefault();
       shop.classList.toggle('open');

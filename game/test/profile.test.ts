@@ -4,6 +4,9 @@ import { createSimulationSnapshot } from '../src/sim/serialization';
 import { createDefaultProfile, parseProfile, serializeProfile, updateProfile, validateProfile } from '../src/storage/profile';
 import { MemoryKeyValueStore, ProfileRepository, profileStorageKeys } from '../src/storage/repository';
 import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../src/storage/economy';
+import {
+  completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
+} from '../src/campaign/progression';
 
 describe('versioned profile persistence', () => {
   it('exports human-readable canonical JSON with a verified checkpoint and integrity checksum', () => {
@@ -60,5 +63,20 @@ describe('versioned profile persistence', () => {
     expect(() => purchaseWeaponUpgrade(updateProfile(upgraded, {
       spendableCoins: 0, weaponUpgrades: { ...upgraded.weaponUpgrades, pulseDamage: 3 },
     }), 'pulseDamage')).toThrow(/cannot be upgraded/);
+  });
+
+  it('records attempts, defeats, robot totals, best times, and sequential unlocks', () => {
+    let profile = createDefaultProfile('campaign-proof');
+    profile = recordCampaignAttempt(profile, 'level-001');
+    profile = recordCampaignRobotDefeat(profile, 'level-001');
+    profile = recordCampaignDefeat(profile, 'level-001');
+    profile = completeCampaignLevel(profile, 'level-001', 5_000);
+    profile = completeCampaignLevel(profile, 'level-001', 5_400);
+    profile = completeCampaignLevel(profile, 'level-001', 4_700);
+    expect(profile.unlockedLevelIds).toEqual(['level-001', 'level-002']);
+    expect(profile.levelProgress[0]).toEqual(expect.objectContaining({
+      levelId: 'level-001', completed: true, attempts: 1, defeats: 1, robotsDefeated: 1, bestTicks: 4_700,
+    }));
+    expect(() => completeCampaignLevel(profile, 'level-002', 0)).toThrow(/positive/);
   });
 });
