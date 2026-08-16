@@ -29,6 +29,7 @@ interface BrowserSummary {
   readonly drawCalls: { readonly maximum: number };
   readonly instances: { readonly maximum: number };
   readonly determinism?: { readonly matches: boolean; readonly workerChecksum: string };
+  readonly transportStalls?: readonly { readonly simulationContinued: boolean }[];
   readonly errors: number;
 }
 
@@ -109,6 +110,7 @@ This report is evidence from the current development environment only. It cannot
 | Raw WebGL2 CPU submission p95 | ${fixed(browser.summary.renderCpuMs.p95)} ms | GPU/frame budget | Informational; not GPU time |
 | Render load | ${browser.summary.drawCalls.maximum} draws / ${browser.summary.instances.maximum} instances | Representative workload | Exercised |
 | Node ↔ simulation Worker checksum | ${browser.summary.determinism?.matches === true ? 'match' : 'missing/mismatch'} | Exact match | ${browser.summary.determinism?.matches === true ? 'Pass' : 'Open'} |
+| Browser consumer stalls | ${browser.summary.transportStalls?.filter((stall) => stall.simulationContinued).length ?? 0}/${browser.summary.transportStalls?.length ?? 0} continued | 50 ms–5 s, both consumers | ${(browser.summary.transportStalls?.every((stall) => stall.simulationContinued) ?? false) ? 'Pass' : 'Open'} |
 | Browser runtime errors | ${browser.summary.errors} | 0 | ${browser.summary.errors === 0 ? 'Pass' : 'Fail'} |
 
 The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event peak was ${simulation.events.maximum} records/tick. The browser Worker checksum was \`${browser.summary.determinism?.workerChecksum ?? 'not recorded'}\` at its captured final tick and matched a direct Node replay at that same tick.
@@ -132,7 +134,7 @@ The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event 
 - Repeat at least five frozen \`perf:sim\` runs and the browser suite on the approved i5-8250U/UHD 620 desktop.
 - Run the Android suite on a Pixel 6a and the iOS suite on an iPhone 12.
 - Capture GPU timer-query/frame pacing, sustained memory/reset growth, and thermal behavior.
-- Complete WebGL context-loss/restoration and 50 ms–5 s browser-consumer stall probes.
+- Complete WebGL context-loss/restoration; browser consumer stalls are now captured, while transport bounds remain covered by invariant tests.
 - Complete instrumented audio absolute timing and audio/visual separation probes.
 - Re-run from a clean commit before promoting evidence; development runs with unrelated workspace changes remain marked dirty.
 

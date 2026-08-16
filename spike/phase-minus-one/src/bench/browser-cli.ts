@@ -33,6 +33,15 @@ interface CapturedData {
   readonly render: RenderStats[];
   readonly runtimeErrors: string[];
   readonly viewport: { width: number; height: number; pixelRatio: number };
+  readonly stallEvidence: readonly StallEvidence[];
+}
+
+interface StallEvidence {
+  readonly target: 'main' | 'render';
+  readonly milliseconds: number;
+  readonly before: { readonly main: number; readonly render: number };
+  readonly after: { readonly main: number; readonly render: number };
+  readonly simulationContinued: boolean;
 }
 
 const packageDirectory = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -167,8 +176,43 @@ async function run(): Promise<void> {
         render: capture.drainRenderSamples(),
         runtimeErrors: capture.drainErrors(),
         viewport: { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio },
+        stallEvidence: [],
       };
     });
+    const stallEvidence: StallEvidence[] = [];
+    const targets: readonly ('main' | 'render')[] = captured.mode.includes('OffscreenCanvas') ? ['main', 'render'] : ['main'];
+    for (const target of targets) {
+      for (const milliseconds of [50, 250, 1_000, 5_000]) {
+        const before = await page.evaluate(() => {
+          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+            latestTicks: () => { main: number; render: number };
+          } }).__CATCH_DAVEL_SPIKE__;
+          return capture.latestTicks();
+        });
+        await page.evaluate(async ({ target: stallTarget, milliseconds: duration }) => {
+          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+            stallMain: (value: number) => void;
+            stallRender: (value: number) => Promise<void>;
+          } }).__CATCH_DAVEL_SPIKE__;
+          if (stallTarget === 'main') capture.stallMain(duration);
+          else await capture.stallRender(duration);
+        }, { target, milliseconds });
+        await page.waitForTimeout(target === 'render' ? 1_100 : 150);
+        const after = await page.evaluate(() => {
+          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+            latestTicks: () => { main: number; render: number };
+          } }).__CATCH_DAVEL_SPIKE__;
+          return capture.latestTicks();
+        });
+        const monitoredTickDelta = target === 'main' ? after.render - before.render : after.main - before.main;
+        const simulationContinued = milliseconds < 1_000 || monitoredTickDelta >= Math.floor(milliseconds * 0.03);
+        stallEvidence.push({ target, milliseconds, before, after, simulationContinued });
+        if (!simulationContinued) {
+          errors.push({ source: 'transport-stall', message: `${target} ${milliseconds} ms stall stopped simulation progress` });
+        }
+      }
+    }
+    captured = { ...captured, stallEvidence };
     await browser.close();
   } finally {
     await new Promise<void>((resolvePromise) => server.close(() => resolvePromise()));
@@ -239,6 +283,7 @@ async function run(): Promise<void> {
     lastTick: lastTick || null,
     finalChecksum: workerChecksum,
     determinism: { nodeReferenceChecksum, workerChecksum, matches: nodeWorkerChecksumMatches },
+    transportStalls: captured.stallEvidence,
     errors: errors.length,
     certification: 'incomplete: development VMware host is not an approved baseline device',
   };

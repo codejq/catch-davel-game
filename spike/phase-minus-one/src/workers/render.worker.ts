@@ -20,7 +20,13 @@ interface ResizeMessage {
   readonly pixelRatio: number;
 }
 
-type RenderWorkerMessage = InitializeRenderMessage | ResizeMessage;
+interface StallMessage {
+  readonly type: 'stall';
+  readonly milliseconds: number;
+  readonly requestId: number;
+}
+
+type RenderWorkerMessage = InitializeRenderMessage | ResizeMessage | StallMessage;
 
 const scope = self as DedicatedWorkerGlobalScope;
 let renderer: RawWebGL2Renderer | null = null;
@@ -32,6 +38,14 @@ scope.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
   const message = event.data;
   if (message.type === 'resize') {
     renderer?.resize(message.width, message.height, message.pixelRatio);
+    return;
+  }
+  if (message.type === 'stall') {
+    const deadline = performance.now() + Math.max(0, message.milliseconds);
+    while (performance.now() < deadline) {
+      // Intentional Phase -1 consumer stall.
+    }
+    scope.postMessage({ type: 'stall-complete', requestId: message.requestId });
     return;
   }
 

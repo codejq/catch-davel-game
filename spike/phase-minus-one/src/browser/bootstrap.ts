@@ -21,7 +21,12 @@ interface RendererInfoMessage {
   readonly info: RendererInfo;
 }
 
-type RenderWorkerMessage = RenderWorkerStatsBatch | RendererInfoMessage;
+interface StallCompleteMessage {
+  readonly type: 'stall-complete';
+  readonly requestId: number;
+}
+
+type RenderWorkerMessage = RenderWorkerStatsBatch | RendererInfoMessage | StallCompleteMessage;
 
 interface BrowserSimulationSample {
   readonly tick: number;
@@ -37,6 +42,9 @@ interface BrowserCapture {
   readonly drainSimulationSamples: () => BrowserSimulationSample[];
   readonly drainRenderSamples: () => RenderStats[];
   readonly drainErrors: () => string[];
+  readonly latestTicks: () => { readonly main: number; readonly render: number };
+  readonly stallMain: (milliseconds: number) => void;
+  readonly stallRender: (milliseconds: number) => Promise<void>;
 }
 
 function requireElement<T extends Element>(selector: string): T {
@@ -62,11 +70,13 @@ let latestChecksum = '--------';
 let mainPresentedEvents = 0;
 let renderPresentedEvents = 0;
 let rendererMode = 'main-thread WebGL2 fallback';
+let latestRenderTick = 0;
 let rendererInfo: RendererInfo | null = null;
 const simulationSamples: BrowserSimulationSample[] = [];
 const renderSamples: RenderStats[] = [];
 const runtimeErrors: string[] = [];
 const CAPTURE_CAPACITY = 12_000;
+let stallRenderImplementation = (_milliseconds: number): Promise<void> => Promise.reject(new Error('Render stall probe is unavailable'));
 
 function appendBounded<T>(target: T[], values: readonly T[]): void {
   const excess = target.length + values.length - CAPTURE_CAPACITY;
@@ -81,6 +91,14 @@ const capture: BrowserCapture = {
   drainSimulationSamples: () => simulationSamples.splice(0, simulationSamples.length),
   drainRenderSamples: () => renderSamples.splice(0, renderSamples.length),
   drainErrors: () => runtimeErrors.splice(0, runtimeErrors.length),
+  latestTicks: () => ({ main: latestMainTransport?.snapshotTick ?? 0, render: latestRenderTick }),
+  stallMain: (milliseconds) => {
+    const deadline = performance.now() + milliseconds;
+    while (performance.now() < deadline) {
+      // Intentional Phase -1 consumer stall.
+    }
+  },
+  stallRender: (milliseconds) => stallRenderImplementation(milliseconds),
 };
 (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__?: BrowserCapture }).__CATCH_DAVEL_SPIKE__ = capture;
 addEventListener('error', (event) => runtimeErrors.push(event.message));
@@ -138,13 +156,28 @@ const resizeRenderer = (send: (width: number, height: number, pixelRatio: number
 if (typeof canvas.transferControlToOffscreen === 'function') {
   rendererMode = 'OffscreenCanvas render Worker';
   const renderWorker = new Worker(new URL('../workers/render.worker.ts', import.meta.url), { type: 'module' });
+  let nextStallRequest = 1;
+  const pendingStalls = new Map<number, () => void>();
+  stallRenderImplementation = (milliseconds) => new Promise<void>((resolve) => {
+    const requestId = nextStallRequest++;
+    pendingStalls.set(requestId, resolve);
+    renderWorker.postMessage({ type: 'stall', milliseconds, requestId });
+  });
   renderWorker.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
+    if (event.data.type === 'stall-complete') {
+      pendingStalls.get(event.data.requestId)?.();
+      pendingStalls.delete(event.data.requestId);
+      return;
+    }
     if (event.data.type === 'renderer-info') {
       rendererInfo = event.data.info;
       return;
     }
     const latest = event.data.samples.at(-1);
-    if (latest !== undefined) latestRenderStats = latest;
+    if (latest !== undefined) {
+      latestRenderStats = latest;
+      latestRenderTick = latest.tick;
+    }
     appendBounded(renderSamples, event.data.samples);
     renderPresentedEvents = event.data.presentedEvents;
   };
@@ -177,6 +210,7 @@ if (typeof canvas.transferControlToOffscreen === 'function') {
     },
     onSnapshot: (snapshot) => {
       latestRenderStats = renderer.render(snapshot.current);
+      latestRenderTick = latestRenderStats.tick;
       appendBounded(renderSamples, [latestRenderStats]);
     },
   });
