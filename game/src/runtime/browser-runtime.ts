@@ -40,6 +40,7 @@ import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type 
 import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
 import { objectiveCompassReading, type ObjectiveCompassTarget } from './objective-compass';
 import { waveTransitionPresentation } from './wave-transition';
+import { bossPresentation } from './boss-presentation';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -110,6 +111,10 @@ export async function startBrowserGame(): Promise<void> {
   const objectiveCompass = requireElement<HTMLElement>('#objective-compass');
   const objectiveCompassTarget = requireElement<HTMLElement>('#objective-compass-target');
   const objectiveCompassDistance = requireElement<HTMLElement>('#objective-compass-distance');
+  const bossStatus = requireElement<HTMLElement>('#boss-status');
+  const bossStatusPhase = requireElement<HTMLElement>('#boss-status-phase');
+  const bossStatusHealth = requireElement<HTMLElement>('#boss-status-health');
+  const bossStatusHp = requireElement<HTMLElement>('#boss-status-hp');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const davelBark = requireElement<HTMLElement>('#davel-bark');
@@ -657,6 +662,20 @@ export async function startBrowserGame(): Promise<void> {
       lastWaveTransitionKey = wave.transitionKey;
     } else if (state.level.encounter.waveIndex === 0) {
       lastWaveTransitionKey = null;
+    }
+    const boss = bossPresentation(state.robots);
+    bossStatus.hidden = boss === null;
+    document.body.dataset.bossPhase = String(boss?.phase ?? 0);
+    if (boss !== null) {
+      const health = Math.ceil(boss.health);
+      bossStatus.dataset.phase = String(boss.phase);
+      bossStatus.style.setProperty('--boss-health', `${boss.healthRatio * 100}%`);
+      bossStatusPhase.textContent = ui('bossPhaseLabel', { phase: boss.phase });
+      bossStatusHp.textContent = ui('bossHp', { health, max: boss.maxHealth });
+      bossStatus.setAttribute('aria-label', ui('bossAria', {
+        phase: boss.phase, health, max: boss.maxHealth,
+      }));
+      bossStatusHealth.dataset.health = String(health);
     }
     const remaining = state.robots.filter((robot) => robot.active).length;
     remainingHud.textContent = state.victory ? ui('mazeClear')

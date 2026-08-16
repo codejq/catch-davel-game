@@ -125,7 +125,9 @@ try {
       barkVisibility: getComputedStyle(document.querySelector('#davel-bark')).visibility,
     };
 
-    const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
+    let bossObservation = await api.reset({
+      seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training', levelId: 'level-010',
+    });
     const bossProof = {
       count: bossObservation.robots.length,
       id: bossObservation.robots[0]?.id,
@@ -133,6 +135,26 @@ try {
       rank: bossObservation.robots[0]?.rank,
       phase: bossObservation.robots[0]?.bossPhase,
       health: bossObservation.robots[0]?.health,
+    };
+    const bossPolicy = new WaveCampaignAgent();
+    while ((bossObservation.robots[0]?.bossPhase ?? 0) < 2 && !bossObservation.defeat
+      && bossObservation.tick < 2_000) {
+      bossObservation = await api.act(bossPolicy.next(bossObservation), 1);
+    }
+    const bossDeadline = performance.now() + 2_000;
+    while (document.body.dataset.bossPhase !== '2' && performance.now() < bossDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const bossHudProof = {
+      tick: bossObservation.tick,
+      observedPhase: bossObservation.robots[0]?.bossPhase,
+      observedHealth: bossObservation.robots[0]?.health,
+      hidden: document.querySelector('#boss-status')?.hidden,
+      phase: document.body.dataset.bossPhase,
+      phaseLabel: document.querySelector('#boss-status-phase')?.textContent,
+      hp: document.querySelector('#boss-status-hp')?.textContent,
+      healthStyle: document.querySelector('#boss-status')?.style.getPropertyValue('--boss-health'),
+      aria: document.querySelector('#boss-status')?.getAttribute('aria-label'),
     };
 
     let arsenalObservation = await api.reset({ seed: 'live-arsenal-proof', mode: 'agent', loadout: 'training' });
@@ -213,6 +235,7 @@ try {
       waveTransitionProof,
       arsenalProof,
       bossProof,
+      bossHudProof,
     };
   });
 
@@ -277,6 +300,14 @@ try {
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
     [result.bossProof.count === 1 && result.bossProof.id === 6 && result.bossProof.name === 'The Final Invoice', 'boss training did not load the stable boss identity'],
     [result.bossProof.rank === 'boss' && result.bossProof.phase === 1 && result.bossProof.health === 420, 'boss training did not expose phase-one authoritative state'],
+    [result.bossHudProof.tick < 2_000 && result.bossHudProof.observedPhase === 2
+      && result.bossHudProof.observedHealth <= 280 && result.bossHudProof.observedHealth > 140
+      && result.bossHudProof.hidden === false && result.bossHudProof.phase === '2'
+      && result.bossHudProof.phaseLabel === 'PHASE 2'
+      && result.bossHudProof.hp?.endsWith('/ 420 HP')
+      && result.bossHudProof.healthStyle?.endsWith('%')
+      && result.bossHudProof.aria?.includes('phase 2'),
+    'Final Invoice phase two did not update the live boss presentation'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);

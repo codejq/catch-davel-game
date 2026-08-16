@@ -100,7 +100,7 @@ The version-10 observation includes the authoritative Chapter 1 level ID and cho
 - deterministic gold branch caches on Levels 2–9 plus larger secret caches on Levels 4, 7, and 9, all visible to humans/agents and banked into the Quantum Coin economy only at deterministic checkpoints or victory;
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
-- The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, and deterministic one/two/three-fireball spreads;
+- The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, deterministic one/two/three-fireball spreads, and a localized snapshot-derived phase/health card;
 - deterministic simulation/agent contracts covered by automated tests.
 - one-command Chapter 1 campaign QA with all-level completion gates and a strict six-level frozen checksum manifest spanning tutorial, economy, elite, conveyor, timed-gate, and boss content;
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.

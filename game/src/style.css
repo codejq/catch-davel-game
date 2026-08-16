@@ -14,6 +14,17 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #objective-compass b, #objective-compass small { display: block; }
 #objective-compass b { color: #ffe56c; font-size: calc(10px * var(--ui-font-scale)); letter-spacing: .08em; }
 #objective-compass small { margin-top: 1px; color: #d9fbff; font-size: calc(9px * var(--ui-font-scale)); font-weight: 800; }
+#boss-status { --boss-health: 100%; position: absolute; left: 50%; top: calc(max(18px, env(safe-area-inset-top)) + 54px); width: min(390px, calc(100vw - 36px)); translate: -50% 0; padding: 9px 12px; border: 2px solid #ffe06a; border-radius: 10px; background: #151b3bea; box-shadow: 0 8px 28px #120b2a80, inset 0 0 18px #ffb13b1e; }
+#boss-status[hidden] { display: none; }
+#boss-status header { display: flex; justify-content: space-between; gap: 12px; color: #ffe56c; font-size: calc(10px * var(--ui-font-scale)); font-weight: 950; letter-spacing: .09em; }
+#boss-status header span { color: #7ff5ff; }
+#boss-status > div { height: 10px; margin-top: 6px; overflow: hidden; border: 2px solid #0a1028; border-radius: 99px; background: #080d20; }
+#boss-status i { display: block; width: var(--boss-health); height: 100%; background: linear-gradient(90deg, #ffde64, #ff783f); transition: width .12s linear; }
+#boss-status[data-phase='2'] { border-color: #ff8a4f; }
+#boss-status[data-phase='2'] i { background: linear-gradient(90deg, #ffad45, #ff3f48); }
+#boss-status[data-phase='3'] { border-color: #ff4b9f; box-shadow: 0 8px 32px #ff28726b, inset 0 0 20px #ff35752e; }
+#boss-status[data-phase='3'] i { background: linear-gradient(90deg, #ff6457, #ff268f); }
+#boss-status small { display: block; margin-top: 3px; color: #d9faff; text-align: right; font-size: calc(9px * var(--ui-font-scale)); font-weight: 850; }
 #stats { position: absolute; top: max(18px, env(safe-area-inset-top)); right: max(22px, env(safe-area-inset-right)); display: flex; gap: 8px; }
 #stats span { padding: 8px 11px; border: 2px solid #fff8; border-radius: 8px; background: #14284ee6; font-size: calc(12px * var(--ui-font-scale)); font-weight: 800; letter-spacing: .08em; }
 #stats i { font-style: inherit; }
@@ -163,6 +174,7 @@ body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
   #davel-bark { transition: none; }
   #objective-compass-arrow { transition: none; }
   #wave-transition i { transition: none; }
+  #boss-status i { transition: none; }
   body.feedback-weapon-kick #weapon, body.feedback-sword-swing #weapon,
   body.feedback-shake-light #game, body.feedback-shake-heavy #game { animation: none; }
 }
