@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **18 — objective-clear route transition implemented; physical devices remain certification-only**
+Revision: **19 — Chapter 1 workshop landmarks and green-exit beacon implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -29,6 +29,8 @@ Revision 16 records the completed distance-dependent report layer. Eligible remo
 Revision 17 records the completed combat-music pacing director. The previous active-robot ratio kept the score near full intensity even while threats were distant; a bounded presentation tracker now derives exploration, engaged, escalating, wave-transition, objective-clear, and terminal phases from immutable snapshots. Proximity, telegraphs, hostile projectile count, player health pressure, and boss phase build the target; a pending wave rises from 0.52 toward 0.86, objective completion releases to 0.08, and terminal state reaches zero. Attack and release slew at fixed per-authoritative-tick rates, reset across rewinds/resyncs, and feed the existing tick/BPM procedural sequencer and ambience without adding timers, simulation state, replay dependencies, or LLM-only information.
 
 Revision 18 records the completed objective-clear route handoff. A legitimate contiguous false→true objective transition opens a three-second English/Arabic `MAZE STABILIZED` card with the current localized green-exit target, rounded distance, compass instruction, semantic announcement, and a tick-derived remaining bar. It suppresses a competing Davel bark while visible and then yields to the persistent objective compass. The bounded tracker continues an already-observed banner through snapshot coalescing but never invents one after a load, unseen transition gap, rewind, level change, resync, victory, or defeat. It consumes the same immutable snapshot/compass projection and changes no gameplay truth.
+
+Revision 19 records the completed first Chapter 1 environmental-storytelling pass. Each Neon Workshop mission now places three deterministic, collision-safe wall-top landmarks using a distinct title/mechanic-linked motif: signal prongs, grinning marquee, coin circuit, wrong-way arrows, foreman gantry, conveyor drums, blackout lamps, shift clock, rush stacks, or the Final Invoice crown. The objective exit is no longer a three-box doorway: it reads as a barred red lock before clearance, then becomes a green portal with approach strips, internal frame, and a tall pulsing route beacon. An explicit bounded per-instance emissive channel preserves authored signal colors through ordinary lighting and fog. Layouts stay under the existing 512-cube batch, motion derives only from snapshot tick and the presentation motion scale, and zero motion is stable. These additions are renderer-only and change no collision, simulation, replay, save, transport, or LLM contract.
 
 ## 1. Executive summary
 

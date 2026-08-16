@@ -16,6 +16,7 @@ import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
 import type { PulseImpactEffect } from './pulse-impact';
+import { chapterLandmarkLayout, exitBeaconBoxes, type EnvironmentBox } from './environment-landmarks';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -27,11 +28,13 @@ layout(location=3) in vec4 aMatrix1;
 layout(location=4) in vec4 aMatrix2;
 layout(location=5) in vec4 aMatrix3;
 layout(location=6) in vec3 aColor;
+layout(location=7) in float aEmission;
 uniform mat4 uViewProjection;
 out vec3 vNormal;
 out vec3 vColor;
 out vec3 vWorld;
 out float vDistance;
+out float vEmission;
 void main() {
   mat4 model = mat4(aMatrix0, aMatrix1, aMatrix2, aMatrix3);
   vec4 world = model * vec4(aPosition, 1.0);
@@ -40,6 +43,7 @@ void main() {
   vWorld = world.xyz;
   vec4 clip = uViewProjection * world;
   vDistance = clip.w;
+  vEmission = aEmission;
   gl_Position = clip;
 }`;
 const FRAGMENT_SHADER = `#version 300 es
@@ -48,6 +52,7 @@ in vec3 vNormal;
 in vec3 vColor;
 in vec3 vWorld;
 in float vDistance;
+in float vEmission;
 uniform vec3 uFogColor;
 out vec4 outColor;
 void main() {
@@ -55,12 +60,13 @@ void main() {
   vec3 light = normalize(vec3(0.45, 0.9, 0.25));
   float diffuse = max(dot(normal, light), 0.0);
   vec3 color = vColor * (0.48 + diffuse * 0.52);
+  color = mix(color, vColor, clamp(vEmission, 0.0, 1.0));
   if (normal.y > 0.8 && vWorld.y < 0.2) {
     vec2 grid = abs(fract(vWorld.xz / 3.0) - 0.5);
     float line = 1.0 - smoothstep(0.455, 0.49, max(grid.x, grid.y));
     color = mix(color, color * 0.72, line * 0.32);
   }
-  float fog = smoothstep(25.0, 48.0, vDistance);
+  float fog = smoothstep(25.0, 48.0, vDistance) * (1.0 - clamp(vEmission, 0.0, 1.0) * 0.7);
   outColor = vec4(mix(color, uFogColor, fog), 1.0);
 }`;
 
@@ -92,10 +98,12 @@ export class WorldRenderer {
   private readonly vao: WebGLVertexArrayObject;
   private readonly matrixBuffer: WebGLBuffer;
   private readonly colorBuffer: WebGLBuffer;
+  private readonly emissionBuffer: WebGLBuffer;
   private readonly viewProjectionLocation: WebGLUniformLocation;
   private readonly fogColorLocation: WebGLUniformLocation;
   private readonly matrices = new Float32Array(MAX_INSTANCES * 16);
   private readonly colors = new Float32Array(MAX_INSTANCES * 3);
+  private readonly emissions = new Float32Array(MAX_INSTANCES);
   private readonly projection = new Float32Array(16);
   private readonly view = new Float32Array(16);
   private readonly viewProjection = new Float32Array(16);
@@ -114,12 +122,15 @@ export class WorldRenderer {
     const indexBuffer = gl.createBuffer();
     const matrixBuffer = gl.createBuffer();
     const colorBuffer = gl.createBuffer();
-    if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null || colorBuffer === null) {
+    const emissionBuffer = gl.createBuffer();
+    if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null
+      || colorBuffer === null || emissionBuffer === null) {
       throw new Error('Unable to allocate world renderer buffers');
     }
     this.vao = vao;
     this.matrixBuffer = matrixBuffer;
     this.colorBuffer = colorBuffer;
+    this.emissionBuffer = emissionBuffer;
     const mesh = createCube();
     this.indexCount = mesh.indices.length;
     gl.bindVertexArray(vao);
@@ -142,6 +153,10 @@ export class WorldRenderer {
     gl.enableVertexAttribArray(6);
     gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 12, 0);
     gl.vertexAttribDivisor(6, 1);
+    gl.bindBuffer(gl.ARRAY_BUFFER, emissionBuffer);
+    gl.enableVertexAttribArray(7);
+    gl.vertexAttribPointer(7, 1, gl.FLOAT, false, 4, 0);
+    gl.vertexAttribDivisor(7, 1);
     const viewProjectionUniform = gl.getUniformLocation(this.program, 'uViewProjection');
     const fogColorUniform = gl.getUniformLocation(this.program, 'uFogColor');
     if (viewProjectionUniform === null || fogColorUniform === null) throw new Error('World shader uniform is unavailable');
@@ -220,6 +235,9 @@ export class WorldRenderer {
         palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!,
       );
     }
+    for (const landmark of chapterLandmarkLayout(levelId).boxes) {
+      instance = this.writeEnvironmentBox(instance, landmark);
+    }
     this.staticInstanceCount = instance;
     this.uploadInstances(instance);
   }
@@ -285,12 +303,22 @@ export class WorldRenderer {
     if (checkpoint.activated) {
       instance = this.writeInstance(instance, checkpoint.x, 0.85, checkpoint.z, 0.1, 1.55, 0.1, [0.36, 1, 0.88]);
     }
-    const exit = state.level.exit;
-    const exitColor: readonly [number, number, number] = state.level.objectiveComplete ? [0.22, 1, 0.48] : [0.28, 0.3, 0.42];
-    instance = this.writeInstance(instance, exit.x - 0.72, 1.2, exit.z, 0.22, 2.4, 0.28, exitColor);
-    instance = this.writeInstance(instance, exit.x + 0.72, 1.2, exit.z, 0.22, 2.4, 0.28, exitColor);
-    instance = this.writeInstance(instance, exit.x, 2.3, exit.z, 1.65, 0.22, 0.28, exitColor);
+    for (const beaconBox of exitBeaconBoxes(
+      state.levelId, state.level.exit, state.level.objectiveComplete, state.tick, settings.motionScale,
+    )) {
+      instance = this.writeEnvironmentBox(instance, beaconBox);
+    }
     this.uploadInstances(instance);
+  }
+
+  private writeEnvironmentBox(instance: number, environmentBox: EnvironmentBox): number {
+    return this.writeInstance(
+      instance,
+      environmentBox.x, environmentBox.y, environmentBox.z,
+      environmentBox.sizeX, environmentBox.sizeY, environmentBox.sizeZ,
+      environmentBox.color,
+      environmentBox.emission,
+    );
   }
 
   private writeInstance(
@@ -298,10 +326,12 @@ export class WorldRenderer {
     x: number, y: number, z: number,
     sx: number, sy: number, sz: number,
     color: readonly [number, number, number],
+    emission = 0,
   ): number {
     if (instance >= MAX_INSTANCES) throw new Error('World instance capacity exceeded');
     writeTranslationScale(this.matrices, instance * 16, x, y, z, sx, sy, sz);
     this.colors.set(color, instance * 3);
+    this.emissions[instance] = emission;
     return instance + 1;
   }
 
@@ -311,5 +341,7 @@ export class WorldRenderer {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.matrices.subarray(0, instance * 16), this.gl.DYNAMIC_DRAW);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.colorBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.colors.subarray(0, instance * 3), this.gl.DYNAMIC_DRAW);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.emissionBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.emissions.subarray(0, instance), this.gl.DYNAMIC_DRAW);
   }
 }
