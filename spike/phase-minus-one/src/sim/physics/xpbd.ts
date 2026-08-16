@@ -15,6 +15,13 @@ const DAMPING = 0.996;
 const MOTOR_COMPLIANCE = 2.5e-5;
 const FLOOR_HEIGHT = 0.11;
 const QUANTIZATION = 1_000_000;
+type PhysicsClock = () => number;
+
+export interface PhysicsTimings {
+  readonly integrationExternalForcesMs: number;
+  readonly constraintsMotorsMs: number;
+  readonly broadphaseCollisionMs: number;
+}
 
 function integrate(state: SimulationState, substepSeconds: number): void {
   const { particles } = state;
@@ -151,21 +158,31 @@ function quantizeState(state: SimulationState): void {
   }
 }
 
-export function stepPhysics(state: SimulationState): void {
+export function stepPhysics(state: SimulationState, clock: PhysicsClock = () => 0): PhysicsTimings {
   const substepSeconds = FIXED_DT_SECONDS / PHYSICS_SUBSTEPS;
   const inverseDtSquared = 1 / (substepSeconds * substepSeconds);
+  let integrationExternalForcesMs = 0;
+  let constraintsMotorsMs = 0;
+  let broadphaseCollisionMs = 0;
   for (let substep = 0; substep < PHYSICS_SUBSTEPS; substep += 1) {
+    let stageStart = clock();
     integrate(state, substepSeconds);
+    integrationExternalForcesMs += clock() - stageStart;
     state.constraints.lambda.fill(0);
     state.particles.motorLambdaX.fill(0);
     state.particles.motorLambdaY.fill(0);
     state.particles.motorLambdaZ.fill(0);
     for (let iteration = 0; iteration < XPBD_ITERATIONS; iteration += 1) {
+      stageStart = clock();
       solveDistanceConstraints(state, inverseDtSquared);
       solveMotorConstraints(state, inverseDtSquared);
+      constraintsMotorsMs += clock() - stageStart;
+      stageStart = clock();
       solveEnvironmentCollisions(state);
       solveRobotProxyCollisions(state);
+      broadphaseCollisionMs += clock() - stageStart;
     }
   }
   quantizeState(state);
+  return { integrationExternalForcesMs, constraintsMotorsMs, broadphaseCollisionMs };
 }

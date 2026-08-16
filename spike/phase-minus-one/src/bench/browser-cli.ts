@@ -15,7 +15,7 @@ import {
   TRANSPORT_CONTRACT_VERSION,
   XPBD_ITERATIONS,
 } from '../sim/constants';
-import type { TickTimings } from '../sim/simulation';
+import { Simulation, type TickTimings } from '../sim/simulation';
 import type { TransportConsumerStats } from '../transport/consumer';
 import { summarize, summarizeTimings } from './metrics';
 
@@ -175,6 +175,15 @@ async function run(): Promise<void> {
   }
   if (captured === null) throw new Error('Browser capture did not complete');
   for (const message of captured.runtimeErrors) errors.push({ source: 'runtime', message });
+  const lastTick = captured.simulation.at(-1)?.tick ?? 0;
+  const nodeReference = new Simulation('catch-davel-phase-minus-one-v1');
+  for (let tick = 0; tick < lastTick; tick += 1) nodeReference.step();
+  const nodeReferenceChecksum = nodeReference.checksum();
+  const workerChecksum = captured.simulation.at(-1)?.checksum ?? null;
+  const nodeWorkerChecksumMatches = workerChecksum === nodeReferenceChecksum;
+  if (!nodeWorkerChecksumMatches) {
+    errors.push({ source: 'determinism', message: `Node ${nodeReferenceChecksum} != Worker ${workerChecksum ?? 'missing'}` });
+  }
 
   const runId = new Date().toISOString().replaceAll(':', '-').replaceAll('.', '-');
   const runDirectory = join(runRoot, `perf-browser-${runId}`);
@@ -227,8 +236,9 @@ async function run(): Promise<void> {
     drawCalls: summarize(captured.render.map((sample) => sample.drawCalls)),
     instances: summarize(captured.render.map((sample) => sample.instances)),
     firstTick: captured.simulation[0]?.tick ?? null,
-    lastTick: captured.simulation.at(-1)?.tick ?? null,
-    finalChecksum: captured.simulation.at(-1)?.checksum ?? null,
+    lastTick: lastTick || null,
+    finalChecksum: workerChecksum,
+    determinism: { nodeReferenceChecksum, workerChecksum, matches: nodeWorkerChecksumMatches },
     errors: errors.length,
     certification: 'incomplete: development VMware host is not an approved baseline device',
   };

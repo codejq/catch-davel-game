@@ -14,6 +14,9 @@ import type { SimulationState } from './state';
 export interface TickTimings {
   navigationMs: number;
   physicsMs: number;
+  integrationExternalForcesMs: number;
+  constraintsMotorsMs: number;
+  broadphaseCollisionMs: number;
   combatProjectilesHazardsMs: number;
   eventsObjectivesEconomyMs: number;
   snapshotMs: number;
@@ -54,7 +57,7 @@ export class Simulation {
     const navigationStart = this.clock();
     updateNavigationAndPoseTargets(this.state, this.navigationWorkspace);
     const physicsStart = this.clock();
-    stepPhysics(this.state);
+    const physicsTimings = stepPhysics(this.state, this.clock);
     const combatStart = this.clock();
     stepProjectiles(this.state, this.events);
     stepHazards(this.state, this.events);
@@ -74,6 +77,7 @@ export class Simulation {
       timings: {
         navigationMs: physicsStart - navigationStart,
         physicsMs: combatStart - physicsStart,
+        ...physicsTimings,
         combatProjectilesHazardsMs: eventStart - combatStart,
         eventsObjectivesEconomyMs: snapshotStart - eventStart,
         snapshotMs: end - snapshotStart,

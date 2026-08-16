@@ -12,9 +12,9 @@
     "spike:build": "npm run build --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:test": "npm run test --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:perf:sim": "npm run perf:sim --workspace @quantum-billing/catch-davel-phase-minus-one",
+    "spike:perf:bomb-squad": "npm run perf:bomb-squad --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:perf:browser": "npm run perf:browser --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:report": "npm run report --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:verify": "npm run verify --workspace @quantum-billing/catch-davel-phase-minus-one"
   }
 }
-

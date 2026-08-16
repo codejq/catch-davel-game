@@ -1,5 +1,9 @@
 import { performance } from 'node:perf_hooks';
 import {
+  PROVISIONAL_BATCH_BYTE_CAP,
+  PROVISIONAL_BATCH_RECORD_CAP,
+  PROVISIONAL_EVENT_BYTE_CAP,
+  PROVISIONAL_EVENT_RECORD_CAP,
   PHYSICS_SUBSTEPS,
   ROBOT_COUNT,
   SIMULATION_SCHEMA_VERSION,
@@ -7,7 +11,11 @@ import {
   TRANSPORT_CONTRACT_VERSION,
   XPBD_ITERATIONS,
 } from '../sim/constants';
+import { detonateRepresentativeBombSquad } from '../sim/bomb-squad';
+import { EventBuffer } from '../sim/events';
+import { createScenario } from '../sim/scenario';
 import { Simulation, type TickTimings } from '../sim/simulation';
+import { EventProducerChannel, type EventTransportConfig } from '../transport/event-channel';
 import { summarize, summarizeTimings } from './metrics';
 
 interface BenchmarkResult {
@@ -99,12 +107,72 @@ function runDeterminismSmoke(): void {
   process.stdout.write(`${JSON.stringify({ scenario: 'determinism:smoke', ticks: 600, checksum: first.checksum() })}\n`);
 }
 
+function runBombSquadBenchmark(): unknown {
+  const state = createScenario('phase-minus-one-bomb-squad-v1');
+  const events = new EventBuffer();
+  detonateRepresentativeBombSquad(state, events);
+  const candidates = [];
+  for (let creditWindow = 1; creditWindow <= 4; creditWindow += 1) {
+    const configuration: EventTransportConfig = {
+      queueRecordCap: PROVISIONAL_EVENT_RECORD_CAP,
+      queueByteCap: PROVISIONAL_EVENT_BYTE_CAP,
+      batchRecordCap: PROVISIONAL_BATCH_RECORD_CAP,
+      batchByteCap: PROVISIONAL_BATCH_BYTE_CAP,
+      creditWindow,
+    };
+    const producer = new EventProducerChannel(configuration);
+    producer.enqueue(events);
+    let acknowledgementRounds = 0;
+    let batches = 0;
+    let maximumInFlight = 0;
+    while (producer.metrics().pendingRecords > 0) {
+      let highestBatch = 0;
+      let batch = producer.createBatch();
+      while (batch !== null) {
+        highestBatch = batch.batchSequence;
+        batches += 1;
+        maximumInFlight = Math.max(maximumInFlight, producer.metrics().inFlightBatches);
+        batch = producer.createBatch();
+      }
+      producer.acknowledge(highestBatch);
+      acknowledgementRounds += 1;
+    }
+    candidates.push({
+      creditWindow,
+      batches,
+      acknowledgementRounds,
+      maximumInFlight,
+      presentationDrops: producer.metrics().presentationDrops,
+      stateCriticalResyncs: producer.metrics().stateCriticalResyncs,
+    });
+  }
+  return {
+    label: 'development-only',
+    scenario: 'perf:bomb-squad',
+    scenarioVersion: 1,
+    seed: state.seed,
+    peakRecordsPerTick: events.count,
+    peakBytesPerTick: events.byteLength,
+    candidates,
+    recommendation: {
+      status: 'provisional until baseline-device browser acknowledgement measurements complete',
+      queueRecordCap: 320,
+      queueByteCap: PROVISIONAL_EVENT_BYTE_CAP,
+      batchRecordCap: 128,
+      batchByteCap: PROVISIONAL_BATCH_BYTE_CAP,
+      creditWindow: 2,
+      reasoning: 'A 320-record ring gives 2.19x measured burst headroom; two 128-record credits drain the full burst without an acknowledgement turn.',
+    },
+  };
+}
+
 const command = process.argv[2];
 if (command === 'perf:sim') {
   process.stdout.write(`${JSON.stringify(runPerformanceBenchmark(), null, 2)}\n`);
 } else if (command === 'determinism:smoke') {
   runDeterminismSmoke();
+} else if (command === 'perf:bomb-squad') {
+  process.stdout.write(`${JSON.stringify(runBombSquadBenchmark(), null, 2)}\n`);
 } else {
   throw new Error(`Unknown Phase -1 benchmark command: ${command ?? '(missing)'}`);
 }
-

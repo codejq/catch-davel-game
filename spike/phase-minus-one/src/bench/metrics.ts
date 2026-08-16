@@ -39,6 +39,9 @@ export function summarizeTimings(samples: readonly TickTimings[]): Record<Timing
   const keys: readonly TimingKey[] = [
     'navigationMs',
     'physicsMs',
+    'integrationExternalForcesMs',
+    'constraintsMotorsMs',
+    'broadphaseCollisionMs',
     'combatProjectilesHazardsMs',
     'eventsObjectivesEconomyMs',
     'snapshotMs',
@@ -48,4 +51,3 @@ export function summarizeTimings(samples: readonly TickTimings[]): Record<Timing
     keys.map((key) => [key, summarize(samples.map((sample) => sample[key]))]),
   ) as Record<TimingKey, DistributionSummary>;
 }
-

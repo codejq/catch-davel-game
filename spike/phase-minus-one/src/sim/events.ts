@@ -14,6 +14,8 @@ export const enum EventKind {
   Objective = 5,
   Debris = 6,
   TempoChange = 7,
+  Knockback = 8,
+  HitMarker = 9,
 }
 
 export interface EventInput {
@@ -65,4 +67,3 @@ export class EventBuffer {
     return this.count * EVENT_RECORD_BYTES;
   }
 }
-

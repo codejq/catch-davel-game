@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "perf:sim": "tsx src/bench/cli.ts perf:sim",
+    "perf:bomb-squad": "tsx src/bench/cli.ts perf:bomb-squad",
     "preperf:browser": "npm run build",
     "perf:browser": "tsx src/bench/browser-cli.ts",
     "report": "tsx src/bench/report.ts",
