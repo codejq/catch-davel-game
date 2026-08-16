@@ -70,8 +70,15 @@ export interface LaserResult {
 }
 
 export interface BombStepResult {
-  readonly detonatedBombIds: readonly number[];
+  readonly detonations: readonly BombDetonation[];
   readonly hits: readonly WeaponHit[];
+}
+
+export interface BombDetonation {
+  readonly id: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
 }
 
 interface AimTrace {
@@ -314,7 +321,7 @@ export function createThrownBomb(player: PlayerState, id: number): PlayerBomb {
 export function stepPlayerBombs(
   player: PlayerState, robots: RobotState[], bombs: PlayerBomb[], levelId: Chapter01LevelId = 'level-001',
 ): BombStepResult {
-  const detonatedBombIds: number[] = [];
+  const detonations: BombDetonation[] = [];
   const hits: WeaponHit[] = [];
   for (let index = bombs.length - 1; index >= 0; index -= 1) {
     const bomb = bombs[index]!;
@@ -347,8 +354,8 @@ export function stepPlayerBombs(
         deltaX * inverseDistance * 0.42 * amount, 0.3 * amount, deltaZ * inverseDistance * 0.42 * amount,
       ));
     }
-    detonatedBombIds.push(bomb.id);
+    detonations.push({ id: bomb.id, x: bomb.x, y: bomb.y, z: bomb.z });
     bombs.splice(index, 1);
   }
-  return { detonatedBombIds, hits };
+  return { detonations, hits };
 }

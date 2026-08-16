@@ -14,6 +14,10 @@ import {
 } from './presentation-particles';
 import { isDanceWeakPointActive } from '../sim/dance-timing';
 import { weakPointPosition, weakPointRadius } from '../sim/weak-point';
+import {
+  BombDetonationTracker, bombFlashRadius, bombPressureRingSegment, bombRadialSparkSegment,
+  type BombDetonationEffect,
+} from './bomb-detonation';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -301,6 +305,7 @@ export class DavelRenderer {
   private readonly capsules: InstanceBatch;
   private readonly coinBursts = new CoinBurstTracker();
   private readonly pulseEnergyCells = new PulseEnergyCellTracker();
+  private readonly bombDetonations = new BombDetonationTracker();
 
   constructor(private readonly gl: WebGL2RenderingContext) {
     this.program = createProgram(gl);
@@ -313,7 +318,12 @@ export class DavelRenderer {
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.pulseEnergyCells.emit(effect); }
 
-  clearPresentationEffects(): void { this.pulseEnergyCells.clear(); }
+  emitBombDetonation(effect: BombDetonationEffect): void { this.bombDetonations.emit(effect); }
+
+  clearPresentationEffects(): void {
+    this.pulseEnergyCells.clear();
+    this.bombDetonations.clear();
+  }
 
   render(
     state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1,
@@ -345,6 +355,28 @@ export class DavelRenderer {
       this.addSphere(cell.center, cell.glowRadius, [0.24, 1, 0.96], 0.72, 0.72);
       this.addSphere(cell.start, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
       this.addSphere(cell.end, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
+    }
+    for (const effect of this.bombDetonations.update(state.tick)) {
+      for (let segmentIndex = 0; segmentIndex < quality.bombPressureRingSegments; segmentIndex += 1) {
+        const segment = bombPressureRingSegment(
+          effect, state.tick, segmentIndex, quality.bombPressureRingSegments, motionScale,
+        );
+        if (segment !== null) this.addCapsule(
+          segment.start, segment.end, segment.radius,
+          segmentIndex % 2 === 0 ? [1, 0.26, 0.035] : [1, 0.78, 0.08],
+        );
+      }
+      const sparkCount = motionScale === 0 ? Math.min(2, quality.bombSparkCount) : quality.bombSparkCount;
+      for (let sparkIndex = 0; sparkIndex < sparkCount; sparkIndex += 1) {
+        const spark = bombRadialSparkSegment(effect, state.tick, sparkIndex, motionScale);
+        if (spark === null) continue;
+        this.addCapsule(spark.start, spark.end, spark.radius, sparkIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.22, 0.05]);
+        this.addSphere(spark.end, spark.radius * 1.4, [1, 0.62, 0.08]);
+      }
+      const flashRadius = bombFlashRadius(effect, state.tick, flashScale);
+      if (flashRadius !== null) {
+        this.addSphere({ x: effect.x, y: Math.max(0.2, effect.y), z: effect.z }, flashRadius, [1, 0.92, 0.42]);
+      }
     }
     for (const robot of state.robots) {
       if (robot.active) this.addRobot(

@@ -175,7 +175,8 @@ describe('training arsenal', () => {
     game.step(idle);
     expect(game.state.playerBombs).toHaveLength(0);
     expect(target.health).toBeLessThanOrEqual(100 - BOMB_DAMAGE * 0.9);
-    expect(game.state.events.map((event) => event.type)).toContain('bomb-detonated');
+    const detonation = game.state.events.find((event) => event.type === 'bomb-detonated');
+    expect(detonation).toMatchObject({ value: bomb.id, x: bomb.x, y: bomb.y, z: bomb.z });
   });
 
   it('fires a continuous laser with focus state, energy use, and heat', () => {

@@ -68,6 +68,7 @@ describe('bounded raw-WebGL2 presentation particles', () => {
     const player = { x: 0, z: 0, yaw: 0, pitch: 0 };
     tracker.emit(createPulseEnergyCellEffect(1, player));
     tracker.emit(createPulseEnergyCellEffect(1, player));
+    expect(tracker.update(0)).toHaveLength(0);
     expect(tracker.update(1)).toHaveLength(1);
     for (let tick = 2; tick <= PULSE_ENERGY_CELL_CAPACITY + 2; tick += 1) {
       tracker.emit(createPulseEnergyCellEffect(tick, player));

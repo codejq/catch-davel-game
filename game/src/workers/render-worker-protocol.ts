@@ -1,5 +1,6 @@
 import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
 import type { PulseEnergyCellEffect } from '../render/presentation-particles';
+import type { BombDetonationEffect } from '../render/bomb-detonation';
 
 export type RenderWorkerRequest = {
   readonly type: 'initialize';
@@ -20,6 +21,9 @@ export type RenderWorkerRequest = {
 } | {
   readonly type: 'pulse-energy-cell';
   readonly effect: PulseEnergyCellEffect;
+} | {
+  readonly type: 'bomb-detonation';
+  readonly effect: BombDetonationEffect;
 } | {
   readonly type: 'clear-presentation-effects';
 };

@@ -98,10 +98,8 @@ export class PulseEnergyCellTracker {
   update(tick: number): readonly PulseEnergyCellEffect[] {
     if (this.lastTick !== null && tick < this.lastTick) this.effects = [];
     this.lastTick = tick;
-    this.effects = this.effects.filter((effect) => (
-      tick >= effect.startTick && tick - effect.startTick < PULSE_ENERGY_CELL_DURATION_TICKS
-    ));
-    return this.effects;
+    this.effects = this.effects.filter((effect) => tick - effect.startTick < PULSE_ENERGY_CELL_DURATION_TICKS);
+    return this.effects.filter((effect) => tick >= effect.startTick);
   }
 
   clear(): void {

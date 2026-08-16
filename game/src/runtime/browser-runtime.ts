@@ -803,7 +803,23 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
     if (event.type === 'projectile-deflected') sound('deflect');
     if (event.type === 'bomb-thrown') sound('bomb-throw');
-    if (event.type === 'bomb-detonated') { showMessage(ui('bombDetonated')); sound('bomb-detonate'); }
+    if (event.type === 'bomb-detonated') {
+      if (event.value !== undefined && event.x !== undefined && event.y !== undefined && event.z !== undefined
+        && [event.x, event.y, event.z].every(Number.isFinite)) {
+        renderer.emitBombDetonation({
+          bombId: event.value,
+          startTick: event.tick,
+          x: event.x,
+          y: event.y,
+          z: event.z,
+        });
+        document.body.dataset.bombDetonationTick = String(event.tick);
+        document.body.dataset.bombDetonationId = String(event.value);
+        document.body.dataset.bombDetonationPosition = `${event.x},${event.y},${event.z}`;
+      }
+      showMessage(ui('bombDetonated'));
+      sound('bomb-detonate');
+    }
     if (event.type === 'laser-fired' && event.tick % 4 === 0) sound('laser');
     if (event.type === 'robot-hit') {
       const hitClass = event.value === 1 ? 'weak-hit' : 'hit';

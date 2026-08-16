@@ -7,6 +7,7 @@ import { WorldRenderer } from './world-renderer';
 import type { RenderWorkerRequest, RenderWorkerResponse } from '../workers/render-worker-protocol';
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { PulseEnergyCellEffect } from './presentation-particles';
+import type { BombDetonationEffect } from './bomb-detonation';
 
 export type RendererMode = 'offscreen-worker' | 'main-thread-fallback';
 
@@ -16,6 +17,7 @@ export interface RendererHost {
   resize(): void;
   setQuality(quality: RenderQualityTier): void;
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void;
+  emitBombDetonation(effect: BombDetonationEffect): void;
   clearPresentationEffects(): void;
   present(state: RenderGameState, settings?: RenderPresentationSettings): void;
   dispose(): void;
@@ -65,6 +67,11 @@ class MainThreadRendererHost implements RendererHost {
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
     this.renderer.emitPulseEnergyCell(effect);
+    if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
+  }
+
+  emitBombDetonation(effect: BombDetonationEffect): void {
+    this.renderer.emitBombDetonation(effect);
     if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
   }
 
@@ -145,6 +152,13 @@ class OffscreenRendererHost implements RendererHost {
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
     if (this.disposed) return;
     this.worker.postMessage({ type: 'pulse-energy-cell', effect } satisfies RenderWorkerRequest);
+    this.pending = this.latest;
+    this.flush();
+  }
+
+  emitBombDetonation(effect: BombDetonationEffect): void {
+    if (this.disposed) return;
+    this.worker.postMessage({ type: 'bomb-detonation', effect } satisfies RenderWorkerRequest);
     this.pending = this.latest;
     this.flush();
   }

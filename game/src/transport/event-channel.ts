@@ -1,8 +1,8 @@
 import type { GameEvent } from '../sim/game';
 
-export const EVENT_RECORD_BYTES = 24;
+export const EVENT_RECORD_BYTES = 32;
 export const EVENT_BATCH_HEADER_BYTES = 32;
-export const EVENT_TRANSPORT_CONTRACT_VERSION = 2;
+export const EVENT_TRANSPORT_CONTRACT_VERSION = 3;
 
 export const EVENT_CLASS = { presentationOnly: 0, stateCritical: 1 } as const;
 export type EventClass = typeof EVENT_CLASS[keyof typeof EVENT_CLASS];
@@ -73,6 +73,9 @@ interface QueuedEvent {
   readonly kind: number;
   readonly robotId: number;
   readonly value: number;
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
 }
 
 function validateConfig(config: EventTransportConfig): void {
@@ -83,6 +86,15 @@ function validateConfig(config: EventTransportConfig): void {
 
 function capacity(records: number, bytes: number): number {
   return Math.min(records, Math.floor(bytes / EVENT_RECORD_BYTES));
+}
+
+function eventPosition(event: GameEvent): { readonly x: number; readonly y: number; readonly z: number } {
+  if (event.type !== 'bomb-detonated') return { x: 0, y: 0, z: 0 };
+  const values = [event.x, event.y, event.z];
+  if (values.some((value) => value === undefined || !Number.isFinite(value) || !Number.isFinite(Math.fround(value)))) {
+    throw new Error('Bomb detonation event position must contain three finite float32 values');
+  }
+  return { x: event.x!, y: event.y!, z: event.z! };
 }
 
 function encodeKind(event: GameEvent): { readonly kind: number; readonly eventClass: EventClass } {
@@ -171,6 +183,7 @@ export class EventProducerChannel {
   enqueue(events: readonly GameEvent[]): void {
     for (const event of events) {
       const encoded = encodeKind(event);
+      const position = eventPosition(event);
       if (this.pending.length >= this.queueCapacity && !this.makeRoom(encoded.eventClass)) continue;
       this.pending.push({
         tick: event.tick,
@@ -179,6 +192,7 @@ export class EventProducerChannel {
         kind: encoded.kind,
         robotId: event.robotId ?? -1,
         value: event.coins ?? event.value ?? 0,
+        ...position,
       });
     }
   }
@@ -203,6 +217,9 @@ export class EventProducerChannel {
       view.setUint32(offset + 4, event.tick, true);
       view.setUint32(offset + 8, event.eventId, true);
       view.setInt32(offset + 12, event.value, true);
+      view.setFloat32(offset + 16, event.x, true);
+      view.setFloat32(offset + 20, event.y, true);
+      view.setFloat32(offset + 24, event.z, true);
     }
     this.inFlight.add(batchSequence);
     return { batchSequence, eventEpoch: this.epoch, recordCount: records.length, buffer };
@@ -304,11 +321,17 @@ export class EventConsumerQueue {
       const robotId = view.getInt16(offset + 2, true);
       const value = view.getInt32(offset + 12, true);
       const type = decodeKind(view.getUint8(offset + 1));
+      const position = type === 'bomb-detonated' ? {
+        x: view.getFloat32(offset + 16, true),
+        y: view.getFloat32(offset + 20, true),
+        z: view.getFloat32(offset + 24, true),
+      } : {};
       const event: DecodedGameEvent = {
         tick: view.getUint32(offset + 4, true),
         type,
         ...(robotId < 0 ? {} : { robotId }),
         ...(value === 0 ? {} : type === 'robot-defeated' ? { coins: value } : { value }),
+        ...position,
         eventId,
         eventClass,
         batchSequence,

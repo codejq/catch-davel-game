@@ -36,6 +36,9 @@ export interface GameEvent {
   readonly robotId?: number;
   readonly coins?: number;
   readonly value?: number;
+  readonly x?: number;
+  readonly y?: number;
+  readonly z?: number;
 }
 
 export interface GameState {
@@ -178,7 +181,14 @@ export class GameSimulation {
     this.state.player.energy = Math.min(100, this.state.player.energy + 0.12);
     if (!this.state.defeat && !this.state.victory) this.stepSelectedWeapon(command);
     const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs, this.state.levelId);
-    for (const bombId of detonatedBombs.detonatedBombIds) this.state.events.push({ tick: this.state.tick, type: 'bomb-detonated', value: bombId });
+    for (const detonation of detonatedBombs.detonations) this.state.events.push({
+      tick: this.state.tick,
+      type: 'bomb-detonated',
+      value: detonation.id,
+      x: detonation.x,
+      y: detonation.y,
+      z: detonation.z,
+    });
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
     stepLevelHazardPhases(this.state.level, this.state.tick + 1);
     quantizeSimulationState(this.state);

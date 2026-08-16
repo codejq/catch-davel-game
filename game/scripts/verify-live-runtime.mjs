@@ -225,6 +225,20 @@ try {
       laserHeat: arsenalObservation.player.laserHeat,
       laserActive: arsenalObservation.laser.active,
     };
+    const bombDetonationObservation = await api.act({}, 90);
+    const bombEffectDeadline = performance.now() + 2_000;
+    while (Number(document.body.dataset.bombDetonationTick) > bombDetonationObservation.tick
+      || !Number.isFinite(Number(document.body.dataset.bombDetonationTick))) {
+      if (performance.now() >= bombEffectDeadline) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    const bombDetonationProof = {
+      observationTick: bombDetonationObservation.tick,
+      liveBombs: bombDetonationObservation.playerBombs.length,
+      effectTick: Number(document.body.dataset.bombDetonationTick),
+      bombId: Number(document.body.dataset.bombDetonationId),
+      position: document.body.dataset.bombDetonationPosition?.split(',').map(Number) ?? [],
+    };
 
     const [{ BaselineCampaignAgent }, { LEVEL_001 }] = await Promise.all([
       import('/src/agent/baseline-policy.ts'),
@@ -288,6 +302,7 @@ try {
       levelEightProof,
       waveTransitionProof,
       arsenalProof,
+      bombDetonationProof,
       bossProof,
       bossHudProof,
       damageDirectionProof,
@@ -364,6 +379,13 @@ try {
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
     [result.arsenalProof.bombCount === 2 && result.arsenalProof.liveBombs === 1, 'Worker bomb action did not create a thrown bomb'],
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
+    [result.bombDetonationProof.liveBombs === 0
+      && Number.isFinite(result.bombDetonationProof.effectTick)
+      && result.bombDetonationProof.effectTick <= result.bombDetonationProof.observationTick
+      && result.bombDetonationProof.bombId === 1
+      && result.bombDetonationProof.position.length === 3
+      && result.bombDetonationProof.position.every(Number.isFinite),
+    'tick-correlated pulse-bomb position did not reach the Offscreen raw-WebGL2 effect path'],
     [result.bossProof.count === 1 && result.bossProof.id === 6 && result.bossProof.name === 'The Final Invoice', 'boss training did not load the stable boss identity'],
     [result.bossProof.rank === 'boss' && result.bossProof.phase === 1 && result.bossProof.health === 420, 'boss training did not expose phase-one authoritative state'],
     [result.difficultyProof.story.difficulty === 'story' && result.difficultyProof.story.health === 336

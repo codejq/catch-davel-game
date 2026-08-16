@@ -13,6 +13,7 @@ import { chapter01Level } from '../content/levels/chapter-01';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
 import { freezeDanceWindow } from '../sim/level-mechanics';
 import type { PulseEnergyCellEffect } from './presentation-particles';
+import type { BombDetonationEffect } from './bomb-detonation';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -160,6 +161,8 @@ export class WorldRenderer {
   }
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.davels.emitPulseEnergyCell(effect); }
+
+  emitBombDetonation(effect: BombDetonationEffect): void { this.davels.emitBombDetonation(effect); }
 
   clearPresentationEffects(): void { this.davels.clearPresentationEffects(); }
 

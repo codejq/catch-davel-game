@@ -437,7 +437,7 @@ try {
   const fallbackErrors = [];
   fallbackPage.on('pageerror', (error) => fallbackErrors.push(error.message));
   fallbackPage.on('console', (message) => { if (message.type() === 'error') fallbackErrors.push(message.text()); });
-  await fallbackPage.goto(`${url}?renderer=main`, { waitUntil: 'load' });
+  await fallbackPage.goto(`${url}?renderer=main&arsenal=training`, { waitUntil: 'load' });
   await fallbackPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
     && document.body.dataset.rendererMode === 'main-thread-fallback'
@@ -452,11 +452,28 @@ try {
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
   await fallbackPage.click('#game');
+  await fallbackPage.keyboard.press('Digit3');
+  await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'bomb');
+  await fallbackPage.mouse.down();
+  await fallbackPage.waitForTimeout(100);
+  await fallbackPage.mouse.up();
+  await fallbackPage.keyboard.press('Digit1');
+  await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'pulse');
   await fallbackPage.mouse.down();
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
   const fallbackPulseEnergyCellTick = await fallbackPage.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombDetonationTick)), null, { timeout: 3_000 });
   await fallbackPage.mouse.up();
-  const contextLossStartTick = fallback.tick;
+  const fallbackBombDetonation = await fallbackPage.evaluate(() => ({
+    tick: Number(document.body.dataset.bombDetonationTick),
+    bombId: Number(document.body.dataset.bombDetonationId),
+    position: document.body.dataset.bombDetonationPosition?.split(',').map(Number) ?? [],
+  }));
+  if (fallbackBombDetonation.bombId !== 1 || fallbackBombDetonation.position.length !== 3
+    || !fallbackBombDetonation.position.every(Number.isFinite)) {
+    throw new Error(`Main-thread pulse-bomb effect lost its event position: ${JSON.stringify(fallbackBombDetonation)}`);
+  }
+  const contextLossStartTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
   const supportsContextLoss = await fallbackPage.evaluate(() => {
     const gl = document.querySelector('#game')?.getContext('webgl2');
     window.__catchDavelContextLoss = gl?.getExtension('WEBGL_lose_context') ?? null;
@@ -625,7 +642,10 @@ try {
     passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
     pulseEnergyCellProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
-    fallback: { ...fallback, pulseEnergyCellTick: fallbackPulseEnergyCellTick, contextRecovery, browserErrors: fallbackErrors },
+    fallback: {
+      ...fallback, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
+      bombDetonation: fallbackBombDetonation, contextRecovery, browserErrors: fallbackErrors,
+    },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },
     tooling: { ...toolingProof, rejectsUnknownField, browserErrors: toolingErrors },

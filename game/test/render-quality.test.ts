@@ -12,6 +12,8 @@ describe('presentation-only render quality', () => {
     expect(RENDER_QUALITY_PROFILES.low.fireSmokeCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.fireSmokeCount);
     expect(RENDER_QUALITY_PROFILES.low.defeatFragmentCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.defeatFragmentCount);
     expect(RENDER_QUALITY_PROFILES.low.coinBurstCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.coinBurstCount);
+    expect(RENDER_QUALITY_PROFILES.low.bombPressureRingSegments).toBeLessThan(RENDER_QUALITY_PROFILES.high.bombPressureRingSegments);
+    expect(RENDER_QUALITY_PROFILES.low.bombSparkCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.bombSparkCount);
     expect(() => normalizeRenderQuality('ultra')).toThrow(/quality/);
   });
 

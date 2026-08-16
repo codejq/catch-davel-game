@@ -51,6 +51,10 @@ scope.onmessage = (event: MessageEvent<RenderWorkerRequest>) => {
       if (!contextLost) renderer.emitPulseEnergyCell(request.effect);
       return;
     }
+    if (request.type === 'bomb-detonation') {
+      if (!contextLost) renderer.emitBombDetonation(request.effect);
+      return;
+    }
     if (request.type === 'clear-presentation-effects') {
       renderer.clearPresentationEffects();
       return;
