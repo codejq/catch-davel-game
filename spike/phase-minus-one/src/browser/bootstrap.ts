@@ -166,7 +166,8 @@ const resizeRenderer = (send: (width: number, height: number, pixelRatio: number
   resize();
 };
 
-if (typeof canvas.transferControlToOffscreen === 'function') {
+const forceMainRenderer = new URLSearchParams(location.search).get('renderer') === 'main';
+if (!forceMainRenderer && typeof canvas.transferControlToOffscreen === 'function') {
   rendererMode = 'OffscreenCanvas render Worker';
   const renderWorker = new Worker(new URL('../workers/render.worker.ts', import.meta.url), { type: 'module' });
   let nextStallRequest = 1;

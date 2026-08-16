@@ -348,5 +348,305 @@
     },
     "errors": 0,
     "certification": "incomplete: development VMware host is not an approved baseline device"
+  },
+  "fallbackEvidence": {
+    "sourceRun": "perf-browser-2026-08-16T04-27-03-980Z",
+    "run": {
+      "label": "development-only",
+      "scenario": "perf:browser",
+      "scenarioVersion": 1,
+      "seed": "catch-davel-phase-minus-one-v1",
+      "gitCommit": "5d10a1f72a3231d8d1cc64efe931656079265223",
+      "dirty": true,
+      "startedAt": "2026-08-16T04:26:52.101Z",
+      "endedAt": "2026-08-16T04:27:04.031Z",
+      "configuration": {
+        "simulationSchemaVersion": 1,
+        "transportContractVersion": 1,
+        "tickHz": 60,
+        "substeps": 2,
+        "iterations": 8,
+        "robots": 24,
+        "warmupSeconds": 1,
+        "measuredSeconds": 1,
+        "rendererPreference": "main"
+      },
+      "runtime": {
+        "browserVersion": "151.0.4129.86",
+        "browserExecutable": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+        "node": "v24.16.0",
+        "platform": "win32",
+        "osRelease": "10.0.19045",
+        "architecture": "x64",
+        "cpu": "Intel(R) Core(TM) i9-14900K",
+        "logicalCpuCount": 12,
+        "totalMemoryBytes": 32060657664,
+        "freeMemoryBytesAtReport": 19841941504,
+        "viewport": {
+          "width": 1280,
+          "height": 720,
+          "pixelRatio": 1
+        },
+        "rendererMode": "main-thread WebGL2 fallback",
+        "renderer": {
+          "vendor": "Google Inc. (Microsoft)",
+          "renderer": "ANGLE (Microsoft, Microsoft Basic Render Driver (0x0000008C) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+          "version": "WebGL 2.0 (OpenGL ES 3.0 Chromium)",
+          "shadingLanguageVersion": "WebGL GLSL ES 3.00 (OpenGL ES GLSL ES 3.0 Chromium)",
+          "gpuTimerQueryAvailable": true
+        },
+        "powerPolicy": "not exposed by browser harness"
+      }
+    },
+    "summary": {
+      "label": "development-only",
+      "passedHarness": true,
+      "sampleCounts": {
+        "simulation": 60,
+        "render": 60
+      },
+      "simulation": {
+        "navigationMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0.10000002384185791,
+          "p95": 0.20000001788139343,
+          "p99": 0.20000001788139343,
+          "maximum": 0.20000001788139343,
+          "mean": 0.14166666517655055
+        },
+        "physicsMs": {
+          "samples": 60,
+          "minimum": 0.09999999403953552,
+          "median": 0.19999998807907104,
+          "p95": 0.29999998211860657,
+          "p99": 0.5,
+          "maximum": 0.5,
+          "mean": 0.1666666661699613
+        },
+        "integrationExternalForcesMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0,
+          "maximum": 0,
+          "mean": 0
+        },
+        "constraintsMotorsMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0.09999999403953552,
+          "p95": 0.29999998211860657,
+          "p99": 0.5,
+          "maximum": 0.5,
+          "mean": 0.13499999940395355
+        },
+        "broadphaseCollisionMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0,
+          "p95": 0.10000002384185791,
+          "p99": 0.19999998807907104,
+          "maximum": 0.19999998807907104,
+          "mean": 0.020000000298023225
+        },
+        "combatProjectilesHazardsMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0,
+          "p95": 0.09999999403953552,
+          "p99": 0.10000002384185791,
+          "maximum": 0.10000002384185791,
+          "mean": 0.013333333532015483
+        },
+        "eventsObjectivesEconomyMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0.19999998807907104,
+          "maximum": 0.19999998807907104,
+          "mean": 0.0066666667660077415
+        },
+        "snapshotMs": {
+          "samples": 60,
+          "minimum": 0,
+          "median": 0,
+          "p95": 0,
+          "p99": 0.09999999403953552,
+          "maximum": 0.09999999403953552,
+          "mean": 0.0016666665673255921
+        },
+        "wholeTickMs": {
+          "samples": 60,
+          "minimum": 0.19999998807907104,
+          "median": 0.30000001192092896,
+          "p95": 0.4000000059604645,
+          "p99": 0.9000000059604645,
+          "maximum": 0.9000000059604645,
+          "mean": 0.33333333134651183
+        }
+      },
+      "snapshotLatencyMs": {
+        "samples": 60,
+        "minimum": 0.10009765625,
+        "median": 0.300048828125,
+        "p95": 0.400146484375,
+        "p99": 0.5,
+        "maximum": 0.5,
+        "mean": 0.2983927408854167
+      },
+      "queuedEvents": {
+        "samples": 60,
+        "minimum": 0,
+        "median": 0,
+        "p95": 0,
+        "p99": 0,
+        "maximum": 0,
+        "mean": 0
+      },
+      "renderCpuMs": {
+        "samples": 60,
+        "minimum": 0,
+        "median": 0.19999998807907104,
+        "p95": 0.30000001192092896,
+        "p99": 0.30000001192092896,
+        "maximum": 0.30000001192092896,
+        "mean": 0.17166666636864344
+      },
+      "renderGpuMs": {
+        "samples": 60,
+        "minimum": 4.0751,
+        "median": 4.4529,
+        "p95": 11.4668,
+        "p99": 14.5255,
+        "maximum": 14.5255,
+        "mean": 5.127840000000002
+      },
+      "drawCalls": {
+        "samples": 60,
+        "minimum": 3,
+        "median": 3,
+        "p95": 3,
+        "p99": 3,
+        "maximum": 3,
+        "mean": 3
+      },
+      "instances": {
+        "samples": 60,
+        "minimum": 697,
+        "median": 697,
+        "p95": 697,
+        "p99": 697,
+        "maximum": 697,
+        "mean": 697
+      },
+      "firstTick": 63,
+      "lastTick": 122,
+      "finalChecksum": "6765978e",
+      "determinism": {
+        "nodeReferenceChecksum": "6765978e",
+        "workerChecksum": "6765978e",
+        "matches": true
+      },
+      "transportStalls": [
+        {
+          "target": "main",
+          "milliseconds": 50,
+          "before": {
+            "main": 253,
+            "render": 253
+          },
+          "after": {
+            "main": 267,
+            "render": 267
+          },
+          "simulationContinued": true
+        },
+        {
+          "target": "main",
+          "milliseconds": 250,
+          "before": {
+            "main": 267,
+            "render": 267
+          },
+          "after": {
+            "main": 292,
+            "render": 292
+          },
+          "simulationContinued": true
+        },
+        {
+          "target": "main",
+          "milliseconds": 1000,
+          "before": {
+            "main": 292,
+            "render": 292
+          },
+          "after": {
+            "main": 361,
+            "render": 361
+          },
+          "simulationContinued": true
+        },
+        {
+          "target": "main",
+          "milliseconds": 5000,
+          "before": {
+            "main": 361,
+            "render": 361
+          },
+          "after": {
+            "main": 671,
+            "render": 671
+          },
+          "simulationContinued": true
+        }
+      ],
+      "contextRecovery": {
+        "supported": true,
+        "lost": true,
+        "restored": true
+      },
+      "audioVisual": {
+        "supported": true,
+        "contextState": "running",
+        "baseLatencySeconds": 0.01,
+        "outputLatencySeconds": 0.04,
+        "audioMappingErrorMs": {
+          "samples": 12,
+          "minimum": 5.656000017881524,
+          "median": 13.297999982118654,
+          "p95": 16.895000005960355,
+          "p99": 16.895000005960355,
+          "maximum": 16.895000005960355,
+          "mean": 12.89958333631364
+        },
+        "audioVisualSeparationMs": {
+          "samples": 12,
+          "minimum": 4.056000017881615,
+          "median": 13.90000002384204,
+          "p95": 33.395000005960355,
+          "p99": 33.395000005960355,
+          "maximum": 33.395000005960355,
+          "mean": 16.116250002980376
+        },
+        "limitation": "Instrumented Web Audio clock mapping and animation-frame timing only; no microphone, speaker, photodiode, or physical display capture."
+      },
+      "memory": {
+        "beforeBytes": 1703836,
+        "afterBytes": 2360780,
+        "growthBytes": 656944
+      },
+      "errors": 0,
+      "certification": "incomplete: development VMware host is not an approved baseline device"
+    },
+    "rawArtifactHashes": {
+      "run": "d6f435f5d4875b17571c6ec8556dfab989ac8afd827ea71f5aaf7d1dfdb4f112",
+      "samples": "8ece1c899c095e30c71091fac3f4d52808d6d35182daf8156b41d1870ec62850",
+      "summary": "542b45696544b6cf6a12ad2fbc26427100c0119e75ab9decb86b0f81b7a7df26",
+      "errors": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
   }
 }

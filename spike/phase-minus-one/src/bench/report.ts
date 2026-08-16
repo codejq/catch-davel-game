@@ -50,7 +50,7 @@ function sha256(path: string): string {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
 }
 
-function latestSuccessfulBrowserRun(): { directory: string; run: BrowserRun; summary: BrowserSummary } {
+function latestSuccessfulBrowserRun(modeSubstring: string): { directory: string; run: BrowserRun; summary: BrowserSummary } {
   if (!existsSync(runsDirectory)) throw new Error('No browser artifact runs exist');
   const candidates = readdirSync(runsDirectory, { withFileTypes: true })
     .filter((entry) => entry.isDirectory() && entry.name.startsWith('perf-browser-'))
@@ -61,6 +61,7 @@ function latestSuccessfulBrowserRun(): { directory: string; run: BrowserRun; sum
     const summary = JSON.parse(readFileSync(join(directory, 'summary.json'), 'utf8')) as BrowserSummary;
     if (!summary.passedHarness) continue;
     const run = JSON.parse(readFileSync(join(directory, 'run.json'), 'utf8')) as BrowserRun;
+    if (!run.runtime.rendererMode.includes(modeSubstring)) continue;
     return { directory, run, summary };
   }
   throw new Error('No successful browser artifact run exists');
@@ -87,7 +88,8 @@ function fixed(value: number): string {
   return value.toFixed(3);
 }
 
-const browser = latestSuccessfulBrowserRun();
+const browser = latestSuccessfulBrowserRun('OffscreenCanvas');
+const fallback = latestSuccessfulBrowserRun('main-thread');
 const simulation = runSimulationDiagnostic();
 const bombState = createScenario('phase-minus-one-bomb-squad-v1');
 const bombEvents = new EventBuffer();
@@ -121,6 +123,7 @@ This report is evidence from the current development environment only. It cannot
 | Raw WebGL2 GPU elapsed p95 | ${(browser.summary.renderGpuMs?.samples ?? 0) > 0 ? `${fixed(browser.summary.renderGpuMs!.p95)} ms` : 'unavailable'} | ≤ 5.5 ms desktop | ${(browser.summary.renderGpuMs?.samples ?? 0) > 0 && browser.summary.renderGpuMs!.p95 <= 5.5 ? 'Diagnostic pass' : 'Open'} |
 | Render load | ${browser.summary.drawCalls.maximum} draws / ${browser.summary.instances.maximum} instances | Representative workload | Exercised |
 | Node ↔ simulation Worker checksum | ${browser.summary.determinism?.matches === true ? 'match' : 'missing/mismatch'} | Exact match | ${browser.summary.determinism?.matches === true ? 'Pass' : 'Open'} |
+| Main-render fallback ↔ Node checksum | ${fallback.summary.determinism?.matches === true ? 'match' : 'missing/mismatch'} | Exact match | ${fallback.summary.determinism?.matches === true ? 'Pass' : 'Open'} |
 | Browser consumer stalls | ${browser.summary.transportStalls?.filter((stall) => stall.simulationContinued).length ?? 0}/${browser.summary.transportStalls?.length ?? 0} continued | 50 ms–5 s, both consumers | ${(browser.summary.transportStalls?.every((stall) => stall.simulationContinued) ?? false) ? 'Pass' : 'Open'} |
 | WebGL2 context recovery | ${browser.summary.contextRecovery?.lost === true && browser.summary.contextRecovery.restored ? 'lost and restored' : 'missing/failed'} | Rebuild resources and resume | ${browser.summary.contextRecovery?.restored === true ? 'Pass' : 'Open'} |
 | Instrumented audio mapping p95 | ${Number.isFinite(audioMappingP95) ? `${fixed(audioMappingP95)} ms` : 'missing'} | ≤ 10 ms desktop | ${audioMappingP95 <= 10 ? 'Diagnostic pass' : 'Fail/open'} |
@@ -133,6 +136,7 @@ The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event 
 ## Browser evidence
 
 - Run: \`${basename(browser.directory)}\`
+- Main-render fallback run: \`${basename(fallback.directory)}\`; checksum match: ${String(fallback.summary.determinism?.matches ?? false)}
 - Commit recorded by run: \`${browser.run.gitCommit}\`; dirty state: \`${String(browser.run.dirty)}\`
 - Browser: ${browser.run.runtime.browserVersion}
 - CPU: ${browser.run.runtime.cpu}
@@ -168,6 +172,17 @@ writeFileSync(manifestOutputPath, `${JSON.stringify({
   },
   run: browser.run,
   summary: browser.summary,
+  fallbackEvidence: {
+    sourceRun: basename(fallback.directory),
+    run: fallback.run,
+    summary: fallback.summary,
+    rawArtifactHashes: {
+      run: sha256(join(fallback.directory, 'run.json')),
+      samples: sha256(join(fallback.directory, 'samples.jsonl')),
+      summary: sha256(join(fallback.directory, 'summary.json')),
+      errors: sha256(join(fallback.directory, 'errors.jsonl')),
+    },
+  },
 }, null, 2)}\n`);
 process.stdout.write(`${JSON.stringify({
   status: 'incomplete',

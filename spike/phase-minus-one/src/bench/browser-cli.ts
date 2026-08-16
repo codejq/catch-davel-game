@@ -130,6 +130,7 @@ function sha256(path: string): string {
 async function run(): Promise<void> {
   const warmupSeconds = positiveNumber('SPIKE_BROWSER_WARMUP_SECONDS', 2);
   const measuredSeconds = positiveNumber('SPIKE_BROWSER_MEASURED_SECONDS', 10);
+  const rendererPreference = process.env.SPIKE_RENDERER_MODE === 'main' ? 'main' : 'worker';
   const executablePath = browserExecutable();
   const { server, url } = await startServer();
   const errors: Array<{ source: string; message: string }> = [];
@@ -157,7 +158,8 @@ async function run(): Promise<void> {
     page.on('console', (message) => {
       if (message.type() === 'error') errors.push({ source: 'console', message: message.text() });
     });
-    await page.goto(url, { waitUntil: 'load' });
+    const pageUrl = rendererPreference === 'main' ? `${url}?renderer=main` : url;
+    await page.goto(pageUrl, { waitUntil: 'load' });
     await page.waitForFunction(() => {
       const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__?: { rendererInfo: () => unknown } }).__CATCH_DAVEL_SPIKE__;
       return capture?.rendererInfo() !== null;
@@ -310,6 +312,7 @@ async function run(): Promise<void> {
       robots: ROBOT_COUNT,
       warmupSeconds,
       measuredSeconds,
+      rendererPreference,
     },
     runtime: {
       browserVersion,

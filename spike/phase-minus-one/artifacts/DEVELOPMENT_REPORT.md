@@ -16,14 +16,15 @@ This report is evidence from the current development environment only. It cannot
 
 | Diagnostic | Result | Plan target | Interpretation |
 |---|---:|---:|---|
-| Node whole tick p95 | 0.194 ms | ≤ 4 ms desktop | Diagnostic pass |
-| Node XPBD/collision p95 | 0.139 ms | ≤ 2 ms desktop | Diagnostic pass |
+| Node whole tick p95 | 0.193 ms | ≤ 4 ms desktop | Diagnostic pass |
+| Node XPBD/collision p95 | 0.137 ms | ≤ 2 ms desktop | Diagnostic pass |
 | Browser whole tick p95 | 0.600 ms | ≤ 4 ms desktop | Diagnostic pass |
 | Main snapshot latency p95 | 0.200 ms | ≤ 5 ms desktop | Diagnostic pass |
 | Raw WebGL2 CPU submission p95 | 0.300 ms | GPU/frame budget | Informational; not GPU time |
 | Raw WebGL2 GPU elapsed p95 | 15.258 ms | ≤ 5.5 ms desktop | Open |
 | Render load | 3 draws / 697 instances | Representative workload | Exercised |
 | Node ↔ simulation Worker checksum | match | Exact match | Pass |
+| Main-render fallback ↔ Node checksum | match | Exact match | Pass |
 | Browser consumer stalls | 8/8 continued | 50 ms–5 s, both consumers | Pass |
 | WebGL2 context recovery | lost and restored | Rebuild resources and resume | Pass |
 | Instrumented audio mapping p95 | 15.709 ms | ≤ 10 ms desktop | Fail/open |
@@ -36,6 +37,7 @@ The Node 6,000-tick run ended at checksum `bf3793bf`; its event peak was 79 reco
 ## Browser evidence
 
 - Run: `perf-browser-2026-08-16T04-26-09-017Z`
+- Main-render fallback run: `perf-browser-2026-08-16T04-27-03-980Z`; checksum match: true
 - Commit recorded by run: `80a2a6451f03584133b322f9c1d0fc3c379c6882`; dirty state: `true`
 - Browser: 151.0.4129.86
 - CPU: Intel(R) Core(TM) i9-14900K
