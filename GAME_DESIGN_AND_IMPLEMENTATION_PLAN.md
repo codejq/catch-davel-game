@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **12 — listener-relative spatial audio implemented; physical devices remain certification-only**
+Revision: **13 — granular Web Audio routing implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -17,6 +17,8 @@ Revision 10 records the implemented player locomotion-audio pass. A presentation
 Revision 11 records the implemented Davel defeat-collapse pass. A bounded renderer-local tracker recognizes only safely correlated active-to-zero-health transitions, copies the final 11-point XPBD pose, and topples that pose toward the floor for 36 presentation ticks while existing coins and mechanical fragments scatter. Coalesced gaps, spawns, non-fatal deactivation, rewinds, level changes, reactivation, and resynchronization cannot synthesize or retain a false collapse. Zero-motion presentation uses one immediate stable toppled silhouette. Authoritative defeat, collision removal, rewards, waves, snapshots, replay checksums, and LLM observations remain unchanged.
 
 Revision 12 records the implemented spatial-transient audio pass. Robot attacks, impacts, defeat/taunt cues, and positioned bomb fuse/detonation cues now use camera-relative stereo direction rather than absolute world X and follow one monotonic distance curve from a 1.5-unit full-gain radius to a bounded 8% critical-cue tail at 18 units. Snapshot-derived Davel movement already applies its own proximity gain and therefore receives direction without double attenuation. Player-hit, player weapons, pickups, objectives, and interface cues remain listener-local. The projection uses only the newest immutable player/robot transforms or finite positioned events and changes no authoritative or replay state.
+
+Revision 13 records the implemented granular effects-bus graph. Every procedural cue now routes exhaustively to one of five dedicated Web Audio gain nodes—`weapons`, `robots`, `environment`, `interface`, or `voice`—before the shared dry/room-response/master chain; continuous ambience enters `environment`, Davel mechanisms enter `robots`, and personality taunts enter `voice`. Music retains its separately controlled sequencer path. The existing persisted combat/world/interface controls currently operate as grouped macros over those five nodes, preserving profile v10 while the next persistence slice adds independent five-bus controls and migration required by Section 15.10.
 
 ## 1. Executive summary
 

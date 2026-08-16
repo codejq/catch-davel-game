@@ -6,7 +6,9 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
   | 'player-step' | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
 
-export type AudioBus = 'combat' | 'world' | 'interface';
+export const AUDIO_BUSES = ['weapons', 'robots', 'environment', 'interface', 'voice'] as const;
+export type AudioBus = typeof AUDIO_BUSES[number];
+export type AudioMixChannel = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
 export const TRANSIENT_AUDIO_SOURCE_CAP = 48;
 export const AMBIENCE_SOURCE_CAP = 2;
@@ -28,15 +30,20 @@ export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
 };
 
 export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
-  pulse: 'combat', sword: 'combat', 'charged-sword': 'combat', deflect: 'combat', 'bomb-throw': 'combat',
-  'bomb-fuse': 'combat', 'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'weak-point': 'combat', 'robot-shot': 'combat',
-  'robot-telegraph': 'combat', 'robot-melee': 'combat', 'dj-buff': 'combat', 'boss-phase': 'combat',
-  'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
-  checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
+  pulse: 'weapons', sword: 'weapons', 'charged-sword': 'weapons', deflect: 'weapons', 'bomb-throw': 'weapons',
+  'bomb-fuse': 'weapons', 'bomb-detonate': 'weapons', laser: 'weapons',
+  'robot-impact': 'robots', 'weak-point': 'robots', 'robot-shot': 'robots', 'robot-telegraph': 'robots',
+  'robot-melee': 'robots', 'dj-buff': 'robots', 'boss-phase': 'robots', 'player-hit': 'robots',
+  key: 'environment', health: 'environment', energy: 'environment', coin: 'environment', door: 'environment',
+  checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'robots', 'robot-taunt': 'voice', victory: 'interface',
   defeat: 'interface', ambush: 'interface', 'wave-warning': 'interface',
-  'player-step': 'world',
-  'wobble-step': 'world', 'slider-step': 'world', 'spinner-step': 'world', 'firemouth-step': 'world',
-  'dj-step': 'world', 'overlord-step': 'world',
+  'player-step': 'environment',
+  'wobble-step': 'robots', 'slider-step': 'robots', 'spinner-step': 'robots', 'firemouth-step': 'robots',
+  'dj-step': 'robots', 'overlord-step': 'robots',
+};
+
+export const AUDIO_BUS_MIX_CHANNEL: Readonly<Record<AudioBus, AudioMixChannel>> = {
+  weapons: 'combat', robots: 'combat', environment: 'world', interface: 'interface', voice: 'world',
 };
 
 export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
@@ -213,7 +220,8 @@ export class ProceduralAudio {
     damping.frequency.value = profile.dampingHz;
     this.reverbInput.connect(convolver).connect(damping).connect(this.master);
     this.buses = {
-      combat: context.createGain(), world: context.createGain(), interface: context.createGain(),
+      weapons: context.createGain(), robots: context.createGain(), environment: context.createGain(),
+      interface: context.createGain(), voice: context.createGain(),
     };
     for (const bus of Object.values(this.buses)) {
       bus.connect(this.dry);
@@ -226,7 +234,7 @@ export class ProceduralAudio {
     this.ambienceFilter.type = 'lowpass';
     this.ambienceFilter.frequency.value = ambience.filterFrequency;
     this.ambienceFilter.Q.value = 0.72;
-    this.ambienceFilter.connect(this.ambienceGain).connect(this.buses.world);
+    this.ambienceFilter.connect(this.ambienceGain).connect(this.buses.environment);
     this.ambienceSources = [
       this.createAmbienceOscillator('sine', ambience.primaryFrequency, 0.62),
       this.createAmbienceOscillator('triangle', ambience.secondaryFrequency, 0.24),
@@ -245,8 +253,8 @@ export class ProceduralAudio {
   setMix(mix: AudioMixSettings, immediate = false): void {
     validateAudioMixSettings(mix);
     const timeConstant = immediate ? 0 : 0.04;
-    for (const bus of ['combat', 'world', 'interface'] as const) {
-      const value = mix[bus];
+    for (const bus of AUDIO_BUSES) {
+      const value = mix[AUDIO_BUS_MIX_CHANNEL[bus]];
       if (immediate) this.buses[bus].gain.value = value;
       else this.buses[bus].gain.setTargetAtTime(value, this.context.currentTime, timeConstant);
     }
