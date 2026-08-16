@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "8aabd9b59cf348d0",
+          "effectiveLevel": "5e2a51181b029bbd",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "9d07cf100bca26b2",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -108,16 +108,29 @@
               "spawnPointSetId": "level-009-arena-1"
             },
             {
-              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
               "aiProfileId": "chapter-01-stage-9",
-              "archetypeId": "yellow-spinner",
-              "count": 2,
+              "archetypeId": "blue-slider",
+              "count": 1,
               "dancePresetId": "turbo-tool-shuffle",
-              "id": "yellow-spinner-1-2",
+              "id": "blue-slider-1-2",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-9",
               "rngStream": "encounter.level-009.wave-1.group-2",
+              "spawnPointSetId": "level-009-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-01-stage-9",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "turbo-tool-shuffle",
+              "id": "yellow-spinner-1-3",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-9",
+              "rngStream": "encounter.level-009.wave-1.group-3",
               "spawnPointSetId": "level-009-arena-1"
             }
           ],
@@ -133,12 +146,12 @@
           "maxConcurrentRobots": 5,
           "spawnGroups": [
             {
-              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
               "aiProfileId": "chapter-01-stage-9",
-              "archetypeId": "wobble-scout",
-              "count": 3,
+              "archetypeId": "blue-slider",
+              "count": 1,
               "dancePresetId": "turbo-tool-shuffle",
-              "id": "wobble-scout-2-1",
+              "id": "blue-slider-2-1",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-9",
@@ -149,13 +162,54 @@
               "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
               "aiProfileId": "chapter-01-stage-9",
               "archetypeId": "yellow-spinner",
-              "count": 2,
+              "count": 1,
               "dancePresetId": "turbo-tool-shuffle",
               "id": "yellow-spinner-2-2",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-9",
               "rngStream": "encounter.level-009.wave-2.group-2",
+              "spawnPointSetId": "level-009-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-01-stage-9",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "turbo-tool-shuffle",
+              "id": "red-firemouth-2-3",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-9",
+              "rngStream": "encounter.level-009.wave-2.group-3",
+              "spawnPointSetId": "level-009-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-01-stage-9",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "turbo-tool-shuffle",
+              "id": "red-firemouth-2-4",
+              "modifierIds": [
+                "foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-01-coins-9",
+              "rngStream": "encounter.level-009.wave-2.group-4",
+              "spawnPointSetId": "level-009-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-01-stage-9",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "turbo-tool-shuffle",
+              "id": "cyan-dj-2-5",
+              "modifierIds": [],
+              "rank": "elite",
+              "rewardProfileId": "chapter-01-coins-9",
+              "rngStream": "encounter.level-009.wave-2.group-5",
               "spawnPointSetId": "level-009-arena-2"
             }
           ],

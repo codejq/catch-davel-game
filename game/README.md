@@ -22,6 +22,7 @@ npm run game:test
 npm run game:test:worker
 npm run game:test:runtime
 npm run game:qa:campaign
+npm run game:qa:balance
 ```
 
 Content contract commands:
@@ -61,6 +62,8 @@ The version-9 observation includes the authoritative Chapter 1 level ID and chor
 `BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,526—below the 6,000-tick hard budget.
 
 `npm run game:qa:campaign` executes the same public-observation policy against all ten Chapter 1 levels, enforces each level's declared tick/stuck/illegal-action gates, repeats every run for determinism, and prints a canonical machine-readable report. The checked-in `qa/frozen-checksum-manifest.json` freezes Levels 1, 3, 5, 6, 8, and 10 with exact final ticks, checksums, seeds, and all replay dependency hashes; drift blocks the command rather than silently rewriting its reference.
+
+`npm run game:qa:balance` reconciles every authored wave archetype/rank with the stable runtime robot IDs, objective target count, and peak budget. It reports per-wave health, pressure, guaranteed kill rewards, optional cache rewards, cumulative purchasing power, and upgrade affordability. The current first-clear Chapter 1 totals are 283 guaranteed combat coins plus 106 optional cache coins against a 156-coin complete upgrade catalog.
 
 ## Persistence and replay guarantees
 

@@ -5,6 +5,13 @@ import { LEVEL_001 } from './level-001.ts';
 
 export { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../level-ids.ts';
 
+interface RecipeGroup {
+  readonly archetypeId: string;
+  readonly count: number;
+  readonly rank?: SpawnGroupSpec['rank'];
+  readonly modifiers?: readonly string[];
+}
+
 interface Chapter01Recipe {
   readonly number: number;
   readonly nameSlug: string;
@@ -13,12 +20,8 @@ interface Chapter01Recipe {
   readonly bpm: number;
   readonly visualIntensity: number;
   readonly mechanicTags: readonly string[];
-  readonly groups: readonly {
-    readonly archetypeId: string;
-    readonly count: number;
-    readonly rank?: SpawnGroupSpec['rank'];
-    readonly modifiers?: readonly string[];
-  }[];
+  readonly groups?: readonly RecipeGroup[];
+  readonly waveGroups?: readonly (readonly RecipeGroup[])[];
   readonly waves?: number;
   readonly branch?: boolean;
   readonly secret?: boolean;
@@ -50,7 +53,9 @@ function pad(number: number): string {
 }
 
 function makeGroups(recipe: Chapter01Recipe, waveNumber: number): SpawnGroupSpec[] {
-  return recipe.groups.map((group, groupIndex) => ({
+  const groups = recipe.waveGroups?.[waveNumber - 1] ?? recipe.groups;
+  if (groups === undefined || groups.length === 0) throw new Error(`Level ${recipe.number} wave ${waveNumber} has no spawn groups`);
+  return groups.map((group, groupIndex) => ({
     id: `${group.archetypeId}-${waveNumber}-${groupIndex + 1}`,
     archetypeId: group.archetypeId,
     count: group.count,
@@ -66,7 +71,10 @@ function makeGroups(recipe: Chapter01Recipe, waveNumber: number): SpawnGroupSpec
 }
 
 function makeWaves(recipe: Chapter01Recipe): WaveSpec[] {
-  const waveCount = recipe.waves ?? 1;
+  const waveCount = recipe.waveGroups?.length ?? recipe.waves ?? 1;
+  if (recipe.waves !== undefined && recipe.waveGroups !== undefined && recipe.waves !== recipe.waveGroups.length) {
+    throw new Error(`Level ${recipe.number} wave count disagrees with its group manifest`);
+  }
   return Array.from({ length: waveCount }, (_, index) => {
     const waveNumber = index + 1;
     const groups = makeGroups(recipe, waveNumber);
@@ -183,7 +191,7 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       pathPatternId: `${recipe.danceId}-path-v1`,
       attackBeats: [4, 12],
       vulnerableBeats: [2, 6, 10, 14],
-      transitionIds: ['objective-clear', ...(recipe.waves !== undefined && recipe.waves > 1 ? ['next-wave'] : [])],
+      transitionIds: ['objective-clear', ...(waves.length > 1 ? ['next-wave'] : [])],
       visualIntensity: recipe.visualIntensity,
       reducedMotionPresetId: `${recipe.danceId}-reduced-v1`,
     },
@@ -259,38 +267,58 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
 export const LEVEL_002 = createChapter01Level({
   number: 2, nameSlug: 'grinning-hall', paletteId: 'neon-workshop-02', danceId: 'side-to-side-shuffle',
   bpm: 98, visualIntensity: 0.67, mechanicTags: ['branching'], branch: true,
-  groups: [{ archetypeId: 'wobble-scout', count: 5 }],
+  groups: [{ archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'blue-slider', count: 2 }],
 });
 
 export const LEVEL_003 = createChapter01Level({
   number: 3, nameSlug: 'coin-circuit', paletteId: 'neon-workshop-03', danceId: 'pocket-robot-pop',
   bpm: 100, visualIntensity: 0.69, mechanicTags: ['coin-banking'], branch: true,
-  groups: [{ archetypeId: 'wobble-scout', count: 6, modifiers: ['coin-carrier'] }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3, modifiers: ['coin-carrier'] },
+    { archetypeId: 'blue-slider', count: 2, modifiers: ['coin-carrier'] },
+    { archetypeId: 'yellow-spinner', count: 1, modifiers: ['coin-carrier'] },
+  ],
 });
 
 export const LEVEL_004 = createChapter01Level({
   number: 4, nameSlug: 'wrong-turn-boogie', paletteId: 'neon-workshop-04', danceId: 'corner-peek-groove',
   bpm: 102, visualIntensity: 0.72, mechanicTags: ['ambush', 'secret'], branch: true, secret: true,
-  groups: [{ archetypeId: 'wobble-scout', count: 7, modifiers: ['ambusher'] }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3, modifiers: ['ambusher'] },
+    { archetypeId: 'blue-slider', count: 2, modifiers: ['ambusher'] },
+    { archetypeId: 'yellow-spinner', count: 1, modifiers: ['ambusher'] },
+    { archetypeId: 'red-firemouth', count: 1, modifiers: ['ambusher'] },
+  ],
 });
 
 export const LEVEL_005 = createChapter01Level({
   number: 5, nameSlug: 'foremans-two-step', paletteId: 'neon-workshop-05', danceId: 'heavy-boot-two-step',
   bpm: 104, visualIntensity: 0.74, mechanicTags: ['elite-hunt'], branch: true, tier: 'named-elite',
-  groups: [{ archetypeId: 'wobble-scout', count: 4 }, { archetypeId: 'red-firemouth', count: 1, rank: 'elite', modifiers: ['foreman'] }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'blue-slider', count: 1 },
+    { archetypeId: 'red-firemouth', count: 1, rank: 'elite', modifiers: ['foreman'] },
+  ],
 });
 
 export const LEVEL_006 = createChapter01Level({
   number: 6, nameSlug: 'conveyor-conga', paletteId: 'neon-workshop-06', danceId: 'conveyor-conga',
   bpm: 106, visualIntensity: 0.76, mechanicTags: ['conveyor'], branch: true,
   hazards: [{ periodTicks: 180, activeTicks: 120, profileId: 'conveyor-lane-v1' }],
-  groups: [{ archetypeId: 'wobble-scout', count: 6 }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'blue-slider', count: 2 },
+    { archetypeId: 'yellow-spinner', count: 1 },
+  ],
 });
 
 export const LEVEL_007 = createChapter01Level({
   number: 7, nameSlug: 'lights-out-smiles-on', paletteId: 'neon-workshop-07', danceId: 'flashlight-freeze-dance',
   bpm: 108, visualIntensity: 0.6, mechanicTags: ['partial-darkness'], branch: true, secret: true,
-  groups: [{ archetypeId: 'wobble-scout', count: 7, modifiers: ['reflective-eyes'] }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3, modifiers: ['reflective-eyes'] },
+    { archetypeId: 'blue-slider', count: 2, modifiers: ['reflective-eyes'] },
+    { archetypeId: 'yellow-spinner', count: 1, modifiers: ['reflective-eyes'] },
+    { archetypeId: 'red-firemouth', count: 1, modifiers: ['reflective-eyes'] },
+  ],
 });
 
 export const LEVEL_008 = createChapter01Level({
@@ -301,13 +329,28 @@ export const LEVEL_008 = createChapter01Level({
     { periodTicks: 180, activeTicks: 105, profileId: 'clockwork-gate-center-v1' },
     { periodTicks: 180, activeTicks: 105, profileId: 'clockwork-gate-east-v1' },
   ],
-  groups: [{ archetypeId: 'wobble-scout', count: 5 }, { archetypeId: 'blue-slider', count: 3 }],
+  groups: [
+    { archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'blue-slider', count: 2 },
+    { archetypeId: 'yellow-spinner', count: 1 }, { archetypeId: 'red-firemouth', count: 1 },
+    { archetypeId: 'cyan-dj', count: 1, rank: 'elite' },
+  ],
 });
 
 export const LEVEL_009 = createChapter01Level({
   number: 9, nameSlug: 'workshop-rush', paletteId: 'neon-workshop-09', danceId: 'turbo-tool-shuffle',
-  bpm: 114, visualIntensity: 0.86, mechanicTags: ['multi-room', 'survival'], branch: true, secret: true, waves: 2,
-  groups: [{ archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'yellow-spinner', count: 2 }],
+  bpm: 114, visualIntensity: 0.86, mechanicTags: ['multi-room', 'survival'], branch: true, secret: true,
+  waveGroups: [
+    [
+      { archetypeId: 'wobble-scout', count: 3 }, { archetypeId: 'blue-slider', count: 1 },
+      { archetypeId: 'yellow-spinner', count: 1 },
+    ],
+    [
+      { archetypeId: 'blue-slider', count: 1 }, { archetypeId: 'yellow-spinner', count: 1 },
+      { archetypeId: 'red-firemouth', count: 1 },
+      { archetypeId: 'red-firemouth', count: 1, rank: 'elite', modifiers: ['foreman'] },
+      { archetypeId: 'cyan-dj', count: 1, rank: 'elite' },
+    ],
+  ],
 });
 
 export const LEVEL_010 = createChapter01Level({

@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "33454ddccaa72ad4",
+          "effectiveLevel": "54a0088fa5b73f07",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "fef54884b2088ec7",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -89,7 +89,7 @@
           "completion": "all-defeated",
           "danceTransitionId": null,
           "id": "wave-003-1",
-          "interGroupDelayTicks": 0,
+          "interGroupDelayTicks": 18,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 6,
           "spawnGroups": [
@@ -97,7 +97,7 @@
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
               "aiProfileId": "chapter-01-stage-3",
               "archetypeId": "wobble-scout",
-              "count": 6,
+              "count": 3,
               "dancePresetId": "pocket-robot-pop",
               "id": "wobble-scout-1-1",
               "modifierIds": [
@@ -106,6 +106,36 @@
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-3",
               "rngStream": "encounter.level-003.wave-1.group-1",
+              "spawnPointSetId": "level-003-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-01-stage-3",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "pocket-robot-pop",
+              "id": "blue-slider-1-2",
+              "modifierIds": [
+                "coin-carrier"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-3",
+              "rngStream": "encounter.level-003.wave-1.group-2",
+              "spawnPointSetId": "level-003-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-01-stage-3",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "pocket-robot-pop",
+              "id": "yellow-spinner-1-3",
+              "modifierIds": [
+                "coin-carrier"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-3",
+              "rngStream": "encounter.level-003.wave-1.group-3",
               "spawnPointSetId": "level-003-arena-1"
             }
           ],

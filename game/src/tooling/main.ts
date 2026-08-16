@@ -9,6 +9,7 @@ import { createLevelToolingReport, type LevelToolingReport } from './tooling-mod
 import { inspectReplay, type ReplayInspection } from './replay-inspector-model';
 import { GameSimulation } from '../sim/game';
 import { ReplayRecorder, serializeReplay } from '../replay/replay';
+import { createChapter01BalanceReport } from '../qa/balance-harness';
 
 function element<T extends Element>(selector: string): T {
   const result = document.querySelector<T>(selector);
@@ -31,6 +32,8 @@ const replaySummary = element<HTMLDListElement>('#replay-summary');
 const replayDependencies = element<HTMLDivElement>('#replay-dependencies');
 const replayChecksums = element<HTMLDivElement>('#replay-checksums');
 const replayCommands = element<HTMLDivElement>('#replay-commands');
+const balanceSummary = element<HTMLDivElement>('#balance-summary');
+const balanceTableBody = element<HTMLTableSectionElement>('#balance-table tbody');
 
 for (const levelId of CHAPTER_01_LEVEL_IDS) {
   const option = document.createElement('option');
@@ -275,6 +278,24 @@ function createSampleReplay(): void {
   inspectReplaySource();
 }
 
+function renderBalanceHarness(): void {
+  const report = createChapter01BalanceReport();
+  balanceSummary.textContent = `Guaranteed ${report.guaranteedChapterCoins} coins · optional caches ${report.optionalCacheCoins} · maximum ${report.maximumChapterCoins} · full upgrade catalog ${report.fullUpgradeCatalogCost} · guaranteed affordable by Level ${report.fullCatalogGuaranteedAffordableLevel ?? '—'}`;
+  balanceTableBody.replaceChildren();
+  for (const level of report.levels) {
+    const row = document.createElement('tr');
+    const values = [
+      level.levelId, level.waves.length, level.objectiveTargetCount, level.totalRobotHealth,
+      Math.max(...level.waves.map((wave) => wave.pressureScore)), level.guaranteedCoins,
+      level.optionalCacheCoins, level.cumulativeGuaranteedCoins,
+    ];
+    for (const value of values) {
+      const cell = document.createElement('td'); cell.textContent = String(value); row.append(cell);
+    }
+    balanceTableBody.append(row);
+  }
+}
+
 element<HTMLButtonElement>('#load-level').addEventListener('click', () => load());
 element<HTMLButtonElement>('#validate-level').addEventListener('click', () => validate());
 element<HTMLButtonElement>('#format-level').addEventListener('click', () => {
@@ -307,3 +328,4 @@ element<HTMLInputElement>('#replay-file').addEventListener('change', async (even
 });
 
 load('level-001');
+renderBalanceHarness();

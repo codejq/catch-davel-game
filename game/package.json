@@ -13,6 +13,7 @@
     "build": "npm run content:schema:check && npm run content:export:check && tsc --noEmit && vite build",
     "test": "vitest run",
     "qa:campaign": "vitest run test/campaign-qa.test.ts --reporter=verbose",
+    "qa:balance": "vitest run test/balance-harness.test.ts --reporter=verbose",
     "test:worker": "node scripts/verify-worker.mjs",
     "test:runtime": "vite build && node scripts/verify-live-runtime.mjs && node scripts/verify-production-runtime.mjs"
   },

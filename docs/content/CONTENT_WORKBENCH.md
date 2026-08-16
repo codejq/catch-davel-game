@@ -38,6 +38,7 @@ Before submitting a normal level change:
 npm run game:content:schema
 npm run game:content:export
 npm run game:qa:campaign
+npm run game:qa:balance
 npm run game:test
 npm run game:build
 ```
@@ -45,3 +46,5 @@ npm run game:build
 The generated schema and canonical exports must be committed with their typed source. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
 
 The workbench validates structure, deterministic reachability, budgets, and production projections. It does not certify human fun, audio licensing, localization quality, accessibility, device performance, or physical-device release readiness; those remain separate review gates.
+
+The Chapter 1 balance table is generated from the same harness as `game:qa:balance`. Authored archetype/rank groups must exactly match stable runtime IDs in every wave, objective counts must match total roster size, and declared peak robots must match the runtime wave peak. Coin caches remain optional in affordability reporting; guaranteed combat income is reported separately so an undiscovered secret cannot masquerade as required progression currency.

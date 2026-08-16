@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "723ce91cf348e298",
+          "effectiveLevel": "deaf4b5d4a8e8fdc",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "89024bcb436256c9",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -94,16 +94,68 @@
           "maxConcurrentRobots": 6,
           "spawnGroups": [
             {
-              "accessibilityVerificationId": "silhouette-firemouth-scout-v1",
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
               "aiProfileId": "patrol-fire-v1",
-              "archetypeId": "firemouth-scout",
-              "count": 6,
+              "archetypeId": "wobble-scout",
+              "count": 2,
               "dancePresetId": "wobble-march",
-              "id": "scout-davels",
+              "id": "tutorial-wobble",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "tutorial-coins-v1",
-              "rngStream": "encounter.tutorial-wave.scouts",
+              "rngStream": "encounter.tutorial-wave.wobble",
+              "spawnPointSetId": "level-001-patrols"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "patrol-fire-v1",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "wobble-march",
+              "id": "tutorial-slider",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "tutorial-coins-v1",
+              "rngStream": "encounter.tutorial-wave.slider",
+              "spawnPointSetId": "level-001-patrols"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "patrol-fire-v1",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "wobble-march",
+              "id": "tutorial-spinner",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "tutorial-coins-v1",
+              "rngStream": "encounter.tutorial-wave.spinner",
+              "spawnPointSetId": "level-001-patrols"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "patrol-fire-v1",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "wobble-march",
+              "id": "tutorial-firemouth",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "tutorial-coins-v1",
+              "rngStream": "encounter.tutorial-wave.firemouth",
+              "spawnPointSetId": "level-001-patrols"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "patrol-fire-v1",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "wobble-march",
+              "id": "tutorial-dj",
+              "modifierIds": [],
+              "rank": "elite",
+              "rewardProfileId": "tutorial-coins-v1",
+              "rngStream": "encounter.tutorial-wave.dj",
               "spawnPointSetId": "level-001-patrols"
             }
           ],

@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "76574d164fdb3c96",
+          "effectiveLevel": "44e5f50129de13c9",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "d4ec176394742ce7",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -89,7 +89,7 @@
           "completion": "all-defeated",
           "danceTransitionId": null,
           "id": "wave-002-1",
-          "interGroupDelayTicks": 0,
+          "interGroupDelayTicks": 18,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 5,
           "spawnGroups": [
@@ -97,13 +97,26 @@
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
               "aiProfileId": "chapter-01-stage-2",
               "archetypeId": "wobble-scout",
-              "count": 5,
+              "count": 3,
               "dancePresetId": "side-to-side-shuffle",
               "id": "wobble-scout-1-1",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-2",
               "rngStream": "encounter.level-002.wave-1.group-1",
+              "spawnPointSetId": "level-002-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-01-stage-2",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "side-to-side-shuffle",
+              "id": "blue-slider-1-2",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-2",
+              "rngStream": "encounter.level-002.wave-1.group-2",
               "spawnPointSetId": "level-002-arena-1"
             }
           ],

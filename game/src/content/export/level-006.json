@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "aa548c1c5a5064a1",
+          "effectiveLevel": "7f15c9e87217e556",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "d01839d053094148",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -89,7 +89,7 @@
           "completion": "all-defeated",
           "danceTransitionId": null,
           "id": "wave-006-1",
-          "interGroupDelayTicks": 0,
+          "interGroupDelayTicks": 18,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 6,
           "spawnGroups": [
@@ -97,13 +97,39 @@
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
               "aiProfileId": "chapter-01-stage-6",
               "archetypeId": "wobble-scout",
-              "count": 6,
+              "count": 3,
               "dancePresetId": "conveyor-conga",
               "id": "wobble-scout-1-1",
               "modifierIds": [],
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-6",
               "rngStream": "encounter.level-006.wave-1.group-1",
+              "spawnPointSetId": "level-006-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-01-stage-6",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "conveyor-conga",
+              "id": "blue-slider-1-2",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-6",
+              "rngStream": "encounter.level-006.wave-1.group-2",
+              "spawnPointSetId": "level-006-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-01-stage-6",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "conveyor-conga",
+              "id": "yellow-spinner-1-3",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-6",
+              "rngStream": "encounter.level-006.wave-1.group-3",
               "spawnPointSetId": "level-006-arena-1"
             }
           ],

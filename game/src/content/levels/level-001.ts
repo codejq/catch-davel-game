@@ -37,12 +37,13 @@ export const LEVEL_001 = {
     id: 'tutorial-wave', roomNodeId: 'room-arena', trigger: 'on-enter', triggerRef: null, arenaLock: false,
     waves: [{
       id: 'wave-001', startCondition: 'encounter-start', startDelayTicks: 0,
-      spawnGroups: [{
-        id: 'scout-davels', archetypeId: 'firemouth-scout', count: 6, modifierIds: [],
-        spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1',
-        rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.scouts', rank: 'normal',
-        accessibilityVerificationId: 'silhouette-firemouth-scout-v1',
-      }],
+      spawnGroups: [
+        { id: 'tutorial-wobble', archetypeId: 'wobble-scout', count: 2, modifierIds: [], spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1', rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.wobble', rank: 'normal', accessibilityVerificationId: 'silhouette-wobble-scout-v1' },
+        { id: 'tutorial-slider', archetypeId: 'blue-slider', count: 1, modifierIds: [], spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1', rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.slider', rank: 'normal', accessibilityVerificationId: 'silhouette-blue-slider-v1' },
+        { id: 'tutorial-spinner', archetypeId: 'yellow-spinner', count: 1, modifierIds: [], spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1', rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.spinner', rank: 'normal', accessibilityVerificationId: 'silhouette-yellow-spinner-v1' },
+        { id: 'tutorial-firemouth', archetypeId: 'red-firemouth', count: 1, modifierIds: [], spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1', rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.firemouth', rank: 'normal', accessibilityVerificationId: 'silhouette-red-firemouth-v1' },
+        { id: 'tutorial-dj', archetypeId: 'cyan-dj', count: 1, modifierIds: [], spawnPointSetId: 'level-001-patrols', dancePresetId: 'wobble-march', aiProfileId: 'patrol-fire-v1', rewardProfileId: 'tutorial-coins-v1', rngStream: 'encounter.tutorial-wave.dj', rank: 'elite', accessibilityVerificationId: 'silhouette-cyan-dj-v1' },
+      ],
       maxConcurrentRobots: 6, interGroupDelayTicks: 0, danceTransitionId: null,
       completion: 'all-defeated', invalidSpawnPolicy: 'fail-level',
     }],
@@ -68,7 +69,7 @@ export const LEVEL_001 = {
       maxTicks: 6_000, stuckTimeoutTicks: 900, maxIllegalActions: 0,
       requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '8080626a62a5996d', parTicks: 5_000,
       dependencyHashes: {
-        simulationSchema: 'ef569d373ae5f8cd', effectiveLevel: '723ce91cf348e298', simulationLevel: '89024bcb436256c9',
+        simulationSchema: 'ef569d373ae5f8cd', effectiveLevel: 'deaf4b5d4a8e8fdc', simulationLevel: '89024bcb436256c9',
         balanceData: 'd06573c4b4825196', policyOrReplay: 'd3d7c87fc057d2d4',
       },
     }],

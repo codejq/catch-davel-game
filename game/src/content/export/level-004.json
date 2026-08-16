@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "c65ade68953e408f",
+          "effectiveLevel": "b8d5ba6afbd87b4d",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "45d42bc012626e95",
           "simulationSchema": "ef569d373ae5f8cd"
@@ -89,7 +89,7 @@
           "completion": "all-defeated",
           "danceTransitionId": null,
           "id": "wave-004-1",
-          "interGroupDelayTicks": 0,
+          "interGroupDelayTicks": 18,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 7,
           "spawnGroups": [
@@ -97,7 +97,7 @@
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
               "aiProfileId": "chapter-01-stage-4",
               "archetypeId": "wobble-scout",
-              "count": 7,
+              "count": 3,
               "dancePresetId": "corner-peek-groove",
               "id": "wobble-scout-1-1",
               "modifierIds": [
@@ -106,6 +106,51 @@
               "rank": "normal",
               "rewardProfileId": "chapter-01-coins-4",
               "rngStream": "encounter.level-004.wave-1.group-1",
+              "spawnPointSetId": "level-004-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-01-stage-4",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "corner-peek-groove",
+              "id": "blue-slider-1-2",
+              "modifierIds": [
+                "ambusher"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-4",
+              "rngStream": "encounter.level-004.wave-1.group-2",
+              "spawnPointSetId": "level-004-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-01-stage-4",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "corner-peek-groove",
+              "id": "yellow-spinner-1-3",
+              "modifierIds": [
+                "ambusher"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-4",
+              "rngStream": "encounter.level-004.wave-1.group-3",
+              "spawnPointSetId": "level-004-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-01-stage-4",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "corner-peek-groove",
+              "id": "red-firemouth-1-4",
+              "modifierIds": [
+                "ambusher"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-4",
+              "rngStream": "encounter.level-004.wave-1.group-4",
               "spawnPointSetId": "level-004-arena-1"
             }
           ],
