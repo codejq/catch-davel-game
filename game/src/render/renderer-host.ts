@@ -19,6 +19,7 @@ export interface RendererHost {
 export interface RendererHostOptions {
   readonly forceMainThread?: boolean;
   readonly onError?: (error: Error) => void;
+  readonly onContextStatus?: (status: 'lost' | 'restored') => void;
 }
 
 function canvasSize(canvas: HTMLCanvasElement): { readonly cssWidth: number; readonly cssHeight: number; readonly pixelRatio: number } {
@@ -37,12 +38,15 @@ function webGl2(canvas: HTMLCanvasElement): WebGL2RenderingContext {
 
 class MainThreadRendererHost implements RendererHost {
   readonly mode = 'main-thread-fallback' as const;
-  private readonly renderer: WorldRenderer;
+  private renderer: WorldRenderer;
   private previousState: RenderGameState | null = null;
   private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
+  private contextLost = false;
 
-  constructor(readonly canvas: HTMLCanvasElement) {
+  constructor(readonly canvas: HTMLCanvasElement, private readonly onContextStatus?: (status: 'lost' | 'restored') => void) {
     this.renderer = new WorldRenderer(webGl2(canvas), canvas);
+    canvas.addEventListener('webglcontextlost', this.handleContextLost);
+    canvas.addEventListener('webglcontextrestored', this.handleContextRestored);
   }
 
   resize(): void { this.renderer.resize(); }
@@ -52,10 +56,27 @@ class MainThreadRendererHost implements RendererHost {
       && settings.flashScale === this.previousSettings.flashScale) return;
     this.previousState = state;
     this.previousSettings = settings;
-    this.renderer.render(state, settings);
+    if (!this.contextLost) this.renderer.render(state, settings);
   }
 
-  dispose(): void {}
+  dispose(): void {
+    this.canvas.removeEventListener('webglcontextlost', this.handleContextLost);
+    this.canvas.removeEventListener('webglcontextrestored', this.handleContextRestored);
+  }
+
+  private readonly handleContextLost = (event: Event): void => {
+    event.preventDefault();
+    this.contextLost = true;
+    this.onContextStatus?.('lost');
+  };
+
+  private readonly handleContextRestored = (): void => {
+    this.renderer = new WorldRenderer(webGl2(this.canvas), this.canvas);
+    this.renderer.resize();
+    this.contextLost = false;
+    this.onContextStatus?.('restored');
+    if (this.previousState !== null) this.renderer.render(this.previousState, this.previousSettings);
+  };
 }
 
 class OffscreenRendererHost implements RendererHost {
@@ -66,12 +87,18 @@ class OffscreenRendererHost implements RendererHost {
   private pending: { readonly state: RenderGameState; readonly settings: RenderPresentationSettings } | null = null;
   private previousState: RenderGameState | null = null;
   private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
+  private latest: { readonly state: RenderGameState; readonly settings: RenderPresentationSettings } | null = null;
   private disposed = false;
   private resolveReady!: () => void;
   private rejectReady!: (error: Error) => void;
   private readonly ready: Promise<void>;
 
-  constructor(readonly canvas: HTMLCanvasElement, offscreen: OffscreenCanvas, private readonly onError?: (error: Error) => void) {
+  constructor(
+    readonly canvas: HTMLCanvasElement,
+    offscreen: OffscreenCanvas,
+    private readonly onError?: (error: Error) => void,
+    private readonly onContextStatus?: (status: 'lost' | 'restored') => void,
+  ) {
     this.ready = new Promise((resolve, reject) => {
       this.resolveReady = resolve;
       this.rejectReady = reject;
@@ -93,7 +120,8 @@ class OffscreenRendererHost implements RendererHost {
       && settings.flashScale === this.previousSettings.flashScale)) return;
     this.previousState = state;
     this.previousSettings = settings;
-    this.pending = { state, settings };
+    this.latest = { state, settings };
+    this.pending = this.latest;
     this.flush();
   }
 
@@ -110,6 +138,17 @@ class OffscreenRendererHost implements RendererHost {
     }
     if (response.type === 'failure') {
       this.fail(new Error(response.message));
+      return;
+    }
+    if (response.type === 'context-lost') {
+      this.onContextStatus?.('lost');
+      return;
+    }
+    if (response.type === 'context-restored') {
+      this.previousState = null;
+      this.pending = this.latest;
+      this.onContextStatus?.('restored');
+      this.flush();
       return;
     }
     this.inFlight = false;
@@ -139,11 +178,11 @@ function replacementCanvas(canvas: HTMLCanvasElement): HTMLCanvasElement {
 
 export async function createRendererHost(canvas: HTMLCanvasElement, options: RendererHostOptions = {}): Promise<RendererHost> {
   const supportsOffscreen = typeof canvas.transferControlToOffscreen === 'function' && typeof Worker === 'function';
-  if (options.forceMainThread === true || !supportsOffscreen) return new MainThreadRendererHost(canvas);
+  if (options.forceMainThread === true || !supportsOffscreen) return new MainThreadRendererHost(canvas, options.onContextStatus);
   let host: OffscreenRendererHost | null = null;
   try {
     const offscreen = canvas.transferControlToOffscreen();
-    host = new OffscreenRendererHost(canvas, offscreen, options.onError);
+    host = new OffscreenRendererHost(canvas, offscreen, options.onError, options.onContextStatus);
     await Promise.race([
       host.initialized(),
       new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('Render Worker initialization timed out')), 5_000)),
@@ -152,6 +191,6 @@ export async function createRendererHost(canvas: HTMLCanvasElement, options: Ren
   } catch (error) {
     host?.dispose();
     options.onError?.(error instanceof Error ? error : new Error(String(error)));
-    return new MainThreadRendererHost(replacementCanvas(canvas));
+    return new MainThreadRendererHost(replacementCanvas(canvas), options.onContextStatus);
   }
 }

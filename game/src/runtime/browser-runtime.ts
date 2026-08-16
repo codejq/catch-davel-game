@@ -78,9 +78,11 @@ export async function startBrowserGame(): Promise<void> {
   const renderer = await createRendererHost(canvas, {
     forceMainThread: parameters.get('renderer') === 'main',
     onError: (error) => console.warn('Offscreen renderer issue', error),
+    onContextStatus: (status) => { document.body.dataset.renderContext = status; },
   });
   canvas = renderer.canvas;
   document.body.dataset.rendererMode = renderer.mode;
+  document.body.dataset.renderContext = 'ready';
   const healthHud = requireElement<HTMLElement>('#health');
   const energyHud = requireElement<HTMLElement>('#energy');
   const coinsHud = requireElement<HTMLElement>('#coins');

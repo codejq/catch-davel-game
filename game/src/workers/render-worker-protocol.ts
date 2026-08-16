@@ -21,6 +21,8 @@ export type RenderWorkerRequest = {
 export type RenderWorkerResponse = {
   readonly type: 'ready';
 } | {
+  readonly type: 'context-lost' | 'context-restored';
+} | {
   readonly type: 'frame-presented';
   readonly sequence: number;
   readonly tick: number;

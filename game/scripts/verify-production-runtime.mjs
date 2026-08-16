@@ -304,6 +304,30 @@ try {
   }));
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
+  const contextLossStartTick = fallback.tick;
+  const supportsContextLoss = await fallbackPage.evaluate(() => {
+    const gl = document.querySelector('#game')?.getContext('webgl2');
+    window.__catchDavelContextLoss = gl?.getExtension('WEBGL_lose_context') ?? null;
+    window.__catchDavelContextLoss?.loseContext();
+    return window.__catchDavelContextLoss !== null;
+  });
+  if (!supportsContextLoss) throw new Error('Headless WebGL2 did not expose the context-loss verification extension');
+  await fallbackPage.waitForFunction(() => document.body.dataset.renderContext === 'lost');
+  await fallbackPage.waitForTimeout(180);
+  const contextLossEndTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await fallbackPage.evaluate(() => window.__catchDavelContextLoss.restoreContext());
+  await fallbackPage.waitForFunction(() => document.body.dataset.renderContext === 'restored');
+  await fallbackPage.waitForTimeout(100);
+  const contextRecovery = {
+    lost: true,
+    restored: await fallbackPage.evaluate(() => document.body.dataset.renderContext === 'restored'),
+    simulationAdvanced: contextLossEndTick > contextLossStartTick,
+    contextLossStartTick,
+    contextLossEndTick,
+  };
+  if (!contextRecovery.restored || !contextRecovery.simulationAdvanced) {
+    throw new Error(`Main-thread WebGL2 context recovery failed: ${JSON.stringify(contextRecovery)}`);
+  }
   if (fallbackErrors.length > 0) throw new Error(`Fallback browser errors: ${fallbackErrors.join('; ')}`);
 
   const chapterPage = await browser.newPage();
@@ -417,7 +441,7 @@ try {
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
     passed: true, ...result, gamepadDetected, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
-    fallback: { ...fallback, browserErrors: fallbackErrors },
+    fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },
     tooling: { ...toolingProof, rejectsUnknownField, browserErrors: toolingErrors },
