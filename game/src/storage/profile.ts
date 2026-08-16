@@ -1,6 +1,7 @@
 import { canonicalJson, checksumCanonical, parseSimulationSnapshot, type SimulationSnapshotV1 } from '../sim/serialization';
 import { normalizeWeaponUpgradeLevels } from '../sim/weapons';
 import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
+import { isCampaignLevelId } from '../content/level-ids';
 
 export const PROFILE_SCHEMA_VERSION = 1;
 
@@ -139,8 +140,10 @@ function levelProgress(value: unknown, index: number): LevelProgressV1 {
   exactKeys(progress, ['levelId', 'completed', 'medals', 'bestTicks', 'bestReplayId', 'attempts', 'defeats', 'robotsDefeated'], `levelProgress[${index}]`);
   const bestTicks = progress.bestTicks === null ? null : integer(progress.bestTicks, `levelProgress[${index}].bestTicks`);
   const bestReplayId = progress.bestReplayId === null ? null : text(progress.bestReplayId, `levelProgress[${index}].bestReplayId`, 128);
+  const levelId = text(progress.levelId, `levelProgress[${index}].levelId`, 64);
+  if (!isCampaignLevelId(levelId)) throw new Error(`levelProgress[${index}].levelId is not a reserved campaign level ID`);
   return {
-    levelId: text(progress.levelId, `levelProgress[${index}].levelId`, 64),
+    levelId,
     completed: booleanValue(progress.completed, `levelProgress[${index}].completed`),
     medals: strings(progress.medals, `levelProgress[${index}].medals`),
     bestTicks,
@@ -173,12 +176,16 @@ export function validateProfile(value: unknown): ProfileV1 {
   const checkpoint = profile.campaignCheckpoint === null
     ? null
     : parseSimulationSnapshot(canonicalJson(profile.campaignCheckpoint));
+  const unlockedLevelIds = strings(profile.unlockedLevelIds, 'profile.unlockedLevelIds');
+  if (unlockedLevelIds.some((levelId) => !isCampaignLevelId(levelId))) {
+    throw new Error('profile.unlockedLevelIds contains an unreserved campaign level ID');
+  }
   const result = sealProfile({
     profileSchemaVersion: 1,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
-    unlockedLevelIds: strings(profile.unlockedLevelIds, 'profile.unlockedLevelIds'),
+    unlockedLevelIds,
     levelProgress: profile.levelProgress.map(levelProgress),
     totalCoins: integer(profile.totalCoins, 'profile.totalCoins'),
     spendableCoins: integer(profile.spendableCoins, 'profile.spendableCoins'),
