@@ -26,10 +26,12 @@ function requireElement<T extends Element>(selector: string): T {
 }
 
 export async function startBrowserGame(): Promise<void> {
-  const trainingMode = new URLSearchParams(location.search).get('arsenal') === 'training';
+  const parameters = new URLSearchParams(location.search);
+  const bossTraining = parameters.get('encounter') === 'boss-training';
+  const trainingMode = parameters.get('arsenal') === 'training' || bossTraining;
   let canvas = requireCanvas();
   const renderer = await createRendererHost(canvas, {
-    forceMainThread: new URLSearchParams(location.search).get('renderer') === 'main',
+    forceMainThread: parameters.get('renderer') === 'main',
     onError: (error) => console.warn('Offscreen renderer issue', error),
   });
   canvas = renderer.canvas;
@@ -44,6 +46,7 @@ export async function startBrowserGame(): Promise<void> {
   const shop = requireElement<HTMLElement>('#shop');
   const shopCoins = requireElement<HTMLElement>('#shop-coins');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
+  document.body.dataset.encounter = bossTraining ? 'boss-training' : 'campaign';
   const profileRepository = createBrowserProfileRepository();
   let activeProfile: ProfileV1;
   try {
@@ -113,7 +116,9 @@ export async function startBrowserGame(): Promise<void> {
     const remaining = state.robots.filter((robot) => robot.active).length;
     remainingHud.textContent = state.victory ? 'maze clear!'
       : state.level.objectiveComplete ? 'reach the green exit'
-      : `${remaining} Davels remain`;
+      : bossTraining
+        ? `THE FINAL INVOICE · ${Math.ceil(state.robots[0]?.health ?? 0)} HP · phase ${state.robots[0]?.bossPhase ?? 1}`
+        : `${remaining} Davels remain`;
     const resource = state.player.selectedWeapon === 'bomb' ? ` · ${state.player.bombs} BOMBS`
       : state.player.selectedWeapon === 'sword' ? ` · HEAT ${Math.ceil(state.player.swordHeat)}`
       : state.player.selectedWeapon === 'laser' ? ` · HEAT ${Math.ceil(state.player.laserHeat)}${state.player.laserOverheated ? ' OVERHEATED' : ''}` : '';
@@ -148,6 +153,7 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-telegraph') sound(260, 0.22, 0.025, 'triangle');
     if (event.type === 'robot-melee') sound(74, 0.14, 0.06, 'square');
     if (event.type === 'robot-buff') { showMessage('DJ GRIN DROPPED THE EVIL BEAT'); sound(520, 0.35, 0.04, 'sawtooth'); }
+    if (event.type === 'boss-phase') { showMessage(`FINAL INVOICE · PHASE ${event.value ?? 1}`); sound(48, 0.7, 0.11, 'sawtooth'); }
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
@@ -221,6 +227,7 @@ export async function startBrowserGame(): Promise<void> {
     mode: 'manual',
     unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
     ...(trainingMode ? {} : { weaponUpgrades: normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades) }),
+    encounter: bossTraining ? 'boss-training' : 'campaign',
     callbacks: {
       onSnapshot: (state) => {
         renderState = state;
@@ -249,6 +256,7 @@ export async function startBrowserGame(): Promise<void> {
       DEFAULT_LEVEL_SEED, trainingMode ? 0 : activeProfile.spendableCoins, false,
       trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
       trainingMode ? undefined : normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades),
+      bossTraining ? 'boss-training' : 'campaign',
     );
     await client.setMode('realtime');
     humanSessionStarted = false;

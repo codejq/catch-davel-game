@@ -4,14 +4,14 @@ import type {
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 
-export const TRANSPORT_CONTRACT_VERSION = 4;
+export const TRANSPORT_CONTRACT_VERSION = 5;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
 export const MAX_RENDER_PLAYER_BOMBS = 16;
 export const RENDER_SNAPSHOT_HEADER_BYTES = 64;
 export const RENDER_PLAYER_FLOATS = 9;
-export const RENDER_ROBOT_FLOATS = 12 + BODY_POINT_COUNT * 3;
+export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
 export const RENDER_LEVEL_FLOATS = 9;
@@ -152,9 +152,10 @@ export function writeRenderSnapshot(
     data[offset + 9] = robot.combatTicks;
     data[offset + 10] = robot.strafeDirection;
     data[offset + 11] = robot.tempoBuffTicks;
+    data[offset + 12] = robot.bossPhase;
     if (robot.body.positions.length !== BODY_POINT_COUNT * 3) throw new Error(`Robot ${robot.id} has malformed render body`);
     for (let pointValue = 0; pointValue < BODY_POINT_COUNT * 3; pointValue += 1) {
-      data[offset + 12 + pointValue] = robot.body.positions[pointValue]!;
+      data[offset + 13 + pointValue] = robot.body.positions[pointValue]!;
     }
     offset += RENDER_ROBOT_FLOATS;
   }
@@ -224,13 +225,14 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   let offset = RENDER_PLAYER_FLOATS;
   for (let index = 0; index < robotCount; index += 1) {
     const positions = new Float32Array(BODY_POINT_COUNT * 3);
-    positions.set(data.subarray(offset + 12, offset + RENDER_ROBOT_FLOATS));
+    positions.set(data.subarray(offset + 13, offset + RENDER_ROBOT_FLOATS));
     robots.push({
       id: data[offset]!, active: data[offset + 1] === 1,
       x: data[offset + 2]!, z: data[offset + 3]!, heading: data[offset + 4]!,
       health: data[offset + 5]!, hitFlashTicks: data[offset + 6]!, danceTime: data[offset + 7]!,
       combatState: decodeCombatState(data[offset + 8]!), combatTicks: data[offset + 9]!,
       strafeDirection: data[offset + 10] === -1 ? -1 : 1, tempoBuffTicks: data[offset + 11]!,
+      bossPhase: Math.max(0, Math.min(3, Math.floor(data[offset + 12]!))) as 0 | 1 | 2 | 3,
       body: { positions },
     });
     offset += RENDER_ROBOT_FLOATS;

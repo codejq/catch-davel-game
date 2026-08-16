@@ -5,14 +5,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "52ac3eb5793342b8",
-          "effectiveLevel": "6a6cdba47001cab3",
+          "balanceData": "abb88e1dff516df8",
+          "effectiveLevel": "d1a92d0bf1edfae7",
           "policyOrReplay": "d3d7c87fc057d2d4",
           "simulationLevel": "ca2195b229d1f939",
-          "simulationSchema": "ec9b777216c88421"
+          "simulationSchema": "be2cb2b2041c50ba"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "27d7cb51e8e5386a",
+        "expectedChecksum": "e29282f861f068c6",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,

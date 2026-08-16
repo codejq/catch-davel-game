@@ -80,6 +80,16 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pausedTickAfterWait = Number(document.body.dataset.snapshotTick);
 
+    const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
+    const bossProof = {
+      count: bossObservation.robots.length,
+      id: bossObservation.robots[0]?.id,
+      name: bossObservation.robots[0]?.name,
+      rank: bossObservation.robots[0]?.rank,
+      phase: bossObservation.robots[0]?.bossPhase,
+      health: bossObservation.robots[0]?.health,
+    };
+
     let arsenalObservation = await api.reset({ seed: 'live-arsenal-proof', mode: 'agent', loadout: 'training' });
     arsenalObservation = await api.act({ weapon: 'sword', fire: true }, 1);
     const swordHeat = arsenalObservation.player.swordHeat;
@@ -139,6 +149,7 @@ try {
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
       arsenalProof,
+      bossProof,
     };
   });
 
@@ -162,6 +173,8 @@ try {
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
     [result.arsenalProof.bombCount === 2 && result.arsenalProof.liveBombs === 1, 'Worker bomb action did not create a thrown bomb'],
     [result.arsenalProof.laserHeat > 0 && result.arsenalProof.laserActive, 'Worker laser action did not produce continuous beam state'],
+    [result.bossProof.count === 1 && result.bossProof.id === 6 && result.bossProof.name === 'The Final Invoice', 'boss training did not load the stable boss identity'],
+    [result.bossProof.rank === 'boss' && result.bossProof.phase === 1 && result.bossProof.health === 420, 'boss training did not expose phase-one authoritative state'],
     [errors.length === 0, `browser errors: ${errors.join('; ')}`],
   ];
   const failed = assertions.filter(([passed]) => !passed).map(([, message]) => message);

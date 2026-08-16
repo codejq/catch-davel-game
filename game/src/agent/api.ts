@@ -44,7 +44,7 @@ export interface CatchDavelAgentApi {
   readonly version: 1;
   getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
-  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training' }): Promise<AgentObservation>;
+  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' }): Promise<AgentObservation>;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
@@ -181,7 +181,7 @@ export class AgentController {
     this.controlled = false;
   }
 
-  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training' }): AgentObservation {
+  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' }): AgentObservation {
     if (this.queue.length > 0) throw new Error('Cannot reset while agent actions are queued');
     if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
     if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
@@ -189,7 +189,11 @@ export class AgentController {
     const seed = options.seed ?? DEFAULT_LEVEL_SEED;
     if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
     if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
-    this.simulation.reset(seed, options.loadout === 'training' ? TRAINING_WEAPON_MASK : undefined);
+    if (options.encounter !== undefined && options.encounter !== 'campaign' && options.encounter !== 'boss-training') throw new Error('Agent encounter is invalid');
+    this.simulation.reset(
+      seed, options.loadout === 'training' || options.encounter === 'boss-training' ? TRAINING_WEAPON_MASK : undefined,
+      undefined, options.encounter ?? 'campaign',
+    );
     this.controlled = true;
     this.replay.length = 0;
     this.recorder = new ReplayRecorder(this.simulation);

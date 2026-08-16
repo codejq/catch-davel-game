@@ -39,6 +39,7 @@ export interface RenderRobotState {
   readonly combatTicks: number;
   readonly strafeDirection: 1 | -1;
   readonly tempoBuffTicks: number;
+  readonly bossPhase: 0 | 1 | 2 | 3;
   readonly body: { readonly positions: ArrayLike<number> };
 }
 

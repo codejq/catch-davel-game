@@ -1,4 +1,3 @@
-export const ROBOT_STARTING_HEALTH = 100;
 export const ENEMY_PROJECTILE_SPEED = 4.7;
 export const ENEMY_PROJECTILE_DAMAGE = 9;
 export const ENEMY_SLIDER_BOLT_SPEED = 6.2;

@@ -29,6 +29,7 @@ export interface EnemyCombatResult {
   readonly telegraphRobotIds: readonly number[];
   readonly meleeRobotIds: readonly number[];
   readonly buffRobotIds: readonly number[];
+  readonly bossPhaseRobotIds: readonly number[];
   readonly playerHitRobotIds: readonly number[];
 }
 
@@ -45,17 +46,18 @@ function clearShot(fromX: number, fromZ: number, toX: number, toZ: number, maxim
   return true;
 }
 
-function telegraphTicks(archetype: RobotArchetype): number {
+function telegraphTicks(archetype: RobotArchetype, bossPhase = 0): number {
   if (archetype === 'wobble-scout') return 24;
   if (archetype === 'blue-slider') return 18;
   if (archetype === 'yellow-spinner') return 30;
   if (archetype === 'red-firemouth') return 38;
-  return 34;
+  if (archetype === 'cyan-dj') return 34;
+  return 50 - bossPhase * 6;
 }
 
 function projectileKind(archetype: RobotArchetype): EnemyProjectileKind {
   if (archetype === 'blue-slider') return 'slider-bolt';
-  if (archetype === 'red-firemouth') return 'fireball';
+  if (archetype === 'red-firemouth' || archetype === 'invoice-overlord') return 'fireball';
   return 'beat-bolt';
 }
 
@@ -105,12 +107,25 @@ export function stepEnemyCombat(
   const telegraphRobotIds: number[] = [];
   const meleeRobotIds: number[] = [];
   const buffRobotIds: number[] = [];
+  const bossPhaseRobotIds: number[] = [];
   const playerHitRobotIds: number[] = [];
   let nextId = nextProjectileId;
   if (player.health > 0) {
     for (const robot of robots) {
       if (!robot.active) continue;
       const definition = ROBOT_DEFINITIONS[robot.id]!;
+      if (definition.rank === 'boss') {
+        const healthRatio = robot.health / definition.maxHealth;
+        const nextPhase: 1 | 2 | 3 = healthRatio <= 1 / 3 ? 3 : healthRatio <= 2 / 3 ? 2 : 1;
+        if (nextPhase > robot.bossPhase) {
+          robot.bossPhase = nextPhase;
+          robot.combatState = 'patrol';
+          robot.combatTicks = 0;
+          robot.attackCooldownTicks = 0;
+          robot.tempoBuffTicks = Math.max(robot.tempoBuffTicks, 120);
+          bossPhaseRobotIds.push(robot.id);
+        }
+      }
       if (robot.combatState === 'recover') {
         robot.combatTicks -= 1;
         if (robot.combatTicks <= 0) robot.combatState = 'patrol';
@@ -133,19 +148,33 @@ export function stepEnemyCombat(
           }
           buffRobotIds.push(robot.id);
         } else if (clearShot(robot.x, robot.z, player.x, player.z)) {
-          projectiles.push(fireProjectile(robot, player, nextId));
-          nextId += 1;
+          const offsets = definition.rank === 'boss'
+            ? (robot.bossPhase === 1 ? [0] : robot.bossPhase === 2 ? [-0.11, 0.11] : [-0.18, 0, 0.18])
+            : [0];
+          for (const angle of offsets) {
+            const projectile = fireProjectile(robot, player, nextId);
+            const cosine = Math.cos(angle);
+            const sine = Math.sin(angle);
+            const velocityX = projectile.velocityX * cosine - projectile.velocityZ * sine;
+            const velocityZ = projectile.velocityX * sine + projectile.velocityZ * cosine;
+            projectile.velocityX = velocityX;
+            projectile.velocityZ = velocityZ;
+            projectiles.push(projectile);
+            nextId += 1;
+          }
           firedRobotIds.push(robot.id);
         }
         robot.combatState = 'recover';
         robot.combatTicks = definition.archetype === 'red-firemouth' ? 32 : 20;
-        robot.attackCooldownTicks = ENEMY_REPEAT_COOLDOWN_BASE + robot.id * ENEMY_REPEAT_COOLDOWN_STEP;
+        robot.attackCooldownTicks = definition.rank === 'boss'
+          ? 105 - robot.bossPhase * 15
+          : ENEMY_REPEAT_COOLDOWN_BASE + robot.id * ENEMY_REPEAT_COOLDOWN_STEP;
         continue;
       }
       if (robot.attackCooldownTicks > 0) robot.attackCooldownTicks -= robot.tempoBuffTicks > 0 ? 2 : 1;
       if (robot.attackCooldownTicks > 0 || !canBeginAttack(robot, player)) continue;
       robot.combatState = 'telegraph';
-      robot.combatTicks = telegraphTicks(definition.archetype);
+      robot.combatTicks = telegraphTicks(definition.archetype, robot.bossPhase);
       telegraphRobotIds.push(robot.id);
     }
   }
@@ -167,5 +196,8 @@ export function stepEnemyCombat(
       projectiles.splice(index, 1);
     }
   }
-  return { nextProjectileId: nextId, firedRobotIds, telegraphRobotIds, meleeRobotIds, buffRobotIds, playerHitRobotIds };
+  return {
+    nextProjectileId: nextId, firedRobotIds, telegraphRobotIds, meleeRobotIds, buffRobotIds,
+    bossPhaseRobotIds, playerHitRobotIds,
+  };
 }

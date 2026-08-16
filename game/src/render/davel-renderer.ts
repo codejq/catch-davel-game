@@ -361,5 +361,17 @@ export class DavelRenderer {
     const antennaTip = localPoint(robot, (robot.id % 2 === 0 ? -0.08 : 0.08) * scale, p.head.y + headRadius * 1.35, 0);
     this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
     this.addSphere(antennaTip, 0.105 * scale, accentColor);
+    if (definition.rank === 'boss') {
+      const crownY = p.head.y + headRadius * 0.92;
+      for (const offset of [-0.48, 0, 0.48]) {
+        const base = localPoint(robot, offset * headRadius, crownY, 0);
+        const tip = localPoint(robot, offset * headRadius * 0.82, crownY + headRadius * (offset === 0 ? 0.72 : 0.55), 0);
+        this.addCapsule(base, tip, headRadius * 0.07, [1, 0.68, 0.06]);
+        this.addSphere(tip, headRadius * 0.11, robot.bossPhase === 3 ? [1, 0.08, 0.2] : [1, 0.9, 0.2]);
+      }
+      const phaseColor: Color = robot.bossPhase === 1 ? [1, 0.72, 0.08]
+        : robot.bossPhase === 2 ? [1, 0.28, 0.08] : [1, 0.05, 0.42];
+      this.addSphere(p.chest, 0.5 * scale, phaseColor, 1.15, 0.72);
+    }
   }
 }

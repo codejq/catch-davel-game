@@ -10,7 +10,7 @@ export interface RobotObservation {
   readonly name: string;
   readonly dance: string;
   readonly archetype: string;
-  readonly rank: 'ordinary' | 'elite';
+  readonly rank: 'ordinary' | 'elite' | 'boss';
   readonly relativeX: number;
   readonly relativeZ: number;
   readonly distance: number;
@@ -22,6 +22,7 @@ export interface RobotObservation {
   readonly combatState: 'patrol' | 'telegraph' | 'recover';
   readonly combatTicks: number;
   readonly tempoBuffed: boolean;
+  readonly bossPhase: 0 | 1 | 2 | 3;
 }
 
 export interface AgentObservation {
@@ -159,6 +160,7 @@ export function createObservation(state: GameState): AgentObservation {
       combatState: robot.combatState,
       combatTicks: robot.combatTicks,
       tempoBuffed: robot.tempoBuffTicks > 0,
+      bossPhase: robot.bossPhase,
     };
   });
   return {

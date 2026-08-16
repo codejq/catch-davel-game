@@ -26,7 +26,7 @@ import {
   ENEMY_ATTACK_RANGE, ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP,
   ENEMY_DJ_BUFF_RADIUS, ENEMY_DJ_BUFF_TICKS, ENEMY_FIREBALL_DAMAGE, ENEMY_FIREBALL_SPEED, ENEMY_MELEE_DAMAGE,
   ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP,
-  ENEMY_SLIDER_BOLT_SPEED, ROBOT_STARTING_HEALTH,
+  ENEMY_SLIDER_BOLT_SPEED,
 } from '../sim/balance';
 
 export const REPLAY_FORMAT_VERSION = 1;
@@ -69,6 +69,7 @@ function robotBalanceData(): unknown {
     archetype: definition.archetype,
     rank: definition.rank,
     coinReward: definition.coinReward,
+    maxHealth: definition.maxHealth,
     route: definition.route,
     scale: definition.scale,
     headScale: definition.headScale,
@@ -109,7 +110,6 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
         ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP,
         ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP,
       },
-      robotStartingHealth: ROBOT_STARTING_HEALTH,
       robots: robotBalanceData(),
     }),
     replayPolicy: checksumCanonical({ replayFormatVersion: REPLAY_FORMAT_VERSION, checksumInterval: REPLAY_CHECKSUM_INTERVAL_TICKS }),

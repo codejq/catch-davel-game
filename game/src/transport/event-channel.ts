@@ -30,6 +30,7 @@ export const EVENT_KIND = {
   robotTelegraph: 21,
   robotMelee: 22,
   robotBuff: 23,
+  bossPhase: 24,
 } as const;
 
 export interface EventTransportConfig {
@@ -93,6 +94,7 @@ function encodeKind(event: GameEvent): { readonly kind: number; readonly eventCl
     case 'robot-telegraph': return { kind: EVENT_KIND.robotTelegraph, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-melee': return { kind: EVENT_KIND.robotMelee, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-buff': return { kind: EVENT_KIND.robotBuff, eventClass: EVENT_CLASS.presentationOnly };
+    case 'boss-phase': return { kind: EVENT_KIND.bossPhase, eventClass: EVENT_CLASS.stateCritical };
     case 'robot-fired': return { kind: EVENT_KIND.robotFired, eventClass: EVENT_CLASS.presentationOnly };
     case 'robot-hit': return { kind: EVENT_KIND.robotHit, eventClass: EVENT_CLASS.stateCritical };
     case 'robot-defeated': return { kind: EVENT_KIND.robotDefeated, eventClass: EVENT_CLASS.stateCritical };
@@ -134,6 +136,7 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.robotTelegraph: return 'robot-telegraph';
     case EVENT_KIND.robotMelee: return 'robot-melee';
     case EVENT_KIND.robotBuff: return 'robot-buff';
+    case EVENT_KIND.bossPhase: return 'boss-phase';
     default: throw new Error(`Unknown event kind ${kind}`);
   }
 }

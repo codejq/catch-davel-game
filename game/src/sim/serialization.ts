@@ -2,7 +2,7 @@ import { GAME_SCHEMA_VERSION } from './constants';
 import type { EnemyProjectile, EnemyProjectileKind } from './enemy-combat';
 import type { GameState } from './game';
 import type { PlayerState } from './player';
-import { ROBOT_DEFINITIONS, type RobotState } from './robots';
+import { ROBOT_DEFINITIONS, type EncounterId, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
 import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
 import {
@@ -31,6 +31,7 @@ export interface RobotSnapshotV1 {
   readonly combatTicks: number;
   readonly strafeDirection: 1 | -1;
   readonly tempoBuffTicks: number;
+  readonly bossPhase: 0 | 1 | 2 | 3;
   readonly body: {
     readonly positions: readonly number[];
     readonly previous: readonly number[];
@@ -43,6 +44,7 @@ export interface SimulationSnapshotV1 {
   readonly simulationSchemaVersion: number;
   readonly tick: number;
   readonly seed: string;
+  readonly encounter: EncounterId;
   readonly player: PlayerState;
   readonly robots: readonly RobotSnapshotV1[];
   readonly lastShotTick: number;
@@ -87,6 +89,7 @@ function snapshotRobot(robot: RobotState): RobotSnapshotV1 {
     combatTicks: robot.combatTicks,
     strafeDirection: robot.strafeDirection,
     tempoBuffTicks: robot.tempoBuffTicks,
+    bossPhase: robot.bossPhase,
     body: {
       positions: [...robot.body.positions],
       previous: [...robot.body.previous],
@@ -101,6 +104,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
     tick: state.tick,
     seed: state.seed,
+    encounter: state.encounter,
     player: copyPlayer(state.player),
     robots: state.robots.map(snapshotRobot),
     lastShotTick: state.lastShotTick,
@@ -204,15 +208,15 @@ function validatePlayerBomb(value: unknown, index: number): PlayerBomb {
   };
 }
 
-function validateRobot(value: unknown, expectedId: number): RobotState {
-  assertRecord(value, `robots[${expectedId}]`);
+function validateRobot(value: unknown, index: number): RobotState {
+  assertRecord(value, `robots[${index}]`);
   assertExactKeys(value, [
     'id', 'x', 'z', 'heading', 'targetIndex', 'routeDirection', 'holdTicks', 'arrivalCount', 'danceTime', 'health',
     'active', 'hitFlashTicks', 'knockbackX', 'knockbackZ', 'attackCooldownTicks', 'combatState', 'combatTicks',
-    'strafeDirection', 'tempoBuffTicks', 'body',
-  ], `robots[${expectedId}]`);
-  const id = integer(value.id, `robots[${expectedId}].id`);
-  if (id !== expectedId) throw new Error(`robots must have stable ordered IDs; expected ${expectedId}`);
+    'strafeDirection', 'tempoBuffTicks', 'bossPhase', 'body',
+  ], `robots[${index}]`);
+  const id = integer(value.id, `robots[${index}].id`);
+  if (id >= ROBOT_DEFINITIONS.length) throw new Error(`robots[${index}].id is invalid`);
   const routeDirection = finite(value.routeDirection, `robots[${id}].routeDirection`);
   if (routeDirection !== 1 && routeDirection !== -1) throw new Error(`robots[${id}].routeDirection must be -1 or 1`);
   const strafeDirection = finite(value.strafeDirection, `robots[${id}].strafeDirection`);
@@ -222,6 +226,10 @@ function validateRobot(value: unknown, expectedId: number): RobotState {
   }
   const targetIndex = integer(value.targetIndex, `robots[${id}].targetIndex`);
   if (targetIndex >= ROBOT_DEFINITIONS[id]!.route.length) throw new Error(`robots[${id}].targetIndex is outside its route`);
+  const bossPhaseValue = integer(value.bossPhase, `robots[${id}].bossPhase`);
+  if (bossPhaseValue > 3) throw new Error(`robots[${id}].bossPhase is invalid`);
+  const bossPhase = bossPhaseValue as 0 | 1 | 2 | 3;
+  if ((ROBOT_DEFINITIONS[id]!.rank === 'boss') !== (bossPhase > 0)) throw new Error(`robots[${id}].bossPhase conflicts with rank`);
   assertRecord(value.body, `robots[${id}].body`);
   assertExactKeys(value.body, ['positions', 'previous', 'restLengths'], `robots[${id}].body`);
   return {
@@ -242,6 +250,7 @@ function validateRobot(value: unknown, expectedId: number): RobotState {
     combatTicks: integer(value.combatTicks, `robots[${id}].combatTicks`, -10_000),
     strafeDirection,
     tempoBuffTicks: integer(value.tempoBuffTicks, `robots[${id}].tempoBuffTicks`),
+    bossPhase,
     body: {
       positions: new Float64Array(numberArray(value.body.positions, BODY_POINT_COUNT * 3, `robots[${id}].body.positions`)),
       previous: new Float64Array(numberArray(value.body.previous, BODY_POINT_COUNT * 3, `robots[${id}].body.previous`)),
@@ -318,16 +327,16 @@ function validateLevel(value: unknown): LevelRuntimeState {
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
-    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'player', 'robots', 'lastShotTick', 'shotSerial',
+    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'encounter', 'player', 'robots', 'lastShotTick', 'shotSerial',
     'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
     'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level',
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
   if (typeof snapshotValue.seed !== 'string' || snapshotValue.seed.length === 0 || snapshotValue.seed.length > 256) throw new Error('snapshot.seed is invalid');
-  if (!Array.isArray(snapshotValue.robots) || snapshotValue.robots.length !== ROBOT_DEFINITIONS.length) {
-    throw new Error(`snapshot must contain ${ROBOT_DEFINITIONS.length} robots`);
-  }
+  if (snapshotValue.encounter !== 'campaign' && snapshotValue.encounter !== 'boss-training') throw new Error('snapshot.encounter is invalid');
+  const encounter = snapshotValue.encounter as EncounterId;
+  if (!Array.isArray(snapshotValue.robots)) throw new Error('snapshot.robots must be an array');
   if (!Array.isArray(snapshotValue.projectiles)) throw new Error('snapshot.projectiles must be an array');
   const projectiles = snapshotValue.projectiles.map(validateProjectile);
   const nextProjectileId = integer(snapshotValue.nextProjectileId, 'snapshot.nextProjectileId', 1);
@@ -337,6 +346,10 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const nextPlayerBombId = integer(snapshotValue.nextPlayerBombId, 'snapshot.nextPlayerBombId', 1);
   if (playerBombs.some((bomb) => bomb.id >= nextPlayerBombId)) throw new Error('snapshot.nextPlayerBombId must exceed every bomb ID');
   const robots = snapshotValue.robots.map(validateRobot);
+  const expectedRobotIds = encounter === 'campaign' ? [0, 1, 2, 3, 4, 5] : [6];
+  if (robots.length !== expectedRobotIds.length || robots.some((robot, index) => robot.id !== expectedRobotIds[index])) {
+    throw new Error(`snapshot robots do not match ${encounter}`);
+  }
   const level = validateLevel(snapshotValue.level);
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
@@ -349,6 +362,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   return {
     tick: integer(snapshotValue.tick, 'snapshot.tick'),
     seed: snapshotValue.seed,
+    encounter,
     player: validatePlayer(snapshotValue.player),
     robots,
     events: [],

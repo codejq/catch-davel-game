@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
+import { DEFAULT_WEAPON_UPGRADES, TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
@@ -67,5 +68,36 @@ describe('Davel archetype combat', () => {
     game.step(idle);
     expect(game.state.robots[4]!.combatState).toBe('patrol');
     expect(game.state.projectiles).toHaveLength(0);
+  });
+
+  it('runs The Final Invoice through readable one-, two-, and three-fireball phases', () => {
+    const game = new GameSimulation('boss-phase-proof', TRAINING_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, 'boss-training');
+    const boss = game.state.robots[0]!;
+    expect(boss.id).toBe(6);
+    expect(boss.health).toBe(420);
+    boss.x = game.state.player.x;
+    boss.z = game.state.player.z + 3;
+    boss.attackCooldownTicks = 0;
+    const advanceToVolley = (): number => {
+      for (let tick = 0; tick < 80; tick += 1) {
+        game.step(idle);
+        if (game.state.events.some((event) => event.type === 'robot-fired')) return game.state.projectiles.length;
+      }
+      throw new Error('Boss volley did not fire');
+    };
+    expect(advanceToVolley()).toBe(1);
+    game.state.projectiles.length = 0;
+    boss.health = 270;
+    boss.attackCooldownTicks = 0;
+    game.step(idle);
+    expect(boss.bossPhase).toBe(2);
+    expect(game.state.events.map((event) => event.type)).toContain('boss-phase');
+    expect(advanceToVolley()).toBe(2);
+    game.state.projectiles.length = 0;
+    boss.health = 130;
+    boss.attackCooldownTicks = 0;
+    game.step(idle);
+    expect(boss.bossPhase).toBe(3);
+    expect(advanceToVolley()).toBe(3);
   });
 });

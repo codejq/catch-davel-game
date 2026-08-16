@@ -1,5 +1,5 @@
 import { createPlayer, stepPlayer, type PlayerCommand, type PlayerState } from './player';
-import { createRobots, stepRobots, type RobotState } from './robots';
+import { createRobots, stepRobots, type EncounterId, type RobotState } from './robots';
 import {
   BOMB_COOLDOWN_TICKS, LASER_BASE_DAMAGE, LASER_ENERGY_PER_TICK, LASER_HEAT_COOL_PER_TICK,
   LASER_HEAT_PER_TICK, LASER_MAX_FOCUS_BONUS, LASER_OVERHEAT_RECOVERY, SWORD_HEAT_COOL_PER_TICK,
@@ -22,7 +22,7 @@ export interface GameEvent {
   readonly tick: number;
   readonly type: 'pulse-fired' | 'sword-swung' | 'sword-charged' | 'projectile-deflected'
     | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-telegraph'
-    | 'robot-fired' | 'robot-melee' | 'robot-buff' | 'player-hit' | 'victory' | 'defeat'
+    | 'robot-fired' | 'robot-melee' | 'robot-buff' | 'boss-phase' | 'player-hit' | 'victory' | 'defeat'
     | 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened' | 'checkpoint-activated'
     | 'objective-complete' | 'exit-unlocked';
   readonly robotId?: number;
@@ -33,6 +33,7 @@ export interface GameEvent {
 export interface GameState {
   tick: number;
   readonly seed: string;
+  readonly encounter: EncounterId;
   readonly player: PlayerState;
   readonly robots: RobotState[];
   readonly events: GameEvent[];
@@ -60,8 +61,9 @@ export class GameSimulation {
     seed = DEFAULT_LEVEL_SEED,
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+    encounter: EncounterId = 'campaign',
   ) {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter);
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -74,17 +76,20 @@ export class GameSimulation {
     seed = DEFAULT_LEVEL_SEED,
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+    encounter: EncounterId = 'campaign',
   ): void {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter);
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
     this.state = restoreSimulationState(snapshot);
   }
 
-  private static initialState(seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels): GameState {
+  private static initialState(
+    seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels, encounter: EncounterId,
+  ): GameState {
     const state: GameState = {
-      tick: 0, seed, player: createPlayer(unlockedWeaponMask, weaponUpgrades), robots: createRobots(), events: [],
+      tick: 0, seed, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades), robots: createRobots(encounter), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
@@ -124,6 +129,9 @@ export class GameSimulation {
     for (const robotId of enemyCombat.firedRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-fired', robotId });
     for (const robotId of enemyCombat.meleeRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-melee', robotId });
     for (const robotId of enemyCombat.buffRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-buff', robotId });
+    for (const robotId of enemyCombat.bossPhaseRobotIds) {
+      this.state.events.push({ tick: this.state.tick, type: 'boss-phase', robotId, value: this.state.robots.find((robot) => robot.id === robotId)!.bossPhase });
+    }
     for (const robotId of enemyCombat.playerHitRobotIds) this.state.events.push({ tick: this.state.tick, type: 'player-hit', robotId });
     if (this.state.player.health <= 0 && !this.state.defeat) {
       this.state.defeat = true;

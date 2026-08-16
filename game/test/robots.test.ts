@@ -9,12 +9,13 @@ describe('Davel simulation', () => {
   it('uses distinct valid routes, bodies, and dances', () => {
     expect(validateRobotDefinitions).not.toThrow();
     expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.dance)).size).toBe(6);
-    expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.scale)).size).toBe(6);
+    expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.scale)).size).toBe(7);
     expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.archetype))).toEqual(new Set([
-      'wobble-scout', 'blue-slider', 'red-firemouth', 'yellow-spinner', 'cyan-dj',
+      'wobble-scout', 'blue-slider', 'red-firemouth', 'yellow-spinner', 'cyan-dj', 'invoice-overlord',
     ]));
     expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'elite').map((robot) => robot.name)).toEqual(['DJ Grin']);
-    expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.route.map((cell) => `${cell.column},${cell.row}`).join('|'))).size).toBe(6);
+    expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'boss').map((robot) => robot.name)).toEqual(['The Final Invoice']);
+    expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.route.map((cell) => `${cell.column},${cell.row}`).join('|'))).size).toBe(7);
   });
 
   it('moves independently, deterministically, and never enters maze walls', () => {

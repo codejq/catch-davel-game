@@ -5,6 +5,7 @@ import type { EventProducerChannel } from '../transport/event-channel';
 import type { AgentObservation } from '../agent/observation';
 import type { ReplayFileV1 } from '../replay/replay';
 import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
+import type { EncounterId } from '../sim/robots';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
@@ -15,6 +16,7 @@ export interface InitializeSimulationWorker {
   readonly initialCoins?: number;
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
+  readonly encounter?: EncounterId;
 }
 
 export interface StepSimulationWorker {
@@ -32,6 +34,7 @@ export interface ResetSimulationWorker {
   readonly agentRun?: boolean;
   readonly unlockedWeaponMask?: number;
   readonly weaponUpgrades?: WeaponUpgradeLevels;
+  readonly encounter?: EncounterId;
 }
 
 export interface LoadSnapshotSimulationWorker {

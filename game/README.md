@@ -10,7 +10,7 @@ From the repository root:
 npm run game:dev
 ```
 
-Open the URL printed by Vite. Click the canvas to capture the mouse, use WASD or the arrow keys to move, aim with the mouse, hold the left button to attack, use the right button for the sword's charged attack, and press Escape to release the pointer. Press `U` before starting a run to spend durable Quantum Coins at the upgrade workbench. Level 1 intentionally starts with only the pulse gun. Add `?arsenal=training` to the URL for the isolated all-weapons training loadout and select weapons with `1`–`4`; training never writes campaign progress.
+Open the URL printed by Vite. Click the canvas to capture the mouse, use WASD or the arrow keys to move, aim with the mouse, hold the left button to attack, use the right button for the sword's charged attack, and press Escape to release the pointer. Press `U` before starting a run to spend durable Quantum Coins at the upgrade workbench. Level 1 intentionally starts with only the pulse gun. Add `?arsenal=training` to the URL for the isolated all-weapons training loadout, or `?encounter=boss-training` for the three-phase Final Invoice boss; training modes never write campaign progress.
 
 Validation commands:
 
@@ -53,13 +53,13 @@ await api.releaseControl(); // starts a clean human session from durable profile
 
 Calling `act` or `step` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty. Agent sessions are marked in replays and never write campaign coins, medals, attempts, or other human profile progress.
 
-The version-4 observation includes the tick/seed, player pose and resources, selected/unlocked weapons, snapshotted upgrade levels, bomb/sword/laser resources, live thrown bombs and laser focus state, stable robot IDs, names, dances, archetypes/ranks, telegraph/recovery state, tempo buffs, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, typed hostile projectiles, pickups, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Level metadata supplies grid rows, cell size, world origin, and coordinate conventions. Inputs are bounded and normalized before they enter the fixed-step simulation. Agents can request the isolated full arsenal with `reset({ mode: 'agent', loadout: 'training' })`; agent resets deliberately use zero upgrades. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
+The version-4 observation includes the tick/seed, player pose and resources, selected/unlocked weapons, snapshotted upgrade levels, bomb/sword/laser resources, live thrown bombs and laser focus state, stable robot IDs, names, dances, archetypes/ranks, boss phase, telegraph/recovery state, tempo buffs, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, typed hostile projectiles, pickups, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Level metadata supplies grid rows, cell size, world origin, and coordinate conventions. Inputs are bounded and normalized before they enter the fixed-step simulation. Agents can request the isolated full arsenal with `reset({ mode: 'agent', loadout: 'training' })` or the boss with `reset({ mode: 'agent', encounter: 'boss-training' })`; agent resets deliberately use zero upgrades. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
 
 `BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,554—below the 6,000-tick hard budget.
 
 ## Persistence and replay guarantees
 
-- Complete v1 snapshots under simulation schema v6 include every authoritative player, weapon upgrade/resource, bomb, laser-focus, robot, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
+- Complete v1 snapshots under simulation schema v7 include every authoritative encounter, player, weapon upgrade/resource, bomb, laser-focus, robot/boss, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
 - Canonical key-sorted JSON and 64-bit deterministic checksums are used for state drift detection and accidental profile-corruption detection.
 - Replays include schema/level/balance/policy dependency hashes, a complete initial snapshot, contiguous compressed command runs, and checksums at the initial tick, every 60 ticks, and the final tick.
 - Browser profiles use IndexedDB with alternating records. A newly written record is read back and validated before the active pointer changes, leaving the previous known-good record available for recovery.
@@ -76,6 +76,7 @@ The version-4 observation includes the tick/seed, player pose and resources, sel
 - a pre-run Quantum Coin workbench with three levels each of pulse damage/efficiency, sword cooling, bomb capacity, and laser cooling; costs and effects are deterministic, purchases clear incompatible checkpoints, and all state is replayed;
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
+- The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, and deterministic one/two/three-fireball spreads;
 - deterministic simulation/agent contracts covered by automated tests.
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
 - Worker-owned 60 Hz authority with bounded snapshot/event transport; the main thread handles only input, HUD/audio feedback, persistence, and raw-WebGL2 presentation.
