@@ -20,6 +20,7 @@ import {
 } from './bomb-detonation';
 import { laserContactSparkSegment } from './laser-contact';
 import { SwordArcTracker, swordArcSegment, type SwordArcEffect } from './sword-arc';
+import { bombPreviewSegment } from './bomb-preview';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -316,7 +317,7 @@ export class DavelRenderer {
     if (uniform === null) throw new Error('Davel view projection uniform is unavailable');
     this.viewProjectionLocation = uniform;
     this.spheres = new InstanceBatch(gl, createSphere(), 1024);
-    this.capsules = new InstanceBatch(gl, createCapsule(), 512);
+    this.capsules = new InstanceBatch(gl, createCapsule(), 1024);
   }
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.pulseEnergyCells.emit(effect); }
@@ -432,6 +433,17 @@ export class DavelRenderer {
     }
     for (const bomb of state.playerBombs) {
       const center = { x: bomb.x, y: bomb.y, z: bomb.z };
+      for (let segmentIndex = 0; segmentIndex < quality.bombPreviewSegmentCount; segmentIndex += 1) {
+        const segment = bombPreviewSegment(
+          bomb, segmentIndex, quality.bombPreviewSegmentCount, motionScale, state.levelId,
+        );
+        if (segment === null) continue;
+        const urgent = bomb.fuseTicks <= 30;
+        this.addCapsule(
+          segment.start, segment.end, segment.radius,
+          urgent ? segmentIndex % 2 === 0 ? [1, 0.12, 0.04] : [1, 0.78, 0.08] : [0.2, 0.9, 1],
+        );
+      }
       const pulse = 0.19 + Math.sin(bomb.fuseTicks * 0.35) * 0.025 * motionScale;
       this.addSphere(center, pulse, [0.08, 0.1, 0.16]);
       this.addSphere(

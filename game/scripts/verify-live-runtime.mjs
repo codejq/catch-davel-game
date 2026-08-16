@@ -272,6 +272,11 @@ try {
       heat: arsenalObservation.player.laserHeat,
     };
     const laserAudioProof = { cold: coldLaserAudio, hot: hotLaserAudio };
+    const bombFuseProof = {
+      milestone: Number(document.body.dataset.bombFuseTick),
+      bombId: Number(document.body.dataset.bombFuseId),
+      pitchScale: Number(document.body.dataset.bombFusePitchScale),
+    };
     const bombDetonationObservation = await api.act({}, 90);
     const bombEffectDeadline = performance.now() + 2_000;
     while (Number(document.body.dataset.bombDetonationTick) > bombDetonationObservation.tick
@@ -350,6 +355,7 @@ try {
       waveTransitionProof,
       arsenalProof,
       laserAudioProof,
+      bombFuseProof,
       bombDetonationProof,
       bossProof,
       bossHudProof,
@@ -438,6 +444,10 @@ try {
       && result.laserAudioProof.hot.pitchScale > result.laserAudioProof.cold.pitchScale
       && result.laserAudioProof.hot.pitchScale <= 1.58,
     'authoritative laser heat did not produce a bounded rising live audio pitch'],
+    [result.bombFuseProof.bombId === 1
+      && [75, 60, 45, 30, 24, 18, 12, 6].includes(result.bombFuseProof.milestone)
+      && result.bombFuseProof.pitchScale > 0.88 && result.bombFuseProof.pitchScale < 1.5,
+    'live bomb snapshot did not produce its bounded accelerating fuse cue'],
     [result.bombDetonationProof.liveBombs === 0
       && Number.isFinite(result.bombDetonationProof.effectTick)
       && result.bombDetonationProof.effectTick <= result.bombDetonationProof.observationTick

@@ -55,6 +55,7 @@ import { LaserAudioSequencer, type LaserAudioRequest } from './laser-audio';
 import {
   CHARGED_SWORD_ARC_DURATION_TICKS, SWORD_ARC_DURATION_TICKS, createSwordArcEffect,
 } from '../render/sword-arc';
+import { BombFuseAudioSequencer, type BombFuseAudioRequest } from '../audio/bomb-fuse-sequencer';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -268,6 +269,7 @@ export async function startBrowserGame(): Promise<void> {
   let music: ProceduralMusicSequencer | null = null;
   const davelMovementAudio = new DavelMovementAudioSequencer();
   const laserAudio = new LaserAudioSequencer();
+  const bombFuseAudio = new BombFuseAudioSequencer();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -661,6 +663,15 @@ export async function startBrowserGame(): Promise<void> {
     audio.play(cue, pan, gainScale, pitchScale);
   };
 
+  const playBombFuseAudio = (request: BombFuseAudioRequest): void => {
+    document.body.dataset.bombFuseTick = String(request.milestone);
+    document.body.dataset.bombFuseId = String(request.bombId);
+    document.body.dataset.bombFusePitchScale = String(request.pitchScale);
+    if (audio === null || renderState === null) return;
+    const pan = Math.max(-1, Math.min(1, (request.x - renderState.player.x) / 9));
+    audio.play('bomb-fuse', pan, request.gainScale, request.pitchScale);
+  };
+
   const playLaserAudio = (request: LaserAudioRequest | null): void => {
     if (request === null) return;
     document.body.dataset.laserAudioTick = String(request.tick);
@@ -990,6 +1001,7 @@ export async function startBrowserGame(): Promise<void> {
           pendingPulseEffectTicks.length = 0;
           pendingSwordArcEvents.length = 0;
           laserAudio.reset();
+          bombFuseAudio.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
@@ -1005,8 +1017,12 @@ export async function startBrowserGame(): Promise<void> {
         const bossPhase = state.robots.reduce((phase, robot) => Math.max(phase, robot.bossPhase), 0);
         const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
         const presentationVisible = document.visibilityState !== 'hidden';
-        const ambienceActive = audio !== null && presentationVisible && !state.victory && !state.defeat
+        const effectsActive = presentationVisible && !state.victory && !state.defeat
           && !pauseMenu.classList.contains('open') && !campaignMap.classList.contains('open');
+        for (const request of bombFuseAudio.sample(state.tick, state.playerBombs, effectsActive)) {
+          playBombFuseAudio(request);
+        }
+        const ambienceActive = audio !== null && effectsActive;
         for (const request of davelMovementAudio.sample(state, ambienceActive && !frozen)) {
           sound(request.cue, request.robotId, request.gainScale);
         }
@@ -1022,6 +1038,7 @@ export async function startBrowserGame(): Promise<void> {
       onResync: (state) => {
         davelMovementAudio.reset();
         laserAudio.reset();
+        bombFuseAudio.reset();
         pendingPulseEffectTicks.length = 0;
         pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();

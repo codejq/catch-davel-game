@@ -1,6 +1,6 @@
 import type { AudioRuntimeProfile } from '../content/runtime-manifests';
 
-export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-detonate'
+export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-fuse' | 'bomb-detonate'
   | 'laser' | 'robot-impact' | 'weak-point' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
@@ -29,7 +29,7 @@ export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
 
 export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   pulse: 'combat', sword: 'combat', 'charged-sword': 'combat', deflect: 'combat', 'bomb-throw': 'combat',
-  'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'weak-point': 'combat', 'robot-shot': 'combat',
+  'bomb-fuse': 'combat', 'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'weak-point': 'combat', 'robot-shot': 'combat',
   'robot-telegraph': 'combat', 'robot-melee': 'combat', 'dj-buff': 'combat', 'boss-phase': 'combat',
   'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
   checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
@@ -94,6 +94,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   'charged-sword': [noise('bandpass', 520, 0.27, 0.15), tone('sawtooth', 130, 52, 0.25, 0.13), tone('sine', 360, 110, 0.2, 0.05)],
   deflect: [tone('square', 1180, 420, 0.09, 0.1), noise('highpass', 3400, 0.07, 0.08)],
   'bomb-throw': [noise('bandpass', 430, 0.15, 0.06), tone('triangle', 170, 94, 0.16, 0.07)],
+  'bomb-fuse': [tone('square', 620, 760, 0.055, 0.035), tone('sine', 1240, 1520, 0.045, 0.018)],
   'bomb-detonate': [noise('lowpass', 720, 0.48, 0.2), tone('sine', 74, 34, 0.52, 0.2), noise('highpass', 1800, 0.12, 0.09)],
   laser: [tone('sawtooth', 510, 390, 0.07, 0.045), tone('sine', 1020, 780, 0.06, 0.025)],
   'robot-impact': [noise('bandpass', 310, 0.09, 0.1), tone('square', 105, 62, 0.08, 0.07)],

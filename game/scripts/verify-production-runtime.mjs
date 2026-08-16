@@ -474,6 +474,16 @@ try {
   await fallbackPage.mouse.down();
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
   const fallbackPulseEnergyCellTick = await fallbackPage.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombFuseTick)));
+  const fallbackBombFuse = await fallbackPage.evaluate(() => ({
+    milestone: Number(document.body.dataset.bombFuseTick),
+    bombId: Number(document.body.dataset.bombFuseId),
+    pitchScale: Number(document.body.dataset.bombFusePitchScale),
+  }));
+  if (fallbackBombFuse.bombId !== 1 || ![75, 60, 45, 30, 24, 18, 12, 6].includes(fallbackBombFuse.milestone)
+    || fallbackBombFuse.pitchScale <= 0.88 || fallbackBombFuse.pitchScale >= 1.5) {
+    throw new Error(`Main-thread bomb did not produce its bounded fuse cue: ${JSON.stringify(fallbackBombFuse)}`);
+  }
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombDetonationTick)), null, { timeout: 3_000 });
   await fallbackPage.mouse.up();
   const fallbackBombDetonation = await fallbackPage.evaluate(() => ({
@@ -656,6 +666,7 @@ try {
     ambienceProof, lifecycle, browserErrors: errors,
     fallback: {
       ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
+      bombFuse: fallbackBombFuse,
       bombDetonation: fallbackBombDetonation, contextRecovery, browserErrors: fallbackErrors,
     },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
