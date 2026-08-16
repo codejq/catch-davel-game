@@ -41,6 +41,8 @@ The build rejects stale generated content. Export first runs the same strict sub
 
 Tauri v2 packages the same offline Vite output for desktop/mobile. Packaged sessions replace IndexedDB with a fixed-path, read-back-verified app-data profile and previous-file recovery copy, without exposing general filesystem access to the webview. Windows MSI/NSIS and ARM64/x86_64 Android debug build instructions and current evidence are documented in `docs/packaging/TAURI_V2.md`.
 
+Open the campaign map and use **EXPORT SAVE** or **IMPORT SAVE** to move a human-readable, integrity-checked profile between browser and packaged builds. Import is bounded to 4 MiB, strictly rejects corrupt/newer/unknown-field profiles, asks before replacing local progress, writes through the same recovery repository, and verifies the result before reloading.
+
 ## LLM/browser-agent control
 
 Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.

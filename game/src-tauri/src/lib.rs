@@ -6,6 +6,8 @@ use std::{
     sync::Mutex,
 };
 use tauri::Manager;
+use tauri_plugin_dialog::DialogExt;
+use tauri_plugin_fs::{FsExt, OpenOptions as PluginOpenOptions};
 
 const MAX_PROFILE_BYTES: usize = 4 * 1024 * 1024;
 
@@ -120,13 +122,94 @@ fn store_packaged_profile(
     store_profile_in(&profile_directory(&app)?, &serialized_profile)
 }
 
+fn validate_transfer_payload(serialized_profile: &str) -> Result<(), String> {
+    if serialized_profile.is_empty() || serialized_profile.len() > MAX_PROFILE_BYTES {
+        return Err("Profile transfer must contain 1 byte through 4 MiB".to_string());
+    }
+    serde_json::from_str::<serde_json::Value>(serialized_profile)
+        .map(|_| ())
+        .map_err(|error| format!("Profile transfer is not JSON: {error}"))
+}
+
+fn write_transfer_payload(writer: &mut impl Write, serialized_profile: &str) -> Result<(), String> {
+    validate_transfer_payload(serialized_profile)?;
+    writer
+        .write_all(serialized_profile.as_bytes())
+        .map_err(|error| format!("Unable to write the selected export file: {error}"))
+}
+
+fn read_transfer_payload(reader: impl Read) -> Result<String, String> {
+    let mut bytes = Vec::new();
+    reader
+        .take((MAX_PROFILE_BYTES + 1) as u64)
+        .read_to_end(&mut bytes)
+        .map_err(|error| format!("Unable to read the selected import file: {error}"))?;
+    if bytes.is_empty() || bytes.len() > MAX_PROFILE_BYTES {
+        return Err("Profile transfer must contain 1 byte through 4 MiB".to_string());
+    }
+    String::from_utf8(bytes)
+        .map_err(|error| format!("Selected profile is not valid UTF-8 text: {error}"))
+}
+
+#[tauri::command]
+async fn export_packaged_profile(
+    app: tauri::AppHandle,
+    serialized_profile: String,
+) -> Result<bool, String> {
+    validate_transfer_payload(&serialized_profile)?;
+    let Some(path) = app
+        .dialog()
+        .file()
+        .set_title("Export Catch Davel profile")
+        .set_file_name("catch-davel-profile-v1.json")
+        .add_filter("Catch Davel JSON profile", &["json"])
+        .blocking_save_file()
+    else {
+        return Ok(false);
+    };
+    let mut options = PluginOpenOptions::new();
+    options.write(true).create(true).truncate(true);
+    let mut file = app
+        .fs()
+        .open(path, options)
+        .map_err(|error| format!("Unable to open the selected export file: {error}"))?;
+    write_transfer_payload(&mut file, &serialized_profile)?;
+    file.sync_all()
+        .map_err(|error| format!("Unable to synchronize the selected export file: {error}"))?;
+    Ok(true)
+}
+
+#[tauri::command]
+async fn import_packaged_profile(app: tauri::AppHandle) -> Result<Option<String>, String> {
+    let Some(path) = app
+        .dialog()
+        .file()
+        .set_title("Import Catch Davel profile")
+        .add_filter("Catch Davel JSON profile", &["json"])
+        .blocking_pick_file()
+    else {
+        return Ok(None);
+    };
+    let mut options = PluginOpenOptions::new();
+    options.read(true);
+    let file = app
+        .fs()
+        .open(path, options)
+        .map_err(|error| format!("Unable to open the selected import file: {error}"))?;
+    read_transfer_payload(file).map(Some)
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_fs::init())
         .manage(Mutex::new(()))
         .invoke_handler(tauri::generate_handler![
             load_packaged_profile,
-            store_packaged_profile
+            store_packaged_profile,
+            export_packaged_profile,
+            import_packaged_profile
         ])
         .run(tauri::generate_context!())
         .expect("error while running Quantum Catch Davel");
@@ -135,6 +218,7 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::Cursor;
     use std::time::{SystemTime, UNIX_EPOCH};
 
     fn temporary_directory(name: &str) -> PathBuf {
@@ -182,5 +266,51 @@ mod tests {
                 .contains("4 MiB")
         );
         assert!(!directory.exists());
+    }
+
+    #[test]
+    fn validates_profile_transfer_bounds_and_json_before_opening_a_dialog() {
+        assert!(validate_transfer_payload(r#"{"profileSchemaVersion":1}"#).is_ok());
+        assert!(
+            validate_transfer_payload("")
+                .unwrap_err()
+                .contains("1 byte")
+        );
+        assert!(
+            validate_transfer_payload("not json")
+                .unwrap_err()
+                .contains("not JSON")
+        );
+        assert!(
+            validate_transfer_payload(&"x".repeat(MAX_PROFILE_BYTES + 1))
+                .unwrap_err()
+                .contains("4 MiB")
+        );
+    }
+
+    #[test]
+    fn transfers_utf8_json_through_bounded_native_io() {
+        let source = r#"{"displayName":"مرحبا Davel"}"#;
+        let mut destination = Vec::new();
+        write_transfer_payload(&mut destination, source).unwrap();
+        assert_eq!(
+            read_transfer_payload(Cursor::new(destination)).unwrap(),
+            source
+        );
+        assert!(
+            read_transfer_payload(Cursor::new(Vec::<u8>::new()))
+                .unwrap_err()
+                .contains("1 byte")
+        );
+        assert!(
+            read_transfer_payload(Cursor::new(vec![0xff]))
+                .unwrap_err()
+                .contains("UTF-8")
+        );
+        assert!(
+            read_transfer_payload(Cursor::new(vec![b'x'; MAX_PROFILE_BYTES + 1]))
+                .unwrap_err()
+                .contains("4 MiB")
+        );
     }
 }

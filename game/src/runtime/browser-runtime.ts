@@ -5,6 +5,7 @@ import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
 import { createDefaultProfile, updateProfile, type ProfileV1 } from '../storage/profile';
+import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
 import {
@@ -60,6 +61,9 @@ export async function startBrowserGame(): Promise<void> {
   const campaignMap = requireElement<HTMLElement>('#campaign-map');
   const campaignClose = requireElement<HTMLButtonElement>('#campaign-close');
   const campaignLevels = requireElement<HTMLElement>('#campaign-levels');
+  const profileExport = requireElement<HTMLButtonElement>('#profile-export');
+  const profileImport = requireElement<HTMLButtonElement>('#profile-import');
+  const profileTransferStatus = requireElement<HTMLOutputElement>('#profile-transfer-status');
   const levelName = requireElement<HTMLElement>('#level-name');
   const movePad = requireElement<HTMLElement>('#move-pad');
   const moveStick = requireElement<HTMLElement>('#move-stick');
@@ -340,6 +344,51 @@ export async function startBrowserGame(): Promise<void> {
     const nextParameters = new URLSearchParams(location.search);
     nextParameters.set('level', levelId);
     location.search = nextParameters.toString();
+  });
+
+  const setProfileTransferBusy = (busy: boolean): void => {
+    profileExport.disabled = busy;
+    profileImport.disabled = busy;
+  };
+  profileExport.addEventListener('click', async () => {
+    setProfileTransferBusy(true);
+    profileTransferStatus.textContent = 'Preparing validated profile export…';
+    try {
+      await profileWrite;
+      const saved = await exportProfileFile(activeProfile);
+      profileTransferStatus.textContent = saved ? 'Profile exported.' : 'Export cancelled.';
+    } catch (error) {
+      profileTransferStatus.textContent = error instanceof Error ? `Export rejected: ${error.message}` : 'Profile export failed.';
+    } finally {
+      setProfileTransferBusy(false);
+    }
+  });
+  profileImport.addEventListener('click', async () => {
+    setProfileTransferBusy(true);
+    profileTransferStatus.textContent = 'Choose a Catch Davel JSON profile…';
+    try {
+      const imported = await importProfileFile();
+      if (imported === null) {
+        profileTransferStatus.textContent = 'Import cancelled.';
+        return;
+      }
+      if (!window.confirm('Replace this device\'s Catch Davel progress with the selected validated profile?')) {
+        profileTransferStatus.textContent = 'Import cancelled; current progress was kept.';
+        return;
+      }
+      await profileWrite;
+      await profileRepository.save(imported);
+      const verified = await profileRepository.load('default');
+      if (verified?.integrityChecksum !== imported.integrityChecksum) throw new Error('Imported profile read-back verification failed');
+      activeProfile = verified;
+      renderCampaignMap();
+      profileTransferStatus.textContent = 'Profile imported and verified. Reloading…';
+      window.setTimeout(() => location.reload(), 250);
+    } catch (error) {
+      profileTransferStatus.textContent = error instanceof Error ? `Import rejected: ${error.message}` : 'Profile import failed.';
+    } finally {
+      setProfileTransferBusy(false);
+    }
   });
 
   const renderShop = (): void => {

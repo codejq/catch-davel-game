@@ -73,6 +73,44 @@ try {
   if (pausedEndTick !== pausedStartTick || resumedAfterMapTick <= pausedEndTick) {
     throw new Error(`Campaign map did not pause and resume the authoritative Worker clock: ${JSON.stringify(campaignFlow)}`);
   }
+  await page.click('#campaign-button');
+  const downloadPromise = page.waitForEvent('download');
+  await page.click('#profile-export');
+  const download = await downloadPromise;
+  const downloadStream = await download.createReadStream();
+  const downloadChunks = [];
+  for await (const chunk of downloadStream) downloadChunks.push(chunk);
+  const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
+  const exportedProfile = JSON.parse(exportedProfileText);
+  const exportStatus = await page.locator('#profile-transfer-status').textContent();
+  if (download.suggestedFilename() !== 'catch-davel-profile-v1.json'
+    || exportedProfile.profileSchemaVersion !== 1
+    || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
+    || exportStatus !== 'Profile exported.') {
+    throw new Error('Browser profile export did not produce the validated v1 JSON transfer');
+  }
+  const chooserPromise = page.waitForEvent('filechooser');
+  await page.click('#profile-import');
+  const chooser = await chooserPromise;
+  const dialogPromise = page.waitForEvent('dialog');
+  await chooser.setFiles({
+    name: 'catch-davel-profile-v1.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(exportedProfileText),
+  });
+  const dialog = await dialogPromise;
+  const navigationPromise = page.waitForNavigation({ waitUntil: 'load' });
+  await dialog.accept();
+  await navigationPromise;
+  await page.waitForFunction(() => document.body.dataset.profileReady === 'true'
+    && document.body.dataset.workerStatus === 'ready');
+  const profileTransfer = {
+    filename: download.suggestedFilename(),
+    schemaVersion: exportedProfile.profileSchemaVersion,
+    checksum: exportedProfile.integrityChecksum,
+    exportStatus,
+    importedAndReloaded: true,
+  };
   if (errors.length > 0) throw new Error(`Production browser errors: ${errors.join('; ')}`);
 
   const fallbackPage = await browser.newPage();
@@ -201,7 +239,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, campaignFlow, browserErrors: errors,
+    passed: true, ...result, campaignFlow, profileTransfer, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

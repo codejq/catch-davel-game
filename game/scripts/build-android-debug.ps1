@@ -49,9 +49,20 @@ try {
 $apks = Get-ChildItem -Recurse (Join-Path $androidRoot 'app\build\outputs\apk') -Filter '*.apk'
 if ($apks.Count -lt 2) { throw 'Expected ARM64 and x86_64 debug APKs were not produced' }
 $apks | ForEach-Object {
+  $stream = [System.IO.File]::OpenRead($_.FullName)
+  try {
+    $sha256 = [System.Security.Cryptography.SHA256]::Create()
+    try {
+      $hash = ([System.BitConverter]::ToString($sha256.ComputeHash($stream))).Replace('-', '').ToLowerInvariant()
+    } finally {
+      $sha256.Dispose()
+    }
+  } finally {
+    $stream.Dispose()
+  }
   [pscustomobject]@{
     Path = $_.FullName
     Bytes = $_.Length
-    Sha256 = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+    Sha256 = $hash
   }
 } | Format-Table -AutoSize
