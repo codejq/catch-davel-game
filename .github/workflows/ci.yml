@@ -1,0 +1,67 @@
+name: Catch Davel CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: catch-davel-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  game:
+    name: Deterministic game and browser gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run game:format:check
+      - run: npm run game:lint
+      - run: npm run game:content:submission
+      - run: npm run game:build
+      - run: npm run game:test
+      - run: npm run game:qa:campaign
+      - run: npm run game:qa:balance
+      - run: npm run game:test:worker
+      - run: npm run game:test:runtime
+      - name: Generated files remain canonical
+        run: git diff --exit-code
+
+  tauri:
+    name: Tauri native contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install Linux WebView build dependencies
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - run: cargo fmt --manifest-path game/src-tauri/Cargo.toml -- --check
+      - run: npm run game:tauri:check
+      - run: npm run game:tauri:test
+
+  phase-minus-one:
+    name: Phase -1 reproducibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run spike:build
+      - run: npm run spike:test

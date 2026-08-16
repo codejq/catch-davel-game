@@ -19,6 +19,8 @@ Open `/tooling.html` on the same Vite origin for the internal content workbench.
 Validation commands:
 
 ```powershell
+npm run game:format:check
+npm run game:lint
 npm run game:build
 npm run game:test
 npm run game:test:worker
@@ -66,7 +68,7 @@ await api.releaseControl(); // starts a clean human session from durable profile
 
 Calling `act` or `step` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty. Agent sessions are marked in replays and never write campaign coins, medals, attempts, or other human profile progress.
 
-The version-9 observation includes the authoritative Chapter 1 level ID and choreography, tick/seed, player pose and resources, selected/unlocked weapons, snapshotted upgrade levels, bomb/sword/laser resources, live thrown bombs and laser focus state, stable robot IDs, names, dances, archetypes/ranks, boss phase, telegraph/recovery state, tempo buffs, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, typed hostile projectiles, resource/coin pickups, typed hazards/gates with time-to-toggle, encounter-wave timing, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Level metadata supplies the matching level ID, grid rows, cell size, world origin, and coordinate conventions. Inputs are bounded and normalized before they enter the fixed-step simulation. Agents can select any authored Chapter 1 ID with `reset({ mode: 'agent', levelId: 'level-008' })`, request the isolated full arsenal with `loadout: 'training'`, or request the boss-training encounter; agent resets deliberately use zero upgrades. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
+The version-10 observation includes the authoritative Chapter 1 level ID and choreography, tick/seed, player pose and resources, selected/unlocked weapons, snapshotted upgrade levels, bomb/sword/laser resources, live thrown bombs and laser focus state, stable robot IDs, names, dances, archetypes/ranks, boss phase, telegraph/recovery state, tempo buffs, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, typed hostile projectiles, resource/coin pickups, typed hazards/gates with time-to-toggle, encounter-wave timing, door/key/checkpoint/exit and objective state, remaining count, and terminal state. Level metadata supplies the matching level ID, grid rows, cell size, world origin, and coordinate conventions. Inputs are bounded and normalized before they enter the fixed-step simulation. Agents can select any authored Chapter 1 ID with `reset({ mode: 'agent', levelId: 'level-008' })`, request the isolated full arsenal with `loadout: 'training'`, or request the boss-training encounter; agent resets deliberately use zero upgrades. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
 
 `BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,526—below the 6,000-tick hard budget.
 
@@ -93,7 +95,7 @@ The version-9 observation includes the authoritative Chapter 1 level ID and chor
 - authoritative fixed-step Verlet/XPBD articulated bodies with two substeps and eight link/motor iterations per substep;
 - four authoritative weapons: pulse hitscan; fast/charged sword with projectile deflection; arcing, bouncing, wall-occluded pulse bombs; and a continuous heat/focus laser. Campaign Level 1 remains pulse-only while the full set is available in isolated training;
 - a pre-run Quantum Coin workbench with three levels each of pulse damage/efficiency, sword cooling, bomb capacity, and laser cooling; costs and effects are deterministic, purchases clear incompatible checkpoints, and all state is replayed;
-- deterministic gold branch caches on Levels 2–9 plus larger secret caches on Levels 4, 7, and 9, all visible to humans/agents and persisted into the same Quantum Coin economy;
+- deterministic gold branch caches on Levels 2–9 plus larger secret caches on Levels 4, 7, and 9, all visible to humans/agents and banked into the Quantum Coin economy only at deterministic checkpoints or victory;
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
 - The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, and deterministic one/two/three-fireball spreads;
