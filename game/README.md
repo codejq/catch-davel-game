@@ -30,9 +30,10 @@ Content contract commands:
 ```powershell
 npm run game:content:schema
 npm run game:content:export
+npm run game:content:submission
 ```
 
-The build rejects stale generated content. The authored `LevelDefinition` is strictly validated for unknown fields, stable IDs, cross-references, objective cycles, key/lock solvability, encounter ownership, agent policy, and bounded performance budgets. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`; the designer workflow is documented in `docs/content/CONTENT_WORKBENCH.md`.
+The build rejects stale generated content. Export first runs the same strict submission gate as `game:content:submission`: the authored `LevelDefinition` must pass unknown-field, stable-ID, cross-reference, objective-cycle, key/lock, encounter, agent-policy, and bounded-budget validation; all 30 visible Chapter 1 keys must exist in both English and Arabic; and all 100 referenced presentation asset IDs must have unambiguous provenance. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`; the designer workflow is documented in `docs/content/CONTENT_WORKBENCH.md`.
 
 ## LLM/browser-agent control
 

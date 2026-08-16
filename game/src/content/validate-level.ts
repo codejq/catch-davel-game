@@ -1,4 +1,4 @@
-import { canonicalJson, checksumCanonical } from '../sim/serialization';
+import { canonicalContentJson as canonicalJson, checksumCanonicalContent as checksumCanonical } from './content-hash.ts';
 import type {
   AgentValidationRunSpec, DanceLevelSpec, EncounterSpec, HazardSpec, IntegerRange, KeySpec, LevelDefinition,
   MazeEdgeSpec, MazeNodeSpec, ObjectiveSpec, PerformanceSpec, PresetBinding, SpawnGroupSpec, StorySpec, WaveSpec,

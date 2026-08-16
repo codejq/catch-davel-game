@@ -2,6 +2,7 @@ import type { LevelDefinition } from '../content/level-definition';
 import {
   levelDefinitionDependencyHash, levelDefinitionHash, serializeLevelDefinition, validateLevelDefinition,
 } from '../content/validate-level';
+import { validateLevelSubmission } from '../content/submission-gates.ts';
 
 export interface LevelToolingReport {
   readonly level: LevelDefinition;
@@ -21,10 +22,13 @@ export interface LevelToolingReport {
   readonly peakRobotCount: number;
   readonly pickupIds: readonly string[];
   readonly localizationKeys: readonly string[];
+  readonly releaseLocales: readonly string[];
+  readonly provenanceAssetCount: number;
 }
 
 export function createLevelToolingReport(value: unknown): LevelToolingReport {
   const level = validateLevelDefinition(value);
+  const submission = validateLevelSubmission(level);
   const waves = level.encounters.flatMap((encounter) => encounter.waves);
   const populations = waves.map((wave) => wave.spawnGroups.reduce((sum, group) => sum + group.count, 0));
   const effectiveLevelHash = levelDefinitionDependencyHash(level);
@@ -48,10 +52,8 @@ export function createLevelToolingReport(value: unknown): LevelToolingReport {
     totalRobotCount: populations.reduce((sum, population) => sum + population, 0),
     peakRobotCount: Math.max(...populations),
     pickupIds: [...new Set(level.maze.nodes.flatMap((node) => node.pickupIds))].sort(),
-    localizationKeys: [
-      level.nameKey, level.briefingKey,
-      ...level.objectives.flatMap((objective) => [objective.titleKey]),
-      ...(level.story?.localizationKeys ?? []),
-    ].sort(),
+    localizationKeys: submission.localizationKeys,
+    releaseLocales: ['en', 'ar'],
+    provenanceAssetCount: submission.assetIds.length,
   };
 }

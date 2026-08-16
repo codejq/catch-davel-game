@@ -1,6 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { CHAPTER_01_LEVELS } from '../src/content/levels/chapter-01.ts';
+import { validateContentSubmission } from '../src/content/submission-gates.ts';
 
 const outputDirectory = fileURLToPath(new URL('../src/content/export/', import.meta.url));
 
@@ -12,6 +13,8 @@ function sorted(value) {
   return value;
 }
 
+const submission = validateContentSubmission(CHAPTER_01_LEVELS);
+console.log(`Submission gate passed: ${submission.levels.length} levels, ${submission.localizationKeyCount} localized strings × ${submission.releaseLocales.length} locales, ${submission.referencedAssetCount} assets with provenance`);
 mkdirSync(outputDirectory, { recursive: true });
 for (const level of CHAPTER_01_LEVELS) {
   const output = fileURLToPath(new URL(`../src/content/export/${level.id}.json`, import.meta.url));

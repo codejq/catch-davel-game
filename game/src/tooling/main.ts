@@ -70,7 +70,8 @@ function renderSummary(report: LevelToolingReport): void {
   addSummary('Maze', `${report.roomCount} rooms (${report.criticalRoomCount} critical / ${report.optionalRoomCount} optional), ${report.edgeCount} edges`);
   addSummary('Combat', `${report.encounterCount} encounter · ${report.waveCount} wave(s) · ${report.totalRobotCount} total / ${report.peakRobotCount} peak Davels`);
   addSummary('Resources', `${report.pickupIds.join(', ') || 'none'} · ${report.hazardCount} hazard(s)`);
-  addSummary('Localization', report.localizationKeys.join(' · '));
+  addSummary('Localization', `${report.localizationKeys.length} keys complete in ${report.releaseLocales.join(' / ')}`);
+  addSummary('Provenance', `${report.provenanceAssetCount} referenced presentation assets resolved`);
 }
 
 function overlayMap(levelId: Chapter01LevelId): Map<string, string> {
@@ -202,7 +203,7 @@ function validate(): LevelToolingReport | null {
     renderSummary(report); renderMaze(report.level); renderGraph(report.level); renderDance(report.level); renderWaves(report.level);
     status.className = report.dependencyCurrent ? 'valid' : 'warning';
     status.textContent = report.dependencyCurrent
-      ? 'VALID · schema, graph, key order, references, budgets, and dependency hash agree'
+      ? 'VALID · schema, graph, key order, localization, provenance, budgets, and dependency hash agree'
       : 'VALID CONTENT, STALE DEPENDENCY · update review hashes and frozen references before export';
     return report;
   } catch (error) {

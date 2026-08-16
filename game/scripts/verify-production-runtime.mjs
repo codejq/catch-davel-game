@@ -136,6 +136,7 @@ try {
     replayCommandRuns: document.querySelectorAll('#replay-commands div').length,
     balanceRows: document.querySelectorAll('#balance-table tbody tr').length,
     balanceSummary: document.querySelector('#balance-summary')?.textContent ?? '',
+    submissionSummary: document.querySelector('.summary')?.textContent ?? '',
   }));
   await toolingPage.evaluate(() => {
     const source = document.querySelector('#level-source');
@@ -150,7 +151,9 @@ try {
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
     || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 10
     || !toolingProof.balanceSummary.includes('Guaranteed 283 coins')
-    || !toolingProof.balanceSummary.includes('full upgrade catalog 156')) {
+    || !toolingProof.balanceSummary.includes('full upgrade catalog 156')
+    || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
+    || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {
     throw new Error(`Content Workbench did not render the canonical Level 8 projections: ${JSON.stringify(toolingProof)}`);
   }
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
