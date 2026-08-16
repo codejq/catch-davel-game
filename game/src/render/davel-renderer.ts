@@ -279,29 +279,31 @@ export class DavelRenderer {
     const p = pose(robot, definition);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
+    const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1] : definition.bodyColor;
+    const accentColor: Color = robot.hitFlashTicks > 0 ? [0.6, 1, 1] : definition.accentColor;
     const shoulderLeft = localPoint(robot, -0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
-    this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, definition.bodyColor, 1.32, 0.82);
-    this.addSphere(p.hip, 0.33 * definition.torsoWidth * scale, definition.accentColor, 0.82, 0.78);
-    this.addCapsule(shoulderLeft, p.leftElbow, 0.105 * scale, definition.bodyColor);
-    this.addCapsule(p.leftElbow, p.leftHand, 0.09 * scale, definition.accentColor);
-    this.addCapsule(shoulderRight, p.rightElbow, 0.105 * scale, definition.bodyColor);
-    this.addCapsule(p.rightElbow, p.rightHand, 0.09 * scale, definition.accentColor);
-    this.addCapsule(hipLeft, p.leftKnee, 0.12 * scale, definition.bodyColor);
-    this.addCapsule(p.leftKnee, p.leftFoot, 0.105 * scale, definition.accentColor);
-    this.addCapsule(hipRight, p.rightKnee, 0.12 * scale, definition.bodyColor);
-    this.addCapsule(p.rightKnee, p.rightFoot, 0.105 * scale, definition.accentColor);
+    this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
+    this.addSphere(p.hip, 0.33 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);
+    this.addCapsule(shoulderLeft, p.leftElbow, 0.105 * scale, bodyColor);
+    this.addCapsule(p.leftElbow, p.leftHand, 0.09 * scale, accentColor);
+    this.addCapsule(shoulderRight, p.rightElbow, 0.105 * scale, bodyColor);
+    this.addCapsule(p.rightElbow, p.rightHand, 0.09 * scale, accentColor);
+    this.addCapsule(hipLeft, p.leftKnee, 0.12 * scale, bodyColor);
+    this.addCapsule(p.leftKnee, p.leftFoot, 0.105 * scale, accentColor);
+    this.addCapsule(hipRight, p.rightKnee, 0.12 * scale, bodyColor);
+    this.addCapsule(p.rightKnee, p.rightFoot, 0.105 * scale, accentColor);
     for (const joint of [shoulderLeft, shoulderRight, p.leftElbow, p.rightElbow, p.leftKnee, p.rightKnee]) {
       this.addSphere(joint, 0.13 * scale, jointColor, 0.82, 0.82);
     }
-    this.addSphere(p.leftHand, 0.15 * scale, definition.accentColor, 0.88, 0.88);
-    this.addSphere(p.rightHand, 0.15 * scale, definition.accentColor, 0.88, 0.88);
+    this.addSphere(p.leftHand, 0.15 * scale, accentColor, 0.88, 0.88);
+    this.addSphere(p.rightHand, 0.15 * scale, accentColor, 0.88, 0.88);
     this.addSphere(p.leftFoot, 0.17 * scale, jointColor, 0.62, 1.35);
     this.addSphere(p.rightFoot, 0.17 * scale, jointColor, 0.62, 1.35);
     const headRadius = 0.37 * definition.headScale * scale;
-    this.addSphere(p.head, headRadius, definition.bodyColor, 0.9, 0.83);
+    this.addSphere(p.head, headRadius, bodyColor, 0.9, 0.83);
     const eyeY = p.head.y + headRadius * 0.13;
     const eyeForward = headRadius * 0.78;
     const eyeLeft = localPoint(robot, -headRadius * 0.36, eyeY, eyeForward);
@@ -322,6 +324,6 @@ export class DavelRenderer {
     const antennaBase = localPoint(robot, 0, p.head.y + headRadius * 0.8, 0);
     const antennaTip = localPoint(robot, (robot.id % 2 === 0 ? -0.08 : 0.08) * scale, p.head.y + headRadius * 1.35, 0);
     this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
-    this.addSphere(antennaTip, 0.105 * scale, definition.accentColor);
+    this.addSphere(antennaTip, 0.105 * scale, accentColor);
   }
 }

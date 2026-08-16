@@ -1,5 +1,5 @@
 import { FIXED_DT_SECONDS } from './constants';
-import { cellAt, cellCenter, type CellCoordinate } from './level';
+import { cellAt, cellCenter, isWallAtWorld, type CellCoordinate } from './level';
 import { decision, hashSeed } from './random';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
@@ -31,6 +31,9 @@ export interface RobotState {
   danceTime: number;
   health: number;
   active: boolean;
+  hitFlashTicks: number;
+  knockbackX: number;
+  knockbackZ: number;
 }
 
 const cells = (...coordinates: readonly [number, number][]): readonly CellCoordinate[] => coordinates.map(([column, row]) => ({ column, row }));
@@ -94,6 +97,7 @@ export function createRobots(): RobotState[] {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
       health: 100, active: true,
+      hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
     };
   });
 }
@@ -104,6 +108,15 @@ export function stepRobots(robots: RobotState[], seedText: string): void {
     if (!robot.active) continue;
     const definition = ROBOT_DEFINITIONS[robot.id]!;
     robot.danceTime += FIXED_DT_SECONDS * (1.4 + robot.id * 0.13);
+    robot.hitFlashTicks = Math.max(0, robot.hitFlashTicks - 1);
+    if (Math.abs(robot.knockbackX) + Math.abs(robot.knockbackZ) > 0.001) {
+      const nextX = robot.x + robot.knockbackX;
+      const nextZ = robot.z + robot.knockbackZ;
+      if (!isWallAtWorld(nextX, robot.z)) robot.x = nextX;
+      if (!isWallAtWorld(robot.x, nextZ)) robot.z = nextZ;
+      robot.knockbackX *= 0.82;
+      robot.knockbackZ *= 0.82;
+    }
     if (robot.holdTicks > 0) {
       robot.holdTicks -= 1;
       continue;
