@@ -22,6 +22,7 @@ import { chapter01LevelTitle } from '../campaign/catalog';
 import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
 import { audioRuntimeProfile } from '../content/runtime-manifests';
+import { presentationFeedback } from './presentation-feedback';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -100,6 +101,7 @@ export async function startBrowserGame(): Promise<void> {
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
+  const feedbackTimers = new Map<string, number>();
 
   const renderCampaignMap = (): void => {
     campaignLevels.replaceChildren(...CHAPTER_01_LEVEL_IDS.map((levelId, index) => {
@@ -193,6 +195,21 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const processEvent = (event: DecodedGameEvent): void => {
+    const feedback = presentationFeedback(event.type);
+    if (feedback !== null) {
+      if (!activeProfile.settings.reducedMotion) {
+        for (const className of feedback.classes) {
+          document.body.classList.remove(className);
+          void document.body.offsetWidth;
+          document.body.classList.add(className);
+          window.clearTimeout(feedbackTimers.get(className));
+          feedbackTimers.set(className, window.setTimeout(() => document.body.classList.remove(className), feedback.durationMs));
+        }
+      }
+      if (feedback.vibration !== null && typeof navigator.vibrate === 'function') {
+        navigator.vibrate(feedback.vibration as number | number[]);
+      }
+    }
     if (event.type === 'pulse-fired') sound('pulse');
     if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
     if (event.type === 'projectile-deflected') sound('deflect');

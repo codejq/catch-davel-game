@@ -226,8 +226,8 @@ export class DavelRenderer {
     const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
     if (uniform === null) throw new Error('Davel view projection uniform is unavailable');
     this.viewProjectionLocation = uniform;
-    this.spheres = new InstanceBatch(gl, createSphere(), 256);
-    this.capsules = new InstanceBatch(gl, createCapsule(), 192);
+    this.spheres = new InstanceBatch(gl, createSphere(), 640);
+    this.capsules = new InstanceBatch(gl, createCapsule(), 384);
   }
 
   render(state: RenderGameState, viewProjection: Float32Array): void {
@@ -307,6 +307,17 @@ export class DavelRenderer {
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
+    if (robot.hitFlashTicks > 0) {
+      const travel = (7 - robot.hitFlashTicks) * 0.075;
+      for (let index = 0; index < 4; index += 1) {
+        const angle = robot.id * 1.37 + index * Math.PI * 0.5 + robot.hitFlashTicks * 0.11;
+        this.addSphere({
+          x: p.chest.x + Math.cos(angle) * (0.36 * scale + travel),
+          y: p.chest.y + (index - 1.5) * 0.13 + travel * 0.35,
+          z: p.chest.z + Math.sin(angle) * (0.36 * scale + travel),
+        }, 0.055 * scale, index % 2 === 0 ? [1, 0.92, 0.18] : [0.25, 1, 1]);
+      }
+    }
     this.addSphere(p.hip, 0.33 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);
     this.addCapsule(shoulderLeft, p.leftElbow, 0.105 * scale, bodyColor);
     this.addCapsule(p.leftElbow, p.leftHand, 0.09 * scale, accentColor);
