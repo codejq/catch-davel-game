@@ -28,6 +28,10 @@ export function isKeyAmbushLevel(levelId: PlayableLevelId): boolean {
   return levelMechanicKind(levelId) === 'key-ambush';
 }
 
+export function isCrimsonPairLevel(levelId: PlayableLevelId): boolean {
+  return campaignLevel(levelId).tags.includes('synchronized-elite-duo');
+}
+
 export function activateKeyAmbush(
   robots: RobotState[], levelId: PlayableLevelId, keyCollected: boolean,
 ): boolean {
@@ -53,6 +57,10 @@ export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Reco
   if (primaryObjective.completionMode === 'timer') return {
     kind: 'timed-objective', clock: 'level-tick', durationTicks: primaryObjective.durationTicks,
     completionRequires: 'all-encounter-robots-defeated',
+  };
+  if (isCrimsonPairLevel(levelId)) return {
+    kind: 'synchronized-elite-duo', robotIds: [5, 7], telegraphTicks: 36,
+    recoveryTicks: 32, repeatCooldownTicks: 96,
   };
   if (campaignLevel(levelId).tags.includes('bomb-seal')) return {
     kind: 'bomb-seal', trigger: 'bomb-detonated', activation: 'until-bomb',

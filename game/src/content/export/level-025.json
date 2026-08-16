@@ -1,0 +1,556 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "4090a861d0b69a58",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "1c7b106c08f767cd",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 15000,
+        "mode": "live-agent",
+        "parTicks": 11000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "break-crimson-pair"
+        ],
+        "seed": "campaign-level-025-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "named-elite"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-025"
+  },
+  "briefingKey": "levels.025.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-025"
+    }
+  ],
+  "dance": {
+    "armPatternId": "duelling-tango-arms-v1",
+    "attackBeats": [
+      2,
+      6,
+      10,
+      14
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 142,
+    "footPatternId": "duelling-tango-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "duelling-tango-head-v1",
+    "pathPatternId": "duelling-tango-path-v1",
+    "presetId": "duelling-tango",
+    "reducedMotionPresetId": "duelling-tango-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "duelling-tango-torso-v1",
+    "transitionIds": [
+      "crossfire-rehearsal",
+      "crimson-pair",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-025"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-025"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "crimson-pair-company",
+      "rewardId": "chapter-03-clear-025",
+      "roomNodeId": "crimson-duel-floor",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "duet-opening",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "duelling-tango",
+              "id": "opening-wobblers",
+              "modifierIds": [
+                "crimson-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-1.wobblers",
+              "spawnPointSetId": "level-025-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "opening-slider",
+              "modifierIds": [
+                "duet-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-1.slider",
+              "spawnPointSetId": "level-025-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "opening-spinner",
+              "modifierIds": [
+                "duet-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-1.spinner",
+              "spawnPointSetId": "level-025-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "crossfire-rehearsal",
+          "id": "crossfire-rehearsal",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "rehearsal-firemouth",
+              "modifierIds": [
+                "crimson-flame"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-2.firemouth",
+              "spawnPointSetId": "level-025-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "rehearsal-wobbler",
+              "modifierIds": [
+                "crimson-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-2.wobbler",
+              "spawnPointSetId": "level-025-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "rehearsal-slider",
+              "modifierIds": [
+                "duet-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-2.slider",
+              "spawnPointSetId": "level-025-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "rehearsal-spinner",
+              "modifierIds": [
+                "duet-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-2.spinner",
+              "spawnPointSetId": "level-025-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 20
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "crimson-pair",
+          "id": "crimson-pair",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 2,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "crimson-firemouth",
+              "modifierIds": [
+                "crimson-pair"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-3.firemouth",
+              "spawnPointSetId": "level-025-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-25",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "duelling-tango",
+              "id": "crimson-conductor",
+              "modifierIds": [
+                "crimson-pair"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-25",
+              "rngStream": "encounter.level-025.wave-3.dj",
+              "spawnPointSetId": "level-025-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 18
+        }
+      ]
+    }
+  ],
+  "id": "level-025",
+  "mastery": [
+    {
+      "presetId": "level-025-par-time"
+    },
+    {
+      "presetId": "level-025-break-sync"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "duet-entry",
+        "id": "entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "duet-key-bay",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "duet-key-bay",
+        "id": "key-lanes",
+        "requiredKeyId": "duet-key",
+        "stateTrigger": "key-collected",
+        "to": "split-steam-lanes",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "split-steam-lanes",
+        "id": "lanes-duel",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "crimson-duel-floor",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "crimson-duel-floor",
+        "id": "duel-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "duet-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "duet-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "crimson-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "duet-key-bay",
+        "id": "key-balcony",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "balcony-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "balcony-loop",
+        "id": "balcony-duel",
+        "requiredKeyId": "duet-key",
+        "stateTrigger": "key-collected",
+        "to": "crimson-duel-floor",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "duet-entry",
+    "exitNodeId": "crimson-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 96,
+        "collisionProfileId": "crimson-gate-left-v1",
+        "id": "crimson-gate-left",
+        "nodeId": "split-steam-lanes",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 96,
+        "collisionProfileId": "crimson-gate-right-v1",
+        "id": "crimson-gate-right",
+        "nodeId": "split-steam-lanes",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 170,
+        "collisionProfileId": "crimson-steam-left-v1",
+        "id": "crimson-steam-left",
+        "nodeId": "crimson-duel-floor",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 170,
+        "collisionProfileId": "crimson-steam-right-v1",
+        "id": "crimson-steam-right",
+        "nodeId": "crimson-duel-floor",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "duet-key",
+        "placementNodeId": "duet-key-bay"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "duet-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "duet-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "duet-key-bay",
+        "pickupIds": [
+          "duet-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "duet-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "split-steam-lanes",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "opposed-steam"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "crimson-pair-company"
+        ],
+        "id": "crimson-duel-floor",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "synchronized-duo"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "balcony-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-balcony"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-025",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "duet-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "crimson-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-crimson-pair",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.025.name",
+  "number": 25,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "break-crimson-pair",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "duet-opening",
+        "crossfire-rehearsal",
+        "crimson-pair"
+      ],
+      "titleKey": "objectives.level_025",
+      "type": "hunt"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-25"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-025-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 9,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-025-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "synchronized-elite-duo",
+    "crimson-pair",
+    "duelling-tango"
+  ]
+}

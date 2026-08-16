@@ -183,6 +183,22 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'timed-door', column: 12, row: 6, halfWidth: 1.25, halfDepth: 1.25,
     directionX: 0, directionZ: 0, phaseOffsetTicks: 160,
   },
+  'crimson-gate-left-v1': {
+    kind: 'timed-door', column: 6, row: 8, halfWidth: 1.25, halfDepth: 1.25,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'crimson-gate-right-v1': {
+    kind: 'timed-door', column: 10, row: 8, halfWidth: 1.25, halfDepth: 1.25,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 90,
+  },
+  'crimson-steam-left-v1': {
+    kind: 'conveyor', column: 5, row: 7, halfWidth: 1.1, halfDepth: 3.2,
+    directionX: 0, directionZ: 1, phaseOffsetTicks: 30,
+  },
+  'crimson-steam-right-v1': {
+    kind: 'conveyor', column: 11, row: 7, halfWidth: 1.1, halfDepth: 3.2,
+    directionX: 0, directionZ: -1, phaseOffsetTicks: 120,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -508,6 +524,25 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 7, row: 9, amount: 26 },
     },
   },
+  'boiler-crimson-pair': {
+    openings: [
+      { column: 2, row: 2 }, { column: 6, row: 2 }, { column: 10, row: 2 },
+      { column: 2, row: 4 }, { column: 6, row: 4 }, { column: 10, row: 4 },
+      { column: 2, row: 6 }, { column: 5, row: 6 }, { column: 8, row: 6 }, { column: 12, row: 6 },
+      { column: 6, row: 7 }, { column: 10, row: 7 },
+      { column: 3, row: 8 }, { column: 6, row: 8 }, { column: 10, row: 8 }, { column: 12, row: 8 },
+      { column: 2, row: 10 }, { column: 6, row: 10 }, { column: 10, row: 10 }, { column: 12, row: 10 },
+      { column: 3, row: 12 }, { column: 6, row: 12 }, { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 13, row: 5, amount: 22 },
+      key: { column: 3, row: 3 },
+      energy: { column: 3, row: 11, amount: 28 },
+      door: { column: 10, row: 8 },
+      checkpoint: { column: 11, row: 11 },
+      coin: { column: 7, row: 5, amount: 27 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -520,7 +555,8 @@ export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 
   | 'heavy-two-step' | 'conveyor-conga' | 'freeze-dance' | 'clockwork-charleston'
   | 'turbo-shuffle' | 'giant-breakdown' | 'ticket-swing' | 'soft-shoe' | 'carousel-kick'
   | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut'
-  | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step';
+  | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step'
+  | 'duelling-tango';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -547,6 +583,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'toxic-toe-tango': 'toxic-toe',
   'flame-lick-flamenco': 'flame-lick',
   'pressure-step-paso': 'pressure-step',
+  'duelling-tango': 'duelling-tango',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -587,6 +624,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'toxic-toe-tango': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'flame-lick-flamenco': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'pressure-step-paso': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'duelling-tango': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -628,6 +666,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-toxic-boiler-022': { roomSize: 0.8, decaySeconds: 0.72, dampingHz: 2900, wetMix: 0.34, pitchScale: 0.97 },
   'audio-toxic-boiler-023': { roomSize: 0.86, decaySeconds: 0.76, dampingHz: 2600, wetMix: 0.35, pitchScale: 1.04 },
   'audio-toxic-boiler-024': { roomSize: 0.9, decaySeconds: 0.8, dampingHz: 2450, wetMix: 0.37, pitchScale: 1.08 },
+  'audio-toxic-boiler-025': { roomSize: 0.92, decaySeconds: 0.84, dampingHz: 2350, wetMix: 0.38, pitchScale: 0.96 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -669,6 +708,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'toxic-toe-tango': { rootMidi: 45, scale: [0, 1, 5, 7, 8], leadPattern: [0, 4, 1, 3, 2, 4, 0, 2], bassPattern: [0, 1, 4, 2], swing: 0.22 },
   'flame-lick-flamenco': { rootMidi: 52, scale: [0, 1, 4, 5, 7, 8], leadPattern: [0, 3, 1, 5, 4, 2, 5, 1], bassPattern: [0, 3, 4, 1], swing: 0.12 },
   'pressure-step-paso': { rootMidi: 48, scale: [0, 2, 3, 6, 7, 10], leadPattern: [0, 4, 2, 5, 1, 3, 5, 2], bassPattern: [0, 2, 5, 3], swing: 0.16 },
+  'duelling-tango': { rootMidi: 43, scale: [0, 1, 4, 6, 7, 10], leadPattern: [0, 5, 1, 4, 2, 5, 3, 1], bassPattern: [0, 4, 1, 5], swing: 0.2 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -709,6 +749,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'toxic-boiler-22': { sky: [0.62, 0.92, 0.38], floor: [0.84, 0.88, 0.46], walls: [[0.08, 0.5, 0.28], [0.68, 0.12, 0.74], [0.08, 0.74, 0.84], [0.98, 0.58, 0.08]] },
   'toxic-boiler-23': { sky: [0.96, 0.58, 0.3], floor: [0.9, 0.84, 0.48], walls: [[0.82, 0.08, 0.12], [1, 0.42, 0.06], [0.18, 0.7, 0.72], [0.74, 0.18, 0.62]] },
   'toxic-boiler-24': { sky: [0.36, 0.9, 0.84], floor: [0.94, 0.86, 0.34], walls: [[0.02, 0.66, 0.62], [0.98, 0.36, 0.56], [0.96, 0.66, 0.08], [0.34, 0.2, 0.88]] },
+  'toxic-boiler-25': { sky: [0.94, 0.52, 0.62], floor: [0.96, 0.86, 0.52], walls: [[0.74, 0.04, 0.12], [1, 0.24, 0.38], [0.1, 0.72, 0.78], [0.48, 0.16, 0.76]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {

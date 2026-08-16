@@ -249,6 +249,16 @@ function targets(
     leftFootY += release * 0.18; rightFootY += pump * 0.18;
     leftHand = [-0.72 - pump * 0.34, 1.74 + release * 0.2, 0.3];
     rightHand = [0.72 + release * 0.34, 1.04 + pump * 0.48, 0.34];
+  } else if (performance.motif === 'duelling-tango') {
+    const lunge = Math.max(0, beat); const retreat = Math.max(0, -beat);
+    bounce += (lunge + retreat) * 0.055 * intensity;
+    hipX = alternate * 0.34 * intensity; chestX = -alternate * 0.4 * intensity;
+    chestZ = lunge * 0.24 - retreat * 0.12; headX += alternate * 0.28; headZ = -lunge * 0.08;
+    leftFootX = -0.42 + retreat * 0.16; rightFootX = 0.42 - lunge * 0.16;
+    leftFootZ = retreat * 0.5; rightFootZ = lunge * 0.5;
+    leftFootY += retreat * 0.12; rightFootY += lunge * 0.12;
+    leftHand = [-1.04, 1.82 - lunge * 0.36, 0.18 + retreat * 0.3];
+    rightHand = [1.04, 1.1 + lunge * 0.64, 0.42];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

@@ -10,6 +10,7 @@ import {
 import type { PlayableLevelId } from '../content/level-ids';
 import { difficultyProfile, difficultyRobotHealth, type DifficultyId, type DifficultyProfile } from './difficulty';
 import { isDanceAttackOnset } from './dance-timing';
+import { isCrimsonPairLevel } from './level-mechanics';
 
 export type EnemyProjectileKind = 'slider-bolt' | 'beat-bolt' | 'fireball';
 
@@ -123,8 +124,18 @@ export function stepEnemyCombat(
   const playerHitRobotIds: number[] = [];
   const profile = difficultyProfile(difficulty);
   const attackOnset = !robotsFrozen && isDanceAttackOnset(levelId, tick);
+  const crimsonPair = isCrimsonPairLevel(levelId)
+    ? robots.filter((robot) => robot.active && (robot.id === 5 || robot.id === 7)) : [];
   let nextId = nextProjectileId;
   if (player.health > 0 && !robotsFrozen) {
+    if (crimsonPair.length === 2 && crimsonPair.every((robot) => robot.combatState === 'patrol'
+      && robot.attackCooldownTicks <= 0 && canBeginAttack(robot, player, levelId))) {
+      for (const robot of crimsonPair) {
+        robot.combatState = 'telegraph';
+        robot.combatTicks = 36;
+        telegraphRobotIds.push(robot.id);
+      }
+    }
     for (const robot of robots) {
       if (!robot.active) continue;
       const definition = ROBOT_DEFINITIONS[robot.id]!;
@@ -180,8 +191,10 @@ export function stepEnemyCombat(
           firedRobotIds.push(robot.id);
         }
         robot.combatState = 'recover';
-        robot.combatTicks = definition.archetype === 'red-firemouth' ? 32 : 20;
-        robot.attackCooldownTicks = definition.rank === 'boss'
+        robot.combatTicks = isCrimsonPairLevel(levelId) && (robot.id === 5 || robot.id === 7)
+          ? 32 : definition.archetype === 'red-firemouth' ? 32 : 20;
+        robot.attackCooldownTicks = isCrimsonPairLevel(levelId) && (robot.id === 5 || robot.id === 7)
+          ? 96 : definition.rank === 'boss'
           ? 105 - robot.bossPhase * 15
           : ENEMY_REPEAT_COOLDOWN_BASE + robot.id * ENEMY_REPEAT_COOLDOWN_STEP;
         continue;

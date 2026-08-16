@@ -459,6 +459,7 @@ export class DavelRenderer {
         this.addRobot(
           robot, definition, motionScale, flashScale, quality.hitSparkCount, weakPointsActive,
           difficultyRobotHealth(definition.maxHealth, state.difficulty), state.player.x, state.player.z,
+          state.levelId === 'level-025' && (robot.id === 5 || robot.id === 7),
         );
       }
     }
@@ -600,16 +601,19 @@ export class DavelRenderer {
   private addRobot(
     robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number,
     hitSparkCount: number, weakPointActive: boolean, maxHealth: number, playerX: number, playerZ: number,
+    crimsonPair = false,
   ): void {
     const basePose = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
     const expression = davelExpression(robot, motionScale);
     const p = expressionPose(basePose, robot, definition, expression);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
-    const bodyColor: Color = robot.hitFlashTicks > 0 ? blendColor(definition.bodyColor, [1, 1, 1], flashScale)
-      : robot.combatState === 'telegraph' ? [1, 0.22, 0.16] : definition.bodyColor;
-    const accentColor: Color = robot.hitFlashTicks > 0 ? blendColor(definition.accentColor, [0.6, 1, 1], flashScale)
-      : robot.tempoBuffTicks > 0 ? [0.18, 1, 0.72] : definition.accentColor;
+    const baseBodyColor: Color = crimsonPair ? [0.78, 0.035, 0.1] : definition.bodyColor;
+    const baseAccentColor: Color = crimsonPair ? (robot.id === 5 ? [1, 0.22, 0.5] : [1, 0.58, 0.08]) : definition.accentColor;
+    const bodyColor: Color = robot.hitFlashTicks > 0 ? blendColor(baseBodyColor, [1, 1, 1], flashScale)
+      : robot.combatState === 'telegraph' ? [1, 0.22, 0.16] : baseBodyColor;
+    const accentColor: Color = robot.hitFlashTicks > 0 ? blendColor(baseAccentColor, [0.6, 1, 1], flashScale)
+      : robot.tempoBuffTicks > 0 ? [0.18, 1, 0.72] : baseAccentColor;
     const shoulderLeft = localPoint(robot, -0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);

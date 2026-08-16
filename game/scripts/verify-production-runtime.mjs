@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 24 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 25 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-024`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-025`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-024'
+    && document.body.dataset.levelId === 'level-025'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   await chapterPage.keyboard.press('Digit3');
@@ -671,24 +671,22 @@ try {
     defenseMaxHealth: document.body.dataset.defenseMaxHealth ?? '',
     agentApiExposed: window.CatchDavelAgent !== undefined,
   }));
-  const expectedChapterRemaining = chapterLevel.language === 'ar'
-    ? '4 دافل · تستقر الصمامات خلال'
-    : '4 Davels · valves stabilize in';
+  const expectedChapterRemaining = chapterLevel.language === 'ar' ? '4 دافل متبقٍ' : '4 Davels remain';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
-    throw new Error('Production Level 24 did not render its timed opening four-Davel act in the active locale');
+    throw new Error('Production Level 25 did not render its opening four-Davel act in the active locale');
   }
-  const expectedLevelName = chapterLevel.language === 'ar' ? 'سرعة الصمامات' : 'VALVE VELOCITY';
+  const expectedLevelName = chapterLevel.language === 'ar' ? 'الثنائي القرمزي' : 'THE CRIMSON PAIR';
   if (!chapterLevel.levelName.includes(expectedLevelName)) {
-    throw new Error(`Production Level 24 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
+    throw new Error(`Production Level 25 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
   }
   if (chapterLevel.defenseHealth !== '0' || chapterLevel.defenseMaxHealth !== '0') {
-    throw new Error('Production Level 24 inherited the prior level defense target');
+    throw new Error('Production Level 25 inherited the prior level defense target');
   }
   if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
-    throw new Error('Production Level 24 did not retain the Chapter 2 dash control');
+    throw new Error('Production Level 25 did not retain the Chapter 2 dash control');
   }
   if (chapterLevel.weapon !== 'bomb' || chapterLevel.weaponStatus.length === 0) {
-    throw new Error('Production Level 24 did not expose the Chapter 3 bomb control');
+    throw new Error('Production Level 25 did not expose the Chapter 3 bomb control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -810,11 +808,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 24 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 25 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 24
-    || !toolingProof.balanceSummary.includes('Guaranteed 972 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 25
+    || !toolingProof.balanceSummary.includes('Guaranteed 1024 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {
