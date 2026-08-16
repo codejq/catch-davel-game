@@ -129,6 +129,10 @@ try {
     document.querySelector('#setting-master').value = '0.8';
     document.querySelector('#setting-music').value = '0.6';
     document.querySelector('#setting-effects').value = '0.7';
+    document.querySelector('#setting-combat-volume').value = '0.6';
+    document.querySelector('#setting-world-volume').value = '0.7';
+    document.querySelector('#setting-interface-volume').value = '0.8';
+    document.querySelector('#setting-dynamic-range').value = 'night';
     document.querySelector('#setting-reduced-motion').checked = true;
     document.querySelector('#setting-high-contrast').checked = true;
     document.querySelector('#setting-captions').checked = true;
@@ -177,6 +181,10 @@ try {
     recoilMotion: document.querySelector('#setting-recoil-motion')?.value,
     shakeMotion: document.querySelector('#setting-shake-motion')?.value,
     flashIntensity: document.querySelector('#setting-flash-intensity')?.value,
+    combatVolume: document.querySelector('#setting-combat-volume')?.value,
+    worldVolume: document.querySelector('#setting-world-volume')?.value,
+    interfaceVolume: document.querySelector('#setting-interface-volume')?.value,
+    dynamicRange: document.body.dataset.audioDynamicRange,
     qualityPreference: document.body.dataset.qualityPreference,
     qualityTier: document.body.dataset.qualityTier,
     textScale: document.querySelector('#setting-text-scale')?.value,
@@ -202,6 +210,10 @@ try {
     || settingsProfile.profile.settings.masterVolume !== 0.8
     || settingsProfile.profile.settings.musicVolume !== 0.6
     || settingsProfile.profile.settings.effectsVolume !== 0.7
+    || settingsProfile.profile.settings.combatVolume !== 0.6
+    || settingsProfile.profile.settings.worldVolume !== 0.7
+    || settingsProfile.profile.settings.interfaceVolume !== 0.8
+    || settingsProfile.profile.settings.dynamicRange !== 'night'
     || settingsProfile.profile.settings.cameraMotion !== 0.25
     || settingsProfile.profile.settings.recoilMotion !== 0.35
     || settingsProfile.profile.settings.shakeMotion !== 0.45
@@ -238,6 +250,10 @@ try {
     || accessibilitySettings.recoilMotion !== '0.35'
     || accessibilitySettings.shakeMotion !== '0.45'
     || accessibilitySettings.flashIntensity !== '0.55'
+    || accessibilitySettings.combatVolume !== '0.6'
+    || accessibilitySettings.worldVolume !== '0.7'
+    || accessibilitySettings.interfaceVolume !== '0.8'
+    || accessibilitySettings.dynamicRange !== 'night'
     || accessibilitySettings.qualityPreference !== 'low'
     || accessibilitySettings.qualityTier !== 'low'
     || accessibilitySettings.textScale !== '1.3'
@@ -265,18 +281,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v5.json'
-    || exportedProfile.profileSchemaVersion !== 5
+  if (download.suggestedFilename() !== 'catch-davel-profile-v6.json'
+    || exportedProfile.profileSchemaVersion !== 6
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v5 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v6 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v5.json',
+    name: 'catch-davel-profile-v6.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

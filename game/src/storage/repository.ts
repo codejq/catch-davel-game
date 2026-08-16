@@ -1,5 +1,5 @@
 import { canonicalJson } from '../sim/serialization';
-import { parseProfile, serializeProfile, type ProfileV5 } from './profile';
+import { parseProfile, serializeProfile, type ProfileV6 } from './profile';
 
 export interface KeyValueStore {
   get(key: string): Promise<string | null>;
@@ -34,7 +34,7 @@ function parsePointer(serialized: string | null): ActivePointer | null {
   }
 }
 
-function parseEnvelope(serialized: string | null): { readonly revision: number; readonly profile: ProfileV5 } | null {
+function parseEnvelope(serialized: string | null): { readonly revision: number; readonly profile: ProfileV6 } | null {
   if (serialized === null) return null;
   try {
     const value = JSON.parse(serialized) as Partial<ProfileEnvelope>;
@@ -48,7 +48,7 @@ function parseEnvelope(serialized: string | null): { readonly revision: number; 
 export class ProfileRepository {
   constructor(private readonly store: KeyValueStore) {}
 
-  async load(profileId: string): Promise<ProfileV5 | null> {
+  async load(profileId: string): Promise<ProfileV6 | null> {
     const keys = profileStorageKeys(profileId);
     const pointer = parsePointer(await this.store.get(keys.active));
     const preferred = pointer?.slot ?? 'a';
@@ -59,7 +59,7 @@ export class ProfileRepository {
     return fallbackEnvelope?.profile ?? preferredEnvelope?.profile ?? null;
   }
 
-  async save(profileValue: ProfileV5): Promise<void> {
+  async save(profileValue: ProfileV6): Promise<void> {
     const profile = parseProfile(serializeProfile(profileValue));
     const keys = profileStorageKeys(profile.profileId);
     const pointer = parsePointer(await this.store.get(keys.active));

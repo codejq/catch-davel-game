@@ -1,0 +1,78 @@
+{
+  "achievements": [],
+  "campaignCheckpoint": null,
+  "cosmetics": [],
+  "displayName": "Mix Ranger",
+  "inputMappings": {
+    "altFire": "Mouse2",
+    "back": "KeyS",
+    "campaign": "KeyM",
+    "fire": "Mouse0",
+    "forward": "KeyW",
+    "left": "KeyA",
+    "right": "KeyD",
+    "shop": "KeyU",
+    "weaponBomb": "Digit3",
+    "weaponLaser": "Digit4",
+    "weaponPulse": "Digit1",
+    "weaponSword": "Digit2"
+  },
+  "integrityChecksum": "8ef31f14f4c53773",
+  "lastCleanShutdown": true,
+  "levelProgress": [
+    {
+      "attempts": 0,
+      "bestReplayId": null,
+      "bestTicks": null,
+      "completed": false,
+      "defeats": 0,
+      "levelId": "level-001",
+      "medals": [],
+      "robotsDefeated": 0
+    }
+  ],
+  "migrationHistory": [
+    "created:v5"
+  ],
+  "playerUpgrades": {
+    "maxEnergy": 0,
+    "maxHealth": 0
+  },
+  "profileId": "migration-v5",
+  "profileSchemaVersion": 5,
+  "settings": {
+    "cameraMotion": 1,
+    "captions": true,
+    "effectsVolume": 0.9,
+    "flashIntensity": 1,
+    "highContrast": false,
+    "language": "ar",
+    "masterVolume": 1,
+    "mouseSensitivity": 1,
+    "musicVolume": 0.75,
+    "photosensitivitySafe": false,
+    "recoilMotion": 1,
+    "reducedMotion": false,
+    "renderQuality": "auto",
+    "shakeMotion": 1,
+    "textScale": 1,
+    "touchControlOpacity": 0.7,
+    "touchControlScale": 1.25,
+    "touchDeadZone": 0.2,
+    "touchFireMode": "toggle",
+    "touchHandedness": "left",
+    "touchVerticalOffset": 48
+  },
+  "spendableCoins": 0,
+  "totalCoins": 0,
+  "unlockedLevelIds": [
+    "level-001"
+  ],
+  "weaponUpgrades": {
+    "bombCapacity": 0,
+    "laserCooling": 0,
+    "pulseDamage": 0,
+    "pulseEfficiency": 0,
+    "swordCooling": 0
+  }
+}

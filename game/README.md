@@ -14,6 +14,8 @@ Open the URL printed by Vite. Click the canvas to capture the mouse, use WASD or
 
 On a touch device, use the virtual stick to move, drag across the game view to aim, use **FIRE**, tap **ALT** for the selected weapon's alternate action, and tap the weapon label to cycle unlocked weapons. The accessibility panel can scale, fade, raise, swap, and dead-zone the controls and switch FIRE between hold and toggle behavior. Touch and desktop input both produce the same deterministic command stream.
 
+Audio is project-original procedural Web Audio. The same settings panel controls master, music, and effects gain plus independent combat, world, and interface buses; Wide, Balanced, and Night dynamic-range presets retune the protected output compressor without changing gameplay events.
+
 Open `/tooling.html` on the same Vite origin for the internal content workbench. It validates editable level JSON with the production schema, previews the committed runtime maze/interactions, visualizes the encounter graph and dance beats, summarizes waves/budgets, and produces canonical review JSON without writing source files. Its replay inspector accepts pasted/uploaded replay JSON, strictly parses and fully re-simulates it, compares all dependency hashes, and renders checksum and compressed-command timelines.
 
 Validation commands:

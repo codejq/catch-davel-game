@@ -5,6 +5,51 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'victory' | 'defeat' | 'ambush';
 
+export type AudioBus = 'combat' | 'world' | 'interface';
+export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
+
+export interface AudioMixSettings {
+  readonly combat: number;
+  readonly world: number;
+  readonly interface: number;
+  readonly dynamicRange: DynamicRangePreset;
+}
+
+export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
+  combat: 1, world: 1, interface: 1, dynamicRange: 'balanced',
+};
+
+export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
+  pulse: 'combat', sword: 'combat', 'charged-sword': 'combat', deflect: 'combat', 'bomb-throw': 'combat',
+  'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'robot-shot': 'combat',
+  'robot-telegraph': 'combat', 'robot-melee': 'combat', 'dj-buff': 'combat', 'boss-phase': 'combat',
+  'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
+  checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', victory: 'interface',
+  defeat: 'interface', ambush: 'interface',
+};
+
+export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
+  readonly threshold: number;
+  readonly knee: number;
+  readonly ratio: number;
+  readonly attack: number;
+  readonly release: number;
+  readonly outputScale: number;
+}>> = {
+  wide: { threshold: -7, knee: 5, ratio: 2.5, attack: 0.002, release: 0.14, outputScale: 0.9 },
+  balanced: { threshold: -13, knee: 12, ratio: 8, attack: 0.003, release: 0.18, outputScale: 0.78 },
+  night: { threshold: -24, knee: 18, ratio: 12, attack: 0.006, release: 0.28, outputScale: 0.62 },
+};
+
+export function validateAudioMixSettings(mix: AudioMixSettings): void {
+  for (const bus of ['combat', 'world', 'interface'] as const) {
+    if (!Number.isFinite(mix[bus]) || mix[bus] < 0 || mix[bus] > 1) {
+      throw new Error(`Audio ${bus} bus gain is outside bounds`);
+    }
+  }
+  if (!Object.hasOwn(DYNAMIC_RANGE_PRESETS, mix.dynamicRange)) throw new Error('Audio dynamic range preset is invalid');
+}
+
 interface ToneLayer {
   readonly kind: 'tone';
   readonly wave: OscillatorType;
@@ -93,25 +138,25 @@ function nextNoise(state: number): number {
 
 export class ProceduralAudio {
   private readonly master: GainNode;
+  private readonly compressor: DynamicsCompressorNode;
   private readonly dry: GainNode;
   private readonly reverbInput: GainNode;
+  private readonly buses: Readonly<Record<AudioBus, GainNode>>;
   private readonly noiseBuffer: AudioBuffer;
+  private outputGain: number;
+  private dynamicRange: DynamicRangePreset;
   private activeSources = 0;
 
   constructor(
     private readonly context: AudioContext, private readonly profile: AudioRuntimeProfile, profileId: string,
-    outputGain = 1,
+    outputGain = 1, mix: AudioMixSettings = DEFAULT_AUDIO_MIX,
   ) {
     validateProceduralAudioDefinitions();
+    this.outputGain = Math.max(0, Math.min(1, outputGain));
+    this.dynamicRange = mix.dynamicRange;
     this.master = context.createGain();
-    this.master.gain.value = 0.78 * Math.max(0, Math.min(1, outputGain));
-    const compressor = context.createDynamicsCompressor();
-    compressor.threshold.value = -13;
-    compressor.knee.value = 12;
-    compressor.ratio.value = 8;
-    compressor.attack.value = 0.003;
-    compressor.release.value = 0.18;
-    this.master.connect(compressor).connect(context.destination);
+    this.compressor = context.createDynamicsCompressor();
+    this.master.connect(this.compressor).connect(context.destination);
 
     this.dry = context.createGain();
     this.dry.gain.value = 0.9;
@@ -124,22 +169,49 @@ export class ProceduralAudio {
     damping.type = 'lowpass';
     damping.frequency.value = profile.dampingHz;
     this.reverbInput.connect(convolver).connect(damping).connect(this.master);
+    this.buses = {
+      combat: context.createGain(), world: context.createGain(), interface: context.createGain(),
+    };
+    for (const bus of Object.values(this.buses)) {
+      bus.connect(this.dry);
+      bus.connect(this.reverbInput);
+    }
+    this.setMix(mix, true);
     this.noiseBuffer = this.createNoiseBuffer(profileId);
   }
 
   resume(): Promise<void> { return this.context.resume(); }
 
   setOutputGain(value: number): void {
-    this.master.gain.setTargetAtTime(0.78 * Math.max(0, Math.min(1, value)), this.context.currentTime, 0.04);
+    this.outputGain = Math.max(0, Math.min(1, value));
+    this.applyOutputGain(false);
+  }
+
+  setMix(mix: AudioMixSettings, immediate = false): void {
+    validateAudioMixSettings(mix);
+    const timeConstant = immediate ? 0 : 0.04;
+    for (const bus of ['combat', 'world', 'interface'] as const) {
+      const value = mix[bus];
+      if (immediate) this.buses[bus].gain.value = value;
+      else this.buses[bus].gain.setTargetAtTime(value, this.context.currentTime, timeConstant);
+    }
+    this.dynamicRange = mix.dynamicRange;
+    const preset = DYNAMIC_RANGE_PRESETS[this.dynamicRange];
+    this.compressor.threshold.value = preset.threshold;
+    this.compressor.knee.value = preset.knee;
+    this.compressor.ratio.value = preset.ratio;
+    this.compressor.attack.value = preset.attack;
+    this.compressor.release.value = preset.release;
+    this.applyOutputGain(immediate);
   }
 
   play(cue: AudioCue, pan = 0): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
     if (this.activeSources + layers.length > 48) return;
-    for (const layer of layers) this.playLayer(layer, Math.max(-1, Math.min(1, pan)));
+    for (const layer of layers) this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue]);
   }
 
-  private playLayer(layer: AudioLayer, pan: number): void {
+  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus): void {
     const now = this.context.currentTime + (layer.delay ?? 0);
     const envelope = this.context.createGain();
     const panner = this.context.createStereoPanner();
@@ -148,8 +220,7 @@ export class ProceduralAudio {
     envelope.gain.exponentialRampToValueAtTime(layer.gain, now + Math.min(0.006, layer.duration * 0.2));
     envelope.gain.exponentialRampToValueAtTime(0.0001, now + layer.duration);
     envelope.connect(panner);
-    panner.connect(this.dry);
-    panner.connect(this.reverbInput);
+    panner.connect(this.buses[bus]);
 
     const source = layer.kind === 'tone' ? this.context.createOscillator() : this.context.createBufferSource();
     if (layer.kind === 'tone' && source instanceof OscillatorNode) {
@@ -169,6 +240,12 @@ export class ProceduralAudio {
     source.addEventListener('ended', () => { this.activeSources -= 1; }, { once: true });
     source.start(now);
     source.stop(now + layer.duration + 0.01);
+  }
+
+  private applyOutputGain(immediate: boolean): void {
+    const value = DYNAMIC_RANGE_PRESETS[this.dynamicRange].outputScale * this.outputGain;
+    if (immediate) this.master.gain.value = value;
+    else this.master.gain.setTargetAtTime(value, this.context.currentTime, 0.04);
   }
 
   private createNoiseBuffer(profileId: string): AudioBuffer {

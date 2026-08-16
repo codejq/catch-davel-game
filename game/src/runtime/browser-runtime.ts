@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV5 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV6 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -145,6 +145,10 @@ export async function startBrowserGame(): Promise<void> {
   const settingMaster = requireElement<HTMLInputElement>('#setting-master');
   const settingMusic = requireElement<HTMLInputElement>('#setting-music');
   const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
+  const settingCombatVolume = requireElement<HTMLInputElement>('#setting-combat-volume');
+  const settingWorldVolume = requireElement<HTMLInputElement>('#setting-world-volume');
+  const settingInterfaceVolume = requireElement<HTMLInputElement>('#setting-interface-volume');
+  const settingDynamicRange = requireElement<HTMLSelectElement>('#setting-dynamic-range');
   const settingReducedMotion = requireElement<HTMLInputElement>('#setting-reduced-motion');
   const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
   const settingCaptions = requireElement<HTMLInputElement>('#setting-captions');
@@ -171,7 +175,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV5;
+  let activeProfile: ProfileV6;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -280,6 +284,7 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.touchHandedness = activeProfile.settings.touchHandedness;
     document.body.dataset.touchFireMode = activeProfile.settings.touchFireMode;
     document.body.dataset.touchDeadZone = String(activeProfile.settings.touchDeadZone);
+    document.body.dataset.audioDynamicRange = activeProfile.settings.dynamicRange;
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -302,6 +307,10 @@ export async function startBrowserGame(): Promise<void> {
     settingMaster.value = String(activeProfile.settings.masterVolume);
     settingMusic.value = String(activeProfile.settings.musicVolume);
     settingEffects.value = String(activeProfile.settings.effectsVolume);
+    settingCombatVolume.value = String(activeProfile.settings.combatVolume);
+    settingWorldVolume.value = String(activeProfile.settings.worldVolume);
+    settingInterfaceVolume.value = String(activeProfile.settings.interfaceVolume);
+    settingDynamicRange.value = activeProfile.settings.dynamicRange;
     settingReducedMotion.checked = activeProfile.settings.reducedMotion;
     settingHighContrast.checked = activeProfile.settings.highContrast;
     settingCaptions.checked = activeProfile.settings.captions;
@@ -314,6 +323,12 @@ export async function startBrowserGame(): Promise<void> {
     settingTouchFireMode.value = activeProfile.settings.touchFireMode;
     renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
+    audio?.setMix({
+      combat: activeProfile.settings.combatVolume,
+      world: activeProfile.settings.worldVolume,
+      interface: activeProfile.settings.interfaceVolume,
+      dynamicRange: activeProfile.settings.dynamicRange,
+    });
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
   };
@@ -376,7 +391,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV5): void => {
+  const persistProfile = (profile: ProfileV6): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -409,6 +424,11 @@ export async function startBrowserGame(): Promise<void> {
       masterVolume: Number(settingMaster.value),
       musicVolume: Number(settingMusic.value),
       effectsVolume: Number(settingEffects.value),
+      combatVolume: Number(settingCombatVolume.value),
+      worldVolume: Number(settingWorldVolume.value),
+      interfaceVolume: Number(settingInterfaceVolume.value),
+      dynamicRange: settingDynamicRange.value === 'wide' ? 'wide' as const
+        : settingDynamicRange.value === 'night' ? 'night' as const : 'balanced' as const,
       reducedMotion,
       highContrast: settingHighContrast.checked,
       captions: settingCaptions.checked,
@@ -466,6 +486,12 @@ export async function startBrowserGame(): Promise<void> {
       audio = new ProceduralAudio(
         context, audioRuntimeProfile(activeLevel.audio.presetId), activeLevel.audio.presetId,
         activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume,
+        {
+          combat: activeProfile.settings.combatVolume,
+          world: activeProfile.settings.worldVolume,
+          interface: activeProfile.settings.interfaceVolume,
+          dynamicRange: activeProfile.settings.dynamicRange,
+        },
       );
       music = new ProceduralMusicSequencer(
         context, activeLevel.dance.bpm, musicRuntimeProfile(activeLevel.dance.presetId),
