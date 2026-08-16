@@ -7,9 +7,14 @@ export interface VirtualStickVector {
   readonly visualY: number;
 }
 
+export type TouchFirePhase = 'press' | 'release';
+
 export function virtualStickVector(deltaX: number, deltaY: number, radius: number, deadZone = 0.12): VirtualStickVector {
   if (!Number.isFinite(deltaX) || !Number.isFinite(deltaY) || !Number.isFinite(radius) || radius <= 0) {
     throw new Error('Virtual stick input must be finite with a positive radius');
+  }
+  if (!Number.isFinite(deadZone) || deadZone < 0 || deadZone >= 1) {
+    throw new Error('Virtual stick dead zone must be finite and below one');
   }
   const length = Math.hypot(deltaX, deltaY);
   const scale = length > radius ? radius / length : 1;
@@ -26,6 +31,11 @@ export function virtualStickVector(deltaX: number, deltaY: number, radius: numbe
     visualX,
     visualY,
   };
+}
+
+export function touchFireHeld(current: boolean, mode: 'hold' | 'toggle', phase: TouchFirePhase): boolean {
+  if (mode === 'toggle') return phase === 'press' ? !current : current;
+  return phase === 'press';
 }
 
 export function nextUnlockedWeapon(selected: WeaponId, unlockedMask: number): WeaponId {

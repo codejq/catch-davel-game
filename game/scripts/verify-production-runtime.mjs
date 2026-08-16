@@ -133,6 +133,12 @@ try {
     document.querySelector('#setting-high-contrast').checked = true;
     document.querySelector('#setting-captions').checked = true;
     document.querySelector('#setting-photosensitivity').checked = true;
+    document.querySelector('#setting-touch-scale').value = '1.2';
+    document.querySelector('#setting-touch-opacity').value = '0.65';
+    document.querySelector('#setting-touch-offset').value = '32';
+    document.querySelector('#setting-touch-handedness').value = 'left';
+    document.querySelector('#setting-touch-dead-zone').value = '0.2';
+    document.querySelector('#setting-touch-fire-mode').value = 'toggle';
     document.querySelector('#setting-reduced-motion').dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForFunction(() => document.documentElement.dir === 'rtl'
@@ -181,6 +187,12 @@ try {
     presentationFlashScale: document.body.dataset.presentationFlashScale,
     recoilKick: document.body.style.getPropertyValue('--weapon-kick-y'),
     heavyShake: document.body.style.getPropertyValue('--shake-heavy-x1'),
+    touchScale: document.body.style.getPropertyValue('--touch-control-scale'),
+    touchOpacity: document.body.style.getPropertyValue('--touch-control-opacity'),
+    touchOffset: document.body.style.getPropertyValue('--touch-vertical-offset'),
+    touchHandedness: document.body.dataset.touchHandedness,
+    touchDeadZone: document.body.dataset.touchDeadZone,
+    touchFireMode: document.body.dataset.touchFireMode,
     status: document.querySelector('#settings-status')?.textContent ?? '',
     reducedMotion: document.body.classList.contains('reduced-motion'),
     highContrast: document.body.classList.contains('high-contrast'),
@@ -198,6 +210,12 @@ try {
     || settingsProfile.profile.settings.textScale !== 1.3
     || !settingsProfile.profile.settings.captions
     || !settingsProfile.profile.settings.photosensitivitySafe
+    || settingsProfile.profile.settings.touchControlScale !== 1.2
+    || settingsProfile.profile.settings.touchControlOpacity !== 0.65
+    || settingsProfile.profile.settings.touchVerticalOffset !== 32
+    || settingsProfile.profile.settings.touchHandedness !== 'left'
+    || settingsProfile.profile.settings.touchDeadZone !== 0.2
+    || settingsProfile.profile.settings.touchFireMode !== 'toggle'
     || settingsProfile.profile.inputMappings.forward !== 'ArrowUp'
     || settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
@@ -229,7 +247,13 @@ try {
     || !accessibilitySettings.photosensitivitySafe
     || accessibilitySettings.presentationFlashScale !== '0'
     || accessibilitySettings.recoilKick !== '6.3px'
-    || accessibilitySettings.heavyShake !== '-3.15px') {
+    || accessibilitySettings.heavyShake !== '-3.15px'
+    || accessibilitySettings.touchScale !== '1.2'
+    || accessibilitySettings.touchOpacity !== '0.65'
+    || accessibilitySettings.touchOffset !== '32px'
+    || accessibilitySettings.touchHandedness !== 'left'
+    || accessibilitySettings.touchDeadZone !== '0.2'
+    || accessibilitySettings.touchFireMode !== 'toggle') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
   }
   const downloadPromise = page.waitForEvent('download');
@@ -241,18 +265,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v4.json'
-    || exportedProfile.profileSchemaVersion !== 4
+  if (download.suggestedFilename() !== 'catch-davel-profile-v5.json'
+    || exportedProfile.profileSchemaVersion !== 5
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v4 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v5 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v4.json',
+    name: 'catch-davel-profile-v5.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -422,6 +446,21 @@ try {
     document.body.dataset.workerStatus === 'ready'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
+  await mobilePage.click('#campaign-button');
+  await mobilePage.waitForFunction(() => document.querySelector('#campaign-map')?.classList.contains('open') === true);
+  await mobilePage.evaluate(() => {
+    document.querySelector('#settings-panel').open = true;
+    document.querySelector('#setting-touch-scale').value = '1.2';
+    document.querySelector('#setting-touch-opacity').value = '0.65';
+    document.querySelector('#setting-touch-offset').value = '32';
+    document.querySelector('#setting-touch-handedness').value = 'left';
+    document.querySelector('#setting-touch-dead-zone').value = '0.2';
+    document.querySelector('#setting-touch-fire-mode').value = 'toggle';
+    document.querySelector('#setting-touch-scale').dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await mobilePage.waitForFunction(() => document.body.dataset.touchHandedness === 'left'
+    && document.body.dataset.touchFireMode === 'toggle');
+  await mobilePage.click('#campaign-close');
   const mobileBeforeTap = await mobilePage.evaluate(() => {
     const controls = document.querySelector('#touch-controls');
     const pad = document.querySelector('#move-pad')?.getBoundingClientRect();
@@ -429,6 +468,12 @@ try {
       controlsVisible: controls !== null && getComputedStyle(controls).display !== 'none',
       actionButtons: controls?.querySelectorAll('button').length ?? 0,
       padWidth: pad?.width ?? 0,
+      padLeft: pad?.left ?? 0,
+      actionLeft: document.querySelector('#touch-actions')?.getBoundingClientRect().left ?? 0,
+      fireCenter: (() => {
+        const bounds = document.querySelector('#touch-fire')?.getBoundingClientRect();
+        return bounds === undefined ? null : { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
+      })(),
       touchPromptVisible: getComputedStyle(document.querySelector('.touch-prompt')).display !== 'none',
       desktopPromptVisible: getComputedStyle(document.querySelector('.desktop-prompt')).display !== 'none',
       profileStorage: document.body.dataset.profileStorage,
@@ -437,12 +482,21 @@ try {
   });
   await mobilePage.touchscreen.tap(803, 334);
   await mobilePage.waitForFunction(() => document.body.classList.contains('touch-active'));
+  if (mobileBeforeTap.fireCenter === null) throw new Error('Touch fire button did not expose a hit target');
+  await mobilePage.touchscreen.tap(mobileBeforeTap.fireCenter.x, mobileBeforeTap.fireCenter.y);
+  const toggleFireOn = await mobilePage.locator('#touch-fire').evaluate((element) => element.classList.contains('active'));
+  await mobilePage.touchscreen.tap(mobileBeforeTap.fireCenter.x, mobileBeforeTap.fireCenter.y);
+  const toggleFireOff = await mobilePage.locator('#touch-fire').evaluate((element) => !element.classList.contains('active'));
   const mobile = {
     ...mobileBeforeTap,
     touchSessionStarted: await mobilePage.evaluate(() => document.body.classList.contains('touch-active')),
+    toggleFireOn,
+    toggleFireOff,
   };
-  if (!mobile.controlsVisible || mobile.actionButtons !== 3 || mobile.padWidth < 120
-    || !mobile.touchPromptVisible || mobile.desktopPromptVisible || !mobile.touchSessionStarted) {
+  if (!mobile.controlsVisible || mobile.actionButtons !== 3 || mobile.padWidth < 148
+    || mobile.padLeft < 650 || mobile.actionLeft > 40
+    || !mobile.touchPromptVisible || mobile.desktopPromptVisible || !mobile.touchSessionStarted
+    || !mobile.toggleFireOn || !mobile.toggleFireOff) {
     throw new Error(`Production mobile controls did not expose the expected touch layout: ${JSON.stringify(mobile)}`);
   }
   if (mobile.profileStorage !== 'indexeddb') throw new Error('Mobile web build did not select IndexedDB profile storage');

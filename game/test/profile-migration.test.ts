@@ -8,18 +8,20 @@ describe('profile schema migrations', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v1.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 4,
+      profileSchemaVersion: 5,
       profileId: 'migration-v1',
       totalCoins: 12,
       spendableCoins: 7,
       settings: {
         language: 'ar', reducedMotion: true, cameraMotion: 0, recoilMotion: 0, shakeMotion: 0, flashIntensity: 0,
         renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
+        touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
+        touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold',
       },
     });
     expect(migrated.migrationHistory).toEqual([
       'created:v1', 'v1->v2:independent-motion-controls', 'v2->v3:render-quality-preference',
-      'v3->v4:first-release-accessibility',
+      'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
@@ -41,12 +43,13 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v2 fixture without altering prior settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v2.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(4);
+    expect(migrated.profileSchemaVersion).toBe(5);
     expect(migrated.settings).toMatchObject({
       language: 'ar', reducedMotion: true, cameraMotion: 0, flashIntensity: 0, renderQuality: 'auto',
     });
-    expect(migrated.migrationHistory.slice(-2)).toEqual([
+    expect(migrated.migrationHistory.slice(-3)).toEqual([
       'v2->v3:render-quality-preference', 'v3->v4:first-release-accessibility',
+      'v4->v5:touch-control-accessibility',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     corrupted.spendableCoins = 6;
@@ -56,13 +59,30 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v3 fixture into first-release accessibility settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v3.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(4);
+    expect(migrated.profileSchemaVersion).toBe(5);
     expect(migrated.settings).toMatchObject({
       renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
     });
-    expect(migrated.migrationHistory.at(-1)).toBe('v3->v4:first-release-accessibility');
+    expect(migrated.migrationHistory.slice(-2)).toEqual([
+      'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
+    ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).renderQuality = 'high';
+    expect(() => parseProfile(JSON.stringify(corrupted))).toThrow(/checksum mismatch/);
+  });
+
+  it('verifies and migrates the frozen v4 fixture into touch-control accessibility settings', () => {
+    const fixture = readFileSync(new URL('./fixtures/profile-v4.json', import.meta.url), 'utf8');
+    const migrated = parseProfile(fixture);
+    expect(migrated.profileSchemaVersion).toBe(5);
+    expect(migrated.settings).toMatchObject({
+      language: 'ar', textScale: 1.2, captions: false, photosensitivitySafe: true,
+      touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
+      touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold',
+    });
+    expect(migrated.migrationHistory.at(-1)).toBe('v4->v5:touch-control-accessibility');
+    const corrupted = JSON.parse(fixture) as Record<string, unknown>;
+    (corrupted.settings as Record<string, unknown>).touchControlScale = 1.5;
     expect(() => parseProfile(JSON.stringify(corrupted))).toThrow(/checksum mismatch/);
   });
 

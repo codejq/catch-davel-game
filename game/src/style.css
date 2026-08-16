@@ -136,18 +136,21 @@ body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
   body.feedback-shake-light #game, body.feedback-shake-heavy #game { animation: none; }
 }
 #touch-controls { display: none; position: absolute; inset: 0; pointer-events: none; touch-action: none; text-shadow: none; }
-#move-pad { position: absolute; left: max(22px, env(safe-area-inset-left)); bottom: max(24px, env(safe-area-inset-bottom)); width: 148px; height: 148px; border: 3px solid #d8fbffb8; border-radius: 50%; background: #10264b8c; box-shadow: inset 0 0 28px #4ee5ff38, 0 6px 24px #07162a66; pointer-events: auto; touch-action: none; }
+#move-pad { position: absolute; left: max(22px, env(safe-area-inset-left)); bottom: calc(max(24px, env(safe-area-inset-bottom)) + var(--touch-vertical-offset, 0px)); width: 148px; height: 148px; border: 3px solid #d8fbffb8; border-radius: 50%; background: #10264b8c; box-shadow: inset 0 0 28px #4ee5ff38, 0 6px 24px #07162a66; pointer-events: auto; touch-action: none; scale: var(--touch-control-scale, 1); opacity: var(--touch-control-opacity, .82); transform-origin: bottom left; }
 #move-pad::before, #move-pad::after { content: ''; position: absolute; background: #bdf8ff5c; }
 #move-pad::before { left: 72px; top: 17px; width: 3px; height: 108px; }
 #move-pad::after { left: 17px; top: 72px; width: 108px; height: 3px; }
 #move-stick { position: absolute; left: 50%; top: 50%; width: 66px; height: 66px; translate: -50% -50%; border: 3px solid #fff; border-radius: 50%; background: linear-gradient(145deg, #61eeffdb, #5944d9db); box-shadow: 0 5px 18px #08173799; }
 #look-hint { position: absolute; right: max(32px, env(safe-area-inset-right)); bottom: 180px; color: #d7f9ffad; font-size: calc(11px * var(--ui-font-scale)); font-weight: 950; letter-spacing: .14em; }
-#touch-actions { position: absolute; right: max(20px, env(safe-area-inset-right)); bottom: max(22px, env(safe-area-inset-bottom)); display: grid; grid-template-columns: 68px 78px; grid-template-rows: 54px 78px; gap: 9px; align-items: end; pointer-events: auto; }
+#touch-actions { position: absolute; right: max(20px, env(safe-area-inset-right)); bottom: calc(max(22px, env(safe-area-inset-bottom)) + var(--touch-vertical-offset, 0px)); display: grid; grid-template-columns: 68px 78px; grid-template-rows: 54px 78px; gap: 9px; align-items: end; pointer-events: auto; scale: var(--touch-control-scale, 1); opacity: var(--touch-control-opacity, .82); transform-origin: bottom right; }
 #touch-actions button { border: 3px solid #e9fdffcf; border-radius: 50%; background: #132b55dc; color: #fff; font: inherit; font-size: calc(12px * var(--ui-font-scale)); font-weight: 950; letter-spacing: .07em; box-shadow: inset 0 0 18px #61eaff2b, 0 5px 18px #07162a80; touch-action: none; user-select: none; -webkit-user-select: none; }
 #touch-weapon { grid-column: 1; grid-row: 1; width: 68px; height: 48px; border-radius: 14px !important; color: #85f5ff !important; font-size: calc(10px * var(--ui-font-scale)) !important; }
 #touch-alt { grid-column: 1; grid-row: 2; width: 62px; height: 62px; }
 #touch-fire { grid-column: 2; grid-row: 1 / 3; width: 82px; height: 82px; background: linear-gradient(145deg, #ff7f52e8, #d62369e8) !important; }
 #touch-actions button.active { translate: 0 3px; filter: brightness(1.3); box-shadow: inset 0 0 24px #fff5, 0 2px 8px #07162a80; }
+body.touch-left-handed #move-pad { left: auto; right: max(22px, env(safe-area-inset-right)); transform-origin: bottom right; }
+body.touch-left-handed #touch-actions { right: auto; left: max(20px, env(safe-area-inset-left)); transform-origin: bottom left; }
+body.touch-left-handed #look-hint { right: auto; left: max(32px, env(safe-area-inset-left)); }
 @media (pointer: coarse), (hover: none) and (max-width: 1024px) {
   #game { touch-action: none; }
   #touch-controls { display: block; }
@@ -171,5 +174,4 @@ body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
   #move-pad::after { left: 15px; top: 60px; width: 89px; }
   #move-stick { width: 56px; height: 56px; }
   #look-hint { bottom: 148px; }
-  #touch-actions { scale: .88; transform-origin: bottom right; }
 }

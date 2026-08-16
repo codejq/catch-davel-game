@@ -4,7 +4,10 @@ import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 import { isCampaignLevelId } from '../content/level-ids';
 import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 
-export const PROFILE_SCHEMA_VERSION = 4;
+export const PROFILE_SCHEMA_VERSION = 5;
+
+export type TouchHandedness = 'right' | 'left';
+export type TouchFireMode = 'hold' | 'toggle';
 
 export interface LevelProgressV1 {
   readonly levelId: string;
@@ -17,8 +20,8 @@ export interface LevelProgressV1 {
   readonly robotsDefeated: number;
 }
 
-export interface ProfileBodyV4 {
-  readonly profileSchemaVersion: 4;
+export interface ProfileBodyV5 {
+  readonly profileSchemaVersion: 5;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -46,29 +49,35 @@ export interface ProfileBodyV4 {
     readonly textScale: number;
     readonly captions: boolean;
     readonly photosensitivitySafe: boolean;
+    readonly touchControlScale: number;
+    readonly touchControlOpacity: number;
+    readonly touchVerticalOffset: number;
+    readonly touchHandedness: TouchHandedness;
+    readonly touchDeadZone: number;
+    readonly touchFireMode: TouchFireMode;
   };
   readonly inputMappings: Readonly<Record<string, string>>;
   readonly campaignCheckpoint: SimulationSnapshotV1 | null;
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV4 extends ProfileBodyV4 {
+export interface ProfileV5 extends ProfileBodyV5 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV4): ProfileBodyV4 {
+function profileBody(profile: ProfileV5): ProfileBodyV5 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV4): ProfileV4 {
+export function sealProfile(body: ProfileBodyV5): ProfileV5 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV4 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV5 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v4'],
+    migrationHistory: ['created:v5'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
@@ -87,6 +96,8 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
       mouseSensitivity: 1, reducedMotion: false,
       cameraMotion: 1, recoilMotion: 1, shakeMotion: 1, flashIntensity: 1,
       highContrast: false, renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
+      touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
+      touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold',
     },
     inputMappings: DEFAULT_INPUT_BINDINGS,
     campaignCheckpoint: null,
@@ -174,7 +185,17 @@ function verifyProfileIntegrity(profile: Record<string, unknown>): void {
   if (profile.integrityChecksum !== checksumCanonical(sourceBody)) throw new Error('Profile integrity checksum mismatch');
 }
 
-function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
+function touchHandedness(value: unknown): TouchHandedness {
+  if (value !== 'right' && value !== 'left') throw new Error('profile.settings.touchHandedness is invalid');
+  return value;
+}
+
+function touchFireMode(value: unknown): TouchFireMode {
+  if (value !== 'hold' && value !== 'toggle') throw new Error('profile.settings.touchFireMode is invalid');
+  return value;
+}
+
+function validateProfileV5(profile: Record<string, unknown>): ProfileV5 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -188,6 +209,8 @@ function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
     'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
     'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
     'textScale', 'captions', 'photosensitivitySafe',
+    'touchControlScale', 'touchControlOpacity', 'touchVerticalOffset', 'touchHandedness', 'touchDeadZone',
+    'touchFireMode',
   ], 'profile.settings');
   const checkpoint = profile.campaignCheckpoint === null
     ? null
@@ -205,7 +228,7 @@ function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 4,
+    profileSchemaVersion: 5,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -233,6 +256,12 @@ function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
       textScale: bounded(settings.textScale, 'profile.settings.textScale', 0.8, 1.5),
       captions: booleanValue(settings.captions, 'profile.settings.captions'),
       photosensitivitySafe: booleanValue(settings.photosensitivitySafe, 'profile.settings.photosensitivitySafe'),
+      touchControlScale: bounded(settings.touchControlScale, 'profile.settings.touchControlScale', 0.75, 1.5),
+      touchControlOpacity: bounded(settings.touchControlOpacity, 'profile.settings.touchControlOpacity', 0.35, 1),
+      touchVerticalOffset: bounded(settings.touchVerticalOffset, 'profile.settings.touchVerticalOffset', 0, 160),
+      touchHandedness: touchHandedness(settings.touchHandedness),
+      touchDeadZone: bounded(settings.touchDeadZone, 'profile.settings.touchDeadZone', 0.05, 0.4),
+      touchFireMode: touchFireMode(settings.touchFireMode),
     },
     inputMappings: stringRecord(profile.inputMappings, 'profile.inputMappings'),
     campaignCheckpoint: checkpoint,
@@ -244,7 +273,38 @@ function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
   return result;
 }
 
-function migrateProfileV3(profile: Record<string, unknown>): ProfileV4 {
+function migrateProfileV4(profile: Record<string, unknown>): ProfileV5 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  const settings = object(profile.settings, 'profile.settings');
+  exactKeys(settings, [
+    'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
+    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
+    'textScale', 'captions', 'photosensitivitySafe',
+  ], 'profile.settings');
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 5 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v4->v5:touch-control-accessibility'],
+    settings: {
+      ...settings,
+      touchControlScale: 1,
+      touchControlOpacity: 0.82,
+      touchVerticalOffset: 0,
+      touchHandedness: 'right' as const,
+      touchDeadZone: 0.12,
+      touchFireMode: 'hold' as const,
+    },
+  };
+  return validateProfileV5({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV3(profile: Record<string, unknown>): ProfileV5 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -263,10 +323,10 @@ function migrateProfileV3(profile: Record<string, unknown>): ProfileV4 {
     migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v3->v4:first-release-accessibility'],
     settings: { ...settings, textScale: 1, captions: true, photosensitivitySafe: false },
   };
-  return validateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV2(profile: Record<string, unknown>): ProfileV4 {
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV5 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -288,7 +348,7 @@ function migrateProfileV2(profile: Record<string, unknown>): ProfileV4 {
   return migrateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV4 {
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV5 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -316,7 +376,7 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV4 {
   return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV4 {
+export function validateProfile(value: unknown): ProfileV5 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
@@ -324,17 +384,18 @@ export function validateProfile(value: unknown): ProfileV4 {
   if (profile.profileSchemaVersion === 1) return migrateProfileV1(profile);
   if (profile.profileSchemaVersion === 2) return migrateProfileV2(profile);
   if (profile.profileSchemaVersion === 3) return migrateProfileV3(profile);
-  return validateProfileV4(profile);
+  if (profile.profileSchemaVersion === 4) return migrateProfileV4(profile);
+  return validateProfileV5(profile);
 }
 
-export function serializeProfile(profile: ProfileV4): string {
+export function serializeProfile(profile: ProfileV5): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV4 {
+export function parseProfile(serialized: string): ProfileV5 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV4, changes: Partial<ProfileBodyV4>): ProfileV4 {
+export function updateProfile(profile: ProfileV5, changes: Partial<ProfileBodyV5>): ProfileV5 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }

@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV4 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV5 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -18,7 +18,7 @@ import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
   bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../campaign/progression';
-import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
+import { nextUnlockedWeapon, touchFireHeld, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
 import { audioRuntimeProfile, musicRuntimeProfile } from '../content/runtime-manifests';
 import { presentationFeedback } from './presentation-feedback';
@@ -149,6 +149,12 @@ export async function startBrowserGame(): Promise<void> {
   const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
   const settingCaptions = requireElement<HTMLInputElement>('#setting-captions');
   const settingPhotosensitivity = requireElement<HTMLInputElement>('#setting-photosensitivity');
+  const settingTouchScale = requireElement<HTMLInputElement>('#setting-touch-scale');
+  const settingTouchOpacity = requireElement<HTMLInputElement>('#setting-touch-opacity');
+  const settingTouchOffset = requireElement<HTMLInputElement>('#setting-touch-offset');
+  const settingTouchHandedness = requireElement<HTMLSelectElement>('#setting-touch-handedness');
+  const settingTouchDeadZone = requireElement<HTMLInputElement>('#setting-touch-dead-zone');
+  const settingTouchFireMode = requireElement<HTMLSelectElement>('#setting-touch-fire-mode');
   const settingsStatus = requireElement<HTMLOutputElement>('#settings-status');
   const inputBindingGrid = requireElement<HTMLElement>('#input-binding-grid');
   const inputBindingReset = requireElement<HTMLButtonElement>('#input-binding-reset');
@@ -165,7 +171,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV4;
+  let activeProfile: ProfileV5;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -228,7 +234,11 @@ export async function startBrowserGame(): Promise<void> {
     document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
     document.body.classList.toggle('photosensitivity-safe', activeProfile.settings.photosensitivitySafe);
+    document.body.classList.toggle('touch-left-handed', activeProfile.settings.touchHandedness === 'left');
     document.body.style.setProperty('--ui-font-scale', String(activeProfile.settings.textScale));
+    document.body.style.setProperty('--touch-control-scale', String(activeProfile.settings.touchControlScale));
+    document.body.style.setProperty('--touch-control-opacity', String(activeProfile.settings.touchControlOpacity));
+    document.body.style.setProperty('--touch-vertical-offset', `${activeProfile.settings.touchVerticalOffset}px`);
     soundCaptions.hidden = !activeProfile.settings.captions;
     if (!activeProfile.settings.captions) {
       soundCaptions.replaceChildren();
@@ -267,6 +277,9 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.qualityPreference = qualityPreference;
     document.body.dataset.qualityTier = resolvedQuality;
     document.body.dataset.presentationFlashScale = String(renderPresentationSettings.flashScale);
+    document.body.dataset.touchHandedness = activeProfile.settings.touchHandedness;
+    document.body.dataset.touchFireMode = activeProfile.settings.touchFireMode;
+    document.body.dataset.touchDeadZone = String(activeProfile.settings.touchDeadZone);
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -293,6 +306,12 @@ export async function startBrowserGame(): Promise<void> {
     settingHighContrast.checked = activeProfile.settings.highContrast;
     settingCaptions.checked = activeProfile.settings.captions;
     settingPhotosensitivity.checked = activeProfile.settings.photosensitivitySafe;
+    settingTouchScale.value = String(activeProfile.settings.touchControlScale);
+    settingTouchOpacity.value = String(activeProfile.settings.touchControlOpacity);
+    settingTouchOffset.value = String(activeProfile.settings.touchVerticalOffset);
+    settingTouchHandedness.value = activeProfile.settings.touchHandedness;
+    settingTouchDeadZone.value = String(activeProfile.settings.touchDeadZone);
+    settingTouchFireMode.value = activeProfile.settings.touchFireMode;
     renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
@@ -357,7 +376,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV4): void => {
+  const persistProfile = (profile: ProfileV5): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -394,6 +413,12 @@ export async function startBrowserGame(): Promise<void> {
       highContrast: settingHighContrast.checked,
       captions: settingCaptions.checked,
       photosensitivitySafe: settingPhotosensitivity.checked,
+      touchControlScale: Number(settingTouchScale.value),
+      touchControlOpacity: Number(settingTouchOpacity.value),
+      touchVerticalOffset: Number(settingTouchOffset.value),
+      touchHandedness: settingTouchHandedness.value === 'left' ? 'left' as const : 'right' as const,
+      touchDeadZone: Number(settingTouchDeadZone.value),
+      touchFireMode: settingTouchFireMode.value === 'toggle' ? 'toggle' as const : 'hold' as const,
     };
     persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
     applyProfileSettings();
@@ -880,6 +905,7 @@ export async function startBrowserGame(): Promise<void> {
       event.clientX - (bounds.left + bounds.width / 2),
       event.clientY - (bounds.top + bounds.height / 2),
       radius,
+      activeProfile.settings.touchDeadZone,
     );
     touchStrafe = vector.strafe; touchForward = vector.forward;
     moveStick.style.transform = `translate(${vector.visualX}px, ${vector.visualY}px)`;
@@ -921,10 +947,14 @@ export async function startBrowserGame(): Promise<void> {
   touchFire.addEventListener('pointerdown', (event) => {
     if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); touchFire.setPointerCapture(event.pointerId);
-    fireHeld = true; touchFire.classList.add('active'); document.body.classList.add('firing');
+    fireHeld = touchFireHeld(fireHeld, activeProfile.settings.touchFireMode, 'press');
+    touchFire.classList.toggle('active', fireHeld);
+    document.body.classList.toggle('firing', fireHeld);
   });
   const releaseTouchFire = (): void => {
-    fireHeld = false; touchFire.classList.remove('active'); document.body.classList.remove('firing');
+    fireHeld = touchFireHeld(fireHeld, activeProfile.settings.touchFireMode, 'release');
+    touchFire.classList.toggle('active', fireHeld);
+    document.body.classList.toggle('firing', fireHeld);
   };
   touchFire.addEventListener('pointerup', releaseTouchFire);
   touchFire.addEventListener('pointercancel', releaseTouchFire);

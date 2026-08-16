@@ -161,7 +161,7 @@ async fn export_packaged_profile(
         .dialog()
         .file()
         .set_title("Export Catch Davel profile")
-        .set_file_name("catch-davel-profile-v4.json")
+        .set_file_name("catch-davel-profile-v5.json")
         .add_filter("Catch Davel JSON profile", &["json"])
         .blocking_save_file()
     else {
