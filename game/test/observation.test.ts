@@ -8,11 +8,14 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(9);
+    expect(observation.schemaVersion).toBe(10);
     expect(observation.dancePerformance).toEqual({
       presetId: 'wobble-march', bpm: 96, visualIntensity: 0.65, motif: 'wobble-march',
     });
     expect(observation.encounter).toEqual({ waveIndex: 0, waveCount: 1, pendingTicks: 0 });
+    expect(observation.levelMechanic).toEqual({
+      kind: 'standard', phase: 'active', robotsFrozen: false, ticksUntilPhaseChange: null,
+    });
     expect(observation.levelId).toBe('level-001');
     expect(observation.player.selectedWeapon).toBe('pulse');
     expect(observation.player.unlockedWeapons).toEqual(['pulse']);
@@ -23,5 +26,30 @@ describe('agent observation contract', () => {
     expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
     expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });
     expect(levelObservation().rows.every((row) => row.length === 15)).toBe(true);
+  });
+
+  it('exposes ambush and freeze-dance phases without hidden agent state', () => {
+    const ambush = new GameSimulation('agent-ambush', undefined, undefined, 'campaign', 'level-004');
+    expect(createObservation(ambush.state)).toMatchObject({
+      remainingRobots: 0,
+      levelMechanic: { kind: 'key-ambush', phase: 'armed', robotsFrozen: false, ticksUntilPhaseChange: null },
+    });
+    const key = ambush.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
+    ambush.state.player.x = key.x;
+    ambush.state.player.z = key.z;
+    ambush.step({ forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false });
+    expect(createObservation(ambush.state)).toMatchObject({
+      remainingRobots: 7,
+      levelMechanic: { kind: 'key-ambush', phase: 'ambush', robotsFrozen: false, ticksUntilPhaseChange: null },
+    });
+
+    const freeze = new GameSimulation('agent-freeze', undefined, undefined, 'campaign', 'level-007');
+    expect(createObservation(freeze.state).levelMechanic).toEqual({
+      kind: 'freeze-dance', phase: 'freeze', robotsFrozen: true, ticksUntilPhaseChange: 60,
+    });
+    freeze.state.tick = 60;
+    expect(createObservation(freeze.state).levelMechanic).toEqual({
+      kind: 'freeze-dance', phase: 'hunt', robotsFrozen: false, ticksUntilPhaseChange: 120,
+    });
   });
 });

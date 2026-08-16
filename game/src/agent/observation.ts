@@ -6,6 +6,7 @@ import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from '../sim/dance-performance';
+import { freezeDanceWindow, levelMechanicKind } from '../sim/level-mechanics';
 import { hazardTicksUntilToggle } from '../sim/interactions';
 
 export interface RobotObservation {
@@ -29,7 +30,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 9;
+  readonly schemaVersion: 10;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -76,6 +77,12 @@ export interface AgentObservation {
     readonly waveIndex: number;
     readonly waveCount: number;
     readonly pendingTicks: number;
+  };
+  readonly levelMechanic: {
+    readonly kind: 'standard' | 'branch-route' | 'key-ambush' | 'freeze-dance';
+    readonly phase: 'active' | 'explore' | 'armed' | 'ambush' | 'freeze' | 'hunt';
+    readonly robotsFrozen: boolean;
+    readonly ticksUntilPhaseChange: number | null;
   };
   readonly pickups: readonly {
     readonly id: string;
@@ -170,6 +177,8 @@ function hasLineOfSight(
 
 export function createObservation(state: GameState): AgentObservation {
   const performance = levelDancePerformance(state.levelId);
+  const mechanicKind = levelMechanicKind(state.levelId);
+  const freezeWindow = freezeDanceWindow(state.levelId, state.tick);
   const playerCell = worldCell(state.player.x, state.player.z);
   const robots = state.robots.filter((robot) => robot.active).map((robot): RobotObservation => {
     const deltaX = robot.x - state.player.x;
@@ -196,7 +205,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 9,
+    schemaVersion: 10,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
@@ -219,6 +228,14 @@ export function createObservation(state: GameState): AgentObservation {
     objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
     dancePerformance: { ...performance },
     encounter: { ...state.level.encounter },
+    levelMechanic: {
+      kind: mechanicKind,
+      phase: mechanicKind === 'key-ambush' ? (state.level.keyCollected ? 'ambush' : 'armed')
+        : mechanicKind === 'freeze-dance' ? (freezeWindow.frozen ? 'freeze' : 'hunt')
+          : mechanicKind === 'branch-route' ? 'explore' : 'active',
+      robotsFrozen: freezeWindow.frozen,
+      ticksUntilPhaseChange: mechanicKind === 'freeze-dance' ? freezeWindow.ticksUntilToggle : null,
+    },
     pickups: state.level.pickups.map((pickup) => ({
       id: pickup.id,
       kind: pickup.kind,

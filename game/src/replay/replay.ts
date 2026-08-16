@@ -30,6 +30,7 @@ import {
   ENEMY_SLIDER_BOLT_SPEED,
 } from '../sim/balance';
 import { levelDancePerformance } from '../sim/dance-performance';
+import { levelMechanicDependency } from '../sim/level-mechanics';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -82,12 +83,18 @@ function robotBalanceData(): unknown {
   }));
 }
 
-export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001'): ReplayDependencyHashes {
-  const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
-  const simulationLevel = checksumCanonical({
+function simulationLevelData(levelId: Chapter01LevelId): Readonly<Record<string, unknown>> {
+  const mechanic = levelMechanicDependency(levelId);
+  return {
     rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
     dancePerformance: levelDancePerformance(levelId),
-  });
+    ...(mechanic === null ? {} : { mechanic }),
+  };
+}
+
+export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001'): ReplayDependencyHashes {
+  const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
+  const simulationLevel = checksumCanonical(simulationLevelData(levelId));
   return {
     simulationSchema: checksumCanonical({
       GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
@@ -126,10 +133,7 @@ export function currentAgentValidationDependencies(levelId: Chapter01LevelId = '
   return {
     simulationSchema: replay.simulationSchema,
     effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
-    simulationLevel: checksumCanonical({
-      rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
-      dancePerformance: levelDancePerformance(levelId),
-    }),
+    simulationLevel: checksumCanonical(simulationLevelData(levelId)),
     balanceData: replay.balanceData,
     policyOrReplay: replay.replayPolicy,
   };

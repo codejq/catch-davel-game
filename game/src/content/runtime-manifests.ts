@@ -127,6 +127,32 @@ export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
   return motif;
 }
 
+export interface DanceGameplayRuntimeProfile {
+  readonly kind: 'ambient' | 'freeze-window';
+  readonly periodTicks: number;
+  readonly freezeTicks: number;
+  readonly phaseOffsetTicks: number;
+}
+
+export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGameplayRuntimeProfile>> = {
+  'wobble-march': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'side-to-side-shuffle': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'pocket-robot-pop': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'corner-peek-groove': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'heavy-boot-two-step': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'conveyor-conga': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'flashlight-freeze-dance': { kind: 'freeze-window', periodTicks: 180, freezeTicks: 60, phaseOffsetTicks: 0 },
+  'clockwork-charleston': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'turbo-tool-shuffle': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'giant-wobble-breakdown': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+};
+
+export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
+  const profile = DANCE_GAMEPLAY_RUNTIME_PROFILES[presetId];
+  if (profile === undefined) throw new Error(`Unknown dance gameplay runtime preset ${presetId}`);
+  return profile;
+}
+
 export type RuntimeRgb = readonly [number, number, number];
 export interface PaletteRuntimeProfile {
   readonly sky: RuntimeRgb;
@@ -159,5 +185,6 @@ export const CHAPTER_01_RUNTIME_MANIFEST = {
   hazardProfiles: HAZARD_RUNTIME_PROFILES,
   mazeProfiles: MAZE_RUNTIME_PROFILES,
   danceMotifs: DANCE_RUNTIME_MOTIFS,
+  danceGameplayProfiles: DANCE_GAMEPLAY_RUNTIME_PROFILES,
   paletteProfiles: PALETTE_RUNTIME_PROFILES,
 } as const;

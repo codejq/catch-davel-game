@@ -7,6 +7,7 @@ import { DavelRenderer } from './davel-renderer';
 import type { Chapter01LevelId } from '../content/level-ids';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
+import { freezeDanceWindow } from '../sim/level-mechanics';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -170,11 +171,15 @@ export class WorldRenderer {
     lookAt(this.view, player.x, eyeY, player.z, player.x + directionX, eyeY + directionY, player.z + directionZ);
     multiplyMatrix4(this.viewProjection, this.projection, this.view);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    gl.clearColor(this.skyColor[0], this.skyColor[1], this.skyColor[2], 1);
+    const freezeFlash = freezeDanceWindow(state.levelId, state.tick).frozen;
+    const fogColor: RuntimeRgb = freezeFlash
+      ? [this.skyColor[0] * 0.58 + 0.42, this.skyColor[1] * 0.58 + 0.42, this.skyColor[2] * 0.58 + 0.42]
+      : this.skyColor;
+    gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(this.program);
     gl.uniformMatrix4fv(this.viewProjectionLocation, false, this.viewProjection);
-    gl.uniform3f(this.fogColorLocation, this.skyColor[0], this.skyColor[1], this.skyColor[2]);
+    gl.uniform3f(this.fogColorLocation, fogColor[0], fogColor[1], fogColor[2]);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
     this.davels.render(state, this.viewProjection);

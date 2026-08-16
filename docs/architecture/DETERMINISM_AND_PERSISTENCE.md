@@ -46,7 +46,7 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 ## Frozen campaign QA
 
-`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v9. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.
+`npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v10. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v10 makes the authored branch, key-ambush, and freeze/hunt phases explicit; it does not grant an alternate control or simulation path. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.
 
 The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation. Reference changes therefore require an explicit manifest and suite-version edit rather than being re-recorded during a test run.
 

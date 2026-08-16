@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { GameEvent } from '../src/sim/game';
 import {
-  EVENT_CLASS, EventConsumerQueue, EventProducerChannel, type EventTransportConfig,
+  EVENT_CLASS, EVENT_TRANSPORT_CONTRACT_VERSION, EventConsumerQueue, EventProducerChannel, type EventTransportConfig,
 } from '../src/transport/event-channel';
 
 const config = (queueRecordCap: number, batchRecordCap = queueRecordCap, creditWindow = 1): EventTransportConfig => ({
@@ -92,5 +92,18 @@ describe('bounded ordered event transport', () => {
       type: event.type, value: event.value, eventClass: event.eventClass,
     }));
     expect(presented).toEqual([{ type: 'coin-collected', value: 18, eventClass: EVENT_CLASS.stateCritical }]);
+  });
+
+  it('carries the presentation-only ambush cue on event contract v2', () => {
+    const producer = new EventProducerChannel(config(4));
+    producer.enqueue([{ tick: 9, type: 'ambush-triggered' }]);
+    const batch = producer.createBatch()!;
+    expect(new DataView(batch.buffer).getUint32(0, true)).toBe(EVENT_TRANSPORT_CONTRACT_VERSION);
+    expect(EVENT_TRANSPORT_CONTRACT_VERSION).toBe(2);
+    const consumer = new EventConsumerQueue(config(4));
+    consumer.receive(batch.buffer);
+    const presented: { type: string; eventClass: number }[] = [];
+    consumer.presentThrough(9, (event) => presented.push({ type: event.type, eventClass: event.eventClass }));
+    expect(presented).toEqual([{ type: 'ambush-triggered', eventClass: EVENT_CLASS.presentationOnly }]);
   });
 });

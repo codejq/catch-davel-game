@@ -1,6 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { cellAt, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, levelRows } from '../src/sim/level';
+import { cellAt, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, levelRows, worldCell, type CellCoordinate } from '../src/sim/level';
 import { CHAPTER_01_LEVEL_IDS } from '../src/content/levels/chapter-01';
+import { createLevelRuntime } from '../src/sim/interactions';
+
+function reachable(levelId: (typeof CHAPTER_01_LEVEL_IDS)[number], blocked: readonly CellCoordinate[]): Set<string> {
+  const start = findCell('S', levelId);
+  const pending = [start];
+  const visited = new Set([`${start.column},${start.row}`]);
+  while (pending.length > 0) {
+    const current = pending.shift()!;
+    for (const [deltaColumn, deltaRow] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+      const column = current.column + deltaColumn;
+      const row = current.row + deltaRow;
+      const key = `${column},${row}`;
+      if (cellAt(column, row, levelId) === '#' || visited.has(key)
+        || blocked.some((cell) => cell.column === column && cell.row === row)) continue;
+      visited.add(key);
+      pending.push({ column, row });
+    }
+  }
+  return visited;
+}
 
 describe('first playable maze', () => {
   it('is bounded by walls and has exactly one start and exit', () => {
@@ -36,5 +56,24 @@ describe('first playable maze', () => {
       expect(visited.has(`${exit.column},${exit.row}`), levelId).toBe(true);
     }
     expect(new Set(CHAPTER_01_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(10);
+  });
+
+  it('keeps the key reachable before the lock and every interaction reachable after it opens', () => {
+    for (const levelId of CHAPTER_01_LEVEL_IDS) {
+      const level = createLevelRuntime(levelId);
+      const beforeUnlock = reachable(levelId, [{ column: level.door.column, row: level.door.row }]);
+      const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
+      const keyCell = worldCell(key.x, key.z);
+      expect(beforeUnlock.has(`${keyCell.column},${keyCell.row}`), `${levelId} key route`).toBe(true);
+
+      const afterUnlock = reachable(levelId, []);
+      const required = [
+        ...level.pickups.map((pickup) => worldCell(pickup.x, pickup.z)),
+        worldCell(level.checkpoint.x, level.checkpoint.z), worldCell(level.exit.x, level.exit.z),
+      ];
+      for (const cell of required) {
+        expect(afterUnlock.has(`${cell.column},${cell.row}`), `${levelId} interaction ${cell.column},${cell.row}`).toBe(true);
+      }
+    }
   });
 });

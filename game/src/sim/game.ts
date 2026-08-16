@@ -20,6 +20,7 @@ import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { activateKeyAmbush, freezeDanceWindow } from './level-mechanics';
 
 export interface GameEvent {
   readonly tick: number;
@@ -27,7 +28,7 @@ export interface GameEvent {
     | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-telegraph'
     | 'robot-fired' | 'robot-melee' | 'robot-buff' | 'boss-phase' | 'player-hit' | 'victory' | 'defeat'
     | 'key-collected' | 'health-collected' | 'energy-collected' | 'coin-collected' | 'door-opened' | 'checkpoint-activated'
-    | 'objective-complete' | 'exit-unlocked';
+    | 'objective-complete' | 'exit-unlocked' | 'ambush-triggered';
   readonly robotId?: number;
   readonly coins?: number;
   readonly value?: number;
@@ -124,6 +125,9 @@ export class GameSimulation {
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
     }
+    if (activateKeyAmbush(this.state.robots, this.state.levelId, this.state.level.keyCollected)) {
+      this.state.events.push({ tick: this.state.tick, type: 'ambush-triggered' });
+    }
     if (reachedUnlockedExit(this.state.player, this.state.level)) {
       this.state.victory = true;
       this.state.events.push({ tick: this.state.tick, type: 'victory' });
@@ -132,10 +136,12 @@ export class GameSimulation {
       this.state.tick += 1;
       return;
     }
-    stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId);
+    const robotsFrozen = freezeDanceWindow(this.state.levelId, this.state.tick).frozen;
+    if (!robotsFrozen) stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId);
     this.coolWeapons();
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId, this.state.levelId,
+      robotsFrozen,
     );
     this.state.nextProjectileId = enemyCombat.nextProjectileId;
     for (const robotId of enemyCombat.telegraphRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-telegraph', robotId });

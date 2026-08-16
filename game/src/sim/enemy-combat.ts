@@ -107,6 +107,7 @@ export function stepEnemyCombat(
   projectiles: EnemyProjectile[],
   nextProjectileId: number,
   levelId: Chapter01LevelId = 'level-001',
+  robotsFrozen = false,
 ): EnemyCombatResult {
   const firedRobotIds: number[] = [];
   const telegraphRobotIds: number[] = [];
@@ -115,7 +116,7 @@ export function stepEnemyCombat(
   const bossPhaseRobotIds: number[] = [];
   const playerHitRobotIds: number[] = [];
   let nextId = nextProjectileId;
-  if (player.health > 0) {
+  if (player.health > 0 && !robotsFrozen) {
     for (const robot of robots) {
       if (!robot.active) continue;
       const definition = ROBOT_DEFINITIONS[robot.id]!;

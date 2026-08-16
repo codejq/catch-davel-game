@@ -9,6 +9,7 @@ import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { isKeyAmbushLevel } from './level-mechanics';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -410,7 +411,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (encounter === 'campaign') {
     const waves = campaignRobotWaves(levelId);
     for (let waveIndex = 0; waveIndex < waves.length; waveIndex += 1) {
-      const shouldBeSpawned = waveIndex <= level.encounter.waveIndex;
+      const shouldBeSpawned = waveIndex <= level.encounter.waveIndex
+        && (!isKeyAmbushLevel(levelId) || level.keyCollected);
       for (const id of waves[waveIndex]!) {
         const robot = robots.find((candidate) => candidate.id === id)!;
         if (robot.spawned !== shouldBeSpawned) throw new Error(`snapshot robot ${id} has an inconsistent wave state`);

@@ -214,6 +214,10 @@ export async function startBrowserGame(): Promise<void> {
       showMessage('WORKSHOP KEY ACQUIRED');
       sound(620, 0.16, 0.045, 'square');
     }
+    if (event.type === 'ambush-triggered') {
+      showMessage('WRONG TURN — THE WALLS ARE LAUGHING!');
+      sound(82, 0.55, 0.085, 'sawtooth');
+    }
     if (event.type === 'health-collected') {
       showMessage(`REPAIR KIT  +${event.value ?? 0} HEALTH`);
       sound(440, 0.18, 0.04, 'sine');

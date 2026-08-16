@@ -2,6 +2,7 @@ import type { GameEvent } from '../sim/game';
 
 export const EVENT_RECORD_BYTES = 24;
 export const EVENT_BATCH_HEADER_BYTES = 32;
+export const EVENT_TRANSPORT_CONTRACT_VERSION = 2;
 
 export const EVENT_CLASS = { presentationOnly: 0, stateCritical: 1 } as const;
 export type EventClass = typeof EVENT_CLASS[keyof typeof EVENT_CLASS];
@@ -32,6 +33,7 @@ export const EVENT_KIND = {
   robotBuff: 23,
   bossPhase: 24,
   coinCollected: 25,
+  ambushTriggered: 26,
 } as const;
 
 export interface EventTransportConfig {
@@ -110,6 +112,7 @@ function encodeKind(event: GameEvent): { readonly kind: number; readonly eventCl
     case 'checkpoint-activated': return { kind: EVENT_KIND.checkpointActivated, eventClass: EVENT_CLASS.stateCritical };
     case 'objective-complete': return { kind: EVENT_KIND.objectiveComplete, eventClass: EVENT_CLASS.stateCritical };
     case 'exit-unlocked': return { kind: EVENT_KIND.exitUnlocked, eventClass: EVENT_CLASS.stateCritical };
+    case 'ambush-triggered': return { kind: EVENT_KIND.ambushTriggered, eventClass: EVENT_CLASS.presentationOnly };
   }
 }
 
@@ -140,6 +143,7 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.robotMelee: return 'robot-melee';
     case EVENT_KIND.robotBuff: return 'robot-buff';
     case EVENT_KIND.bossPhase: return 'boss-phase';
+    case EVENT_KIND.ambushTriggered: return 'ambush-triggered';
     default: throw new Error(`Unknown event kind ${kind}`);
   }
 }
@@ -185,7 +189,7 @@ export class EventProducerChannel {
     const batchSequence = this.nextBatchSequence++;
     const buffer = new ArrayBuffer(EVENT_BATCH_HEADER_BYTES + records.length * EVENT_RECORD_BYTES);
     const header = new DataView(buffer, 0, EVENT_BATCH_HEADER_BYTES);
-    header.setUint32(0, 1, true);
+    header.setUint32(0, EVENT_TRANSPORT_CONTRACT_VERSION, true);
     header.setUint32(4, this.epoch, true);
     header.setUint32(8, batchSequence, true);
     header.setUint32(12, records.length, true);
@@ -282,7 +286,7 @@ export class EventConsumerQueue {
   receive(buffer: ArrayBuffer): void {
     if (buffer.byteLength < EVENT_BATCH_HEADER_BYTES) throw new Error('Event batch header is truncated');
     const header = new DataView(buffer, 0, EVENT_BATCH_HEADER_BYTES);
-    if (header.getUint32(0, true) !== 1) throw new Error('Unsupported event batch version');
+    if (header.getUint32(0, true) !== EVENT_TRANSPORT_CONTRACT_VERSION) throw new Error('Unsupported event batch version');
     const eventEpoch = header.getUint32(4, true);
     const batchSequence = header.getUint32(8, true);
     const recordCount = header.getUint32(12, true);

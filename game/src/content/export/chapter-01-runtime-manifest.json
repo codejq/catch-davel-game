@@ -1,4 +1,66 @@
 {
+  "danceGameplayProfiles": {
+    "clockwork-charleston": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "conveyor-conga": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "corner-peek-groove": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "flashlight-freeze-dance": {
+      "freezeTicks": 60,
+      "kind": "freeze-window",
+      "periodTicks": 180,
+      "phaseOffsetTicks": 0
+    },
+    "giant-wobble-breakdown": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "heavy-boot-two-step": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "pocket-robot-pop": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "side-to-side-shuffle": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "turbo-tool-shuffle": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
+    "wobble-march": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    }
+  },
   "danceMotifs": {
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",

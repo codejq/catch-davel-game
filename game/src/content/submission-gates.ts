@@ -5,7 +5,7 @@ import type { LocalizationCatalog, ReleaseLocale } from './localization/catalogs
 import { RELEASE_LOCALES, RELEASE_LOCALIZATION_CATALOGS } from './localization/catalogs.ts';
 import { validateLevelDefinition } from './validate-level.ts';
 import {
-  danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile, paletteRuntimeProfile,
+  danceGameplayRuntimeProfile, danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile, paletteRuntimeProfile,
 } from './runtime-manifests.ts';
 
 const ID = /^[a-z0-9][a-z0-9._-]*$/;
@@ -59,6 +59,7 @@ function validateRuntimeBindings(level: LevelDefinition): void {
   const maze = mazeRuntimeProfile(level.maze.templateSetId);
   const palette = paletteRuntimeProfile(level.palette.presetId);
   danceRuntimeMotif(level.dance.presetId);
+  const danceGameplay = danceGameplayRuntimeProfile(level.dance.presetId);
   for (const hazard of level.maze.hazards) hazardRuntimeProfile(hazard.collisionProfileId);
   const cells = [
     ...maze.openings,
@@ -79,6 +80,12 @@ function validateRuntimeBindings(level: LevelDefinition): void {
   const colors = [palette.sky, palette.floor, ...palette.walls].flat();
   if (colors.some((channel) => !Number.isFinite(channel) || channel < 0 || channel > 1)) {
     throw new Error(`Level ${level.id} palette runtime profile has an invalid color channel`);
+  }
+  if (danceGameplay.kind === 'freeze-window'
+    && (!Number.isSafeInteger(danceGameplay.periodTicks) || !Number.isSafeInteger(danceGameplay.freezeTicks)
+      || danceGameplay.periodTicks <= 0 || danceGameplay.freezeTicks <= 0
+      || danceGameplay.freezeTicks >= danceGameplay.periodTicks)) {
+    throw new Error(`Level ${level.id} has an invalid freeze-dance runtime profile`);
   }
 }
 

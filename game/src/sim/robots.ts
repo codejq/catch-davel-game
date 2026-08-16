@@ -6,6 +6,7 @@ import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './bala
 import type { PlayerState } from './player';
 import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from './dance-performance';
+import { isKeyAmbushLevel } from './level-mechanics';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj' | 'invoice-overlord';
@@ -195,7 +196,7 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
     const position = cellCenter(start.column, start.row);
     const waveIndex = encounter === 'boss-training'
       ? 0 : campaignRobotWaves(levelId).findIndex((wave) => wave.includes(id));
-    const spawned = waveIndex === 0;
+    const spawned = waveIndex === 0 && !(encounter === 'campaign' && isKeyAmbushLevel(levelId));
     const robot: Omit<RobotState, 'body'> = {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,

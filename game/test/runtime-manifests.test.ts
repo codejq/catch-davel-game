@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { CHAPTER_01_LEVELS } from '../src/content/levels/chapter-01';
 import {
-  DANCE_RUNTIME_MOTIFS, MAZE_RUNTIME_PROFILES, PALETTE_RUNTIME_PROFILES,
-  danceRuntimeMotif, mazeRuntimeProfile, paletteRuntimeProfile,
+  DANCE_GAMEPLAY_RUNTIME_PROFILES, DANCE_RUNTIME_MOTIFS, MAZE_RUNTIME_PROFILES, PALETTE_RUNTIME_PROFILES,
+  danceGameplayRuntimeProfile, danceRuntimeMotif, mazeRuntimeProfile, paletteRuntimeProfile,
 } from '../src/content/runtime-manifests';
 import { LEVEL_INTERACTION_DEFINITIONS } from '../src/sim/interactions';
 import { levelDancePerformance } from '../src/sim/dance-performance';
@@ -14,6 +14,7 @@ describe('materialized Chapter 1 runtime manifests', () => {
     expect(Object.keys(MAZE_RUNTIME_PROFILES)).toHaveLength(10);
     expect(Object.keys(PALETTE_RUNTIME_PROFILES)).toHaveLength(10);
     expect(Object.keys(DANCE_RUNTIME_MOTIFS)).toHaveLength(10);
+    expect(Object.keys(DANCE_GAMEPLAY_RUNTIME_PROFILES)).toHaveLength(10);
     for (const level of CHAPTER_01_LEVELS) {
       const levelId = level.id as Chapter01LevelId;
       const maze = mazeRuntimeProfile(level.maze.templateSetId);
@@ -28,6 +29,7 @@ describe('materialized Chapter 1 runtime manifests', () => {
         visualIntensity: level.dance.visualIntensity,
         motif: danceRuntimeMotif(level.dance.presetId),
       });
+      expect(danceGameplayRuntimeProfile(level.dance.presetId)).toBeDefined();
     }
   });
 
@@ -45,5 +47,6 @@ describe('materialized Chapter 1 runtime manifests', () => {
     expect(() => mazeRuntimeProfile('missing-maze')).toThrow(/Unknown maze/);
     expect(() => paletteRuntimeProfile('missing-palette')).toThrow(/Unknown palette/);
     expect(() => danceRuntimeMotif('missing-dance')).toThrow(/Unknown dance/);
+    expect(() => danceGameplayRuntimeProfile('missing-dance-gameplay')).toThrow(/Unknown dance gameplay/);
   });
 });

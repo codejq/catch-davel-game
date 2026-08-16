@@ -68,6 +68,46 @@ describe('authoritative Level 1 interactions', () => {
     expect(caches.every((pickup) => !pickup.active)).toBe(true);
   });
 
+  it('turns the Level 4 key pickup into a one-shot authoritative ambush', () => {
+    const game = new GameSimulation('ambush-proof', undefined, undefined, 'campaign', 'level-004');
+    expect(game.state.robots.every((robot) => !robot.spawned && !robot.active)).toBe(true);
+    const beforeTrigger = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+    const key = game.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
+    game.state.player.x = key.x;
+    game.state.player.z = key.z;
+    game.step(idle);
+    expect(game.state.events.map((event) => event.type)).toEqual(expect.arrayContaining([
+      'key-collected', 'ambush-triggered',
+    ]));
+    expect(game.state.robots.every((robot) => robot.spawned && robot.active)).toBe(true);
+    game.step(idle);
+    expect(game.state.events.some((event) => event.type === 'ambush-triggered')).toBe(false);
+
+    const restored = GameSimulation.fromSnapshot(beforeTrigger);
+    restored.state.player.x = key.x;
+    restored.state.player.z = key.z;
+    restored.step(idle);
+    expect(restored.state.robots.map((robot) => [robot.spawned, robot.active])).toEqual(
+      game.state.robots.map((robot) => [robot.spawned, robot.active]),
+    );
+  });
+
+  it('freezes Level 7 Davel motion and attacks on deterministic flashlight beats', () => {
+    const game = new GameSimulation('freeze-dance-proof', undefined, undefined, 'campaign', 'level-007');
+    const before = game.state.robots.map((robot) => ({
+      x: robot.x, z: robot.z, danceTime: robot.danceTime, cooldown: robot.attackCooldownTicks,
+    }));
+    game.step(idle);
+    expect(game.state.robots.map((robot) => ({
+      x: robot.x, z: robot.z, danceTime: robot.danceTime, cooldown: robot.attackCooldownTicks,
+    }))).toEqual(before);
+    expect(game.state.projectiles).toHaveLength(0);
+
+    game.state.tick = 60;
+    game.step(idle);
+    expect(game.state.robots.some((robot, index) => robot.danceTime !== before[index]!.danceTime)).toBe(true);
+  });
+
   it('materializes distinct valid interaction layouts for every Chapter 1 level', () => {
     const signatures: string[] = [];
     for (const definition of CHAPTER_01_LEVELS) {
