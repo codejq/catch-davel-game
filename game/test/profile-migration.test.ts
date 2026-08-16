@@ -4,21 +4,22 @@ import { parseProfile, serializeProfile } from '../src/storage/profile';
 import { checksumCanonical } from '../src/sim/serialization';
 
 describe('profile schema migrations', () => {
-  it('verifies and migrates the frozen v1 fixture through v2 into the v3 quality contract', () => {
+  it('verifies and migrates the frozen v1 fixture through every released profile contract', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v1.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 3,
+      profileSchemaVersion: 4,
       profileId: 'migration-v1',
       totalCoins: 12,
       spendableCoins: 7,
       settings: {
         language: 'ar', reducedMotion: true, cameraMotion: 0, recoilMotion: 0, shakeMotion: 0, flashIntensity: 0,
-        renderQuality: 'auto',
+        renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
       },
     });
     expect(migrated.migrationHistory).toEqual([
       'created:v1', 'v1->v2:independent-motion-controls', 'v2->v3:render-quality-preference',
+      'v3->v4:first-release-accessibility',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
@@ -40,13 +41,28 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v2 fixture without altering prior settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v2.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(3);
+    expect(migrated.profileSchemaVersion).toBe(4);
     expect(migrated.settings).toMatchObject({
       language: 'ar', reducedMotion: true, cameraMotion: 0, flashIntensity: 0, renderQuality: 'auto',
     });
-    expect(migrated.migrationHistory.at(-1)).toBe('v2->v3:render-quality-preference');
+    expect(migrated.migrationHistory.slice(-2)).toEqual([
+      'v2->v3:render-quality-preference', 'v3->v4:first-release-accessibility',
+    ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     corrupted.spendableCoins = 6;
+    expect(() => parseProfile(JSON.stringify(corrupted))).toThrow(/checksum mismatch/);
+  });
+
+  it('verifies and migrates the frozen v3 fixture into first-release accessibility settings', () => {
+    const fixture = readFileSync(new URL('./fixtures/profile-v3.json', import.meta.url), 'utf8');
+    const migrated = parseProfile(fixture);
+    expect(migrated.profileSchemaVersion).toBe(4);
+    expect(migrated.settings).toMatchObject({
+      renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
+    });
+    expect(migrated.migrationHistory.at(-1)).toBe('v3->v4:first-release-accessibility');
+    const corrupted = JSON.parse(fixture) as Record<string, unknown>;
+    (corrupted.settings as Record<string, unknown>).renderQuality = 'high';
     expect(() => parseProfile(JSON.stringify(corrupted))).toThrow(/checksum mismatch/);
   });
 

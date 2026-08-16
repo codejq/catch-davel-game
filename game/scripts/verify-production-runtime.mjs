@@ -121,6 +121,7 @@ try {
     document.querySelector('#setting-language').value = 'ar';
     document.querySelector('#setting-sensitivity').value = '1.4';
     document.querySelector('#setting-quality').value = 'low';
+    document.querySelector('#setting-text-scale').value = '1.3';
     document.querySelector('#setting-camera-motion').value = '1';
     document.querySelector('#setting-recoil-motion').value = '1';
     document.querySelector('#setting-shake-motion').value = '1';
@@ -130,6 +131,8 @@ try {
     document.querySelector('#setting-effects').value = '0.7';
     document.querySelector('#setting-reduced-motion').checked = true;
     document.querySelector('#setting-high-contrast').checked = true;
+    document.querySelector('#setting-captions').checked = true;
+    document.querySelector('#setting-photosensitivity').checked = true;
     document.querySelector('#setting-reduced-motion').dispatchEvent(new Event('change', { bubbles: true }));
   });
   await page.waitForFunction(() => document.documentElement.dir === 'rtl'
@@ -170,6 +173,12 @@ try {
     flashIntensity: document.querySelector('#setting-flash-intensity')?.value,
     qualityPreference: document.body.dataset.qualityPreference,
     qualityTier: document.body.dataset.qualityTier,
+    textScale: document.querySelector('#setting-text-scale')?.value,
+    textScaleCss: document.body.style.getPropertyValue('--ui-font-scale'),
+    brandFontSize: getComputedStyle(document.querySelector('#brand')).fontSize,
+    captionsEnabled: document.querySelector('#sound-captions')?.hidden === false,
+    photosensitivitySafe: document.body.classList.contains('photosensitivity-safe'),
+    presentationFlashScale: document.body.dataset.presentationFlashScale,
     recoilKick: document.body.style.getPropertyValue('--weapon-kick-y'),
     heavyShake: document.body.style.getPropertyValue('--shake-heavy-x1'),
     status: document.querySelector('#settings-status')?.textContent ?? '',
@@ -186,6 +195,9 @@ try {
     || settingsProfile.profile.settings.shakeMotion !== 0.45
     || settingsProfile.profile.settings.flashIntensity !== 0.55
     || settingsProfile.profile.settings.renderQuality !== 'low'
+    || settingsProfile.profile.settings.textScale !== 1.3
+    || !settingsProfile.profile.settings.captions
+    || !settingsProfile.profile.settings.photosensitivitySafe
     || settingsProfile.profile.inputMappings.forward !== 'ArrowUp'
     || settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
@@ -210,6 +222,12 @@ try {
     || accessibilitySettings.flashIntensity !== '0.55'
     || accessibilitySettings.qualityPreference !== 'low'
     || accessibilitySettings.qualityTier !== 'low'
+    || accessibilitySettings.textScale !== '1.3'
+    || accessibilitySettings.textScaleCss !== '1.3'
+    || accessibilitySettings.brandFontSize !== '16.9px'
+    || !accessibilitySettings.captionsEnabled
+    || !accessibilitySettings.photosensitivitySafe
+    || accessibilitySettings.presentationFlashScale !== '0'
     || accessibilitySettings.recoilKick !== '6.3px'
     || accessibilitySettings.heavyShake !== '-3.15px') {
     throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
@@ -223,18 +241,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v3.json'
-    || exportedProfile.profileSchemaVersion !== 3
+  if (download.suggestedFilename() !== 'catch-davel-profile-v4.json'
+    || exportedProfile.profileSchemaVersion !== 4
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v3 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v4 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v3.json',
+    name: 'catch-davel-profile-v4.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

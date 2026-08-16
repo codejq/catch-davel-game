@@ -1,6 +1,6 @@
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
-import type { ProfileV3 } from '../storage/profile';
+import type { ProfileV4 } from '../storage/profile';
 
 export interface CampaignResultSummary {
   readonly levelId: Chapter01LevelId;
@@ -21,7 +21,7 @@ export function standardParTicks(levelId: Chapter01LevelId): number {
 }
 
 export function campaignResultSummary(
-  profile: ProfileV3,
+  profile: ProfileV4,
   levelId: Chapter01LevelId,
   completionTicks: number,
   coinsEarned: number,

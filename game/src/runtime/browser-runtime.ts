@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV3 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV4 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -137,6 +137,7 @@ export async function startBrowserGame(): Promise<void> {
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
   const settingQuality = requireElement<HTMLSelectElement>('#setting-quality');
+  const settingTextScale = requireElement<HTMLInputElement>('#setting-text-scale');
   const settingCameraMotion = requireElement<HTMLInputElement>('#setting-camera-motion');
   const settingRecoilMotion = requireElement<HTMLInputElement>('#setting-recoil-motion');
   const settingShakeMotion = requireElement<HTMLInputElement>('#setting-shake-motion');
@@ -146,6 +147,8 @@ export async function startBrowserGame(): Promise<void> {
   const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
   const settingReducedMotion = requireElement<HTMLInputElement>('#setting-reduced-motion');
   const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
+  const settingCaptions = requireElement<HTMLInputElement>('#setting-captions');
+  const settingPhotosensitivity = requireElement<HTMLInputElement>('#setting-photosensitivity');
   const settingsStatus = requireElement<HTMLOutputElement>('#settings-status');
   const inputBindingGrid = requireElement<HTMLElement>('#input-binding-grid');
   const inputBindingReset = requireElement<HTMLButtonElement>('#input-binding-reset');
@@ -162,7 +165,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV3;
+  let activeProfile: ProfileV4;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -224,6 +227,14 @@ export async function startBrowserGame(): Promise<void> {
     document.documentElement.dir = catalog.direction;
     document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
+    document.body.classList.toggle('photosensitivity-safe', activeProfile.settings.photosensitivitySafe);
+    document.body.style.setProperty('--ui-font-scale', String(activeProfile.settings.textScale));
+    soundCaptions.hidden = !activeProfile.settings.captions;
+    if (!activeProfile.settings.captions) {
+      soundCaptions.replaceChildren();
+      for (const timer of captionTimers.values()) window.clearTimeout(timer);
+      captionTimers.clear();
+    }
     const recoil = activeProfile.settings.recoilMotion;
     const shake = activeProfile.settings.shakeMotion;
     if (activeProfile.settings.renderQuality !== qualityPreference) {
@@ -249,12 +260,13 @@ export async function startBrowserGame(): Promise<void> {
     })) style.setProperty(name, value);
     renderPresentationSettings = {
       motionScale: activeProfile.settings.cameraMotion,
-      flashScale: activeProfile.settings.flashIntensity,
+      flashScale: activeProfile.settings.photosensitivitySafe ? 0 : activeProfile.settings.flashIntensity,
       qualityTier: resolvedQuality,
     };
     renderer.setQuality(resolvedQuality);
     document.body.dataset.qualityPreference = qualityPreference;
     document.body.dataset.qualityTier = resolvedQuality;
+    document.body.dataset.presentationFlashScale = String(renderPresentationSettings.flashScale);
     document.title = ui('documentTitle');
     for (const element of document.querySelectorAll<HTMLElement>('[data-ui-text]')) {
       element.textContent = ui(element.dataset.uiText as RuntimeUiKey);
@@ -269,6 +281,7 @@ export async function startBrowserGame(): Promise<void> {
     settingLanguage.value = catalog.locale;
     settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
     settingQuality.value = activeProfile.settings.renderQuality;
+    settingTextScale.value = String(activeProfile.settings.textScale);
     settingCameraMotion.value = String(activeProfile.settings.cameraMotion);
     settingRecoilMotion.value = String(activeProfile.settings.recoilMotion);
     settingShakeMotion.value = String(activeProfile.settings.shakeMotion);
@@ -278,6 +291,8 @@ export async function startBrowserGame(): Promise<void> {
     settingEffects.value = String(activeProfile.settings.effectsVolume);
     settingReducedMotion.checked = activeProfile.settings.reducedMotion;
     settingHighContrast.checked = activeProfile.settings.highContrast;
+    settingCaptions.checked = activeProfile.settings.captions;
+    settingPhotosensitivity.checked = activeProfile.settings.photosensitivitySafe;
     renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
@@ -342,7 +357,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV3): void => {
+  const persistProfile = (profile: ProfileV4): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -367,6 +382,7 @@ export async function startBrowserGame(): Promise<void> {
       language: settingLanguage.value === 'ar' ? 'ar' : 'en',
       mouseSensitivity: Number(settingSensitivity.value),
       renderQuality: normalizeRenderQuality(settingQuality.value),
+      textScale: Number(settingTextScale.value),
       cameraMotion,
       recoilMotion,
       shakeMotion,
@@ -376,6 +392,8 @@ export async function startBrowserGame(): Promise<void> {
       effectsVolume: Number(settingEffects.value),
       reducedMotion,
       highContrast: settingHighContrast.checked,
+      captions: settingCaptions.checked,
+      photosensitivitySafe: settingPhotosensitivity.checked,
     };
     persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
     applyProfileSettings();
@@ -448,6 +466,7 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const showCaption = (request: CaptionRequest): void => {
+    if (!activeProfile.settings.captions) return;
     const existing = [...soundCaptions.children].find((element) => (
       (element as HTMLElement).dataset.captionKey === request.dedupeKey
     ));

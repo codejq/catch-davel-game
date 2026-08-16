@@ -1,10 +1,10 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
 import { createBrowserProfileRepository } from './indexeddb';
-import { parseProfile, serializeProfile, type ProfileV3 } from './profile';
+import { parseProfile, serializeProfile, type ProfileV4 } from './profile';
 
 export interface ProfileStorageRepository {
-  load(profileId: string): Promise<ProfileV3 | null>;
-  save(profile: ProfileV3): Promise<void>;
+  load(profileId: string): Promise<ProfileV4 | null>;
+  save(profile: ProfileV4): Promise<void>;
 }
 
 interface PackagedProfileCandidates {
@@ -17,7 +17,7 @@ export type ProfileCommandInvoker = <T>(command: string, args?: Record<string, u
 export class PackagedProfileRepository implements ProfileStorageRepository {
   constructor(private readonly command: ProfileCommandInvoker = invoke) {}
 
-  async load(profileId: string): Promise<ProfileV3 | null> {
+  async load(profileId: string): Promise<ProfileV4 | null> {
     if (profileId !== 'default') throw new Error('The packaged shell currently reserves only the default profile');
     const candidates = await this.command<PackagedProfileCandidates>('load_packaged_profile');
     for (const serialized of [candidates.current, candidates.previous]) {
@@ -27,7 +27,7 @@ export class PackagedProfileRepository implements ProfileStorageRepository {
     return null;
   }
 
-  async save(profile: ProfileV3): Promise<void> {
+  async save(profile: ProfileV4): Promise<void> {
     const serializedProfile = serializeProfile(profile);
     await this.command<void>('store_packaged_profile', { serializedProfile });
     const candidates = await this.command<PackagedProfileCandidates>('load_packaged_profile');

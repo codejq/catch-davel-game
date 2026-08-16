@@ -4,7 +4,7 @@ import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 import { isCampaignLevelId } from '../content/level-ids';
 import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 
-export const PROFILE_SCHEMA_VERSION = 3;
+export const PROFILE_SCHEMA_VERSION = 4;
 
 export interface LevelProgressV1 {
   readonly levelId: string;
@@ -17,8 +17,8 @@ export interface LevelProgressV1 {
   readonly robotsDefeated: number;
 }
 
-export interface ProfileBodyV3 {
-  readonly profileSchemaVersion: 3;
+export interface ProfileBodyV4 {
+  readonly profileSchemaVersion: 4;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -43,29 +43,32 @@ export interface ProfileBodyV3 {
     readonly flashIntensity: number;
     readonly highContrast: boolean;
     readonly renderQuality: RenderQualityPreference;
+    readonly textScale: number;
+    readonly captions: boolean;
+    readonly photosensitivitySafe: boolean;
   };
   readonly inputMappings: Readonly<Record<string, string>>;
   readonly campaignCheckpoint: SimulationSnapshotV1 | null;
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV3 extends ProfileBodyV3 {
+export interface ProfileV4 extends ProfileBodyV4 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV3): ProfileBodyV3 {
+function profileBody(profile: ProfileV4): ProfileBodyV4 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV3): ProfileV3 {
+export function sealProfile(body: ProfileBodyV4): ProfileV4 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV3 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV4 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v3'],
+    migrationHistory: ['created:v4'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
@@ -83,7 +86,7 @@ export function createDefaultProfile(profileId = 'default', displayName = 'Range
       language: 'en', masterVolume: 1, musicVolume: 0.75, effectsVolume: 0.9,
       mouseSensitivity: 1, reducedMotion: false,
       cameraMotion: 1, recoilMotion: 1, shakeMotion: 1, flashIntensity: 1,
-      highContrast: false, renderQuality: 'auto',
+      highContrast: false, renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false,
     },
     inputMappings: DEFAULT_INPUT_BINDINGS,
     campaignCheckpoint: null,
@@ -171,7 +174,7 @@ function verifyProfileIntegrity(profile: Record<string, unknown>): void {
   if (profile.integrityChecksum !== checksumCanonical(sourceBody)) throw new Error('Profile integrity checksum mismatch');
 }
 
-function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
+function validateProfileV4(profile: Record<string, unknown>): ProfileV4 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -184,6 +187,7 @@ function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
   exactKeys(settings, [
     'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
     'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
+    'textScale', 'captions', 'photosensitivitySafe',
   ], 'profile.settings');
   const checkpoint = profile.campaignCheckpoint === null
     ? null
@@ -201,7 +205,7 @@ function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 3,
+    profileSchemaVersion: 4,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -226,6 +230,9 @@ function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
       flashIntensity,
       highContrast: booleanValue(settings.highContrast, 'profile.settings.highContrast'),
       renderQuality: normalizeRenderQuality(settings.renderQuality),
+      textScale: bounded(settings.textScale, 'profile.settings.textScale', 0.8, 1.5),
+      captions: booleanValue(settings.captions, 'profile.settings.captions'),
+      photosensitivitySafe: booleanValue(settings.photosensitivitySafe, 'profile.settings.photosensitivitySafe'),
     },
     inputMappings: stringRecord(profile.inputMappings, 'profile.inputMappings'),
     campaignCheckpoint: checkpoint,
@@ -237,7 +244,29 @@ function validateProfileV3(profile: Record<string, unknown>): ProfileV3 {
   return result;
 }
 
-function migrateProfileV2(profile: Record<string, unknown>): ProfileV3 {
+function migrateProfileV3(profile: Record<string, unknown>): ProfileV4 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  const settings = object(profile.settings, 'profile.settings');
+  exactKeys(settings, [
+    'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'mouseSensitivity', 'reducedMotion',
+    'cameraMotion', 'recoilMotion', 'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality',
+  ], 'profile.settings');
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 4 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v3->v4:first-release-accessibility'],
+    settings: { ...settings, textScale: 1, captions: true, photosensitivitySafe: false },
+  };
+  return validateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV4 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -256,10 +285,10 @@ function migrateProfileV2(profile: Record<string, unknown>): ProfileV3 {
     migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v2->v3:render-quality-preference'],
     settings: { ...settings, renderQuality: 'auto' as const },
   };
-  return validateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV3 {
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV4 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -287,24 +316,25 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV3 {
   return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV3 {
+export function validateProfile(value: unknown): ProfileV4 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
   }
   if (profile.profileSchemaVersion === 1) return migrateProfileV1(profile);
   if (profile.profileSchemaVersion === 2) return migrateProfileV2(profile);
-  return validateProfileV3(profile);
+  if (profile.profileSchemaVersion === 3) return migrateProfileV3(profile);
+  return validateProfileV4(profile);
 }
 
-export function serializeProfile(profile: ProfileV3): string {
+export function serializeProfile(profile: ProfileV4): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV3 {
+export function parseProfile(serialized: string): ProfileV4 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV3, changes: Partial<ProfileBodyV3>): ProfileV3 {
+export function updateProfile(profile: ProfileV4, changes: Partial<ProfileBodyV4>): ProfileV4 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }
