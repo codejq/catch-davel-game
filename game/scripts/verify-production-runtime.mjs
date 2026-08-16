@@ -361,6 +361,21 @@ try {
     || playerMovementAudioProof.sprinting !== 'true') {
     throw new Error(`Player movement audio did not expose walk/sprint cadence: ${JSON.stringify(playerMovementAudioProof)}`);
   }
+  const weaponLocomotionProof = await page.evaluate(() => {
+    const weaponStyle = getComputedStyle(document.querySelector('#weapon'));
+    return {
+      intensity: Number(document.body.dataset.weaponLocomotionIntensity),
+      xPixels: Number.parseFloat(weaponStyle.getPropertyValue('--weapon-locomotion-x')),
+      yPixels: Number.parseFloat(weaponStyle.getPropertyValue('--weapon-locomotion-y')),
+      rollDegrees: Number.parseFloat(weaponStyle.getPropertyValue('--weapon-locomotion-roll')),
+    };
+  });
+  if (!Number.isFinite(weaponLocomotionProof.intensity) || weaponLocomotionProof.intensity <= 0
+    || ![weaponLocomotionProof.xPixels, weaponLocomotionProof.yPixels, weaponLocomotionProof.rollDegrees]
+      .every(Number.isFinite)
+    || Math.abs(weaponLocomotionProof.xPixels) + Math.abs(weaponLocomotionProof.yPixels) <= 0.01) {
+    throw new Error(`Snapshot-derived weapon locomotion did not animate during movement: ${JSON.stringify(weaponLocomotionProof)}`);
+  }
   await page.waitForFunction(() => {
     const indicator = document.querySelector('#dance-beat-indicator');
     return indicator?.hidden === false && indicator.children.length === 16
@@ -785,7 +800,7 @@ try {
   console.log(JSON.stringify({
     passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
     pulseEnergyCellProof, pulseImpactProof, safeMuzzleFlashDisplay, danceBeatProof, profileTransfer,
-    ambienceProof, playerMovementAudioProof, lifecycle, browserErrors: errors,
+    ambienceProof, playerMovementAudioProof, weaponLocomotionProof, lifecycle, browserErrors: errors,
     fallback: {
       ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
       pulseImpact: fallbackPulseImpact, pulseVariation: fallbackPulseVariation,

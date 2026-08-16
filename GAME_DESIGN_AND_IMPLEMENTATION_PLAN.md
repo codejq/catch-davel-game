@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **19 — Chapter 1 workshop landmarks and green-exit beacon implemented; physical devices remain certification-only**
+Revision: **20 — snapshot-derived first-person weapon locomotion implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -31,6 +31,8 @@ Revision 17 records the completed combat-music pacing director. The previous act
 Revision 18 records the completed objective-clear route handoff. A legitimate contiguous false→true objective transition opens a three-second English/Arabic `MAZE STABILIZED` card with the current localized green-exit target, rounded distance, compass instruction, semantic announcement, and a tick-derived remaining bar. It suppresses a competing Davel bark while visible and then yields to the persistent objective compass. The bounded tracker continues an already-observed banner through snapshot coalescing but never invents one after a load, unseen transition gap, rewind, level change, resync, victory, or defeat. It consumes the same immutable snapshot/compass projection and changes no gameplay truth.
 
 Revision 19 records the completed first Chapter 1 environmental-storytelling pass. Each Neon Workshop mission now places three deterministic, collision-safe wall-top landmarks using a distinct title/mechanic-linked motif: signal prongs, grinning marquee, coin circuit, wrong-way arrows, foreman gantry, conveyor drums, blackout lamps, shift clock, rush stacks, or the Final Invoice crown. The objective exit is no longer a three-box doorway: it reads as a barred red lock before clearance, then becomes a green portal with approach strips, internal frame, and a tall pulsing route beacon. An explicit bounded per-instance emissive channel preserves authored signal colors through ordinary lighting and fog. Layouts stay under the existing 512-cube batch, motion derives only from snapshot tick and the presentation motion scale, and zero motion is stable. These additions are renderer-only and change no collision, simulation, replay, save, transport, or LLM contract.
+
+Revision 20 records the completed first-person weapon-locomotion pass. The pulse gun, sword, bomb, and laser view models now share bounded lateral sway, vertical step response, and roll derived from authoritative player position, travelled-distance `bobPhase`, and snapshot tick spacing. Walk and sprint speed produce different intensity, attack/release use fixed per-tick slew, and normal snapshot coalescing reaches the same pose as sequential delivery to floating-point tolerance. Rewind, level change, phase reset, terminal state, resync, and zero camera-motion presentation return safely toward or directly to rest. Existing recoil and sword-swing keyframes compose with the locomotion offsets instead of replacing them. This tracker is browser presentation only and adds no simulation, transport, replay, save, or LLM state.
 
 ## 1. Executive summary
 

@@ -70,6 +70,7 @@ import {
 import { isWallAtWorld, worldCell } from '../sim/level';
 import { CombatPacingTracker } from './combat-pacing';
 import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
+import { WeaponLocomotionTracker } from './weapon-locomotion';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -158,6 +159,7 @@ export async function startBrowserGame(): Promise<void> {
   const bossStatusHealth = requireElement<HTMLElement>('#boss-status-health');
   const bossStatusHp = requireElement<HTMLElement>('#boss-status-hp');
   const crosshair = requireElement<HTMLElement>('#crosshair');
+  const weapon = requireElement<HTMLElement>('#weapon');
   const damageDirection = requireElement<HTMLElement>('#damage-direction');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const objectiveClearTransition = requireElement<HTMLElement>('#objective-clear-transition');
@@ -303,6 +305,7 @@ export async function startBrowserGame(): Promise<void> {
   const bombFuseAudio = new BombFuseAudioSequencer();
   const combatPacing = new CombatPacingTracker();
   const objectiveClearTracker = new ObjectiveClearTransitionTracker();
+  const weaponLocomotion = new WeaponLocomotionTracker();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -983,6 +986,11 @@ export async function startBrowserGame(): Promise<void> {
     weaponStatus.textContent = `${ui(WEAPON_UI_KEYS[state.player.selectedWeapon])}${resource}`;
     touchWeapon.textContent = ui(WEAPON_UI_KEYS[state.player.selectedWeapon]);
     document.body.dataset.weapon = state.player.selectedWeapon;
+    const weaponPose = weaponLocomotion.sample(state, renderPresentationSettings.motionScale);
+    weapon.style.setProperty('--weapon-locomotion-x', `${weaponPose.xPixels}px`);
+    weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels}px`);
+    weapon.style.setProperty('--weapon-locomotion-roll', `${weaponPose.rollDegrees}deg`);
+    document.body.dataset.weaponLocomotionIntensity = String(weaponPose.intensity);
     const pulseBloom = state.player.selectedWeapon === 'pulse'
       ? state.pulseSpreadRadians / PULSE_MAX_SPREAD_RADIANS : 0;
     crosshair.style.setProperty('--pulse-spread-scale', String(1 + Math.max(0, Math.min(1, pulseBloom)) * 1.6));
@@ -1192,6 +1200,7 @@ export async function startBrowserGame(): Promise<void> {
           bombFuseAudio.reset();
           combatPacing.reset();
           objectiveClearTracker.reset();
+          weaponLocomotion.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
@@ -1241,6 +1250,7 @@ export async function startBrowserGame(): Promise<void> {
         bombFuseAudio.reset();
         combatPacing.reset();
         objectiveClearTracker.reset();
+        weaponLocomotion.reset();
         pendingPulseEffectTicks.length = 0;
         pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();
