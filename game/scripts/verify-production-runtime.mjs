@@ -309,18 +309,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v11.json'
-    || exportedProfile.profileSchemaVersion !== 11
+  if (download.suggestedFilename() !== 'catch-davel-profile-v12.json'
+    || exportedProfile.profileSchemaVersion !== 12
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v11 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v12 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v11.json',
+    name: 'catch-davel-profile-v12.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -660,11 +660,16 @@ try {
     levelId: document.body.dataset.levelId,
     language: document.documentElement.lang,
     remaining: document.querySelector('#remaining')?.textContent ?? '',
+    dashUnlocked: document.body.dataset.dashUnlocked,
+    dashHidden: document.querySelector('#touch-dash')?.hidden,
     agentApiExposed: window.CatchDavelAgent !== undefined,
   }));
   const expectedChapterRemaining = chapterLevel.language === 'ar' ? 'متبقٍ 8 من دافل' : '8 Davels remain';
   if (chapterLevel.remaining !== expectedChapterRemaining) {
     throw new Error('Production Level 11 did not render its eight-Davel roster in the active locale');
+  }
+  if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
+    throw new Error('Production Level 11 did not expose the Chapter 2 dash control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -704,6 +709,7 @@ try {
     return {
       controlsVisible: controls !== null && getComputedStyle(controls).display !== 'none',
       actionButtons: controls?.querySelectorAll('button').length ?? 0,
+      dashHidden: document.querySelector('#touch-dash')?.hidden,
       padWidth: pad?.width ?? 0,
       padLeft: pad?.left ?? 0,
       actionLeft: document.querySelector('#touch-actions')?.getBoundingClientRect().left ?? 0,
@@ -741,7 +747,7 @@ try {
     toggleSprintOn,
     toggleSprintOff,
   };
-  if (!mobile.controlsVisible || mobile.actionButtons !== 4 || mobile.padWidth < 148
+  if (!mobile.controlsVisible || mobile.actionButtons !== 5 || mobile.dashHidden !== true || mobile.padWidth < 148
     || mobile.padLeft < 650 || mobile.actionLeft > 40
     || !mobile.touchPromptVisible || mobile.desktopPromptVisible || !mobile.touchSessionStarted
     || !mobile.toggleFireOn || !mobile.toggleFireOff || !mobile.toggleSprintOn || !mobile.toggleSprintOff) {

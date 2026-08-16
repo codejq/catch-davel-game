@@ -1,10 +1,10 @@
 import { WorkerAgentController } from '../agent/worker-api';
 import { createRendererHost } from '../render/renderer-host';
 import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
-import { CELL_SIZE, DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
-import type { PlayerCommand } from '../sim/player';
+import { CELL_SIZE, DEFAULT_LEVEL_SEED, LOOK_SCALE, PLAYER_DASH_ENERGY_COST } from '../sim/constants';
+import { playerDashUnlocked, type PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV11 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV12 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -98,7 +98,7 @@ function isPlayerUpgradeId(id: ShopUpgradeId): id is PlayerUpgradeId {
 
 const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
   forward: 'controlForward', back: 'controlBack', left: 'controlLeft', right: 'controlRight',
-  sprint: 'controlSprint',
+  sprint: 'controlSprint', dash: 'controlDash',
   fire: 'controlFire', altFire: 'controlAltFire', campaign: 'controlCampaign', shop: 'controlShop',
   weaponPulse: 'controlPulse', weaponSword: 'controlSword', weaponBomb: 'controlBomb', weaponLaser: 'controlLaser',
 };
@@ -265,6 +265,7 @@ export async function startBrowserGame(): Promise<void> {
   const moveStick = requireElement<HTMLElement>('#move-stick');
   const touchFire = requireElement<HTMLButtonElement>('#touch-fire');
   const touchSprint = requireElement<HTMLButtonElement>('#touch-sprint');
+  const touchDash = requireElement<HTMLButtonElement>('#touch-dash');
   const touchAlt = requireElement<HTMLButtonElement>('#touch-alt');
   const touchWeapon = requireElement<HTMLButtonElement>('#touch-weapon');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
@@ -272,7 +273,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV11;
+  let activeProfile: ProfileV12;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -588,7 +589,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV11): void => {
+  const persistProfile = (profile: ProfileV12): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -912,6 +913,16 @@ export async function startBrowserGame(): Promise<void> {
     }
     healthHud.textContent = `${Math.ceil(state.player.health)} / ${state.player.maxHealth}`;
     energyHud.textContent = `${Math.floor(state.player.energy)} / ${state.player.maxEnergy}`;
+    const dashUnlocked = playerDashUnlocked(state.levelId);
+    const dashReady = dashUnlocked && state.player.dashCooldownTicks === 0
+      && state.player.energy >= PLAYER_DASH_ENERGY_COST;
+    touchDash.hidden = !dashUnlocked;
+    touchDash.disabled = !dashReady;
+    touchDash.textContent = dashUnlocked && state.player.dashCooldownTicks > 0
+      ? `${Math.ceil(state.player.dashCooldownTicks / 6) / 10}s`
+      : ui('dash');
+    document.body.dataset.dashUnlocked = String(dashUnlocked);
+    document.body.dataset.dashCooldown = String(state.player.dashCooldownTicks);
     coinsHud.textContent = String(state.player.coins);
     runScoreHud.textContent = state.run.score.toLocaleString(activeProfile.settings.language);
     runComboHud.textContent = `×${state.run.currentCombo}`;
@@ -1488,6 +1499,7 @@ export async function startBrowserGame(): Promise<void> {
   let altFireQueued = false;
   let fireHeld = false;
   let sprintHeld = false;
+  let dashQueued = false;
   let queuedWeapon: WeaponId | null = null;
   let resumeAfterVisibility = false;
   let touchForward = 0;
@@ -1497,6 +1509,7 @@ export async function startBrowserGame(): Promise<void> {
   let previousGamepadCampaign = false;
   let previousGamepadShop = false;
   let previousGamepadSprint = false;
+  let previousGamepadDash = false;
   let movePointerId: number | null = null;
   let lookPointerId: number | null = null;
   let lookClientX = 0;
@@ -1583,6 +1596,12 @@ export async function startBrowserGame(): Promise<void> {
   };
   touchSprint.addEventListener('pointerup', releaseTouchSprint);
   touchSprint.addEventListener('pointercancel', releaseTouchSprint);
+  touchDash.addEventListener('pointerdown', (event) => {
+    if (pauseMenu.classList.contains('open') || touchDash.disabled) return;
+    event.preventDefault(); beginTouchSession(); dashQueued = true; touchDash.classList.add('active');
+  });
+  touchDash.addEventListener('pointerup', () => touchDash.classList.remove('active'));
+  touchDash.addEventListener('pointercancel', () => touchDash.classList.remove('active'));
   touchAlt.addEventListener('pointerdown', (event) => {
     if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); fireQueued = true; altFireQueued = true;
@@ -1603,13 +1622,13 @@ export async function startBrowserGame(): Promise<void> {
     touchForward = 0; touchStrafe = 0; movePointerId = null; lookPointerId = null;
     moveStick.style.transform = '';
     sprintHeld = false;
-    touchFire.classList.remove('active'); touchSprint.classList.remove('active');
+    touchFire.classList.remove('active'); touchSprint.classList.remove('active'); touchDash.classList.remove('active');
     touchAlt.classList.remove('active'); touchWeapon.classList.remove('active');
     document.body.classList.remove('firing', 'sprinting');
   };
 
   const clearHumanInput = (): void => {
-    pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false; queuedWeapon = null;
+    pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false; dashQueued = false; queuedWeapon = null;
     yawDelta = 0; pitchDelta = 0;
     clearTouchInput();
   };
@@ -1712,6 +1731,7 @@ export async function startBrowserGame(): Promise<void> {
       touchSprint.classList.toggle('active', sprintHeld);
       document.body.classList.toggle('sprinting', sprintHeld);
     }
+    if (event.code === activeInputBindings.dash && !event.repeat) dashQueued = true;
     pressed.add(event.code);
     if (event.code === activeInputBindings.altFire && !event.repeat) { fireQueued = true; altFireQueued = true; }
     const weaponByCode: Partial<Record<string, WeaponId>> = {
@@ -1731,7 +1751,7 @@ export async function startBrowserGame(): Promise<void> {
   window.addEventListener('blur', () => {
     pressed.clear(); fireHeld = false; clearTouchInput();
     previousGamepadAlt = false; previousGamepadCycle = false; previousGamepadCampaign = false;
-    previousGamepadShop = false; previousGamepadSprint = false;
+    previousGamepadShop = false; previousGamepadSprint = false; previousGamepadDash = false; dashQueued = false;
   });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
@@ -1799,6 +1819,7 @@ export async function startBrowserGame(): Promise<void> {
       const gameInputAllowed = !campaignMap.classList.contains('open') && !shop.classList.contains('open')
         && !pauseMenu.classList.contains('open');
       if (gameInputAllowed && gamepad.altFire && !previousGamepadAlt) { fireQueued = true; altFireQueued = true; }
+      if (gameInputAllowed && gamepad.dash && !previousGamepadDash) dashQueued = true;
       if (gameInputAllowed && gamepad.cycleWeapon && !previousGamepadCycle && renderState !== null) {
         queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
       }
@@ -1808,7 +1829,7 @@ export async function startBrowserGame(): Promise<void> {
       }
       if (gameInputAllowed && (Math.abs(gamepad.forward) > 0 || Math.abs(gamepad.strafe) > 0
         || Math.abs(gamepad.yawDelta) > 0 || Math.abs(gamepad.pitchDelta) > 0
-        || gamepad.sprint || gamepad.fire || gamepad.altFire)) {
+        || gamepad.sprint || gamepad.dash || gamepad.fire || gamepad.altFire)) {
         beginHumanSession();
       }
       const sprintActive = gameInputAllowed && (sprintHeld
@@ -1826,6 +1847,7 @@ export async function startBrowserGame(): Promise<void> {
         yawDelta: yawDelta + (gameInputAllowed ? gamepad.yawDelta : 0),
         pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
         sprint: sprintActive,
+        dash: dashQueued,
         fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire) || (gameInputAllowed && gamepad.fire),
         altFire: altFireQueued,
         weapon: queuedWeapon,
@@ -1840,12 +1862,14 @@ export async function startBrowserGame(): Promise<void> {
       pitchDelta = 0;
       fireQueued = false;
       altFireQueued = false;
+      dashQueued = false;
       queuedWeapon = null;
       previousGamepadAlt = gamepad.altFire;
       previousGamepadCycle = gamepad.cycleWeapon;
       previousGamepadCampaign = gamepad.campaign;
       previousGamepadShop = gamepad.shop;
       previousGamepadSprint = gamepad.sprint;
+      previousGamepadDash = gamepad.dash;
     }
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
     requestAnimationFrame(frame);

@@ -1,4 +1,6 @@
-import { PLAYER_EYE_HEIGHT } from '../sim/constants';
+import {
+  PLAYER_DASH_COOLDOWN_TICKS, PLAYER_DASH_ENERGY_COST, PLAYER_DASH_UNLOCK_LEVEL, PLAYER_EYE_HEIGHT,
+} from '../sim/constants';
 import type { GameState } from '../sim/game';
 import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, levelRows, worldCell } from '../sim/level';
 import { CELL_SIZE } from '../sim/constants';
@@ -16,7 +18,7 @@ import {
 } from '../sim/weak-point';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 15;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 16;
 
 export interface RobotObservation {
   readonly id: number;
@@ -50,7 +52,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 15;
+  readonly schemaVersion: 16;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: PlayableLevelId;
@@ -73,6 +75,12 @@ export interface AgentObservation {
     readonly swordHeat: number;
     readonly laserHeat: number;
     readonly laserOverheated: boolean;
+    readonly dash: {
+      readonly unlocked: boolean;
+      readonly cooldownTicks: number;
+      readonly maximumCooldownTicks: number;
+      readonly energyCost: number;
+    };
     readonly pulseBurstShots: number;
     readonly pulseSpreadRadians: number;
     readonly weaponUpgrades: {
@@ -284,6 +292,12 @@ export function createObservation(state: GameState): AgentObservation {
       bombs: state.player.bombs,
       swordHeat: round(state.player.swordHeat), laserHeat: round(state.player.laserHeat),
       laserOverheated: state.player.laserOverheated,
+      dash: {
+        unlocked: Number(state.levelId.slice(-3)) >= PLAYER_DASH_UNLOCK_LEVEL,
+        cooldownTicks: state.player.dashCooldownTicks,
+        maximumCooldownTicks: PLAYER_DASH_COOLDOWN_TICKS,
+        energyCost: PLAYER_DASH_ENERGY_COST,
+      },
       pulseBurstShots,
       pulseSpreadRadians: round(pulseSpreadRadians(pulseBurstShots)),
       weaponUpgrades: { ...state.player.weaponUpgrades },

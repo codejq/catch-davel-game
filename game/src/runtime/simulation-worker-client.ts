@@ -114,6 +114,7 @@ export class SimulationWorkerClient {
       yawDelta: command.yawDelta, pitchDelta: command.pitchDelta, fire: command.fire,
       altFire: command.altFire ?? false, weapon: command.weapon ?? null,
       sprint: command.sprint ?? false,
+      dash: command.dash ?? false,
     } satisfies SimulationWorkerRequest);
   }
 

@@ -1,4 +1,7 @@
-import { FIXED_DT_SECONDS, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER } from './constants';
+import {
+  FIXED_DT_SECONDS, PLAYER_DASH_COOLDOWN_TICKS, PLAYER_DASH_DISTANCE, PLAYER_DASH_ENERGY_COST,
+  PLAYER_DASH_SWEEP_STEP, PLAYER_DASH_UNLOCK_LEVEL, PLAYER_RADIUS, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER,
+} from './constants';
 import { cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
 import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, normalizeWeaponUpgradeLevels, weaponUnlocked,
@@ -27,6 +30,7 @@ export interface PlayerState {
   swordHeat: number;
   laserHeat: number;
   laserOverheated: boolean;
+  dashCooldownTicks: number;
   readonly weaponUpgrades: WeaponUpgradeLevels;
   readonly playerUpgrades: PlayerUpgradeLevels;
 }
@@ -38,8 +42,13 @@ export interface PlayerCommand {
   readonly pitchDelta: number;
   readonly fire: boolean;
   readonly sprint?: boolean;
+  readonly dash?: boolean;
   readonly altFire?: boolean;
   readonly weapon?: WeaponId | null;
+}
+
+export function playerDashUnlocked(levelId: PlayableLevelId): boolean {
+  return Number(levelId.slice(-3)) >= PLAYER_DASH_UNLOCK_LEVEL;
 }
 
 export function createPlayer(
@@ -57,7 +66,7 @@ export function createPlayer(
     x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: maxHealth, energy: maxEnergy,
     maxHealth, maxEnergy, coins: 0, bobPhase: 0,
     selectedWeapon: 'pulse', unlockedWeaponMask, bombs: 3 + weaponUpgrades.bombCapacity,
-    swordHeat: 0, laserHeat: 0, laserOverheated: false,
+    swordHeat: 0, laserHeat: 0, laserOverheated: false, dashCooldownTicks: 0,
     weaponUpgrades: normalizeWeaponUpgradeLevels(weaponUpgrades),
     playerUpgrades: normalizedPlayerUpgrades,
   };
@@ -75,11 +84,28 @@ export function stepPlayer(
   const strafe = inputLength > 1 ? command.strafe / inputLength : command.strafe;
   const sinYaw = Math.sin(player.yaw);
   const cosYaw = Math.cos(player.yaw);
-  const distance = PLAYER_SPEED * (command.sprint === true ? PLAYER_SPRINT_MULTIPLIER : 1) * FIXED_DT_SECONDS;
+  player.dashCooldownTicks = Math.max(0, player.dashCooldownTicks - 1);
+  const dashing = command.dash === true && inputLength > 0
+    && playerDashUnlocked(levelId) && player.dashCooldownTicks === 0
+    && player.energy >= PLAYER_DASH_ENERGY_COST;
+  const distance = dashing
+    ? PLAYER_DASH_DISTANCE
+    : PLAYER_SPEED * (command.sprint === true ? PLAYER_SPRINT_MULTIPLIER : 1) * FIXED_DT_SECONDS;
   const deltaX = (sinYaw * forward + cosYaw * strafe) * distance;
   const deltaZ = (-cosYaw * forward + sinYaw * strafe) * distance;
-  if (isPlayerPositionValidWithBlockers(player.x + deltaX, player.z, PLAYER_RADIUS, blockedCells, levelId)) player.x += deltaX;
-  if (isPlayerPositionValidWithBlockers(player.x, player.z + deltaZ, PLAYER_RADIUS, blockedCells, levelId)) player.z += deltaZ;
-  const movement = Math.hypot(deltaX, deltaZ);
+  const startX = player.x;
+  const startZ = player.z;
+  const steps = dashing ? Math.max(1, Math.ceil(distance / PLAYER_DASH_SWEEP_STEP)) : 1;
+  for (let step = 0; step < steps; step += 1) {
+    const stepX = deltaX / steps;
+    const stepZ = deltaZ / steps;
+    if (isPlayerPositionValidWithBlockers(player.x + stepX, player.z, PLAYER_RADIUS, blockedCells, levelId)) player.x += stepX;
+    if (isPlayerPositionValidWithBlockers(player.x, player.z + stepZ, PLAYER_RADIUS, blockedCells, levelId)) player.z += stepZ;
+  }
+  if (dashing) {
+    player.energy -= PLAYER_DASH_ENERGY_COST;
+    player.dashCooldownTicks = PLAYER_DASH_COOLDOWN_TICKS;
+  }
+  const movement = dashing ? Math.hypot(player.x - startX, player.z - startZ) : Math.hypot(deltaX, deltaZ);
   if (movement > 0.0001) player.bobPhase += movement * 2.8;
 }

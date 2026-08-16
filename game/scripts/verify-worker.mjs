@@ -124,6 +124,13 @@ try {
     });
     await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 11));
     const levelEleven = responses.find((message) => message.type === 'complete' && message.requestId === 11).observation;
+    worker.postMessage({
+      type: 'step', requestId: 12,
+      command: { forward: 1, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false, dash: true },
+      ticks: 1,
+    });
+    await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 12));
+    const dashed = responses.find((message) => message.type === 'complete' && message.requestId === 12).observation;
     worker.terminate();
     return {
       directChecksum, workerChecksum: complete.checksum, transport: complete.transport, initialTicks, newestTick,
@@ -150,6 +157,9 @@ try {
         hazardIds: levelEleven.hazards.map((hazard) => hazard.id),
         doorId: levelEleven.door.id,
         dancePresetId: levelEleven.dancePerformance.presetId,
+        dashDistance: Math.hypot(dashed.player.x - levelEleven.player.x, dashed.player.z - levelEleven.player.z),
+        dashCooldownTicks: dashed.player.dash.cooldownTicks,
+        dashEnergyCost: dashed.player.dash.energyCost,
       },
     };
   });
@@ -173,7 +183,10 @@ try {
     || result.levelElevenProof.unlockedWeapons.join(',') !== 'pulse,sword'
     || result.levelElevenProof.hazardIds.join(',') !== 'ticket-gate-west,ticket-gate-east'
     || result.levelElevenProof.doorId !== 'ticket-gate'
-    || result.levelElevenProof.dancePresetId !== 'ticket-taker-swing') {
+    || result.levelElevenProof.dancePresetId !== 'ticket-taker-swing'
+    || result.levelElevenProof.dashDistance < 2.5
+    || result.levelElevenProof.dashCooldownTicks !== 48
+    || result.levelElevenProof.dashEnergyCost !== 24) {
     failures.push('Worker/LLM observation did not preserve the authored Level 11 campaign identity');
   }
   if (failures.length > 0) throw new Error(failures.join('; '));

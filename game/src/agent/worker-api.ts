@@ -100,6 +100,7 @@ export class WorkerAgentController {
           fire: normalized.fire,
           altFire: normalized.altFire,
           sprint: normalized.sprint,
+          dash: normalized.dash,
           weapon: normalized.weapon,
         }, ticks);
         return response.observation;

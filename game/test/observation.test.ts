@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(15);
+    expect(observation.schemaVersion).toBe(16);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,
@@ -29,6 +29,7 @@ describe('agent observation contract', () => {
     expect(observation.player).toMatchObject({
       maxHealth: 100, maxEnergy: 100, playerUpgrades: { maxHealth: 0, maxEnergy: 0 },
       pulseBurstShots: 0, pulseSpreadRadians: 0,
+      dash: { unlocked: false, cooldownTicks: 0, maximumCooldownTicks: 48, energyCost: 24 },
     });
     expect(observation.playerBombs).toEqual([]);
     expect(observation.robots).toHaveLength(6);
@@ -40,6 +41,14 @@ describe('agent observation contract', () => {
     expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
     expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });
     expect(levelObservation().rows.every((row) => row.length === 15)).toBe(true);
+  });
+
+  it('exposes the Chapter 2 dash unlock and cooldown without hidden state', () => {
+    const game = new GameSimulation('agent-dash', undefined, undefined, 'campaign', 'level-011');
+    game.state.player.dashCooldownTicks = 31;
+    expect(createObservation(game.state).player.dash).toEqual({
+      unlocked: true, cooldownTicks: 31, maximumCooldownTicks: 48, energyCost: 24,
+    });
   });
 
   it('exposes the exact active weak-point target without hidden state', () => {

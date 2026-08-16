@@ -63,6 +63,7 @@ export interface InputSimulationWorker {
   readonly fire: boolean;
   readonly altFire: boolean;
   readonly sprint: boolean;
+  readonly dash: boolean;
   readonly weapon: WeaponId | null;
 }
 

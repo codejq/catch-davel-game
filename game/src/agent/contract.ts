@@ -1,1 +1,1 @@
-export const AGENT_API_VERSION = 2 as const;
+export const AGENT_API_VERSION = 3 as const;

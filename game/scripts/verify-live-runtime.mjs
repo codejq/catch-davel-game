@@ -74,14 +74,26 @@ try {
     const sprintOrigin = await api.reset({ seed: 'live-sprint-proof', mode: 'agent' });
     const sprinted = await api.step({ action: { forward: 1, sprint: true }, ticks: 10 });
     const sprintDistance = Math.hypot(sprinted.player.x - sprintOrigin.player.x, sprinted.player.z - sprintOrigin.player.z);
+    const dashOrigin = await api.reset({ levelId: 'level-011', seed: 'live-dash-proof', mode: 'agent' });
+    const dashed = await api.step({ action: { forward: 1, dash: true }, ticks: 1 });
+    const dashDistance = Math.hypot(dashed.player.x - dashOrigin.player.x, dashed.player.z - dashOrigin.player.z);
+    const redashed = await api.step({ action: { forward: 1, dash: true }, ticks: 1 });
+    const redashDistance = Math.hypot(redashed.player.x - dashed.player.x, redashed.player.z - dashed.player.z);
     const sprintProof = {
       apiVersion: agentVersion.apiVersion,
       simulationSchemaVersion: agentVersion.simulationSchemaVersion,
       replayFormatVersion: agentVersion.replayFormatVersion,
       actionType: actionSchema.properties?.sprint?.type,
+      dashActionType: actionSchema.properties?.dash?.type,
       walkDistance,
       sprintDistance,
       ratio: sprintDistance / walkDistance,
+      dashDistance,
+      dashEnergyCost: dashed.player.dash.energyCost,
+      dashNetEnergyCost: dashOrigin.player.energy - dashed.player.energy,
+      dashCooldownTicks: dashed.player.dash.cooldownTicks,
+      redashDistance,
+      redashCooldownTicks: redashed.player.dash.cooldownTicks,
     };
 
     const resetObservation = await api.reset({ seed: 'live-worker-agent-proof', mode: 'agent' });
@@ -404,11 +416,15 @@ try {
     [result.workerStatus === 'ready', 'live Worker status is not ready'],
     [result.profileReady === 'true', 'profile repository was not ready'],
     [result.realtimeEndTick > result.realtimeStartTick, 'realtime Worker clock did not advance'],
-    [result.sprintProof.apiVersion === 2 && result.sprintProof.simulationSchemaVersion === 18
-      && result.sprintProof.replayFormatVersion === 3 && result.sprintProof.actionType === 'boolean'
+    [result.sprintProof.apiVersion === 3 && result.sprintProof.simulationSchemaVersion === 19
+      && result.sprintProof.replayFormatVersion === 4 && result.sprintProof.actionType === 'boolean'
+      && result.sprintProof.dashActionType === 'boolean'
       && result.sprintProof.walkDistance > 0 && result.sprintProof.ratio > 1.54
-      && result.sprintProof.ratio < 1.56,
-    'public agent API v2 did not expose the authoritative deterministic sprint action'],
+      && result.sprintProof.ratio < 1.56 && result.sprintProof.dashDistance > 2.5
+      && result.sprintProof.dashEnergyCost === 24 && result.sprintProof.dashNetEnergyCost > 23.8
+      && result.sprintProof.dashCooldownTicks === 48
+      && result.sprintProof.redashDistance < 0.2 && result.sprintProof.redashCooldownTicks === 47,
+    'public agent API v3 did not expose deterministic sprint and Chapter 2 dash actions'],
     [result.resetTick === 0, 'agent reset did not begin at tick zero'],
     [result.steppedTick === 30 && result.replayFinalTick === 30, 'agent step/replay tick mismatch'],
     [result.objectiveCompass.hidden === false && result.objectiveCompass.target === 'key'
@@ -426,8 +442,8 @@ try {
       && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
     [result.baselineRunMetrics.defeatedRobotIds.length === 6
       && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
-    [result.baselineObservationSchemaVersion === 15
-      && result.baselineRunObservation.robotsDefeated === 6, 'observation v15 did not expose run progress'],
+    [result.baselineObservationSchemaVersion === 16
+      && result.baselineRunObservation.robotsDefeated === 6, 'observation v16 did not expose run progress'],
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
@@ -444,7 +460,7 @@ try {
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
     [result.weakPointProof.tick === 19 && result.weakPointProof.presentedTick >= 19
-      && result.weakPointProof.schemaVersion === 15 && result.weakPointProof.phase === 'vulnerable'
+      && result.weakPointProof.schemaVersion === 16 && result.weakPointProof.phase === 'vulnerable'
       && result.weakPointProof.active === true && result.weakPointProof.radius > 0
       && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
     'live Worker/presentation boundary did not expose the authored weak-point window'],

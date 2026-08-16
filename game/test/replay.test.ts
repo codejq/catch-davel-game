@@ -36,7 +36,7 @@ describe('versioned deterministic replays', () => {
     expect(replay.commandRuns.length).toBeLessThan(720);
     expect(replay.checksums.map((entry) => entry.tick)).toEqual([0, 60, 120, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720]);
     const serialized = serializeReplay(replay);
-    expect(replay.replayFormatVersion).toBe(3);
+    expect(replay.replayFormatVersion).toBe(4);
     expect(replay.commandRuns.some((run) => run.command.sprint)).toBe(true);
     expect(serializeReplay(parseReplay(serialized))).toBe(serialized);
     const verified = verifyReplay(replay);
@@ -44,9 +44,9 @@ describe('versioned deterministic replays', () => {
     expect(verified.finalChecksum).toBe(stateChecksum(simulation.state));
   });
 
-  it('uses an explicit incompatible-v2 policy after authoritative player-resource caps changed', () => {
+  it('uses an explicit incompatible-v3 policy after the authoritative dash command changed', () => {
     const { replay } = recordRun(90);
-    const legacy = { ...structuredClone(replay), replayFormatVersion: 2 };
+    const legacy = { ...structuredClone(replay), replayFormatVersion: 3 };
     expect(() => parseReplay(JSON.stringify(legacy))).toThrow(/Unsupported replay format version/);
   });
 
@@ -99,5 +99,19 @@ describe('versioned deterministic replays', () => {
       playerUpgrades: { maxHealth: 2, maxEnergy: 3 },
     });
     expect(verifyReplay(replay).simulation.state.player.maxHealth).toBe(130);
+  });
+
+  it('materializes and verifies the Chapter 2 dash command', () => {
+    const simulation = new GameSimulation('dash-replay-proof', undefined, undefined, 'campaign', 'level-011');
+    const recorder = new ReplayRecorder(simulation);
+    const dash = {
+      forward: 1, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false, sprint: false, dash: true,
+    } as const;
+    simulation.step(dash);
+    recorder.record(dash);
+    const replay = recorder.finish();
+    expect(replay.commandRuns[0]?.command.dash).toBe(true);
+    expect(replay.initialSnapshot.player.dashCooldownTicks).toBe(0);
+    expect(verifyReplay(replay).simulation.state.player.dashCooldownTicks).toBe(48);
   });
 });

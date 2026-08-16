@@ -23,6 +23,7 @@ export interface AgentAction {
   readonly fire?: boolean;
   readonly altFire?: boolean;
   readonly sprint?: boolean;
+  readonly dash?: boolean;
   readonly weapon?: WeaponId;
 }
 
@@ -34,6 +35,7 @@ export interface NormalizedAgentAction {
   readonly fire: boolean;
   readonly altFire: boolean;
   readonly sprint: boolean;
+  readonly dash: boolean;
   readonly weapon: WeaponId | null;
 }
 
@@ -89,6 +91,7 @@ export function normalizeAgentAction(action: AgentAction): NormalizedAgentAction
     fire: action.fire === true,
     altFire: action.altFire === true,
     sprint: action.sprint === true,
+    dash: action.dash === true,
     weapon: action.weapon ?? null,
   };
 }
@@ -105,6 +108,7 @@ export function agentActionSchema(): Readonly<Record<string, unknown>> {
       fire: Object.freeze({ type: 'boolean' }),
       altFire: Object.freeze({ type: 'boolean' }),
       sprint: Object.freeze({ type: 'boolean' }),
+      dash: Object.freeze({ type: 'boolean' }),
       weapon: Object.freeze({ type: 'string', enum: Object.freeze(['pulse', 'sword', 'bomb', 'laser']) }),
     }),
   });
@@ -169,6 +173,7 @@ export class AgentController {
       fire: next.action.fire,
       altFire: next.action.altFire,
       sprint: next.action.sprint,
+      dash: next.action.dash,
       weapon: next.action.weapon,
     };
   }

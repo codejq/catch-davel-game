@@ -1,6 +1,6 @@
 import { campaignLevel } from '../content/levels/catalog';
 import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
-import type { ProfileV11 } from '../storage/profile';
+import type { ProfileV12 } from '../storage/profile';
 import type { RunMetrics } from '../sim/run-metrics';
 import { ROBOT_DEFINITIONS, type RobotArchetype } from '../sim/robots';
 import { campaignRunScore, runAccuracyPermille, standardCampaignParTicks } from '../sim/run-score';
@@ -42,7 +42,7 @@ export function standardParTicks(levelId: PlayableLevelId): number {
 }
 
 export function campaignResultSummary(
-  profile: ProfileV11,
+  profile: ProfileV12,
   levelId: PlayableLevelId,
   completionTicks: number,
   finalCoins: number,

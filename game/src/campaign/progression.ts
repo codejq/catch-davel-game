@@ -1,5 +1,5 @@
 import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
-import { updateProfile, type LevelProgressV1, type ProfileV11 } from '../storage/profile';
+import { updateProfile, type LevelProgressV1, type ProfileV12 } from '../storage/profile';
 import { standardParTicks, type CampaignResultSummary } from './results';
 
 function emptyProgress(levelId: PlayableLevelId): LevelProgressV1 {
@@ -12,7 +12,7 @@ function emptyProgress(levelId: PlayableLevelId): LevelProgressV1 {
 }
 
 export function updateLevelProgress(
-  profile: ProfileV11,
+  profile: ProfileV12,
   levelId: PlayableLevelId,
   update: (progress: LevelProgressV1) => LevelProgressV1,
 ): readonly LevelProgressV1[] {
@@ -21,14 +21,14 @@ export function updateLevelProgress(
     : [...profile.levelProgress, update(emptyProgress(levelId))];
 }
 
-export function recordCampaignAttempt(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
+export function recordCampaignAttempt(profile: ProfileV12, levelId: PlayableLevelId): ProfileV12 {
   return updateProfile(profile, {
     lastCleanShutdown: false,
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, attempts: progress.attempts + 1 })),
   });
 }
 
-export function recordCampaignRobotDefeat(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
+export function recordCampaignRobotDefeat(profile: ProfileV12, levelId: PlayableLevelId): ProfileV12 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({
       ...progress, robotsDefeated: progress.robotsDefeated + 1,
@@ -36,13 +36,13 @@ export function recordCampaignRobotDefeat(profile: ProfileV11, levelId: Playable
   });
 }
 
-export function recordCampaignDefeat(profile: ProfileV11, levelId: PlayableLevelId): ProfileV11 {
+export function recordCampaignDefeat(profile: ProfileV12, levelId: PlayableLevelId): ProfileV12 {
   return updateProfile(profile, {
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({ ...progress, defeats: progress.defeats + 1 })),
   });
 }
 
-export function bankCampaignCoins(profile: ProfileV11, authoritativeCoins: number): ProfileV11 {
+export function bankCampaignCoins(profile: ProfileV12, authoritativeCoins: number): ProfileV12 {
   if (!Number.isSafeInteger(authoritativeCoins) || authoritativeCoins < profile.spendableCoins) {
     throw new Error('Banked campaign coins cannot move backward or leave the safe-integer range');
   }
@@ -55,9 +55,9 @@ export function bankCampaignCoins(profile: ProfileV11, authoritativeCoins: numbe
 }
 
 export function completeCampaignLevel(
-  profile: ProfileV11, levelId: PlayableLevelId, completionTicks: number,
+  profile: ProfileV12, levelId: PlayableLevelId, completionTicks: number,
   result?: CampaignResultSummary,
-): ProfileV11 {
+): ProfileV12 {
   if (!Number.isSafeInteger(completionTicks) || completionTicks < 1) throw new Error('Completion ticks must be a positive safe integer');
   if (result !== undefined && (result.levelId !== levelId || result.completionTicks !== completionTicks)) {
     throw new Error('Campaign result does not match the completed level and tick');

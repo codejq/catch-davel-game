@@ -16,6 +16,7 @@ export interface GamepadProjection {
   readonly yawDelta: number;
   readonly pitchDelta: number;
   readonly sprint: boolean;
+  readonly dash: boolean;
   readonly fire: boolean;
   readonly altFire: boolean;
   readonly cycleWeapon: boolean;
@@ -25,7 +26,7 @@ export interface GamepadProjection {
 
 const EMPTY_PROJECTION: GamepadProjection = Object.freeze({
   connected: false, forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0,
-  sprint: false, fire: false, altFire: false, cycleWeapon: false, campaign: false, shop: false,
+  sprint: false, dash: false, fire: false, altFire: false, cycleWeapon: false, campaign: false, shop: false,
 });
 
 function axis(gamepad: GamepadLike, index: number, deadZone = 0.18): number {
@@ -52,6 +53,7 @@ export function projectStandardGamepad(gamepad: GamepadLike | null | undefined):
     yawDelta: axis(gamepad, 2) * 0.065,
     pitchDelta: pitchAxis === 0 ? 0 : pitchAxis * -0.05,
     sprint: button(gamepad, 10),
+    dash: button(gamepad, 1),
     fire: button(gamepad, 7) || button(gamepad, 0),
     altFire: button(gamepad, 6) || button(gamepad, 2),
     cycleWeapon: button(gamepad, 5) || button(gamepad, 15),

@@ -15,6 +15,7 @@ export interface RenderPlayerState {
   readonly swordHeat: number;
   readonly laserHeat: number;
   readonly laserOverheated: boolean;
+  readonly dashCooldownTicks: number;
 }
 
 export interface RenderPlayerBombState {

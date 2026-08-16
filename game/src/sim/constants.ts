@@ -1,4 +1,4 @@
-export const GAME_SCHEMA_VERSION = 18;
+export const GAME_SCHEMA_VERSION = 19;
 export const DEFAULT_LEVEL_SEED = 'campaign-level-001-v1';
 export const TICK_HZ = 60;
 export const FIXED_DT_SECONDS = 1 / TICK_HZ;
@@ -7,4 +7,9 @@ export const PLAYER_RADIUS = 0.34;
 export const PLAYER_EYE_HEIGHT = 1.62;
 export const PLAYER_SPEED = 4.8;
 export const PLAYER_SPRINT_MULTIPLIER = 1.55;
+export const PLAYER_DASH_UNLOCK_LEVEL = 11;
+export const PLAYER_DASH_DISTANCE = 2.7;
+export const PLAYER_DASH_COOLDOWN_TICKS = 48;
+export const PLAYER_DASH_ENERGY_COST = 24;
+export const PLAYER_DASH_SWEEP_STEP = 0.16;
 export const LOOK_SCALE = 0.0022;

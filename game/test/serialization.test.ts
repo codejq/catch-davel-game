@@ -23,9 +23,12 @@ describe('canonical simulation serialization', () => {
       uninterrupted.step(command(tick));
       checkpointed.step(command(tick));
     }
+    uninterrupted.state.player.dashCooldownTicks = 17;
+    checkpointed.state.player.dashCooldownTicks = 17;
     const serialized = serializeSimulationSnapshot(checkpointed.state);
     const parsed = parseSimulationSnapshot(serialized);
     expect(parsed.metrics).toEqual(checkpointed.state.metrics);
+    expect(parsed.player.dashCooldownTicks).toBe(17);
     expect(canonicalJson(parsed)).toBe(serialized);
     const resumed = GameSimulation.fromSnapshot(parsed);
     expect(stateChecksum(resumed.state)).toBe(stateChecksum(uninterrupted.state));
@@ -52,7 +55,7 @@ describe('canonical simulation serialization', () => {
   it('rejects unknown fields, incompatible schemas, and malformed bodies', () => {
     const snapshot = createSimulationSnapshot(new GameSimulation('validation-proof').state);
     expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, surprise: true }))).toThrow(/unknown or missing/);
-    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 19 }))).toThrow(/schema/);
+    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 18 }))).toThrow(/schema/);
     const malformed = structuredClone(snapshot);
     (malformed.robots[0]!.body.positions as number[]).pop();
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/33 numbers/);

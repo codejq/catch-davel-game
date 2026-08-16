@@ -1,5 +1,5 @@
 export const INPUT_ACTIONS = [
-  'forward', 'back', 'left', 'right', 'sprint', 'fire', 'altFire',
+  'forward', 'back', 'left', 'right', 'sprint', 'dash', 'fire', 'altFire',
   'campaign', 'shop', 'weaponPulse', 'weaponSword', 'weaponBomb', 'weaponLaser',
 ] as const;
 
@@ -9,6 +9,7 @@ export type InputBindings = Readonly<Record<InputAction, string>>;
 export const DEFAULT_INPUT_BINDINGS: InputBindings = Object.freeze({
   forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD',
   sprint: 'ShiftLeft',
+  dash: 'Space',
   fire: 'Mouse0', altFire: 'Mouse2', campaign: 'KeyM', shop: 'KeyU',
   weaponPulse: 'Digit1', weaponSword: 'Digit2', weaponBomb: 'Digit3', weaponLaser: 'Digit4',
 });

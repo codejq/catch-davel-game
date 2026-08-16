@@ -194,7 +194,7 @@ function validatePlayer(value: unknown): PlayerState {
   assertRecord(value, 'snapshot.player');
   assertExactKeys(value, [
     'x', 'z', 'yaw', 'pitch', 'health', 'energy', 'maxHealth', 'maxEnergy', 'coins', 'bobPhase',
-    'selectedWeapon', 'unlockedWeaponMask', 'bombs', 'swordHeat', 'laserHeat', 'laserOverheated',
+    'selectedWeapon', 'unlockedWeaponMask', 'bombs', 'swordHeat', 'laserHeat', 'laserOverheated', 'dashCooldownTicks',
     'weaponUpgrades', 'playerUpgrades',
   ], 'snapshot.player');
   if (!isWeaponId(value.selectedWeapon)) throw new Error('player.selectedWeapon is invalid');
@@ -233,6 +233,7 @@ function validatePlayer(value: unknown): PlayerState {
     bombs: integer(value.bombs, 'player.bombs'), swordHeat: finite(value.swordHeat, 'player.swordHeat'),
     laserHeat: finite(value.laserHeat, 'player.laserHeat'),
     laserOverheated: booleanValue(value.laserOverheated, 'player.laserOverheated'),
+    dashCooldownTicks: integer(value.dashCooldownTicks, 'player.dashCooldownTicks'),
     weaponUpgrades,
     playerUpgrades,
   };

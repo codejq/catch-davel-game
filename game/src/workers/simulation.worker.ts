@@ -40,6 +40,7 @@ let lastInputSequence = -1;
 let movementForward = 0;
 let movementStrafe = 0;
 let movementSprint = false;
+let dashLatched = false;
 let pendingYawDelta = 0;
 let pendingPitchDelta = 0;
 let fireLatched = false;
@@ -151,6 +152,7 @@ function resetRuntime(
   movementForward = 0;
   movementStrafe = 0;
   movementSprint = false;
+  dashLatched = false;
   pendingYawDelta = 0;
   pendingPitchDelta = 0;
   fireLatched = false;
@@ -183,12 +185,14 @@ function realtimeCommand(): PlayerCommand {
     fire: fireLatched,
     altFire: altFireLatched,
     sprint: movementSprint,
+    dash: dashLatched,
     weapon: pendingWeapon,
   };
   pendingYawDelta = 0;
   pendingPitchDelta = 0;
   fireLatched = false;
   altFireLatched = false;
+  dashLatched = false;
   pendingWeapon = null;
   return command;
 }
@@ -265,6 +269,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       movementForward = bounded(request.forward, -1, 1, 'input.forward');
       movementStrafe = bounded(request.strafe, -1, 1, 'input.strafe');
       movementSprint = request.sprint === true;
+      dashLatched ||= request.dash === true;
       pendingYawDelta = bounded(pendingYawDelta + request.yawDelta, -2, 2, 'input.yawDelta');
       pendingPitchDelta = bounded(pendingPitchDelta + request.pitchDelta, -1, 1, 'input.pitchDelta');
       fireLatched ||= request.fire;

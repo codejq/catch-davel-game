@@ -9,7 +9,8 @@ import {
   SWORD_HEAT_REDUCTION_PER_UPGRADE, SWORD_RANGE,
 } from '../sim/combat';
 import {
-  GAME_SCHEMA_VERSION, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER, TICK_HZ,
+  GAME_SCHEMA_VERSION, PLAYER_DASH_COOLDOWN_TICKS, PLAYER_DASH_DISTANCE, PLAYER_DASH_ENERGY_COST,
+  PLAYER_DASH_SWEEP_STEP, PLAYER_DASH_UNLOCK_LEVEL, PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER, TICK_HZ,
 } from '../sim/constants';
 import { GameSimulation } from '../sim/game';
 import { levelRows } from '../sim/level';
@@ -50,7 +51,7 @@ import {
   MAX_PLAYER_UPGRADE_LEVEL,
 } from '../sim/player-upgrades';
 
-export const REPLAY_FORMAT_VERSION = 3;
+export const REPLAY_FORMAT_VERSION = 4;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
 export const MAX_REPLAY_TICKS = 3_600_000;
 
@@ -72,8 +73,8 @@ export interface ReplayChecksum {
   readonly checksum: string;
 }
 
-export interface ReplayFileV3 {
-  readonly replayFormatVersion: 3;
+export interface ReplayFileV4 {
+  readonly replayFormatVersion: 4;
   readonly simulationSchemaVersion: number;
   readonly levelId: PlayableLevelId;
   readonly seed: string;
@@ -84,7 +85,7 @@ export interface ReplayFileV3 {
   readonly checksums: readonly ReplayChecksum[];
 }
 
-export type ReplayFile = ReplayFileV3;
+export type ReplayFile = ReplayFileV4;
 
 function robotBalanceData(): unknown {
   return ROBOT_DEFINITIONS.map((definition) => ({
@@ -124,7 +125,7 @@ export function currentReplayDependencies(levelId: PlayableLevelId = 'level-001'
     simulationSchema: checksumCanonical({
       GAME_SCHEMA_VERSION, TICK_HZ, XPBD_SUBSTEPS, XPBD_ITERATIONS, AUTHORITATIVE_DECIMAL_PLACES,
       difficultyProfiles: DIFFICULTY_PROFILES,
-      playerCommand: { sprint: 'boolean' },
+      playerCommand: { sprint: 'boolean', dash: 'boolean' },
     }),
     levelData: checksumCanonical({ effectiveLevel, simulationLevel }),
     balanceData: checksumCanonical({
@@ -134,7 +135,10 @@ export function currentReplayDependencies(levelId: PlayableLevelId = 'level-001'
         PULSE_BURST_RESET_TICKS, PULSE_MAX_BURST_SHOTS, PULSE_SPREAD_RADIANS_PER_SHOT,
         PULSE_MAX_SPREAD_RADIANS,
       },
-      playerMovement: { PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER },
+      playerMovement: {
+        PLAYER_SPEED, PLAYER_SPRINT_MULTIPLIER, PLAYER_DASH_UNLOCK_LEVEL, PLAYER_DASH_DISTANCE,
+        PLAYER_DASH_COOLDOWN_TICKS, PLAYER_DASH_ENERGY_COST, PLAYER_DASH_SWEEP_STEP,
+      },
       playerUpgrades: {
         BASE_PLAYER_MAX_HEALTH, BASE_PLAYER_MAX_ENERGY, MAX_HEALTH_PER_UPGRADE,
         MAX_ENERGY_PER_UPGRADE, MAX_PLAYER_UPGRADE_LEVEL,
@@ -195,11 +199,15 @@ function sameCommand(first: PlayerCommand, second: PlayerCommand): boolean {
   return first.forward === second.forward && first.strafe === second.strafe
     && first.yawDelta === second.yawDelta && first.pitchDelta === second.pitchDelta && first.fire === second.fire
     && (first.altFire ?? false) === (second.altFire ?? false) && (first.sprint ?? false) === (second.sprint ?? false)
+    && (first.dash ?? false) === (second.dash ?? false)
     && (first.weapon ?? null) === (second.weapon ?? null);
 }
 
 function copyCommand(command: PlayerCommand): PlayerCommand {
-  return { ...command, altFire: command.altFire ?? false, sprint: command.sprint ?? false, weapon: command.weapon ?? null };
+  return {
+    ...command, altFire: command.altFire ?? false, sprint: command.sprint ?? false,
+    dash: command.dash ?? false, weapon: command.weapon ?? null,
+  };
 }
 
 export class ReplayRecorder {
@@ -231,7 +239,7 @@ export class ReplayRecorder {
     }
   }
 
-  finish(): ReplayFileV3 {
+  finish(): ReplayFileV4 {
     const finalTick = this.simulation.state.tick;
     const finalChecksums = this.checksums.map((checksum) => ({ ...checksum }));
     if (finalChecksums.at(-1)?.tick !== finalTick) finalChecksums.push({ tick: finalTick, checksum: stateChecksum(this.simulation.state) });
@@ -274,7 +282,7 @@ function finite(value: unknown, label: string): number {
 
 function parseCommand(value: unknown, label: string): PlayerCommand {
   const command = record(value, label);
-  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire', 'altFire', 'sprint', 'weapon'], label);
+  exactKeys(command, ['forward', 'strafe', 'yawDelta', 'pitchDelta', 'fire', 'altFire', 'sprint', 'dash', 'weapon'], label);
   const forward = finite(command.forward, `${label}.forward`);
   const strafe = finite(command.strafe, `${label}.strafe`);
   const yawDelta = finite(command.yawDelta, `${label}.yawDelta`);
@@ -284,10 +292,11 @@ function parseCommand(value: unknown, label: string): PlayerCommand {
   if (typeof command.fire !== 'boolean') throw new Error(`${label}.fire must be boolean`);
   if (typeof command.altFire !== 'boolean') throw new Error(`${label}.altFire must be boolean`);
   if (typeof command.sprint !== 'boolean') throw new Error(`${label}.sprint must be boolean`);
+  if (typeof command.dash !== 'boolean') throw new Error(`${label}.dash must be boolean`);
   if (command.weapon !== null && !isWeaponId(command.weapon)) throw new Error(`${label}.weapon is invalid`);
   return {
     forward, strafe, yawDelta, pitchDelta, fire: command.fire, altFire: command.altFire,
-    sprint: command.sprint, weapon: command.weapon,
+    sprint: command.sprint, dash: command.dash, weapon: command.weapon,
   };
 }
 
@@ -300,7 +309,7 @@ function parseDependencies(value: unknown): ReplayDependencyHashes {
   return dependencies as unknown as ReplayDependencyHashes;
 }
 
-export function parseReplay(serialized: string): ReplayFileV3 {
+export function parseReplay(serialized: string): ReplayFileV4 {
   const value = record(JSON.parse(serialized) as unknown, 'replay');
   exactKeys(value, [
     'replayFormatVersion', 'simulationSchemaVersion', 'levelId', 'seed', 'agentRun', 'dependencyHashes',
@@ -341,7 +350,7 @@ export function parseReplay(serialized: string): ReplayFileV3 {
     throw new Error('Replay must checksum its initial and final ticks');
   }
   return {
-    replayFormatVersion: 3,
+    replayFormatVersion: REPLAY_FORMAT_VERSION,
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
     levelId: value.levelId,
     seed: value.seed,
