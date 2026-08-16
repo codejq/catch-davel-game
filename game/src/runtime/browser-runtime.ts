@@ -44,6 +44,7 @@ import { bossPresentation } from './boss-presentation';
 import { difficultyProfile, isDifficultyId } from '../sim/difficulty';
 import { applyHumanAimAssist } from './human-aim-assist';
 import { DavelMovementAudioSequencer } from './davel-movement-audio';
+import { danceBeatPresentation, type DanceBeatPhase } from './dance-beat-presentation';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -72,6 +73,10 @@ const CAPTION_DIRECTION_UI_KEYS: Readonly<Record<CaptionDirection, RuntimeUiKey>
 
 const COMPASS_TARGET_UI_KEYS: Readonly<Record<ObjectiveCompassTarget, RuntimeUiKey>> = {
   key: 'compassKey', door: 'compassDoor', checkpoint: 'compassCheckpoint', exit: 'compassExit',
+};
+
+const DANCE_BEAT_PHASE_UI_KEYS: Readonly<Record<DanceBeatPhase, RuntimeUiKey>> = {
+  neutral: 'danceBeatNeutral', attack: 'danceBeatAttack', vulnerable: 'danceBeatVulnerable', frozen: 'danceBeatFrozen',
 };
 
 function requireCanvas(): HTMLCanvasElement {
@@ -127,6 +132,9 @@ export async function startBrowserGame(): Promise<void> {
   const waveTransitionTitle = requireElement<HTMLElement>('#wave-transition-title');
   const waveTransitionTime = requireElement<HTMLElement>('#wave-transition-time');
   const soundCaptions = requireElement<HTMLElement>('#sound-captions');
+  const danceBeatIndicator = requireElement<HTMLElement>('#dance-beat-indicator');
+  const danceBeatSegments = Array.from({ length: 16 }, () => document.createElement('span'));
+  danceBeatIndicator.replaceChildren(...danceBeatSegments);
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
   const shop = requireElement<HTMLElement>('#shop');
   const shopCoins = requireElement<HTMLElement>('#shop-coins');
@@ -286,6 +294,7 @@ export async function startBrowserGame(): Promise<void> {
     document.body.style.setProperty('--touch-vertical-offset', `${activeProfile.settings.touchVerticalOffset}px`);
     soundCaptions.hidden = !activeProfile.settings.captions;
     if (!activeProfile.settings.captions) {
+      danceBeatIndicator.hidden = true;
       soundCaptions.replaceChildren();
       for (const timer of captionTimers.values()) window.clearTimeout(timer);
       captionTimers.clear();
@@ -647,6 +656,22 @@ export async function startBrowserGame(): Promise<void> {
   function updateHud(state?: RenderGameState): void {
     if (state === undefined) return;
     document.body.dataset.difficulty = state.difficulty;
+    const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
+    const beat = danceBeatPresentation(
+      state.tick, activeLevel.dance.bpm, activeLevel.dance.attackBeats, activeLevel.dance.vulnerableBeats, frozen,
+    );
+    danceBeatIndicator.hidden = !activeProfile.settings.captions || !humanSessionStarted || state.victory || state.defeat;
+    danceBeatIndicator.dataset.phase = beat.phase;
+    danceBeatIndicator.dataset.step = String(beat.barStep + 1);
+    danceBeatIndicator.setAttribute('aria-label', ui('danceBeatAria', {
+      beat: beat.quarterBeat, step: beat.barStep + 1, phase: ui(DANCE_BEAT_PHASE_UI_KEYS[beat.phase]),
+    }));
+    for (let index = 0; index < danceBeatSegments.length; index += 1) {
+      const segment = danceBeatSegments[index]!;
+      segment.classList.toggle('active', index === beat.barStep);
+      segment.classList.toggle('attack', activeLevel.dance.attackBeats.includes(index));
+      segment.classList.toggle('vulnerable', activeLevel.dance.vulnerableBeats.includes(index));
+    }
     healthHud.textContent = String(Math.ceil(state.player.health));
     energyHud.textContent = String(Math.floor(state.player.energy));
     coinsHud.textContent = String(state.player.coins);

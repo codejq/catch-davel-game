@@ -135,6 +135,17 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #sound-captions[hidden] { display: none !important; }
 #sound-captions span { padding: 5px 10px; border: 1px solid #b7f7ffcc; border-radius: 7px; background: #102447e6; color: #fff; font-size: calc(12px * var(--ui-font-scale)); font-weight: 850; letter-spacing: .04em; box-shadow: 0 3px 14px #07112699; }
 #sound-captions span.warning { border-color: #ffb36d; background: #4b2438ed; color: #fff2d0; }
+#dance-beat-indicator { position: absolute; left: 50%; bottom: 154px; display: grid; grid-template-columns: repeat(16, 9px); gap: 4px; translate: -50%; padding: 6px 8px; border: 1px solid #8af5ff99; border-radius: 99px; background: #101d3ad9; box-shadow: 0 4px 18px #07112680; }
+#dance-beat-indicator[hidden] { display: none !important; }
+#dance-beat-indicator span { width: 9px; height: 9px; border: 1px solid #86d5e0; border-radius: 3px; background: #1f4263; transition: scale .07s linear, background .07s linear; }
+#dance-beat-indicator span:nth-child(4n + 1) { border-left-width: 3px; }
+#dance-beat-indicator span.attack { border-color: #ff8b7a; background: #6a2941; }
+#dance-beat-indicator span.vulnerable { border-color: #7dffe2; background: #1d625e; }
+#dance-beat-indicator span.active { scale: 1.42; border-color: #fff; background: #ffe56c; box-shadow: 0 0 9px #ffe56c; }
+#dance-beat-indicator[data-phase='attack'] span.active { background: #ff6f70; box-shadow: 0 0 10px #ff466d; }
+#dance-beat-indicator[data-phase='vulnerable'] span.active { background: #62ffe1; box-shadow: 0 0 10px #42f5db; }
+#dance-beat-indicator[data-phase='frozen'] span.active { background: #b4d9ff; box-shadow: 0 0 7px #b4d9ff; }
+#shop.open ~ #dance-beat-indicator, #campaign-map.open ~ #dance-beat-indicator, #mission-results.open ~ #dance-beat-indicator, #mission-failed.open ~ #dance-beat-indicator, #pause-menu.open ~ #dance-beat-indicator { display: none; }
 #prompt { position: absolute; left: 50%; top: 67%; translate: -50% -50%; padding: 16px 22px; border: 3px solid #fff; border-radius: 14px; background: #14284ee8; text-align: center; font-weight: 950; letter-spacing: .08em; }
 #prompt strong { display: block; margin-bottom: 5px; color: #ffe56c; font-size: calc(14px * var(--ui-font-scale)); letter-spacing: .13em; }
 #prompt p { max-width: 560px; margin: 0 auto 10px; color: #fff; font-size: calc(12px * var(--ui-font-scale)); font-weight: 650; letter-spacing: 0; line-height: 1.35; }
@@ -158,6 +169,8 @@ body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
 body.photosensitivity-safe.firing #weapon::after { display: none; }
 body.photosensitivity-safe #crosshair.hit::before, body.photosensitivity-safe #crosshair.hit::after { background: #ffe762; box-shadow: none; transform: none; }
 body.photosensitivity-safe.hurt #hud { box-shadow: inset 0 0 32px 8px #7a263c99; }
+body.photosensitivity-safe #dance-beat-indicator span, body.reduced-motion #dance-beat-indicator span { transition: none; }
+body.photosensitivity-safe #dance-beat-indicator span.active { scale: 1; box-shadow: none; border-width: 2px; }
 body.high-contrast #hud { text-shadow: 0 2px 0 #000, 0 0 4px #000; }
 body.high-contrast #objective, body.high-contrast #stats span, body.high-contrast #weapon-status { background: #050914f2; border-color: #fff; }
 body.high-contrast #crosshair::before, body.high-contrast #crosshair::after { background: #fff600; box-shadow: 0 0 0 2px #000, 0 0 8px #fff; }

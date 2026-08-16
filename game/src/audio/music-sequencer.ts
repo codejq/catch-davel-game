@@ -1,4 +1,5 @@
 import type { MusicRuntimeProfile } from '../content/runtime-manifests';
+import { danceAbsoluteStepAtTick } from '../runtime/dance-beat-presentation';
 
 export interface MusicStep {
   readonly absoluteStep: number;
@@ -19,8 +20,7 @@ function degreeMidi(profile: MusicRuntimeProfile, degree: number, octave = 0): n
 export function musicStepAtTick(
   tick: number, bpm: number, profile: MusicRuntimeProfile, intensity: number, frozen: boolean, bossPhase = 0,
 ): MusicStep {
-  const sixteenthTicks = 900 / bpm;
-  const absoluteStep = Math.floor(Math.max(0, tick) / sixteenthTicks);
+  const absoluteStep = danceAbsoluteStepAtTick(tick, bpm);
   const barStep = absoluteStep % 16;
   const patternIndex = Math.floor(barStep / 2) % profile.leadPattern.length;
   const activity = Math.max(0, Math.min(1, intensity));

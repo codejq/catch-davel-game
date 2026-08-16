@@ -321,10 +321,32 @@ try {
   await page.click('#game');
   await page.waitForFunction(() => document.body.dataset.ambienceSources === '2'
     && document.body.dataset.ambienceActive === 'true');
+  await page.waitForFunction(() => {
+    const indicator = document.querySelector('#dance-beat-indicator');
+    return indicator?.hidden === false && indicator.children.length === 16
+      && indicator.querySelectorAll('span.active').length === 1;
+  });
   const ambienceStarted = await page.evaluate(() => ({
     sources: Number(document.body.dataset.ambienceSources),
     active: document.body.dataset.ambienceActive,
   }));
+  const danceBeatProof = await page.evaluate(() => {
+    const indicator = document.querySelector('#dance-beat-indicator');
+    return {
+      segments: indicator?.children.length ?? 0,
+      activeSegments: indicator?.querySelectorAll('span.active').length ?? 0,
+      attackMarkers: indicator?.querySelectorAll('span.attack').length ?? 0,
+      vulnerableMarkers: indicator?.querySelectorAll('span.vulnerable').length ?? 0,
+      step: indicator?.dataset.step,
+      phase: indicator?.dataset.phase,
+      aria: indicator?.getAttribute('aria-label') ?? '',
+    };
+  });
+  if (danceBeatProof.segments !== 16 || danceBeatProof.activeSegments !== 1
+    || danceBeatProof.attackMarkers !== 2 || danceBeatProof.vulnerableMarkers !== 4
+    || !danceBeatProof.aria.includes('نبضة الرقص')) {
+    throw new Error(`Accessible dance beat did not render from the live snapshot: ${JSON.stringify(danceBeatProof)}`);
+  }
   await page.mouse.down();
   await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
   const captionProof = await page.locator('#sound-captions span').first().textContent();
@@ -586,7 +608,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, profileTransfer,
+    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
     fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
