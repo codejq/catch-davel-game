@@ -47,6 +47,18 @@ npm run game:build
 
 The generated schema, per-level canonical exports, and `chapter-01-runtime-manifest.json` must be committed with their typed source. The runtime manifest materializes maze openings/interactions, hazard collision profiles, dance motifs, and raw-WebGL2 palettes selected by reviewed level bindings. `game:content:submission` emits the machine-readable release-locale and provenance coverage report, while `game:content:export` invokes that gate before writing any output and fails on an unresolved runtime preset. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
 
+## Timed authoring dry run
+
+Run the repeatable automated portion of the Phase 6.5 gate from the repository root:
+
+```powershell
+npm run game:authoring:dry-run
+```
+
+The command creates an in-memory representative Level 2 edit using existing assets, proves strict preflight and stale-dependency detection, and then times the schema check, submission gate, export-staleness check, complete campaign agent run, balance harness, automated tests, and production build. It emits one `AUTHORING_GATE_STAGE` record per step and a final machine-readable `AUTHORING_GATE_REPORT`. It never changes the typed source or canonical exports.
+
+This automation report is evidence for pipeline readiness and handoff time only. The exit gate still requires a trained human content designer to time the creative edit/review workflow. Record that session separately; do not relabel an automated run as human authoring evidence.
+
 The workbench validates structure, deterministic reachability, budgets, production projections, release-locale coverage, and asset-provenance completeness. It does not certify human fun, translation quality, final company license/trademark approval, accessibility, device performance, or physical-device release readiness; those remain separate review gates. `THIRD_PARTY_ASSETS.md` documents the current zero-third-party inventory and the evidence future intake must provide.
 
 The Chapter 1 balance table is generated from the same harness as `game:qa:balance`. Authored archetype/rank groups must exactly match stable runtime IDs in every wave, objective counts must match total roster size, and declared peak robots must match the runtime wave peak. Coin caches remain optional in affordability reporting; guaranteed combat income is reported separately so an undiscovered secret cannot masquerade as required progression currency.

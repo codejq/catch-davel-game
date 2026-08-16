@@ -11,6 +11,7 @@
     "content:export": "node scripts/export-level-content.mjs",
     "content:export:check": "node scripts/export-level-content.mjs --check",
     "content:submission": "node scripts/validate-content-submission.mjs",
+    "authoring:dry-run": "node scripts/run-authoring-dry-run.mjs",
     "build": "npm run content:schema:check && npm run content:export:check && tsc --noEmit && vite build",
     "test": "vitest run",
     "qa:campaign": "vitest run test/campaign-qa.test.ts --reporter=verbose",
