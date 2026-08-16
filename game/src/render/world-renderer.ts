@@ -17,6 +17,7 @@ import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
 import type { PulseImpactEffect } from './pulse-impact';
 import { campaignLandmarkLayout, exitBeaconBoxes, type EnvironmentBox } from './environment-landmarks';
+import { visibilityPulseFog } from './visibility-pulse';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -54,6 +55,7 @@ in vec3 vWorld;
 in float vDistance;
 in float vEmission;
 uniform vec3 uFogColor;
+uniform vec2 uFogRange;
 out vec4 outColor;
 void main() {
   vec3 normal = normalize(vNormal);
@@ -66,7 +68,7 @@ void main() {
     float line = 1.0 - smoothstep(0.455, 0.49, max(grid.x, grid.y));
     color = mix(color, color * 0.72, line * 0.32);
   }
-  float fog = smoothstep(25.0, 48.0, vDistance) * (1.0 - clamp(vEmission, 0.0, 1.0) * 0.7);
+  float fog = smoothstep(uFogRange.x, uFogRange.y, vDistance) * (1.0 - clamp(vEmission, 0.0, 1.0) * 0.7);
   outColor = vec4(mix(color, uFogColor, fog), 1.0);
 }`;
 
@@ -101,6 +103,7 @@ export class WorldRenderer {
   private readonly emissionBuffer: WebGLBuffer;
   private readonly viewProjectionLocation: WebGLUniformLocation;
   private readonly fogColorLocation: WebGLUniformLocation;
+  private readonly fogRangeLocation: WebGLUniformLocation;
   private readonly matrices = new Float32Array(MAX_INSTANCES * 16);
   private readonly colors = new Float32Array(MAX_INSTANCES * 3);
   private readonly emissions = new Float32Array(MAX_INSTANCES);
@@ -159,9 +162,13 @@ export class WorldRenderer {
     gl.vertexAttribDivisor(7, 1);
     const viewProjectionUniform = gl.getUniformLocation(this.program, 'uViewProjection');
     const fogColorUniform = gl.getUniformLocation(this.program, 'uFogColor');
-    if (viewProjectionUniform === null || fogColorUniform === null) throw new Error('World shader uniform is unavailable');
+    const fogRangeUniform = gl.getUniformLocation(this.program, 'uFogRange');
+    if (viewProjectionUniform === null || fogColorUniform === null || fogRangeUniform === null) {
+      throw new Error('World shader uniform is unavailable');
+    }
     this.viewProjectionLocation = viewProjectionUniform;
     this.fogColorLocation = fogColorUniform;
+    this.fogRangeLocation = fogRangeUniform;
     this.buildWorldInstances(this.worldLevelId);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -206,14 +213,21 @@ export class WorldRenderer {
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
     const freezeFlash = freezeDanceWindow(state.levelId, state.tick).frozen;
     const flashMix = freezeFlash ? 0.42 * settings.flashScale : 0;
-    const fogColor: RuntimeRgb = flashMix > 0
+    const baseFogColor: RuntimeRgb = flashMix > 0
       ? [this.skyColor[0] * (1 - flashMix) + flashMix, this.skyColor[1] * (1 - flashMix) + flashMix, this.skyColor[2] * (1 - flashMix) + flashMix]
       : this.skyColor;
+    const visibilityPulse = visibilityPulseFog(state.levelId, state.tick, settings.flashScale);
+    const fogColor: RuntimeRgb = visibilityPulse.greenMix > 0 ? [
+      baseFogColor[0] * (1 - visibilityPulse.greenMix) + 0.18 * visibilityPulse.greenMix,
+      baseFogColor[1] * (1 - visibilityPulse.greenMix) + 0.96 * visibilityPulse.greenMix,
+      baseFogColor[2] * (1 - visibilityPulse.greenMix) + 0.36 * visibilityPulse.greenMix,
+    ] : baseFogColor;
     gl.clearColor(fogColor[0], fogColor[1], fogColor[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(this.program);
     gl.uniformMatrix4fv(this.viewProjectionLocation, false, this.viewProjection);
     gl.uniform3f(this.fogColorLocation, fogColor[0], fogColor[1], fogColor[2]);
+    gl.uniform2f(this.fogRangeLocation, visibilityPulse.near, visibilityPulse.far);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
     this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale, settings.qualityTier);

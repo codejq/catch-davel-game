@@ -1,0 +1,521 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "836212cd99158ec0",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "ed22c5c39b4e5213",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 14000,
+        "mode": "live-agent",
+        "parTicks": 9800,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-green-steam"
+        ],
+        "seed": "campaign-level-022-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-022"
+  },
+  "briefingKey": "levels.022.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-022"
+    }
+  ],
+  "dance": {
+    "armPatternId": "toxic-toe-tango-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 130,
+    "footPatternId": "toxic-toe-tango-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "toxic-toe-tango-head-v1",
+    "pathPatternId": "toxic-toe-tango-path-v1",
+    "presetId": "toxic-toe-tango",
+    "reducedMotionPresetId": "toxic-toe-tango-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "toxic-toe-tango-torso-v1",
+    "transitionIds": [
+      "toxic-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.9,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-022"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-022"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "green-steam-company",
+      "rewardId": "chapter-03-clear-022",
+      "roomNodeId": "toxic-tango-floor",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "haze-warmup",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "haze-wobblers",
+              "modifierIds": [
+                "filter-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-1.wobblers",
+              "spawnPointSetId": "level-022-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "haze-slider",
+              "modifierIds": [
+                "steam-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-1.slider",
+              "spawnPointSetId": "level-022-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "haze-spinner",
+              "modifierIds": [
+                "scrubber-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-1.spinner",
+              "spawnPointSetId": "level-022-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "toxic-encore",
+          "id": "toxic-encore",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 5,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "encore-slider",
+              "modifierIds": [
+                "steam-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-2.slider",
+              "spawnPointSetId": "level-022-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "encore-spinner",
+              "modifierIds": [
+                "toxic-toe"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-2.spinner",
+              "spawnPointSetId": "level-022-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "encore-firemouth",
+              "modifierIds": [
+                "green-flame"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-2.firemouth",
+              "spawnPointSetId": "level-022-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "steam-foreman",
+              "modifierIds": [
+                "scrubber-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-2.foreman",
+              "spawnPointSetId": "level-022-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-22",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "toxic-toe-tango",
+              "id": "toxic-dj",
+              "modifierIds": [
+                "haze-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-22",
+              "rngStream": "encounter.level-022.wave-2.dj",
+              "spawnPointSetId": "level-022-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 22
+        }
+      ]
+    }
+  ],
+  "id": "level-022",
+  "mastery": [
+    {
+      "presetId": "level-022-par-time"
+    },
+    {
+      "presetId": "level-022-clear-vision"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "steam-intake",
+        "id": "intake-filter",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "filter-control",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "filter-control",
+        "id": "filter-crossing",
+        "requiredKeyId": "filter-key",
+        "stateTrigger": "key-collected",
+        "to": "green-steam-crossing",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "green-steam-crossing",
+        "id": "crossing-floor",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "toxic-tango-floor",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "toxic-tango-floor",
+        "id": "floor-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "steam-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "steam-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "clear-air-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "filter-control",
+        "id": "filter-bypass",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "scrubber-bypass",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "scrubber-bypass",
+        "id": "bypass-floor",
+        "requiredKeyId": "filter-key",
+        "stateTrigger": "key-collected",
+        "to": "toxic-tango-floor",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "steam-intake",
+    "exitNodeId": "clear-air-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 120,
+        "collisionProfileId": "green-steam-north-v1",
+        "id": "green-steam-north",
+        "nodeId": "green-steam-crossing",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 120,
+        "collisionProfileId": "green-steam-south-v1",
+        "id": "green-steam-south",
+        "nodeId": "toxic-tango-floor",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 120,
+        "collisionProfileId": "green-steam-spine-v1",
+        "id": "green-steam-spine",
+        "nodeId": "toxic-tango-floor",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "filter-key",
+        "placementNodeId": "filter-control"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "steam-intake",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "steam-intake"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "filter-control",
+        "pickupIds": [
+          "filter-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "filter-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "green-steam-crossing",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "visibility-pulses"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "green-steam-company"
+        ],
+        "id": "toxic-tango-floor",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "steam-lanes",
+          "toxic-tango"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "scrubber-bypass",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-scrubber"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-022",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "steam-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "clear-air-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-green-steam",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.022.name",
+  "number": 22,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-green-steam",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 9,
+      "targetIds": [
+        "haze-warmup",
+        "toxic-encore"
+      ],
+      "titleKey": "objectives.level_022",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-22"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-022-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 54,
+    "maxActiveRobots": 5,
+    "maxHazards": 3,
+    "maxMazeNodes": 9,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-022-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "visibility-pulses",
+    "steam-lanes",
+    "toxic-toe-tango"
+  ]
+}

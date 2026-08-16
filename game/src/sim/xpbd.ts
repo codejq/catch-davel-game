@@ -219,6 +219,16 @@ function targets(
     leftFootY += tap * 0.16; rightFootY += answer * 0.16;
     leftHand = [-0.58 - answer * 0.28, 1.14 + tap * 0.48, 0.38];
     rightHand = [0.58 + tap * 0.28, 1.14 + answer * 0.48, 0.38];
+  } else if (performance.motif === 'toxic-toe') {
+    const toe = Math.max(0, beat); const recoil = Math.max(0, -beat);
+    bounce += (toe + recoil) * 0.09 * intensity;
+    hipX = -alternate * 0.2 * intensity; chestX = alternate * 0.28 * intensity;
+    chestZ = -recoil * 0.14; headX += alternate * 0.22; headZ = toe * 0.12;
+    leftFootX = -0.3 + recoil * 0.18; rightFootX = 0.3 - toe * 0.18;
+    leftFootZ = toe * 0.46; rightFootZ = recoil * 0.46;
+    leftFootY += toe * 0.2; rightFootY += recoil * 0.2;
+    leftHand = [-0.86 - toe * 0.2, 1.48 + recoil * 0.32, 0.18];
+    rightHand = [0.86 + recoil * 0.2, 1.48 + toe * 0.32, 0.18];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
