@@ -28,6 +28,7 @@ import { PULSE_IMPACT_KIND } from '../sim/combat';
 import {
   DefeatCollapseTracker, defeatCollapsePose, type DefeatCollapseEffect,
 } from './defeat-collapse';
+import { combatStateMarkers } from './combat-state-markers';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -41,16 +42,19 @@ layout(location=3) in vec4 aMatrix1;
 layout(location=4) in vec4 aMatrix2;
 layout(location=5) in vec4 aMatrix3;
 layout(location=6) in vec3 aColor;
+layout(location=7) in float aEmission;
 uniform mat4 uViewProjection;
 out vec3 vNormal;
 out vec3 vColor;
 out float vGlow;
+out float vEmission;
 void main() {
   mat4 model = mat4(aMatrix0, aMatrix1, aMatrix2, aMatrix3);
   vec4 world = model * vec4(aPosition, 1.0);
   vNormal = normalize(mat3(model) * aNormal);
   vColor = aColor;
   vGlow = max(max(aColor.r, aColor.g), aColor.b);
+  vEmission = aEmission;
   gl_Position = uViewProjection * world;
 }`;
 
@@ -59,6 +63,7 @@ precision highp float;
 in vec3 vNormal;
 in vec3 vColor;
 in float vGlow;
+in float vEmission;
 out vec4 outColor;
 void main() {
   vec3 normal = normalize(vNormal);
@@ -66,6 +71,7 @@ void main() {
   float diffuse = max(dot(normal, light), 0.0);
   float rim = pow(1.0 - abs(normal.z), 2.0) * 0.12;
   vec3 color = vColor * (0.52 + diffuse * 0.55 + rim);
+  color = mix(color, vColor, clamp(vEmission, 0.0, 1.0));
   outColor = vec4(color, 1.0);
 }`;
 
@@ -96,8 +102,10 @@ class InstanceBatch {
   private readonly vao: WebGLVertexArrayObject;
   private readonly matrixBuffer: WebGLBuffer;
   private readonly colorBuffer: WebGLBuffer;
+  private readonly emissionBuffer: WebGLBuffer;
   private readonly matrices: Float32Array;
   private readonly colors: Float32Array;
+  private readonly emissions: Float32Array;
   private readonly indexCount: number;
   count = 0;
 
@@ -107,14 +115,18 @@ class InstanceBatch {
     const indexBuffer = gl.createBuffer();
     const matrixBuffer = gl.createBuffer();
     const colorBuffer = gl.createBuffer();
-    if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null || colorBuffer === null) {
+    const emissionBuffer = gl.createBuffer();
+    if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null
+      || colorBuffer === null || emissionBuffer === null) {
       throw new Error('Unable to allocate Davel mesh buffers');
     }
     this.vao = vao;
     this.matrixBuffer = matrixBuffer;
     this.colorBuffer = colorBuffer;
+    this.emissionBuffer = emissionBuffer;
     this.matrices = new Float32Array(capacity * 16);
     this.colors = new Float32Array(capacity * 3);
+    this.emissions = new Float32Array(capacity);
     this.indexCount = mesh.indices.length;
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
@@ -136,14 +148,19 @@ class InstanceBatch {
     gl.enableVertexAttribArray(6);
     gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 12, 0);
     gl.vertexAttribDivisor(6, 1);
+    gl.bindBuffer(gl.ARRAY_BUFFER, emissionBuffer);
+    gl.enableVertexAttribArray(7);
+    gl.vertexAttribPointer(7, 1, gl.FLOAT, false, 4, 0);
+    gl.vertexAttribDivisor(7, 1);
   }
 
   reset(): void { this.count = 0; }
 
-  addMatrix(matrix: readonly number[], color: Color): void {
+  addMatrix(matrix: readonly number[], color: Color, emission = 0): void {
     if ((this.count + 1) * 16 > this.matrices.length) throw new Error('Davel instance capacity exceeded');
     this.matrices.set(matrix, this.count * 16);
     this.colors.set(color, this.count * 3);
+    this.emissions[this.count] = emission;
     this.count += 1;
   }
 
@@ -154,6 +171,8 @@ class InstanceBatch {
     gl.bufferData(gl.ARRAY_BUFFER, this.matrices.subarray(0, this.count * 16), gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.colors.subarray(0, this.count * 3), gl.DYNAMIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.emissionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, this.emissions.subarray(0, this.count), gl.DYNAMIC_DRAW);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.count);
   }
@@ -528,8 +547,8 @@ export class DavelRenderer {
     this.spheres.draw();
   }
 
-  private addSphere(point: Point, radius: number, color: Color, yScale = 1, zScale = 1): void {
-    this.spheres.addMatrix(ellipsoidMatrix(point, radius, radius * yScale, radius * zScale), color);
+  private addSphere(point: Point, radius: number, color: Color, yScale = 1, zScale = 1, emission = 0): void {
+    this.spheres.addMatrix(ellipsoidMatrix(point, radius, radius * yScale, radius * zScale), color, emission);
   }
 
   private addCapsule(start: Point, end: Point, radius: number, color: Color): void {
@@ -594,6 +613,9 @@ export class DavelRenderer {
     const shoulderRight = localPoint(robot, 0.36 * definition.torsoWidth * scale, p.chest.y, 0);
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
+    for (const marker of combatStateMarkers(robot, scale, motionScale)) {
+      this.addSphere(marker, marker.radius, marker.color, marker.yScale, marker.zScale, marker.emission);
+    }
     this.addSphere({ x: robot.x, y: 0.045, z: robot.z }, 0.62 * scale, [0.035, 0.055, 0.09], 0.055, 0.76);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
     if (weakPointActive) {
