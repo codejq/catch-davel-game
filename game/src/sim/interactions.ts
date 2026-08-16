@@ -4,7 +4,7 @@ import { FIXED_DT_SECONDS, PLAYER_RADIUS } from './constants';
 import { campaignRobotWaves, type EncounterId, type RobotState } from './robots';
 import type { Chapter01LevelId } from '../content/level-ids';
 
-export type PickupKind = 'key' | 'health' | 'energy';
+export type PickupKind = 'key' | 'health' | 'energy' | 'coin';
 
 export interface PickupState {
   readonly id: string;
@@ -62,7 +62,7 @@ export interface LevelRuntimeState {
 }
 
 export type LevelInteractionEvent = {
-  readonly type: 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened'
+  readonly type: 'key-collected' | 'health-collected' | 'energy-collected' | 'coin-collected' | 'door-opened'
     | 'checkpoint-activated' | 'objective-complete' | 'exit-unlocked' | 'victory';
   readonly value?: number;
 };
@@ -74,23 +74,29 @@ interface LevelInteractionDefinition {
   readonly energy: CellPlacement;
   readonly door: CellCoordinate;
   readonly checkpoint: CellCoordinate;
+  readonly coin?: CellPlacement;
+  readonly secretCoin?: CellPlacement;
 }
 
 export const LEVEL_INTERACTION_DEFINITIONS: Readonly<Record<Chapter01LevelId, LevelInteractionDefinition>> = {
   'level-001': { health: { column: 5, row: 3, amount: 25 }, key: { column: 7, row: 5 }, energy: { column: 9, row: 7, amount: 35 }, door: { column: 7, row: 8 }, checkpoint: { column: 11, row: 9 } },
-  'level-002': { health: { column: 3, row: 3, amount: 24 }, key: { column: 3, row: 7 }, energy: { column: 11, row: 5, amount: 34 }, door: { column: 5, row: 8 }, checkpoint: { column: 9, row: 9 } },
-  'level-003': { health: { column: 11, row: 3, amount: 23 }, key: { column: 11, row: 5 }, energy: { column: 7, row: 7, amount: 33 }, door: { column: 3, row: 10 }, checkpoint: { column: 7, row: 11 } },
-  'level-004': { health: { column: 1, row: 5, amount: 22 }, key: { column: 5, row: 9 }, energy: { column: 1, row: 7, amount: 32 }, door: { column: 7, row: 12 }, checkpoint: { column: 11, row: 11 } },
-  'level-005': { health: { column: 9, row: 5, amount: 22 }, key: { column: 9, row: 11 }, energy: { column: 11, row: 7, amount: 31 }, door: { column: 9, row: 12 }, checkpoint: { column: 5, row: 11 } },
-  'level-006': { health: { column: 5, row: 7, amount: 21 }, key: { column: 3, row: 11 }, energy: { column: 3, row: 9, amount: 30 }, door: { column: 1, row: 10 }, checkpoint: { column: 7, row: 13 } },
-  'level-007': { health: { column: 13, row: 7, amount: 20 }, key: { column: 11, row: 7 }, energy: { column: 9, row: 9, amount: 29 }, door: { column: 13, row: 10 }, checkpoint: { column: 3, row: 11 } },
-  'level-008': { health: { column: 3, row: 9, amount: 20 }, key: { column: 7, row: 11 }, energy: { column: 5, row: 11, amount: 28 }, door: { column: 11, row: 10 }, checkpoint: { column: 9, row: 13 } },
-  'level-009': { health: { column: 11, row: 9, amount: 19 }, key: { column: 5, row: 13 }, energy: { column: 11, row: 11, amount: 27 }, door: { column: 1, row: 12 }, checkpoint: { column: 3, row: 13 } },
+  'level-002': { health: { column: 3, row: 3, amount: 24 }, key: { column: 3, row: 7 }, energy: { column: 11, row: 5, amount: 34 }, door: { column: 5, row: 8 }, checkpoint: { column: 9, row: 9 }, coin: { column: 8, row: 1, amount: 4 } },
+  'level-003': { health: { column: 11, row: 3, amount: 23 }, key: { column: 11, row: 5 }, energy: { column: 7, row: 7, amount: 33 }, door: { column: 3, row: 10 }, checkpoint: { column: 7, row: 11 }, coin: { column: 8, row: 3, amount: 5 } },
+  'level-004': { health: { column: 1, row: 5, amount: 22 }, key: { column: 5, row: 9 }, energy: { column: 1, row: 7, amount: 32 }, door: { column: 7, row: 12 }, checkpoint: { column: 11, row: 11 }, coin: { column: 11, row: 3, amount: 6 }, secretCoin: { column: 13, row: 7, amount: 12 } },
+  'level-005': { health: { column: 9, row: 5, amount: 22 }, key: { column: 9, row: 11 }, energy: { column: 11, row: 7, amount: 31 }, door: { column: 9, row: 12 }, checkpoint: { column: 5, row: 11 }, coin: { column: 7, row: 5, amount: 7 } },
+  'level-006': { health: { column: 5, row: 7, amount: 21 }, key: { column: 3, row: 11 }, energy: { column: 3, row: 9, amount: 30 }, door: { column: 1, row: 10 }, checkpoint: { column: 7, row: 13 }, coin: { column: 11, row: 5, amount: 8 } },
+  'level-007': { health: { column: 13, row: 7, amount: 20 }, key: { column: 11, row: 7 }, energy: { column: 9, row: 9, amount: 29 }, door: { column: 13, row: 10 }, checkpoint: { column: 3, row: 11 }, coin: { column: 13, row: 5, amount: 9 }, secretCoin: { column: 1, row: 11, amount: 15 } },
+  'level-008': { health: { column: 3, row: 9, amount: 20 }, key: { column: 7, row: 11 }, energy: { column: 5, row: 11, amount: 28 }, door: { column: 11, row: 10 }, checkpoint: { column: 9, row: 13 }, coin: { column: 13, row: 3, amount: 10 } },
+  'level-009': { health: { column: 11, row: 9, amount: 19 }, key: { column: 5, row: 13 }, energy: { column: 11, row: 11, amount: 27 }, door: { column: 1, row: 12 }, checkpoint: { column: 3, row: 13 }, coin: { column: 7, row: 7, amount: 12 }, secretCoin: { column: 13, row: 11, amount: 18 } },
   'level-010': { health: { column: 7, row: 9, amount: 30 }, key: { column: 9, row: 13 }, energy: { column: 3, row: 13, amount: 40 }, door: { column: 13, row: 12 }, checkpoint: { column: 11, row: 13 } },
 };
 
 function assertValidDefinition(levelId: Chapter01LevelId, definition: LevelInteractionDefinition): void {
-  const placements = [definition.health, definition.key, definition.energy, definition.door, definition.checkpoint];
+  const placements = [
+    definition.health, definition.key, definition.energy, definition.door, definition.checkpoint,
+    ...(definition.coin === undefined ? [] : [definition.coin]),
+    ...(definition.secretCoin === undefined ? [] : [definition.secretCoin]),
+  ];
   const identities = placements.map((cell) => `${cell.column},${cell.row}`);
   if (new Set(identities).size !== identities.length) throw new Error(`${levelId} interaction placements overlap`);
   for (const cell of placements) {
@@ -107,11 +113,17 @@ export function createLevelRuntime(
   const checkpoint = cellCenter(definition.checkpoint.column, definition.checkpoint.row);
   const exitCell = findCell('E', levelId);
   const exit = cellCenter(exitCell.column, exitCell.row);
-  const pickupDefinitions = [
+  const pickupDefinitions: { readonly id: string; readonly kind: PickupKind; readonly column: number; readonly row: number; readonly amount: number }[] = [
     { id: 'repair-kit', kind: 'health' as const, ...definition.health, amount: definition.health.amount ?? 25 },
     { id: 'workshop-key', kind: 'key' as const, ...definition.key, amount: 0 },
     { id: 'pulse-cell', kind: 'energy' as const, ...definition.energy, amount: definition.energy.amount ?? 35 },
   ];
+  if (definition.coin !== undefined) pickupDefinitions.push({
+    id: 'coin-cache', kind: 'coin', ...definition.coin, amount: definition.coin.amount ?? 5,
+  });
+  if (definition.secretCoin !== undefined) pickupDefinitions.push({
+    id: 'secret-coin-cache', kind: 'coin', ...definition.secretCoin, amount: definition.secretCoin.amount ?? 12,
+  });
   const conveyorPoint = cellCenter(9, 7);
   const hazards: HazardRuntimeState[] = levelId === 'level-006' ? [{
     id: 'hazard-006', kind: 'conveyor', x: conveyorPoint.x, z: conveyorPoint.z,
@@ -206,10 +218,13 @@ export function collectLevelInteractions(player: PlayerState, level: LevelRuntim
       const recovered = Math.min(pickup.amount, 100 - player.health);
       player.health += recovered;
       events.push({ type: 'health-collected', value: recovered });
-    } else {
+    } else if (pickup.kind === 'energy') {
       const recovered = Math.min(pickup.amount, 100 - player.energy);
       player.energy += recovered;
       events.push({ type: 'energy-collected', value: recovered });
+    } else {
+      player.coins += pickup.amount;
+      events.push({ type: 'coin-collected', value: pickup.amount });
     }
   }
   if (!level.checkpoint.activated && near(player, level.checkpoint.x, level.checkpoint.z, 0.95)) {

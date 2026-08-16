@@ -52,6 +52,21 @@ describe('authoritative Level 1 interactions', () => {
     expect(energy.active).toBe(false);
   });
 
+  it('awards deterministic branch and secret coin caches once', () => {
+    const game = new GameSimulation('coin-cache-proof', undefined, undefined, 'campaign', 'level-004');
+    const caches = game.state.level.pickups.filter((pickup) => pickup.kind === 'coin');
+    expect(caches.map((pickup) => pickup.id)).toEqual(['coin-cache', 'secret-coin-cache']);
+    const expectedCoins = caches.reduce((sum, pickup) => sum + pickup.amount, 0);
+    for (const cache of caches) {
+      game.state.player.x = cache.x;
+      game.state.player.z = cache.z;
+      game.step(idle);
+      expect(game.state.events).toContainEqual(expect.objectContaining({ type: 'coin-collected', value: cache.amount }));
+    }
+    expect(game.state.player.coins).toBe(expectedCoins);
+    expect(caches.every((pickup) => !pickup.active)).toBe(true);
+  });
+
   it('materializes distinct valid interaction layouts for every Chapter 1 level', () => {
     const signatures: string[] = [];
     for (const definition of CHAPTER_01_LEVELS) {

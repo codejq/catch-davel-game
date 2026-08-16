@@ -31,6 +31,7 @@ export const EVENT_KIND = {
   robotMelee: 22,
   robotBuff: 23,
   bossPhase: 24,
+  coinCollected: 25,
 } as const;
 
 export interface EventTransportConfig {
@@ -104,6 +105,7 @@ function encodeKind(event: GameEvent): { readonly kind: number; readonly eventCl
     case 'key-collected': return { kind: EVENT_KIND.keyCollected, eventClass: EVENT_CLASS.stateCritical };
     case 'health-collected': return { kind: EVENT_KIND.healthCollected, eventClass: EVENT_CLASS.stateCritical };
     case 'energy-collected': return { kind: EVENT_KIND.energyCollected, eventClass: EVENT_CLASS.stateCritical };
+    case 'coin-collected': return { kind: EVENT_KIND.coinCollected, eventClass: EVENT_CLASS.stateCritical };
     case 'door-opened': return { kind: EVENT_KIND.doorOpened, eventClass: EVENT_CLASS.stateCritical };
     case 'checkpoint-activated': return { kind: EVENT_KIND.checkpointActivated, eventClass: EVENT_CLASS.stateCritical };
     case 'objective-complete': return { kind: EVENT_KIND.objectiveComplete, eventClass: EVENT_CLASS.stateCritical };
@@ -123,6 +125,7 @@ function decodeKind(kind: number): GameEvent['type'] {
     case EVENT_KIND.keyCollected: return 'key-collected';
     case EVENT_KIND.healthCollected: return 'health-collected';
     case EVENT_KIND.energyCollected: return 'energy-collected';
+    case EVENT_KIND.coinCollected: return 'coin-collected';
     case EVENT_KIND.doorOpened: return 'door-opened';
     case EVENT_KIND.checkpointActivated: return 'checkpoint-activated';
     case EVENT_KIND.objectiveComplete: return 'objective-complete';

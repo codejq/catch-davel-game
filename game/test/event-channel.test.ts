@@ -80,4 +80,17 @@ describe('bounded ordered event transport', () => {
     expect(batch.recordCount).toBe(3);
     expect(EVENT_CLASS.stateCritical).toBe(1);
   });
+
+  it('preserves a state-critical coin-cache award', () => {
+    const producer = new EventProducerChannel(config(4));
+    producer.enqueue([{ tick: 12, type: 'coin-collected', value: 18 }]);
+    const batch = producer.createBatch()!;
+    const consumer = new EventConsumerQueue(config(4));
+    consumer.receive(batch.buffer);
+    const presented: { type: string; value: number | undefined; eventClass: number }[] = [];
+    consumer.presentThrough(12, (event) => presented.push({
+      type: event.type, value: event.value, eventClass: event.eventClass,
+    }));
+    expect(presented).toEqual([{ type: 'coin-collected', value: 18, eventClass: EVENT_CLASS.stateCritical }]);
+  });
 });

@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v7', () => {
+describe('self-contained RenderSnapshot v8', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -16,7 +16,7 @@ describe('self-contained RenderSnapshot v7', () => {
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
     expect(RENDER_SNAPSHOT_BYTES).toBe(9_584);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(7);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(8);
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
     expect(decoded.state.player.selectedWeapon).toBe('pulse');
@@ -78,5 +78,12 @@ describe('self-contained RenderSnapshot v7', () => {
     simulation.state.level.encounter.pendingTicks = 45;
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
     expect(decoded.state.level.encounter).toEqual({ waveIndex: 0, waveCount: 2, pendingTicks: 45 });
+  });
+
+  it('carries branch and secret coin caches without changing the fixed byte budget', () => {
+    const simulation = new GameSimulation('render-cache', undefined, undefined, 'campaign', 'level-004');
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.level.pickups.filter((pickup) => pickup.kind === 'coin')).toHaveLength(2);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_584);
   });
 });

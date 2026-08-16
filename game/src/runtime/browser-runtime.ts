@@ -209,6 +209,10 @@ export async function startBrowserGame(): Promise<void> {
       showMessage(`PULSE CELL  +${event.value ?? 0} ENERGY`);
       sound(760, 0.15, 0.04, 'triangle');
     }
+    if (event.type === 'coin-collected') {
+      showMessage(`QUANTUM CACHE  +${event.value ?? 0} COINS`);
+      sound(980, 0.2, 0.045, 'sine');
+    }
     if (event.type === 'door-opened') showMessage('WORKSHOP LOCK OPEN');
     if (event.type === 'checkpoint-activated') {
       showMessage('CHECKPOINT STABILIZED');

@@ -25,7 +25,7 @@ export interface GameEvent {
   readonly type: 'pulse-fired' | 'sword-swung' | 'sword-charged' | 'projectile-deflected'
     | 'bomb-thrown' | 'bomb-detonated' | 'laser-fired' | 'robot-hit' | 'robot-defeated' | 'robot-telegraph'
     | 'robot-fired' | 'robot-melee' | 'robot-buff' | 'boss-phase' | 'player-hit' | 'victory' | 'defeat'
-    | 'key-collected' | 'health-collected' | 'energy-collected' | 'door-opened' | 'checkpoint-activated'
+    | 'key-collected' | 'health-collected' | 'energy-collected' | 'coin-collected' | 'door-opened' | 'checkpoint-activated'
     | 'objective-complete' | 'exit-unlocked';
   readonly robotId?: number;
   readonly coins?: number;

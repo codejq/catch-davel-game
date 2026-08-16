@@ -5,7 +5,7 @@ import type {
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
-export const TRANSPORT_CONTRACT_VERSION = 7;
+export const TRANSPORT_CONTRACT_VERSION = 8;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -87,13 +87,15 @@ function decodeProjectileKind(code: number): RenderProjectileState['kind'] {
 function pickupKindCode(kind: RenderPickupState['kind']): number {
   if (kind === 'key') return 1;
   if (kind === 'health') return 2;
-  return 3;
+  if (kind === 'energy') return 3;
+  return 4;
 }
 
 function decodePickupKind(code: number): RenderPickupState['kind'] {
   if (code === 1) return 'key';
   if (code === 2) return 'health';
   if (code === 3) return 'energy';
+  if (code === 4) return 'coin';
   throw new Error(`Unknown render pickup kind ${code}`);
 }
 

@@ -58,7 +58,7 @@ export interface RenderProjectileState {
 
 export interface RenderPickupState {
   readonly id: string;
-  readonly kind: 'key' | 'health' | 'energy';
+  readonly kind: 'key' | 'health' | 'energy' | 'coin';
   readonly x: number;
   readonly z: number;
   readonly amount: number;

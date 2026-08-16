@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(7);
+    expect(observation.schemaVersion).toBe(8);
     expect(observation.dancePerformance).toEqual({
       presetId: 'wobble-march', bpm: 96, visualIntensity: 0.65, motif: 'wobble-march',
     });

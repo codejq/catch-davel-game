@@ -28,7 +28,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 7;
+  readonly schemaVersion: 8;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -78,7 +78,7 @@ export interface AgentObservation {
   };
   readonly pickups: readonly {
     readonly id: string;
-    readonly kind: 'key' | 'health' | 'energy';
+    readonly kind: 'key' | 'health' | 'energy' | 'coin';
     readonly relativeX: number;
     readonly relativeZ: number;
     readonly active: boolean;
@@ -194,7 +194,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,

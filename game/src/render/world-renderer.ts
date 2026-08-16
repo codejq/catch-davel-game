@@ -206,6 +206,8 @@ export class WorldRenderer {
       } else if (pickup.kind === 'health') {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.22, 0.9, 0.22, [0.3, 1, 0.36]);
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.82, 0.22, 0.22, [0.3, 1, 0.36]);
+      } else if (pickup.kind === 'coin') {
+        instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.68, 0.16, 0.68, [1, 0.78, 0.08]);
       } else {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.52, 0.9, 0.52, [0.12, 0.94, 1]);
       }
