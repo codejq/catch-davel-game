@@ -1,10 +1,12 @@
 import {
   RawWebGL2Renderer,
+  type ContextRecoveryResult,
   type RendererInfo,
   type RenderStats,
 } from '../render/renderer';
 import type { TickTimings } from '../sim/simulation';
 import { TransportConsumer, type TransportConsumerStats } from '../transport/consumer';
+import { runAudioVisualProbe, type AudioVisualProbeResult } from './audio-probe';
 import './style.css';
 
 interface RenderWorkerStatsBatch {
@@ -26,7 +28,13 @@ interface StallCompleteMessage {
   readonly requestId: number;
 }
 
-type RenderWorkerMessage = RenderWorkerStatsBatch | RendererInfoMessage | StallCompleteMessage;
+interface ContextProbeCompleteMessage {
+  readonly type: 'context-probe-complete';
+  readonly requestId: number;
+  readonly result: ContextRecoveryResult;
+}
+
+type RenderWorkerMessage = RenderWorkerStatsBatch | RendererInfoMessage | StallCompleteMessage | ContextProbeCompleteMessage;
 
 interface BrowserSimulationSample {
   readonly tick: number;
@@ -45,6 +53,8 @@ interface BrowserCapture {
   readonly latestTicks: () => { readonly main: number; readonly render: number };
   readonly stallMain: (milliseconds: number) => void;
   readonly stallRender: (milliseconds: number) => Promise<void>;
+  readonly probeContextRecovery: () => Promise<ContextRecoveryResult>;
+  readonly probeAudioVisual: () => Promise<AudioVisualProbeResult>;
 }
 
 function requireElement<T extends Element>(selector: string): T {
@@ -77,6 +87,7 @@ const renderSamples: RenderStats[] = [];
 const runtimeErrors: string[] = [];
 const CAPTURE_CAPACITY = 12_000;
 let stallRenderImplementation = (_milliseconds: number): Promise<void> => Promise.reject(new Error('Render stall probe is unavailable'));
+let contextProbeImplementation = (): Promise<ContextRecoveryResult> => Promise.resolve({ supported: false, lost: false, restored: false });
 
 function appendBounded<T>(target: T[], values: readonly T[]): void {
   const excess = target.length + values.length - CAPTURE_CAPACITY;
@@ -99,6 +110,8 @@ const capture: BrowserCapture = {
     }
   },
   stallRender: (milliseconds) => stallRenderImplementation(milliseconds),
+  probeContextRecovery: () => contextProbeImplementation(),
+  probeAudioVisual: () => runAudioVisualProbe(),
 };
 (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__?: BrowserCapture }).__CATCH_DAVEL_SPIKE__ = capture;
 addEventListener('error', (event) => runtimeErrors.push(event.message));
@@ -158,12 +171,23 @@ if (typeof canvas.transferControlToOffscreen === 'function') {
   const renderWorker = new Worker(new URL('../workers/render.worker.ts', import.meta.url), { type: 'module' });
   let nextStallRequest = 1;
   const pendingStalls = new Map<number, () => void>();
+  const pendingContextProbes = new Map<number, (result: ContextRecoveryResult) => void>();
   stallRenderImplementation = (milliseconds) => new Promise<void>((resolve) => {
     const requestId = nextStallRequest++;
     pendingStalls.set(requestId, resolve);
     renderWorker.postMessage({ type: 'stall', milliseconds, requestId });
   });
+  contextProbeImplementation = () => new Promise<ContextRecoveryResult>((resolve) => {
+    const requestId = nextStallRequest++;
+    pendingContextProbes.set(requestId, resolve);
+    renderWorker.postMessage({ type: 'probe-context', requestId });
+  });
   renderWorker.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
+    if (event.data.type === 'context-probe-complete') {
+      pendingContextProbes.get(event.data.requestId)?.(event.data.result);
+      pendingContextProbes.delete(event.data.requestId);
+      return;
+    }
     if (event.data.type === 'stall-complete') {
       pendingStalls.get(event.data.requestId)?.();
       pendingStalls.delete(event.data.requestId);
@@ -201,14 +225,26 @@ if (typeof canvas.transferControlToOffscreen === 'function') {
     renderWorker.postMessage({ type: 'resize', width, height, pixelRatio });
   });
 } else {
-  const renderer = new RawWebGL2Renderer(canvas);
+  let renderer = new RawWebGL2Renderer(canvas);
+  let contextProbeActive = false;
   rendererInfo = renderer.describe();
+  contextProbeImplementation = async () => {
+    contextProbeActive = true;
+    const result = await renderer.probeContextLoss();
+    if (result.restored) {
+      renderer = new RawWebGL2Renderer(canvas);
+      renderer.resize(canvas.clientWidth, canvas.clientHeight, Math.min(devicePixelRatio, 2));
+    }
+    contextProbeActive = false;
+    return result;
+  };
   resizeRenderer((width, height, pixelRatio) => renderer.resize(width, height, pixelRatio));
   new TransportConsumer(renderSnapshotChannel.port1, renderEventChannel.port1, {
     onEvent: () => {
       renderPresentedEvents += 1;
     },
     onSnapshot: (snapshot) => {
+      if (contextProbeActive) return;
       latestRenderStats = renderer.render(snapshot.current);
       latestRenderTick = latestRenderStats.tick;
       appendBounded(renderSamples, [latestRenderStats]);

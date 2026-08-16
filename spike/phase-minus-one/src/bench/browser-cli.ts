@@ -6,7 +6,8 @@ import { cpus, freemem, platform, release, totalmem } from 'node:os';
 import { dirname, extname, isAbsolute, join, normalize, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
-import type { RendererInfo, RenderStats } from '../render/renderer';
+import type { AudioVisualProbeResult } from '../browser/audio-probe';
+import type { ContextRecoveryResult, RendererInfo, RenderStats } from '../render/renderer';
 import {
   PHYSICS_SUBSTEPS,
   ROBOT_COUNT,
@@ -34,6 +35,8 @@ interface CapturedData {
   readonly runtimeErrors: string[];
   readonly viewport: { width: number; height: number; pixelRatio: number };
   readonly stallEvidence: readonly StallEvidence[];
+  readonly contextRecovery: ContextRecoveryResult | null;
+  readonly audioVisual: AudioVisualProbeResult | null;
 }
 
 interface StallEvidence {
@@ -177,8 +180,32 @@ async function run(): Promise<void> {
         runtimeErrors: capture.drainErrors(),
         viewport: { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio },
         stallEvidence: [],
+        contextRecovery: null,
+        audioVisual: null,
       };
     });
+    const contextRecovery = await page.evaluate(async () => {
+      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+        probeContextRecovery: () => Promise<ContextRecoveryResult>;
+      } }).__CATCH_DAVEL_SPIKE__;
+      return capture.probeContextRecovery();
+    });
+    captured = { ...captured, contextRecovery };
+    if (contextRecovery.supported && (!contextRecovery.lost || !contextRecovery.restored)) {
+      errors.push({ source: 'webgl-context', message: 'WebGL context did not complete loss/restoration' });
+    }
+    await page.waitForTimeout(500);
+    await page.locator('#game').click({ position: { x: 10, y: 10 } });
+    const audioVisual = await page.evaluate(async () => {
+      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+        probeAudioVisual: () => Promise<AudioVisualProbeResult>;
+      } }).__CATCH_DAVEL_SPIKE__;
+      return capture.probeAudioVisual();
+    });
+    captured = { ...captured, audioVisual };
+    if (!audioVisual.supported || audioVisual.contextState !== 'running' || audioVisual.samples.length === 0) {
+      errors.push({ source: 'audio-visual', message: 'Instrumented Web Audio probe was unavailable or produced no samples' });
+    }
     const stallEvidence: StallEvidence[] = [];
     const targets: readonly ('main' | 'render')[] = captured.mode.includes('OffscreenCanvas') ? ['main', 'render'] : ['main'];
     for (const target of targets) {
@@ -284,6 +311,16 @@ async function run(): Promise<void> {
     finalChecksum: workerChecksum,
     determinism: { nodeReferenceChecksum, workerChecksum, matches: nodeWorkerChecksumMatches },
     transportStalls: captured.stallEvidence,
+    contextRecovery: captured.contextRecovery,
+    audioVisual: captured.audioVisual === null ? null : {
+      supported: captured.audioVisual.supported,
+      contextState: captured.audioVisual.contextState,
+      baseLatencySeconds: captured.audioVisual.baseLatencySeconds,
+      outputLatencySeconds: captured.audioVisual.outputLatencySeconds,
+      audioMappingErrorMs: summarize(captured.audioVisual.samples.map((sample) => sample.audioMappingErrorMs)),
+      audioVisualSeparationMs: summarize(captured.audioVisual.samples.map((sample) => sample.audioVisualSeparationMs)),
+      limitation: captured.audioVisual.limitation,
+    },
     errors: errors.length,
     certification: 'incomplete: development VMware host is not an approved baseline device',
   };
@@ -295,6 +332,7 @@ async function run(): Promise<void> {
   writeFileSync(samplesPath, [
     ...captured.simulation.map((sample) => JSON.stringify({ type: 'simulation', ...sample })),
     ...captured.render.map((sample) => JSON.stringify({ type: 'render', ...sample })),
+    ...(captured.audioVisual?.samples ?? []).map((sample) => JSON.stringify({ type: 'audio-visual', ...sample })),
   ].join('\n') + '\n');
   writeFileSync(summaryPath, `${JSON.stringify(summary, null, 2)}\n`);
   writeFileSync(errorsPath, errors.map((error) => JSON.stringify(error)).join('\n') + (errors.length > 0 ? '\n' : ''));

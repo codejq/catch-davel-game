@@ -26,17 +26,30 @@ interface StallMessage {
   readonly requestId: number;
 }
 
-type RenderWorkerMessage = InitializeRenderMessage | ResizeMessage | StallMessage;
+interface ContextProbeMessage {
+  readonly type: 'probe-context';
+  readonly requestId: number;
+}
+
+type RenderWorkerMessage = InitializeRenderMessage | ResizeMessage | StallMessage | ContextProbeMessage;
 
 const scope = self as DedicatedWorkerGlobalScope;
 let renderer: RawWebGL2Renderer | null = null;
 let latestTransportStats: TransportConsumerStats | null = null;
 let presentedEvents = 0;
 const pendingRenderSamples: RenderStats[] = [];
+let renderCanvas: OffscreenCanvas | null = null;
+let renderWidth = 1;
+let renderHeight = 1;
+let renderPixelRatio = 1;
+let contextProbeActive = false;
 
 scope.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
   const message = event.data;
   if (message.type === 'resize') {
+    renderWidth = message.width;
+    renderHeight = message.height;
+    renderPixelRatio = message.pixelRatio;
     renderer?.resize(message.width, message.height, message.pixelRatio);
     return;
   }
@@ -48,7 +61,24 @@ scope.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
     scope.postMessage({ type: 'stall-complete', requestId: message.requestId });
     return;
   }
+  if (message.type === 'probe-context') {
+    if (renderer === null || renderCanvas === null || contextProbeActive) return;
+    contextProbeActive = true;
+    void renderer.probeContextLoss().then((result) => {
+      if (result.restored) {
+        renderer = new RawWebGL2Renderer(renderCanvas!);
+        renderer.resize(renderWidth, renderHeight, renderPixelRatio);
+      }
+      contextProbeActive = false;
+      scope.postMessage({ type: 'context-probe-complete', requestId: message.requestId, result });
+    });
+    return;
+  }
 
+  renderCanvas = message.canvas;
+  renderWidth = message.width;
+  renderHeight = message.height;
+  renderPixelRatio = message.pixelRatio;
   renderer = new RawWebGL2Renderer(message.canvas);
   renderer.resize(message.width, message.height, message.pixelRatio);
   scope.postMessage({ type: 'renderer-info', info: renderer.describe() });
@@ -60,6 +90,7 @@ scope.onmessage = (event: MessageEvent<RenderWorkerMessage>) => {
       latestTransportStats = stats;
     },
     onSnapshot: (snapshot, snapshotMessage) => {
+      if (contextProbeActive) return;
       const renderStats = renderer!.render(snapshot.current);
       pendingRenderSamples.push(renderStats);
       if (pendingRenderSamples.length >= 60) {

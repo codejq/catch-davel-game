@@ -30,6 +30,12 @@ interface BrowserSummary {
   readonly instances: { readonly maximum: number };
   readonly determinism?: { readonly matches: boolean; readonly workerChecksum: string };
   readonly transportStalls?: readonly { readonly simulationContinued: boolean }[];
+  readonly contextRecovery?: { readonly supported: boolean; readonly lost: boolean; readonly restored: boolean };
+  readonly audioVisual?: {
+    readonly audioMappingErrorMs: { readonly p95: number };
+    readonly audioVisualSeparationMs: { readonly p95: number };
+    readonly limitation: string;
+  } | null;
   readonly errors: number;
 }
 
@@ -85,9 +91,11 @@ const bombState = createScenario('phase-minus-one-bomb-squad-v1');
 const bombEvents = new EventBuffer();
 detonateRepresentativeBombSquad(bombState, bombEvents);
 const rendererName = browser.run.runtime.renderer?.renderer ?? 'not reported';
+const audioMappingP95 = browser.summary.audioVisual?.audioMappingErrorMs.p95 ?? Number.POSITIVE_INFINITY;
+const audioVisualP95 = browser.summary.audioVisual?.audioVisualSeparationMs.p95 ?? Number.POSITIVE_INFINITY;
 const report = `# Phase -1 development report
 
-Status: **Incomplete — development diagnostics pass; baseline-device certification is outstanding**
+Status: **Incomplete — core development diagnostics pass; audio timing and baseline-device certification are outstanding**
 
 This report is evidence from the current development environment only. It cannot approve Phase 0 because the named Intel UHD 620 desktop, Pixel 6a, and iPhone 12 runs have not been supplied.
 
@@ -111,6 +119,9 @@ This report is evidence from the current development environment only. It cannot
 | Render load | ${browser.summary.drawCalls.maximum} draws / ${browser.summary.instances.maximum} instances | Representative workload | Exercised |
 | Node ↔ simulation Worker checksum | ${browser.summary.determinism?.matches === true ? 'match' : 'missing/mismatch'} | Exact match | ${browser.summary.determinism?.matches === true ? 'Pass' : 'Open'} |
 | Browser consumer stalls | ${browser.summary.transportStalls?.filter((stall) => stall.simulationContinued).length ?? 0}/${browser.summary.transportStalls?.length ?? 0} continued | 50 ms–5 s, both consumers | ${(browser.summary.transportStalls?.every((stall) => stall.simulationContinued) ?? false) ? 'Pass' : 'Open'} |
+| WebGL2 context recovery | ${browser.summary.contextRecovery?.lost === true && browser.summary.contextRecovery.restored ? 'lost and restored' : 'missing/failed'} | Rebuild resources and resume | ${browser.summary.contextRecovery?.restored === true ? 'Pass' : 'Open'} |
+| Instrumented audio mapping p95 | ${Number.isFinite(audioMappingP95) ? `${fixed(audioMappingP95)} ms` : 'missing'} | ≤ 10 ms desktop | ${audioMappingP95 <= 10 ? 'Diagnostic pass' : 'Fail/open'} |
+| Instrumented audio/visual separation p95 | ${Number.isFinite(audioVisualP95) ? `${fixed(audioVisualP95)} ms` : 'missing'} | ≤ 15 ms | ${audioVisualP95 <= 15 ? 'Diagnostic pass' : 'Fail/open'} |
 | Browser runtime errors | ${browser.summary.errors} | 0 | ${browser.summary.errors === 0 ? 'Pass' : 'Fail'} |
 
 The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event peak was ${simulation.events.maximum} records/tick. The browser Worker checksum was \`${browser.summary.determinism?.workerChecksum ?? 'not recorded'}\` at its captured final tick and matched a direct Node replay at that same tick.
@@ -134,8 +145,8 @@ The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event 
 - Repeat at least five frozen \`perf:sim\` runs and the browser suite on the approved i5-8250U/UHD 620 desktop.
 - Run the Android suite on a Pixel 6a and the iOS suite on an iPhone 12.
 - Capture GPU timer-query/frame pacing, sustained memory/reset growth, and thermal behavior.
-- Complete WebGL context-loss/restoration; browser consumer stalls are now captured, while transport bounds remain covered by invariant tests.
-- Complete instrumented audio absolute timing and audio/visual separation probes.
+- Repeat the passing context-loss/restoration and browser-consumer stall probes on every baseline device; transport bounds remain covered by invariant tests.
+- Investigate the failed development audio timing result, then repeat it on baseline devices with physical speaker/display capture. Current result limitation: ${browser.summary.audioVisual?.limitation ?? 'audio probe missing'}
 - Re-run from a clean commit before promoting evidence; development runs with unrelated workspace changes remain marked dirty.
 
 Phase 0 remains gated until those items are measured and the Phase -1 report is approved. No production architecture decision is inferred from this development result.

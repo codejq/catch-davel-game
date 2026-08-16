@@ -74,6 +74,12 @@ export interface RendererInfo {
   readonly gpuTimerQueryAvailable: boolean;
 }
 
+export interface ContextRecoveryResult {
+  readonly supported: boolean;
+  readonly lost: boolean;
+  readonly restored: boolean;
+}
+
 type RenderCanvas = HTMLCanvasElement | OffscreenCanvas;
 
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -162,6 +168,33 @@ export class RawWebGL2Renderer {
       shadingLanguageVersion: String(this.gl.getParameter(this.gl.SHADING_LANGUAGE_VERSION)),
       gpuTimerQueryAvailable: this.gl.getExtension('EXT_disjoint_timer_query_webgl2') !== null,
     };
+  }
+
+  probeContextLoss(timeoutMilliseconds = 3_000): Promise<ContextRecoveryResult> {
+    const extension = this.gl.getExtension('WEBGL_lose_context');
+    if (extension === null) return Promise.resolve({ supported: false, lost: false, restored: false });
+    return new Promise((resolve) => {
+      let lost = false;
+      let finished = false;
+      const finish = (restored: boolean): void => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timeout);
+        this.canvas.removeEventListener('webglcontextlost', onLost);
+        this.canvas.removeEventListener('webglcontextrestored', onRestored);
+        resolve({ supported: true, lost, restored });
+      };
+      const onLost = (event: Event): void => {
+        event.preventDefault();
+        lost = true;
+        setTimeout(() => extension.restoreContext(), 50);
+      };
+      const onRestored = (): void => finish(true);
+      const timeout = setTimeout(() => finish(false), timeoutMilliseconds);
+      this.canvas.addEventListener('webglcontextlost', onLost);
+      this.canvas.addEventListener('webglcontextrestored', onRestored);
+      extension.loseContext();
+    });
   }
 
   render(snapshotBytes: Uint8Array, now: () => number = () => performance.now()): RenderStats {

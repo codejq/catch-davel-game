@@ -1,10 +1,10 @@
 {
   "status": "development-only",
-  "sourceRun": "perf-browser-2026-08-16T04-17-50-294Z",
+  "sourceRun": "perf-browser-2026-08-16T04-22-34-650Z",
   "rawArtifactHashes": {
-    "run": "1c2f7a693a2aef433f71b28b94b7d5745a07d74b729bcd37ab1c8af9a75ddf07",
-    "samples": "9abb625303c9dc692055435f5fa88878bca166b563dc1d53432b1e123f4a3772",
-    "summary": "16c46b45c2770b3a66d701beb387e954a2952c583dda14f4cbe5d8a7fbaf565f",
+    "run": "11cf1baf5b2822216089133979a4e157430a4cf20487b7adc2e696b7f560aa35",
+    "samples": "7ed19ac34174ea221d75e1ef9586e2256fb3deb7a8b13bd4270aca5590de934e",
+    "summary": "db259723c532b16112163b594317392e2229e9d7a10b5b00f2c1cdbb1e75e3b7",
     "errors": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "run": {
@@ -12,10 +12,10 @@
     "scenario": "perf:browser",
     "scenarioVersion": 1,
     "seed": "catch-davel-phase-minus-one-v1",
-    "gitCommit": "a391eb4e909ea3ca5df7a17d7b3c400e59138d20",
+    "gitCommit": "a5287854ba3223786721ad7ff0f36c0d6cf4e3cb",
     "dirty": true,
-    "startedAt": "2026-08-16T04:17:27.829Z",
-    "endedAt": "2026-08-16T04:17:50.345Z",
+    "startedAt": "2026-08-16T04:22:11.019Z",
+    "endedAt": "2026-08-16T04:22:34.700Z",
     "configuration": {
       "simulationSchemaVersion": 1,
       "transportContractVersion": 1,
@@ -24,7 +24,7 @@
       "iterations": 8,
       "robots": 24,
       "warmupSeconds": 1,
-      "measuredSeconds": 3
+      "measuredSeconds": 2
     },
     "runtime": {
       "browserVersion": "151.0.4129.86",
@@ -36,7 +36,7 @@
       "cpu": "Intel(R) Core(TM) i9-14900K",
       "logicalCpuCount": 12,
       "totalMemoryBytes": 32060657664,
-      "freeMemoryBytesAtReport": 19839758336,
+      "freeMemoryBytesAtReport": 19853574144,
       "viewport": {
         "width": 1280,
         "height": 720,
@@ -57,103 +57,103 @@
     "label": "development-only",
     "passedHarness": true,
     "sampleCounts": {
-      "simulation": 181,
-      "render": 180
+      "simulation": 121,
+      "render": 120
     },
     "simulation": {
       "navigationMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
-        "median": 0.09999999403953552,
+        "median": 0.10000002384185791,
         "p95": 0.20000001788139343,
-        "p99": 0.30000001192092896,
-        "maximum": 0.4000000059604645,
-        "mean": 0.13259668508287292
+        "p99": 0.20000001788139343,
+        "maximum": 1.300000011920929,
+        "mean": 0.14628099237591768
       },
       "physicsMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
         "median": 0.19999998807907104,
-        "p95": 0.29999998211860657,
+        "p95": 0.20000001788139343,
         "p99": 0.30000001192092896,
-        "maximum": 0.4000000059604645,
-        "mean": 0.16353591189858663
+        "maximum": 0.5,
+        "mean": 0.16198347176402067
       },
       "integrationExternalForcesMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
         "median": 0,
         "p95": 0,
-        "p99": 0.10000002384185791,
-        "maximum": 0.10000002384185791,
-        "mean": 0.003867403743016786
+        "p99": 0,
+        "maximum": 0.09999999403953552,
+        "mean": 0.0008264462317316985
       },
       "constraintsMotorsMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
         "median": 0.09999999403953552,
         "p95": 0.20000001788139343,
-        "p99": 0.29999998211860657,
-        "maximum": 0.30000001192092896,
-        "mean": 0.11712707142803551
+        "p99": 0.20000001788139343,
+        "maximum": 0.5,
+        "mean": 0.12314049542442826
       },
       "broadphaseCollisionMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
         "median": 0,
-        "p95": 0.09999999403953552,
-        "p99": 0.20000001788139343,
+        "p95": 0.10000002384185791,
+        "p99": 0.19999998807907104,
         "maximum": 0.20000001788139343,
-        "mean": 0.020441988884414758
+        "mean": 0.022314049980857155
       },
       "combatProjectilesHazardsMs": {
-        "samples": 181,
-        "minimum": 0,
-        "median": 0,
-        "p95": 0.09999999403953552,
-        "p99": 0.10000002384185791,
-        "maximum": 0.29999998211860657,
-        "mean": 0.010497237108030372
-      },
-      "eventsObjectivesEconomyMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0,
         "median": 0,
         "p95": 0,
         "p99": 0.09999999403953552,
         "maximum": 0.10000002384185791,
-        "mean": 0.0016574586293973976
+        "mean": 0.0049586776366903765
       },
-      "snapshotMs": {
-        "samples": 181,
+      "eventsObjectivesEconomyMs": {
+        "samples": 121,
         "minimum": 0,
         "median": 0,
-        "p95": 0.09999999403953552,
-        "p99": 0.10000002384185791,
+        "p95": 0,
+        "p99": 0.09999999403953552,
+        "maximum": 0.09999999403953552,
+        "mean": 0.001652892463463397
+      },
+      "snapshotMs": {
+        "samples": 121,
+        "minimum": 0,
+        "median": 0,
+        "p95": 0,
+        "p99": 0.09999999403953552,
         "maximum": 0.10000002384185791,
-        "mean": 0.009392265292162395
+        "mean": 0.001652892709763582
       },
       "wholeTickMs": {
-        "samples": 181,
+        "samples": 121,
         "minimum": 0.19999998807907104,
         "median": 0.30000001192092896,
         "p95": 0.4000000059604645,
-        "p99": 0.5,
-        "maximum": 0.5999999940395355,
-        "mean": 0.31878453048553257
+        "p99": 0.699999988079071,
+        "maximum": 1.600000023841858,
+        "mean": 0.3173553731815874
       }
     },
     "snapshotLatencyMs": {
-      "samples": 181,
+      "samples": 121,
       "minimum": 0,
       "median": 0,
       "p95": 0.10009765625,
-      "p99": 0.300048828125,
-      "maximum": 0.7998046875,
-      "mean": 0.026512862569060772
+      "p99": 0.199951171875,
+      "maximum": 0.39990234375,
+      "mean": 0.031409397598140494
     },
     "queuedEvents": {
-      "samples": 181,
+      "samples": 121,
       "minimum": 0,
       "median": 0,
       "p95": 0,
@@ -162,16 +162,16 @@
       "mean": 0
     },
     "renderCpuMs": {
-      "samples": 180,
+      "samples": 120,
       "minimum": 0,
       "median": 0.10000002384185791,
-      "p95": 0.20000001788139343,
-      "p99": 0.5999999940395355,
-      "maximum": 1,
-      "mean": 0.14166666650109822
+      "p95": 0.29999998211860657,
+      "p99": 0.4000000059604645,
+      "maximum": 0.9000000059604645,
+      "mean": 0.1550000011920929
     },
     "drawCalls": {
-      "samples": 180,
+      "samples": 120,
       "minimum": 3,
       "median": 3,
       "p95": 3,
@@ -180,7 +180,7 @@
       "mean": 3
     },
     "instances": {
-      "samples": 180,
+      "samples": 120,
       "minimum": 697,
       "median": 697,
       "p95": 697,
@@ -188,12 +188,12 @@
       "maximum": 697,
       "mean": 697
     },
-    "firstTick": 68,
-    "lastTick": 248,
-    "finalChecksum": "f9a000c0",
+    "firstTick": 70,
+    "lastTick": 190,
+    "finalChecksum": "2771fd06",
     "determinism": {
-      "nodeReferenceChecksum": "f9a000c0",
-      "workerChecksum": "f9a000c0",
+      "nodeReferenceChecksum": "2771fd06",
+      "workerChecksum": "2771fd06",
       "matches": true
     },
     "transportStalls": [
@@ -201,12 +201,12 @@
         "target": "main",
         "milliseconds": 50,
         "before": {
-          "main": 250,
-          "render": 245
+          "main": 319,
+          "render": 309
         },
         "after": {
-          "main": 263,
-          "render": 245
+          "main": 332,
+          "render": 309
         },
         "simulationContinued": true
       },
@@ -214,12 +214,12 @@
         "target": "main",
         "milliseconds": 250,
         "before": {
-          "main": 263,
-          "render": 245
+          "main": 332,
+          "render": 309
         },
         "after": {
-          "main": 288,
-          "render": 245
+          "main": 356,
+          "render": 309
         },
         "simulationContinued": true
       },
@@ -227,12 +227,12 @@
         "target": "main",
         "milliseconds": 1000,
         "before": {
-          "main": 288,
-          "render": 245
+          "main": 357,
+          "render": 309
         },
         "after": {
-          "main": 357,
-          "render": 305
+          "main": 426,
+          "render": 369
         },
         "simulationContinued": true
       },
@@ -240,12 +240,12 @@
         "target": "main",
         "milliseconds": 5000,
         "before": {
-          "main": 357,
-          "render": 305
+          "main": 426,
+          "render": 369
         },
         "after": {
-          "main": 667,
-          "render": 665
+          "main": 736,
+          "render": 729
         },
         "simulationContinued": true
       },
@@ -253,12 +253,12 @@
         "target": "render",
         "milliseconds": 50,
         "before": {
-          "main": 667,
-          "render": 665
+          "main": 736,
+          "render": 729
         },
         "after": {
-          "main": 737,
-          "render": 726
+          "main": 806,
+          "render": 790
         },
         "simulationContinued": true
       },
@@ -266,12 +266,12 @@
         "target": "render",
         "milliseconds": 250,
         "before": {
-          "main": 737,
-          "render": 726
+          "main": 807,
+          "render": 790
         },
         "after": {
-          "main": 818,
-          "render": 799
+          "main": 888,
+          "render": 863
         },
         "simulationContinued": true
       },
@@ -279,12 +279,12 @@
         "target": "render",
         "milliseconds": 1000,
         "before": {
-          "main": 818,
-          "render": 799
+          "main": 888,
+          "render": 863
         },
         "after": {
-          "main": 945,
-          "render": 916
+          "main": 1015,
+          "render": 981
         },
         "simulationContinued": true
       },
@@ -292,16 +292,46 @@
         "target": "render",
         "milliseconds": 5000,
         "before": {
-          "main": 945,
-          "render": 916
+          "main": 1015,
+          "render": 981
         },
         "after": {
-          "main": 1312,
-          "render": 1274
+          "main": 1382,
+          "render": 1339
         },
         "simulationContinued": true
       }
     ],
+    "contextRecovery": {
+      "supported": true,
+      "lost": true,
+      "restored": true
+    },
+    "audioVisual": {
+      "supported": true,
+      "contextState": "running",
+      "baseLatencySeconds": 0.01,
+      "outputLatencySeconds": 0.048,
+      "audioMappingErrorMs": {
+        "samples": 12,
+        "minimum": 8.384000005960388,
+        "median": 13.521999999999935,
+        "p95": 15.993000000000393,
+        "p99": 15.993000000000393,
+        "maximum": 15.993000000000393,
+        "mean": 13.193166665176667
+      },
+      "audioVisualSeparationMs": {
+        "samples": 12,
+        "minimum": 7.784000005960024,
+        "median": 14.500999994039375,
+        "p95": 32.99300000000039,
+        "p99": 32.99300000000039,
+        "maximum": 32.99300000000039,
+        "mean": 15.526499998509925
+      },
+      "limitation": "Instrumented Web Audio clock mapping and animation-frame timing only; no microphone, speaker, photodiode, or physical display capture."
+    },
     "errors": 0,
     "certification": "incomplete: development VMware host is not an approved baseline device"
   }
