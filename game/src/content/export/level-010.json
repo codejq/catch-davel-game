@@ -1,0 +1,316 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "abb88e1dff516df8",
+          "effectiveLevel": "3637dc0e10443f7c",
+          "policyOrReplay": "d3d7c87fc057d2d4",
+          "simulationLevel": "ca2195b229d1f939",
+          "simulationSchema": "be2cb2b2041c50ba"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 9000,
+        "mode": "live-agent",
+        "parTicks": 7000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "defeat-chief-wobble"
+        ],
+        "seed": "campaign-level-010-v1",
+        "stuckTimeoutTicks": 900
+      }
+    ],
+    "tier": "boss"
+  },
+  "audio": {
+    "presetId": "audio-neon-workshop-010"
+  },
+  "briefingKey": "levels.010.briefing",
+  "chapterId": "chapter-01",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-010"
+    }
+  ],
+  "dance": {
+    "armPatternId": "giant-wobble-breakdown-arms-v1",
+    "attackBeats": [
+      4,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 116,
+    "footPatternId": "giant-wobble-breakdown-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "giant-wobble-breakdown-head-v1",
+    "pathPatternId": "giant-wobble-breakdown-path-v1",
+    "presetId": "giant-wobble-breakdown",
+    "reducedMotionPresetId": "giant-wobble-breakdown-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "giant-wobble-breakdown-torso-v1",
+    "transitionIds": [
+      "objective-clear"
+    ],
+    "visualIntensity": 0.92,
+    "vulnerableBeats": [
+      2,
+      6,
+      10,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-01-010"
+  },
+  "economy": {
+    "presetId": "economy-chapter-01-010"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "target-defeated",
+      "id": "chief-wobble",
+      "rewardId": "chapter-01-clear-010",
+      "roomNodeId": "room-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "target-defeated",
+          "danceTransitionId": null,
+          "id": "wave-010-1",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 1,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-invoice-overlord-v1",
+              "aiProfileId": "chapter-01-stage-10",
+              "archetypeId": "invoice-overlord",
+              "count": 1,
+              "dancePresetId": "giant-wobble-breakdown",
+              "id": "invoice-overlord-1-1",
+              "modifierIds": [
+                "chief-wobble"
+              ],
+              "rank": "boss",
+              "rewardProfileId": "chapter-01-coins-10",
+              "rngStream": "encounter.level-010.wave-1.group-1",
+              "spawnPointSetId": "level-010-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-010",
+  "mastery": [
+    {
+      "presetId": "level-010-par-time"
+    },
+    {
+      "presetId": "level-010-accuracy"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-entry",
+        "id": "edge-entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-key",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "room-key",
+        "id": "edge-key-arena",
+        "requiredKeyId": "workshop-key",
+        "stateTrigger": "key-collected",
+        "to": "room-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-arena",
+        "id": "edge-arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-checkpoint",
+        "id": "edge-checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "room-exit",
+        "traversalCost": 1
+      }
+    ],
+    "entranceNodeId": "room-entry",
+    "exitNodeId": "room-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [],
+    "keys": [
+      {
+        "id": "workshop-key",
+        "placementNodeId": "room-key"
+      }
+    ],
+    "maxBranchDepth": 0,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-key",
+        "pickupIds": [
+          "workshop-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "chief-wobble"
+        ],
+        "id": "room-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "chapter-boss"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-010",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 0,
+      "minimum": 0
+    },
+    "secretCount": 0,
+    "templateSetId": "workshop-chief-wobble",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.010.name",
+  "number": 10,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "defeat-chief-wobble",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 1,
+      "targetIds": [
+        "wave-010-1"
+      ],
+      "titleKey": "objectives.defeat_chief_wobble",
+      "type": "boss"
+    }
+  ],
+  "palette": {
+    "presetId": "neon-workshop-10"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-010-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 5,
+    "maxActiveProjectiles": 15,
+    "maxActiveRobots": 1,
+    "maxHazards": 0,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 576
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-010-v1",
+  "tags": [
+    "chapter-01",
+    "workshop",
+    "pulse-gun",
+    "chapter-boss"
+  ]
+}

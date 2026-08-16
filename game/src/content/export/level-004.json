@@ -1,0 +1,380 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "abb88e1dff516df8",
+          "effectiveLevel": "c65ade68953e408f",
+          "policyOrReplay": "d3d7c87fc057d2d4",
+          "simulationLevel": "ca2195b229d1f939",
+          "simulationSchema": "be2cb2b2041c50ba"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 7200,
+        "mode": "live-agent",
+        "parTicks": 5500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels-004"
+        ],
+        "seed": "campaign-level-004-v1",
+        "stuckTimeoutTicks": 900
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-neon-workshop-004"
+  },
+  "briefingKey": "levels.004.briefing",
+  "chapterId": "chapter-01",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-004"
+    }
+  ],
+  "dance": {
+    "armPatternId": "corner-peek-groove-arms-v1",
+    "attackBeats": [
+      4,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 102,
+    "footPatternId": "corner-peek-groove-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "corner-peek-groove-head-v1",
+    "pathPatternId": "corner-peek-groove-path-v1",
+    "presetId": "corner-peek-groove",
+    "reducedMotionPresetId": "corner-peek-groove-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "corner-peek-groove-torso-v1",
+    "transitionIds": [
+      "objective-clear"
+    ],
+    "visualIntensity": 0.72,
+    "vulnerableBeats": [
+      2,
+      6,
+      10,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-01-004"
+  },
+  "economy": {
+    "presetId": "economy-chapter-01-004"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "workshop-encounter-004",
+      "rewardId": "chapter-01-clear-004",
+      "roomNodeId": "room-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "wave-004-1",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 7,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-01-stage-4",
+              "archetypeId": "wobble-scout",
+              "count": 7,
+              "dancePresetId": "corner-peek-groove",
+              "id": "wobble-scout-1-1",
+              "modifierIds": [
+                "ambusher"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-4",
+              "rngStream": "encounter.level-004.wave-1.group-1",
+              "spawnPointSetId": "level-004-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-004",
+  "mastery": [
+    {
+      "presetId": "level-004-par-time"
+    },
+    {
+      "presetId": "level-004-accuracy"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-entry",
+        "id": "edge-entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-key",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "room-key",
+        "id": "edge-key-arena",
+        "requiredKeyId": "workshop-key",
+        "stateTrigger": "key-collected",
+        "to": "room-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-arena",
+        "id": "edge-arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-checkpoint",
+        "id": "edge-checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "room-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-key",
+        "id": "edge-key-loop",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "room-loop",
+        "id": "edge-loop-checkpoint",
+        "requiredKeyId": "workshop-key",
+        "stateTrigger": "key-collected",
+        "to": "room-checkpoint",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-key",
+        "id": "edge-key-secret",
+        "requiredKeyId": null,
+        "stateTrigger": "secret-discovered",
+        "to": "room-secret",
+        "traversalCost": 3
+      }
+    ],
+    "entranceNodeId": "room-entry",
+    "exitNodeId": "room-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [],
+    "keys": [
+      {
+        "id": "workshop-key",
+        "placementNodeId": "room-key"
+      }
+    ],
+    "maxBranchDepth": 2,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-key",
+        "pickupIds": [
+          "workshop-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "workshop-encounter-004"
+        ],
+        "id": "room-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "ambush",
+          "secret"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-004",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "objective-exit"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "room-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "branch"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "room-secret",
+        "pickupIds": [
+          "secret-coin-cache"
+        ],
+        "role": "secret",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "secret"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 2,
+      "minimum": 1
+    },
+    "secretCount": 1,
+    "templateSetId": "workshop-wrong-turn-boogie",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.004.name",
+  "number": 4,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "deactivate-davels-004",
+      "markerPolicy": "discovered",
+      "required": true,
+      "targetCount": 7,
+      "targetIds": [
+        "wave-004-1"
+      ],
+      "titleKey": "objectives.level_004",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "neon-workshop-04"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-004-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 5,
+    "maxActiveProjectiles": 33,
+    "maxActiveRobots": 7,
+    "maxHazards": 0,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 960
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-004-v1",
+  "tags": [
+    "chapter-01",
+    "workshop",
+    "pulse-gun",
+    "ambush",
+    "secret"
+  ]
+}

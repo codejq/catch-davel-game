@@ -1,0 +1,365 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "abb88e1dff516df8",
+          "effectiveLevel": "e616b59f6de319af",
+          "policyOrReplay": "d3d7c87fc057d2d4",
+          "simulationLevel": "ca2195b229d1f939",
+          "simulationSchema": "be2cb2b2041c50ba"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 8400,
+        "mode": "live-agent",
+        "parTicks": 6500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "deactivate-davels-008"
+        ],
+        "seed": "campaign-level-008-v1",
+        "stuckTimeoutTicks": 900
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-neon-workshop-008"
+  },
+  "briefingKey": "levels.008.briefing",
+  "chapterId": "chapter-01",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-008"
+    }
+  ],
+  "dance": {
+    "armPatternId": "clockwork-charleston-arms-v1",
+    "attackBeats": [
+      4,
+      12
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 110,
+    "footPatternId": "clockwork-charleston-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "clockwork-charleston-head-v1",
+    "pathPatternId": "clockwork-charleston-path-v1",
+    "presetId": "clockwork-charleston",
+    "reducedMotionPresetId": "clockwork-charleston-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "clockwork-charleston-torso-v1",
+    "transitionIds": [
+      "objective-clear"
+    ],
+    "visualIntensity": 0.8,
+    "vulnerableBeats": [
+      2,
+      6,
+      10,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-01-008"
+  },
+  "economy": {
+    "presetId": "economy-chapter-01-008"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "workshop-encounter-008",
+      "rewardId": "chapter-01-clear-008",
+      "roomNodeId": "room-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "wave-008-1",
+          "interGroupDelayTicks": 18,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 8,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-01-stage-8",
+              "archetypeId": "wobble-scout",
+              "count": 5,
+              "dancePresetId": "clockwork-charleston",
+              "id": "wobble-scout-1-1",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-8",
+              "rngStream": "encounter.level-008.wave-1.group-1",
+              "spawnPointSetId": "level-008-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-01-stage-8",
+              "archetypeId": "blue-slider",
+              "count": 3,
+              "dancePresetId": "clockwork-charleston",
+              "id": "blue-slider-1-2",
+              "modifierIds": [],
+              "rank": "normal",
+              "rewardProfileId": "chapter-01-coins-8",
+              "rngStream": "encounter.level-008.wave-1.group-2",
+              "spawnPointSetId": "level-008-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-008",
+  "mastery": [
+    {
+      "presetId": "level-008-par-time"
+    },
+    {
+      "presetId": "level-008-accuracy"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-entry",
+        "id": "edge-entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-key",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "room-key",
+        "id": "edge-key-arena",
+        "requiredKeyId": "workshop-key",
+        "stateTrigger": "key-collected",
+        "to": "room-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-arena",
+        "id": "edge-arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-checkpoint",
+        "id": "edge-checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "room-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-key",
+        "id": "edge-key-loop",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "room-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "room-loop",
+        "id": "edge-loop-checkpoint",
+        "requiredKeyId": "workshop-key",
+        "stateTrigger": "key-collected",
+        "to": "room-checkpoint",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "room-entry",
+    "exitNodeId": "room-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [],
+    "keys": [
+      {
+        "id": "workshop-key",
+        "placementNodeId": "room-key"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-key",
+        "pickupIds": [
+          "workshop-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "workshop-encounter-008"
+        ],
+        "id": "room-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "timed-doors",
+          "mixed-scouts"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-008",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "room-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "objective-exit"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "room-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "branch"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "workshop-shift-change",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.008.name",
+  "number": 8,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "deactivate-davels-008",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 8,
+      "targetIds": [
+        "wave-008-1"
+      ],
+      "titleKey": "objectives.level_008",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "neon-workshop-08"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-008-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 5,
+    "maxActiveProjectiles": 36,
+    "maxActiveRobots": 8,
+    "maxHazards": 0,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-008-v1",
+  "tags": [
+    "chapter-01",
+    "workshop",
+    "pulse-gun",
+    "timed-doors",
+    "mixed-scouts"
+  ]
+}
