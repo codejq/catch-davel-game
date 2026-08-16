@@ -530,9 +530,19 @@ try {
     kind: Number(document.body.dataset.pulseImpactKind),
     position: document.body.dataset.pulseImpactPosition?.split(',').map(Number) ?? [],
   }));
+  const fallbackPulseVariation = await fallbackPage.evaluate(() => ({
+    identity: Number(document.body.dataset.pulseAudioVariationIdentity),
+    gain: Number(document.body.dataset.pulseAudioVariationGain),
+    pitch: Number(document.body.dataset.pulseAudioVariationPitch),
+  }));
   if (![0, 1, 2].includes(fallbackPulseImpact.kind) || fallbackPulseImpact.position.length !== 3
     || !fallbackPulseImpact.position.every(Number.isFinite)) {
     throw new Error(`Main-thread pulse contact lost its event anchor: ${JSON.stringify(fallbackPulseImpact)}`);
+  }
+  if (!Number.isSafeInteger(fallbackPulseVariation.identity) || fallbackPulseVariation.identity < 0
+    || fallbackPulseVariation.gain < 0.94 || fallbackPulseVariation.gain > 1
+    || fallbackPulseVariation.pitch < 0.975 || fallbackPulseVariation.pitch > 1.025) {
+    throw new Error(`Pulse event did not apply bounded deterministic audio variation: ${JSON.stringify(fallbackPulseVariation)}`);
   }
   await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.bombFuseTick)));
   const fallbackBombFuse = await fallbackPage.evaluate(() => ({
@@ -560,6 +570,17 @@ try {
   if (fallbackBombDetonation.bombId !== 1 || fallbackBombDetonation.position.length !== 3
     || !fallbackBombDetonation.position.every(Number.isFinite)) {
     throw new Error(`Main-thread pulse-bomb effect lost its event position: ${JSON.stringify(fallbackBombDetonation)}`);
+  }
+  await fallbackPage.waitForFunction(() => Number(document.body.dataset.spatialAudioOccludedCount) > 0, null, { timeout: 3_000 });
+  const fallbackAudioObstruction = await fallbackPage.evaluate(() => ({
+    count: Number(document.body.dataset.spatialAudioOccludedCount),
+    cue: document.body.dataset.spatialAudioLastOccludedCue,
+    gain: Number(document.body.dataset.spatialAudioLastOccludedGain),
+    lowPassHz: Number(document.body.dataset.spatialAudioLastOccludedLowPassHz),
+  }));
+  if (fallbackAudioObstruction.count < 1 || fallbackAudioObstruction.gain <= 0
+    || fallbackAudioObstruction.gain > 0.58 || fallbackAudioObstruction.lowPassHz !== 920) {
+    throw new Error(`World audio did not apply bounded wall obstruction: ${JSON.stringify(fallbackAudioObstruction)}`);
   }
   const contextLossStartTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
   const supportsContextLoss = await fallbackPage.evaluate(() => {
@@ -744,9 +765,10 @@ try {
     ambienceProof, playerMovementAudioProof, lifecycle, browserErrors: errors,
     fallback: {
       ...fallback, swordArc: fallbackSwordArc, pulseEnergyCellTick: fallbackPulseEnergyCellTick,
-      pulseImpact: fallbackPulseImpact,
+      pulseImpact: fallbackPulseImpact, pulseVariation: fallbackPulseVariation,
       bombFuse: fallbackBombFuse,
-      bombDetonation: fallbackBombDetonation, contextRecovery, browserErrors: fallbackErrors,
+      bombDetonation: fallbackBombDetonation, audioObstruction: fallbackAudioObstruction,
+      contextRecovery, browserErrors: fallbackErrors,
     },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

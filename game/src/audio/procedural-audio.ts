@@ -26,6 +26,11 @@ export interface AudioMixSettings {
   readonly dynamicRange: DynamicRangePreset;
 }
 
+export interface ProceduralCueVariation {
+  readonly gainScale: number;
+  readonly pitchScale: number;
+}
+
 export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
   weapons: 1, robots: 1, environment: 1, interface: 1, voice: 1, dynamicRange: 'balanced',
 };
@@ -162,6 +167,19 @@ function nextNoise(state: number): number {
   return value | 0;
 }
 
+/** Stable event identity adds subtle life without introducing a runtime random source. */
+export function proceduralCueVariation(cue: AudioCue, eventIdentity: number): ProceduralCueVariation {
+  if (!Number.isSafeInteger(eventIdentity) || eventIdentity < 0) {
+    throw new Error('Audio variation identity must be a non-negative safe integer');
+  }
+  if (AUDIO_CUE_BUS[cue] === 'interface') return { gainScale: 1, pitchScale: 1 };
+  const identity = seedText(`${cue}:${eventIdentity}`);
+  return {
+    gainScale: 0.94 + ((identity >>> 16) & 0xffff) / 0xffff * 0.06,
+    pitchScale: 0.975 + (identity & 0xffff) / 0xffff * 0.05,
+  };
+}
+
 export interface ProceduralAmbienceProfile {
   readonly primaryFrequency: number;
   readonly secondaryFrequency: number;
@@ -275,18 +293,24 @@ export class ProceduralAudio {
 
   get ambienceSourceCount(): number { return this.ambienceSources.length; }
 
-  play(cue: AudioCue, pan = 0, gainScale = 1, pitchScale = 1): void {
+  play(cue: AudioCue, pan = 0, gainScale = 1, pitchScale = 1, lowPassHz: number | null = null): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
     const boundedGain = Math.max(0, Math.min(1, gainScale));
     const boundedPitch = boundedAudioPitchScale(pitchScale);
+    const boundedLowPass = lowPassHz === null ? null
+      : Number.isFinite(lowPassHz) ? Math.max(400, Math.min(20_000, lowPassHz)) : null;
     if (boundedGain === 0) return;
     if (this.activeSources + layers.length > TRANSIENT_AUDIO_SOURCE_CAP) return;
     for (const layer of layers) {
-      this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain, boundedPitch);
+      this.playLayer(
+        layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain, boundedPitch, boundedLowPass,
+      );
     }
   }
 
-  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus, gainScale: number, pitchScale: number): void {
+  private playLayer(
+    layer: AudioLayer, pan: number, bus: AudioBus, gainScale: number, pitchScale: number, lowPassHz: number | null,
+  ): void {
     const now = this.context.currentTime + (layer.delay ?? 0);
     const envelope = this.context.createGain();
     const panner = this.context.createStereoPanner();
@@ -295,7 +319,14 @@ export class ProceduralAudio {
     envelope.gain.exponentialRampToValueAtTime(layer.gain * gainScale, now + Math.min(0.006, layer.duration * 0.2));
     envelope.gain.exponentialRampToValueAtTime(0.0001, now + layer.duration);
     envelope.connect(panner);
-    panner.connect(this.buses[bus]);
+    if (lowPassHz === null) panner.connect(this.buses[bus]);
+    else {
+      const obstructionFilter = this.context.createBiquadFilter();
+      obstructionFilter.type = 'lowpass';
+      obstructionFilter.frequency.value = lowPassHz;
+      obstructionFilter.Q.value = 0.65;
+      panner.connect(obstructionFilter).connect(this.buses[bus]);
+    }
 
     const source = layer.kind === 'tone' ? this.context.createOscillator() : this.context.createBufferSource();
     if (layer.kind === 'tone' && source instanceof OscillatorNode) {

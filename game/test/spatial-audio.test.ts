@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
-  WORLD_AUDIO_MAX_DISTANCE, WORLD_AUDIO_MIN_GAIN, spatialAudioMix,
+  WORLD_AUDIO_MAX_DISTANCE, WORLD_AUDIO_MIN_GAIN, WORLD_AUDIO_OCCLUDED_GAIN_SCALE,
+  WORLD_AUDIO_OCCLUDED_LOW_PASS_HZ, spatialAudioMix, spatialAudioObstruction,
 } from '../src/audio/spatial-audio';
 
 describe('listener-relative world audio projection', () => {
@@ -32,5 +33,20 @@ describe('listener-relative world audio projection', () => {
       .toEqual({ pan: 0, gainScale: 1, distance: 0 });
     expect(() => spatialAudioMix({ x: 0, z: 0, yaw: Number.NaN }, { x: 1, z: 0 })).toThrow(/finite/);
     expect(() => spatialAudioMix({ x: 0, z: 0, yaw: 0 }, { x: 1, z: 0 }, 1)).toThrow(/maximum/);
+  });
+
+  it('projects a bounded low-pass obstruction response without treating endpoints as walls', () => {
+    const listener = { x: 0, z: 0 };
+    const source = { x: 4, z: 0 };
+    const clear = spatialAudioObstruction(listener, source, () => false);
+    const blocked = spatialAudioObstruction(listener, source, (x) => x >= 1.9 && x <= 2.1);
+    expect(clear).toEqual({ occluded: false, gainScale: 1, lowPassHz: null });
+    expect(blocked).toEqual({
+      occluded: true,
+      gainScale: WORLD_AUDIO_OCCLUDED_GAIN_SCALE,
+      lowPassHz: WORLD_AUDIO_OCCLUDED_LOW_PASS_HZ,
+    });
+    expect(spatialAudioObstruction(listener, source, (x) => x === 0 || x === 4).occluded).toBe(false);
+    expect(() => spatialAudioObstruction(listener, source, () => false, 0)).toThrow(/positive/);
   });
 });

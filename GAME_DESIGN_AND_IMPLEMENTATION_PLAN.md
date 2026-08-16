@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **14 — persistent independent audio buses implemented; physical devices remain certification-only**
+Revision: **15 — wall obstruction and deterministic audio variation implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -21,6 +21,8 @@ Revision 12 records the implemented spatial-transient audio pass. Robot attacks,
 Revision 13 records the implemented granular effects-bus graph. Every procedural cue now routes exhaustively to one of five dedicated Web Audio gain nodes—`weapons`, `robots`, `environment`, `interface`, or `voice`—before the shared dry/room-response/master chain; continuous ambience enters `environment`, Davel mechanisms enter `robots`, and personality taunts enter `voice`. Music retains its separately controlled sequencer path. The existing persisted combat/world/interface controls currently operate as grouped macros over those five nodes, preserving profile v10 while the next persistence slice adds independent five-bus controls and migration required by Section 15.10.
 
 Revision 14 records the completed independent effects-bus persistence contract. English and Arabic settings now expose separate `weapons`, `robots`, `environment`, `interface`, and `voice` controls; a persisted value of zero is the bus mute. Profile v11 stores all five values independently. Its checksum-first v10→v11 migration maps legacy combat gain to weapons and robots, world gain to environment and voice, and interface gain to interface. Because this is presentation-only, a valid schema-v18 campaign checkpoint is retained unchanged. The strict browser and packaged transfer filename is now `catch-davel-profile-v11.json`; simulation schema, replay format, transport contracts, frozen checksums, and LLM observations are unchanged.
+
+Revision 15 records the completed maze-obstruction and event-variation audio pass. Positioned Davel and bomb cues sample the open listener/source segment against static maze walls, the closed workshop door, and active timed gates using current immutable presentation state. An obstructed route applies a fixed 0.58 gain multiplier and a real 920 Hz per-transient low-pass node; endpoints are excluded so a listener or source touching a gate cannot self-occlude. Non-interface transported events also derive bounded 0.94–1.0 gain and 0.975–1.025 pitch variation from cue plus stable event ID, while interface cues remain exact and movement/laser/fuse sequencers retain their purpose-built modulation. No runtime random source, simulation state, replay dependency, transport field, save field, or LLM observation was added.
 
 ## 1. Executive summary
 

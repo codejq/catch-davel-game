@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   AUDIO_BUSES, AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
   AMBIENCE_SOURCE_CAP, TOTAL_AUDIO_SOURCE_CAP, TRANSIENT_AUDIO_SOURCE_CAP,
-  boundedAudioPitchScale, proceduralAmbienceProfile, validateAudioMixSettings, validateProceduralAudioDefinitions,
+  boundedAudioPitchScale, proceduralAmbienceProfile, proceduralCueVariation,
+  validateAudioMixSettings, validateProceduralAudioDefinitions,
 } from '../src/audio/procedural-audio';
 import { AUDIO_RUNTIME_PROFILES } from '../src/content/runtime-manifests';
 
@@ -76,5 +77,17 @@ describe('project-original procedural audio contracts', () => {
     expect(boundedAudioPitchScale(5)).toBe(2);
     expect(boundedAudioPitchScale(Number.NaN)).toBe(1);
     expect(TOTAL_AUDIO_SOURCE_CAP).toBe(TRANSIENT_AUDIO_SOURCE_CAP + AMBIENCE_SOURCE_CAP);
+  });
+
+  it('derives subtle repeatable event variation while keeping interface cues stable', () => {
+    const first = proceduralCueVariation('pulse', 42);
+    expect(proceduralCueVariation('pulse', 42)).toEqual(first);
+    expect(proceduralCueVariation('pulse', 43)).not.toEqual(first);
+    expect(first.gainScale).toBeGreaterThanOrEqual(0.94);
+    expect(first.gainScale).toBeLessThanOrEqual(1);
+    expect(first.pitchScale).toBeGreaterThanOrEqual(0.975);
+    expect(first.pitchScale).toBeLessThanOrEqual(1.025);
+    expect(proceduralCueVariation('objective', 42)).toEqual({ gainScale: 1, pitchScale: 1 });
+    expect(() => proceduralCueVariation('pulse', -1)).toThrow(/identity/);
   });
 });

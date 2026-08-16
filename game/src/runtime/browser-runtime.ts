@@ -1,7 +1,7 @@
 import { WorkerAgentController } from '../agent/worker-api';
 import { createRendererHost } from '../render/renderer-host';
 import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
-import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
+import { CELL_SIZE, DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
 import { createDefaultProfile, updateProfile, type ProfileV11 } from '../storage/profile';
@@ -24,7 +24,7 @@ import {
   bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat,
 } from '../campaign/progression';
 import { nextUnlockedWeapon, touchFireHeld, virtualStickVector } from './touch-input';
-import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
+import { ProceduralAudio, proceduralCueVariation, type AudioCue } from '../audio/procedural-audio';
 import { audioRuntimeProfile, musicRuntimeProfile } from '../content/runtime-manifests';
 import { presentationFeedback } from './presentation-feedback';
 import { ProceduralMusicSequencer } from '../audio/music-sequencer';
@@ -63,7 +63,10 @@ import {
 } from '../render/sword-arc';
 import { BombFuseAudioSequencer, type BombFuseAudioRequest } from '../audio/bomb-fuse-sequencer';
 import { normalizePulseImpactKind } from '../render/pulse-impact';
-import { spatialAudioMix, type SpatialAudioMix } from '../audio/spatial-audio';
+import {
+  spatialAudioMix, spatialAudioObstruction, type SpatialAudioMix, type SpatialAudioObstruction,
+} from '../audio/spatial-audio';
+import { isWallAtWorld, worldCell } from '../sim/level';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -693,30 +696,86 @@ export async function startBrowserGame(): Promise<void> {
     return audio;
   };
 
+  type PositionedSoundResult = SpatialAudioMix & SpatialAudioObstruction & { readonly outputGainScale: number };
+
   const playPositionedSound = (
     cue: AudioCue, x: number, z: number, gainScale = 1, pitchScale = 1, attenuate = true,
-  ): SpatialAudioMix | null => {
+    variationIdentity: number | null = null,
+  ): PositionedSoundResult | null => {
     if (audio === null || renderState === null) return null;
-    const spatial = spatialAudioMix(renderState.player, { x, z });
-    const finalGain = gainScale * (attenuate ? spatial.gainScale : 1);
-    audio.play(cue, spatial.pan, finalGain, pitchScale);
+    const state = renderState;
+    const spatial = spatialAudioMix(state.player, { x, z });
+    const listenerCell = worldCell(state.player.x, state.player.z);
+    const obstruction = spatialAudioObstruction(state.player, { x, z }, (sampleX, sampleZ) => {
+      if (isWallAtWorld(sampleX, sampleZ, activeLevelId)) return true;
+      const sampleCell = worldCell(sampleX, sampleZ);
+      const listenerOccupiesSampleCell = sampleCell.column === listenerCell.column && sampleCell.row === listenerCell.row;
+      if (!state.level.door.open && !listenerOccupiesSampleCell
+        && Math.abs(sampleX - state.level.door.x) <= CELL_SIZE * 0.5
+        && Math.abs(sampleZ - state.level.door.z) <= CELL_SIZE * 0.5) return true;
+      return state.level.hazards.some((hazard) => hazard.kind === 'timed-door' && hazard.active
+        && !listenerOccupiesSampleCell
+        && Math.abs(sampleX - hazard.x) <= hazard.halfWidth
+        && Math.abs(sampleZ - hazard.z) <= hazard.halfDepth);
+    });
+    const variation = variationIdentity === null
+      ? { gainScale: 1, pitchScale: 1 } : proceduralCueVariation(cue, variationIdentity);
+    const finalGain = gainScale * variation.gainScale
+      * (attenuate ? spatial.gainScale : 1) * obstruction.gainScale;
+    const finalPitch = pitchScale * variation.pitchScale;
+    audio.play(cue, spatial.pan, finalGain, finalPitch, obstruction.lowPassHz);
     document.body.dataset.spatialAudioCue = cue;
     document.body.dataset.spatialAudioPan = String(spatial.pan);
     document.body.dataset.spatialAudioGain = String(finalGain);
     document.body.dataset.spatialAudioDistance = String(spatial.distance);
-    return spatial;
+    document.body.dataset.spatialAudioOccluded = String(obstruction.occluded);
+    document.body.dataset.spatialAudioLowPassHz = String(obstruction.lowPassHz ?? 0);
+    if (variationIdentity !== null) {
+      document.body.dataset.audioVariationCue = cue;
+      document.body.dataset.audioVariationIdentity = String(variationIdentity);
+      document.body.dataset.audioVariationGain = String(variation.gainScale);
+      document.body.dataset.audioVariationPitch = String(variation.pitchScale);
+      if (cue === 'pulse') {
+        document.body.dataset.pulseAudioVariationIdentity = String(variationIdentity);
+        document.body.dataset.pulseAudioVariationGain = String(variation.gainScale);
+        document.body.dataset.pulseAudioVariationPitch = String(variation.pitchScale);
+      }
+    }
+    if (obstruction.occluded) {
+      document.body.dataset.spatialAudioOccludedCount = String(
+        Number(document.body.dataset.spatialAudioOccludedCount ?? 0) + 1,
+      );
+      document.body.dataset.spatialAudioLastOccludedCue = cue;
+      document.body.dataset.spatialAudioLastOccludedGain = String(finalGain);
+      document.body.dataset.spatialAudioLastOccludedLowPassHz = String(obstruction.lowPassHz);
+    }
+    return { ...spatial, ...obstruction, outputGainScale: finalGain };
   };
 
   const sound = (
     cue: AudioCue, robotId?: number, gainScale = 1, pitchScale = 1, attenuate = true,
+    variationIdentity: number | null = null,
   ): void => {
     if (audio === null) return;
     const robot = robotId === undefined ? undefined : renderState?.robots.find((candidate) => candidate.id === robotId);
     if (robot !== undefined) {
-      playPositionedSound(cue, robot.x, robot.z, gainScale, pitchScale, attenuate);
+      playPositionedSound(cue, robot.x, robot.z, gainScale, pitchScale, attenuate, variationIdentity);
       return;
     }
-    audio.play(cue, 0, gainScale, pitchScale);
+    const variation = variationIdentity === null
+      ? { gainScale: 1, pitchScale: 1 } : proceduralCueVariation(cue, variationIdentity);
+    audio.play(cue, 0, gainScale * variation.gainScale, pitchScale * variation.pitchScale);
+    if (variationIdentity !== null) {
+      document.body.dataset.audioVariationCue = cue;
+      document.body.dataset.audioVariationIdentity = String(variationIdentity);
+      document.body.dataset.audioVariationGain = String(variation.gainScale);
+      document.body.dataset.audioVariationPitch = String(variation.pitchScale);
+      if (cue === 'pulse') {
+        document.body.dataset.pulseAudioVariationIdentity = String(variationIdentity);
+        document.body.dataset.pulseAudioVariationGain = String(variation.gainScale);
+        document.body.dataset.pulseAudioVariationPitch = String(variation.pitchScale);
+      }
+    }
   };
 
   const playBombFuseAudio = (request: BombFuseAudioRequest): void => {
@@ -727,8 +786,10 @@ export async function startBrowserGame(): Promise<void> {
     const spatial = playPositionedSound('bomb-fuse', request.x, request.z, request.gainScale, request.pitchScale);
     if (spatial !== null) {
       document.body.dataset.bombFusePan = String(spatial.pan);
-      document.body.dataset.bombFuseGain = String(spatial.gainScale * request.gainScale);
+      document.body.dataset.bombFuseGain = String(spatial.outputGainScale);
       document.body.dataset.bombFuseDistance = String(spatial.distance);
+      document.body.dataset.bombFuseOccluded = String(spatial.occluded);
+      document.body.dataset.bombFuseLowPassHz = String(spatial.lowPassHz ?? 0);
     }
   };
 
@@ -761,7 +822,7 @@ export async function startBrowserGame(): Promise<void> {
     davelBark.classList.add('show');
     window.clearTimeout(barkTimeout);
     barkTimeout = window.setTimeout(() => davelBark.classList.remove('show'), 2_200);
-    sound('robot-taunt', event.robotId);
+    sound('robot-taunt', event.robotId, 1, 1, true, event.eventId);
   };
 
   const showCaption = (request: CaptionRequest): void => {
@@ -885,6 +946,9 @@ export async function startBrowserGame(): Promise<void> {
   }
 
   const processEvent = (event: DecodedGameEvent): void => {
+    const eventSound = (cue: AudioCue, robotId?: number): void => {
+      sound(cue, robotId, 1, 1, true, event.eventId);
+    };
     const captionRobot = event.robotId === undefined
       ? undefined : renderState?.robots.find((candidate) => candidate.id === event.robotId);
     const captionDirection = captionRobot === undefined || renderState === null ? 'center' : relativeCaptionDirection(
@@ -924,14 +988,14 @@ export async function startBrowserGame(): Promise<void> {
         document.body.dataset.pulseImpactKind = String(normalizePulseImpactKind(event.value));
         document.body.dataset.pulseImpactPosition = `${event.x},${event.y},${event.z}`;
       }
-      sound('pulse');
+      eventSound('pulse');
     }
     if (event.type === 'sword-swung' || event.type === 'sword-charged') {
       queueSwordArc(event.tick, event.type === 'sword-charged');
-      sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
+      eventSound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
     }
-    if (event.type === 'projectile-deflected') sound('deflect');
-    if (event.type === 'bomb-thrown') sound('bomb-throw');
+    if (event.type === 'projectile-deflected') eventSound('deflect');
+    if (event.type === 'bomb-thrown') eventSound('bomb-throw');
     if (event.type === 'bomb-detonated') {
       if (event.value !== undefined && event.x !== undefined && event.y !== undefined && event.z !== undefined
         && [event.x, event.y, event.z].every(Number.isFinite)) {
@@ -948,9 +1012,9 @@ export async function startBrowserGame(): Promise<void> {
       }
       showMessage(ui('bombDetonated'));
       if (event.x !== undefined && event.z !== undefined) {
-        playPositionedSound('bomb-detonate', event.x, event.z);
+        playPositionedSound('bomb-detonate', event.x, event.z, 1, 1, true, event.eventId);
       } else {
-        sound('bomb-detonate');
+        eventSound('bomb-detonate');
       }
     }
     if (event.type === 'laser-fired') {
@@ -964,18 +1028,18 @@ export async function startBrowserGame(): Promise<void> {
       const hitClass = event.value === 1 ? 'weak-hit' : 'hit';
       crosshair.classList.add(hitClass);
       window.setTimeout(() => crosshair.classList.remove(hitClass), event.value === 1 ? 150 : 90);
-      sound(event.value === 1 ? 'weak-point' : 'robot-impact', event.robotId);
+      eventSound(event.value === 1 ? 'weak-point' : 'robot-impact', event.robotId);
     }
-    if (event.type === 'robot-fired') sound('robot-shot', event.robotId);
+    if (event.type === 'robot-fired') eventSound('robot-shot', event.robotId);
     if (event.type === 'robot-telegraph') {
-      sound('robot-telegraph', event.robotId);
+      eventSound('robot-telegraph', event.robotId);
       showDavelBark(event, 'telegraph', 240);
     }
-    if (event.type === 'robot-melee') sound('robot-melee', event.robotId);
-    if (event.type === 'robot-buff') { showMessage(ui('djBeat')); sound('dj-buff', event.robotId); }
+    if (event.type === 'robot-melee') eventSound('robot-melee', event.robotId);
+    if (event.type === 'robot-buff') { showMessage(ui('djBeat')); eventSound('dj-buff', event.robotId); }
     if (event.type === 'boss-phase') {
       showMessage(ui('bossPhase', { phase: event.value ?? 1 }));
-      sound('boss-phase', event.robotId);
+      eventSound('boss-phase', event.robotId);
       showDavelBark(event, 'boss-phase', 0);
     }
     if (event.type === 'player-hit') {
@@ -991,31 +1055,31 @@ export async function startBrowserGame(): Promise<void> {
       damageDirection.classList.add('show');
       window.clearTimeout(damageDirectionTimeout);
       damageDirectionTimeout = window.setTimeout(() => damageDirection.classList.remove('show'), 420);
-      sound('player-hit');
+      eventSound('player-hit');
     }
     if (event.type === 'key-collected') {
       showMessage(ui('keyAcquired'));
-      sound('key');
+      eventSound('key');
     }
     if (event.type === 'ambush-triggered') {
       showMessage(ui('ambush'));
-      sound('ambush');
+      eventSound('ambush');
     }
     if (event.type === 'health-collected') {
       showMessage(ui('repair', { value: event.value ?? 0 }));
-      sound('health');
+      eventSound('health');
     }
     if (event.type === 'energy-collected') {
       showMessage(ui('energyCell', { value: event.value ?? 0 }));
-      sound('energy');
+      eventSound('energy');
     }
     if (event.type === 'coin-collected') {
       showMessage(ui('cache', { value: event.value ?? 0 }));
-      sound('coin');
+      eventSound('coin');
     }
-    if (event.type === 'door-opened') { showMessage(ui('doorOpened')); sound('door'); }
+    if (event.type === 'door-opened') { showMessage(ui('doorOpened')); eventSound('door'); }
     if (event.type === 'checkpoint-activated') {
-      sound('checkpoint');
+      eventSound('checkpoint');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         void client.getCheckpoint().then((snapshot) => {
           if (snapshot !== null && humanSessionStarted && !agentController.isAgentControlled()) {
@@ -1030,16 +1094,16 @@ export async function startBrowserGame(): Promise<void> {
         showMessage(ui('checkpoint'));
       }
     }
-    if (event.type === 'objective-complete') { showMessage(ui('allDavelsDown')); sound('objective'); }
+    if (event.type === 'objective-complete') { showMessage(ui('allDavelsDown')); eventSound('objective'); }
     if (event.type === 'exit-unlocked') showMessage(ui('exitOnline'));
     if (event.type === 'robot-defeated') {
       showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
-      sound('robot-defeat', event.robotId);
+      eventSound('robot-defeat', event.robotId);
       showDavelBark(event, 'defeated', 150);
     }
     if (event.type === 'victory') {
       showMessage(ui('victory'));
-      sound('victory');
+      eventSound('victory');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         void client.getStatus().then((status) => {
           const terminalState = client.latestState;
@@ -1056,7 +1120,7 @@ export async function startBrowserGame(): Promise<void> {
     }
     if (event.type === 'defeat') {
       showMessage(ui('defeat'));
-      sound('defeat');
+      eventSound('defeat');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         persistProfile(recordCampaignDefeat(activeProfile, activeLevelId));
         window.setTimeout(() => {
