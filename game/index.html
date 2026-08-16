@@ -37,8 +37,17 @@
       </section>
       <div id="crosshair" aria-hidden="true"></div>
       <div id="combat-message" aria-live="polite"></div>
-      <div id="prompt">CLICK TO ENTER THE MAZE<br><small>WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · M levels · Esc release</small></div>
+      <div id="prompt"><span class="desktop-prompt">CLICK TO ENTER THE MAZE</span><span class="touch-prompt">TOUCH TO ENTER THE MAZE</span><br><small>WASD move · mouse aim · hold left fire · right charged attack · 1–4 weapons · U upgrades · M levels · Esc release</small></div>
       <div id="weapon" aria-hidden="true"><i></i><b></b></div>
+      <section id="touch-controls" aria-label="Touch game controls">
+        <div id="move-pad" role="group" aria-label="Virtual movement stick"><span id="move-stick"></span></div>
+        <div id="look-hint" aria-hidden="true">DRAG TO AIM</div>
+        <div id="touch-actions">
+          <button id="touch-weapon" type="button" aria-label="Select next unlocked weapon">PULSE</button>
+          <button id="touch-alt" type="button" aria-label="Alternate or charged attack">ALT</button>
+          <button id="touch-fire" type="button" aria-label="Fire selected weapon">FIRE</button>
+        </div>
+      </section>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

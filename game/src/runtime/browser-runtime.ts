@@ -18,6 +18,7 @@ import {
   completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../campaign/progression';
 import { chapter01LevelTitle } from '../campaign/catalog';
+import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -60,6 +61,11 @@ export async function startBrowserGame(): Promise<void> {
   const campaignClose = requireElement<HTMLButtonElement>('#campaign-close');
   const campaignLevels = requireElement<HTMLElement>('#campaign-levels');
   const levelName = requireElement<HTMLElement>('#level-name');
+  const movePad = requireElement<HTMLElement>('#move-pad');
+  const moveStick = requireElement<HTMLElement>('#move-stick');
+  const touchFire = requireElement<HTMLButtonElement>('#touch-fire');
+  const touchAlt = requireElement<HTMLButtonElement>('#touch-alt');
+  const touchWeapon = requireElement<HTMLButtonElement>('#touch-weapon');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
   document.body.dataset.encounter = bossTraining ? 'boss-training' : 'campaign';
   const profileStorage = createPlatformProfileRepository();
@@ -163,6 +169,7 @@ export async function startBrowserGame(): Promise<void> {
       : state.player.selectedWeapon === 'sword' ? ` · HEAT ${Math.ceil(state.player.swordHeat)}`
       : state.player.selectedWeapon === 'laser' ? ` · HEAT ${Math.ceil(state.player.laserHeat)}${state.player.laserOverheated ? ' OVERHEATED' : ''}` : '';
     weaponStatus.textContent = `${state.player.selectedWeapon.toUpperCase()}${resource}`;
+    touchWeapon.textContent = state.player.selectedWeapon.toUpperCase();
     document.body.dataset.weapon = state.player.selectedWeapon;
   };
 
@@ -380,10 +387,98 @@ export async function startBrowserGame(): Promise<void> {
   let fireHeld = false;
   let queuedWeapon: WeaponId | null = null;
   let resumeAfterVisibility = false;
+  let touchForward = 0;
+  let touchStrafe = 0;
+  let movePointerId: number | null = null;
+  let lookPointerId: number | null = null;
+  let lookClientX = 0;
+  let lookClientY = 0;
+  let lastTouchPointerAt = -Infinity;
+
+  const beginTouchSession = (): void => {
+    document.body.classList.add('touch-active');
+    beginHumanSession();
+    audioContext ??= new AudioContext();
+    void audioContext.resume();
+  };
+
+  const updateMoveStick = (event: PointerEvent): void => {
+    const bounds = movePad.getBoundingClientRect();
+    const radius = Math.min(bounds.width, bounds.height) * 0.33;
+    const vector = virtualStickVector(
+      event.clientX - (bounds.left + bounds.width / 2),
+      event.clientY - (bounds.top + bounds.height / 2),
+      radius,
+    );
+    touchStrafe = vector.strafe; touchForward = vector.forward;
+    moveStick.style.transform = `translate(${vector.visualX}px, ${vector.visualY}px)`;
+  };
+
+  const releaseMoveStick = (event: PointerEvent): void => {
+    if (event.pointerId !== movePointerId) return;
+    movePointerId = null; touchForward = 0; touchStrafe = 0;
+    moveStick.style.transform = '';
+  };
+
+  movePad.addEventListener('pointerdown', (event) => {
+    if (movePointerId !== null || campaignMap.classList.contains('open') || shop.classList.contains('open')) return;
+    event.preventDefault(); beginTouchSession(); movePointerId = event.pointerId;
+    movePad.setPointerCapture(event.pointerId); updateMoveStick(event);
+  });
+  movePad.addEventListener('pointermove', (event) => { if (event.pointerId === movePointerId) updateMoveStick(event); });
+  movePad.addEventListener('pointerup', releaseMoveStick);
+  movePad.addEventListener('pointercancel', releaseMoveStick);
+
+  canvas.addEventListener('pointerdown', (event) => {
+    if (event.pointerType === 'mouse' || lookPointerId !== null || agentController.isAgentControlled()) return;
+    event.preventDefault(); beginTouchSession(); lookPointerId = event.pointerId;
+    lookClientX = event.clientX; lookClientY = event.clientY; lastTouchPointerAt = performance.now();
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener('pointermove', (event) => {
+    if (event.pointerId !== lookPointerId) return;
+    yawDelta += (event.clientX - lookClientX) * LOOK_SCALE * 0.85;
+    pitchDelta -= (event.clientY - lookClientY) * LOOK_SCALE * 0.85;
+    lookClientX = event.clientX; lookClientY = event.clientY;
+  });
+  const releaseLook = (event: PointerEvent): void => { if (event.pointerId === lookPointerId) lookPointerId = null; };
+  canvas.addEventListener('pointerup', releaseLook);
+  canvas.addEventListener('pointercancel', releaseLook);
+
+  touchFire.addEventListener('pointerdown', (event) => {
+    event.preventDefault(); beginTouchSession(); touchFire.setPointerCapture(event.pointerId);
+    fireHeld = true; touchFire.classList.add('active'); document.body.classList.add('firing');
+  });
+  const releaseTouchFire = (): void => {
+    fireHeld = false; touchFire.classList.remove('active'); document.body.classList.remove('firing');
+  };
+  touchFire.addEventListener('pointerup', releaseTouchFire);
+  touchFire.addEventListener('pointercancel', releaseTouchFire);
+  touchAlt.addEventListener('pointerdown', (event) => {
+    event.preventDefault(); beginTouchSession(); fireQueued = true; altFireQueued = true;
+    touchAlt.classList.add('active');
+  });
+  touchAlt.addEventListener('pointerup', () => touchAlt.classList.remove('active'));
+  touchAlt.addEventListener('pointercancel', () => touchAlt.classList.remove('active'));
+  touchWeapon.addEventListener('pointerdown', (event) => {
+    event.preventDefault(); beginTouchSession();
+    if (renderState !== null) queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
+    touchWeapon.classList.add('active');
+  });
+  touchWeapon.addEventListener('pointerup', () => touchWeapon.classList.remove('active'));
+  touchWeapon.addEventListener('pointercancel', () => touchWeapon.classList.remove('active'));
+
+  const clearTouchInput = (): void => {
+    touchForward = 0; touchStrafe = 0; movePointerId = null; lookPointerId = null;
+    moveStick.style.transform = '';
+    touchFire.classList.remove('active'); touchAlt.classList.remove('active'); touchWeapon.classList.remove('active');
+    document.body.classList.remove('firing');
+  };
 
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false;
+      clearTouchInput();
       resumeAfterVisibility = !agentController.isAgentControlled()
         && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat;
       if (resumeAfterVisibility) void client.setMode('manual');
@@ -418,7 +513,7 @@ export async function startBrowserGame(): Promise<void> {
     beginHumanSession();
   });
   window.addEventListener('keyup', (event: KeyboardEvent) => pressed.delete(event.code));
-  window.addEventListener('blur', () => pressed.clear());
+  window.addEventListener('blur', () => { pressed.clear(); fireHeld = false; clearTouchInput(); });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
     yawDelta += event.movementX * LOOK_SCALE;
@@ -429,7 +524,7 @@ export async function startBrowserGame(): Promise<void> {
     beginHumanSession();
     audioContext ??= new AudioContext();
     void audioContext.resume();
-    if (document.pointerLockElement !== canvas) void canvas.requestPointerLock();
+    if (performance.now() - lastTouchPointerAt > 500 && document.pointerLockElement !== canvas) void canvas.requestPointerLock();
   });
   canvas.addEventListener('mousedown', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
@@ -454,8 +549,8 @@ export async function startBrowserGame(): Promise<void> {
   const frame = (): void => {
     if (!agentController.isAgentControlled()) {
       const command: PlayerCommand = {
-        forward: Number(pressed.has('KeyW') || pressed.has('ArrowUp')) - Number(pressed.has('KeyS') || pressed.has('ArrowDown')),
-        strafe: Number(pressed.has('KeyD') || pressed.has('ArrowRight')) - Number(pressed.has('KeyA') || pressed.has('ArrowLeft')),
+        forward: Math.max(-1, Math.min(1, Number(pressed.has('KeyW') || pressed.has('ArrowUp')) - Number(pressed.has('KeyS') || pressed.has('ArrowDown')) + touchForward)),
+        strafe: Math.max(-1, Math.min(1, Number(pressed.has('KeyD') || pressed.has('ArrowRight')) - Number(pressed.has('KeyA') || pressed.has('ArrowLeft')) + touchStrafe)),
         yawDelta,
         pitchDelta,
         fire: fireQueued || fireHeld,

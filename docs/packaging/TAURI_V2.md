@@ -32,6 +32,8 @@ The TypeScript side still performs the authoritative strict profile/schema/check
 
 The only declared window capability is `core:default`; no filesystem plugin or shell access is exposed. The CSP permits bundled scripts/styles, IPC, the local Vite development connection, data icons, WebAudio media, and same-origin/blob workers needed by the simulation and OffscreenCanvas renderer. Background visibility pauses realtime authority, clears held input, queues a profile save, and resumes only if the game—not a campaign menu, terminal state, or agent—was running before suspension.
 
+Coarse-pointer devices receive a safe-area-aware virtual movement stick, drag-to-aim on the game view, hold-to-fire, alternate-attack, and unlocked-weapon-cycle controls. These controls normalize into the same bounded `PlayerCommand` submitted by keyboard and mouse; there is no mobile-only simulation or replay path. A mobile Chromium production profile verifies the touch layout and start gesture, while physical-device feel and lifecycle certification remain deferred until hardware is available.
+
 ## Current build evidence
 
 On the Windows development host:
@@ -44,6 +46,6 @@ On the Windows development host:
 - three Rust rotation/interruption/bounds tests and three TypeScript corruption/fallback/read-back tests pass.
 - packaged smoke launch opened a responsive `Quantum Catch Davel` window and created a valid 844-byte profile at `%APPDATA%/com.quantumbilling.catchdavel/profiles/default/profile.json`.
 
-Build artifacts and native target caches are intentionally ignored. These hashes identify this development build only. Windows UI/WebView execution, installer restart, Android emulator/device behavior, touch controls, OS lifecycle edge cases, and signed release bundles require their named validation gates. Physical-device absence does not block further implementation and is never represented as certification.
+Build artifacts and native target caches are intentionally ignored. These hashes identify this development build only. Installer restart, Android emulator/device behavior, touch feel, OS lifecycle edge cases, and signed release bundles require their named validation gates. Physical-device absence does not block further implementation and is never represented as certification.
 
 The shell follows Tauri's official [project structure](https://v2.tauri.app/start/project-structure/), [capability](https://v2.tauri.app/security/capabilities/), and [configuration](https://v2.tauri.app/reference/config/) contracts.

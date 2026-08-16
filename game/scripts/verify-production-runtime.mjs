@@ -114,6 +114,46 @@ try {
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
 
+  const mobilePage = await browser.newPage({
+    viewport: { width: 844, height: 390 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  const mobileErrors = [];
+  mobilePage.on('pageerror', (error) => mobileErrors.push(error.message));
+  mobilePage.on('console', (message) => { if (message.type() === 'error') mobileErrors.push(message.text()); });
+  await mobilePage.goto(`${url}?renderer=main`, { waitUntil: 'load' });
+  await mobilePage.waitForFunction(() => (
+    document.body.dataset.workerStatus === 'ready'
+    && Number(document.body.dataset.snapshotTick) > 0
+  ));
+  const mobileBeforeTap = await mobilePage.evaluate(() => {
+    const controls = document.querySelector('#touch-controls');
+    const pad = document.querySelector('#move-pad')?.getBoundingClientRect();
+    return {
+      controlsVisible: controls !== null && getComputedStyle(controls).display !== 'none',
+      actionButtons: controls?.querySelectorAll('button').length ?? 0,
+      padWidth: pad?.width ?? 0,
+      touchPromptVisible: getComputedStyle(document.querySelector('.touch-prompt')).display !== 'none',
+      desktopPromptVisible: getComputedStyle(document.querySelector('.desktop-prompt')).display !== 'none',
+      profileStorage: document.body.dataset.profileStorage,
+      agentApiExposed: window.CatchDavelAgent !== undefined,
+    };
+  });
+  await mobilePage.touchscreen.tap(803, 334);
+  await mobilePage.waitForFunction(() => document.body.classList.contains('touch-active'));
+  const mobile = {
+    ...mobileBeforeTap,
+    touchSessionStarted: await mobilePage.evaluate(() => document.body.classList.contains('touch-active')),
+  };
+  if (!mobile.controlsVisible || mobile.actionButtons !== 3 || mobile.padWidth < 120
+    || !mobile.touchPromptVisible || mobile.desktopPromptVisible || !mobile.touchSessionStarted) {
+    throw new Error(`Production mobile controls did not expose the expected touch layout: ${JSON.stringify(mobile)}`);
+  }
+  if (mobile.profileStorage !== 'indexeddb') throw new Error('Mobile web build did not select IndexedDB profile storage');
+  if (mobile.agentApiExposed) throw new Error('Mobile production page exposed the mutation-capable agent API');
+  if (mobileErrors.length > 0) throw new Error(`Mobile browser errors: ${mobileErrors.join('; ')}`);
+
   const toolingPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   const toolingErrors = [];
   toolingPage.on('pageerror', (error) => toolingErrors.push(error.message));
@@ -164,6 +204,7 @@ try {
     passed: true, ...result, campaignFlow, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
+    mobile: { ...mobile, browserErrors: mobileErrors },
     tooling: { ...toolingProof, rejectsUnknownField, browserErrors: toolingErrors },
   }, null, 2));
 } finally {
