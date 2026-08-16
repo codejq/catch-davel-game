@@ -426,8 +426,8 @@ export class DavelRenderer {
     this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
     this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
     const pupilY = eyeY + expression.pupilOffset * headRadius;
-    const pupilLeft = localPoint(robot, -headRadius * 0.36, pupilY, eyeForward * 1.12);
-    const pupilRight = localPoint(robot, headRadius * 0.36, pupilY, eyeForward * 1.12);
+    const pupilLeft = localPoint(robot, headRadius * (-0.36 + expression.pupilCross), pupilY, eyeForward * 1.12);
+    const pupilRight = localPoint(robot, headRadius * (0.36 - expression.pupilCross), pupilY, eyeForward * 1.12);
     this.addSphere(pupilLeft, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
     this.addSphere(pupilRight, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
     const browLeftStart = localPoint(robot, -headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
