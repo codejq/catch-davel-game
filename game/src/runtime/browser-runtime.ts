@@ -69,6 +69,7 @@ import {
 } from '../audio/spatial-audio';
 import { isWallAtWorld, worldCell } from '../sim/level';
 import { CombatPacingTracker } from './combat-pacing';
+import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -159,6 +160,9 @@ export async function startBrowserGame(): Promise<void> {
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const damageDirection = requireElement<HTMLElement>('#damage-direction');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
+  const objectiveClearTransition = requireElement<HTMLElement>('#objective-clear-transition');
+  const objectiveClearTitle = requireElement<HTMLElement>('#objective-clear-title');
+  const objectiveClearDistance = requireElement<HTMLElement>('#objective-clear-distance');
   const davelBark = requireElement<HTMLElement>('#davel-bark');
   const davelBarkSpeaker = requireElement<HTMLElement>('#davel-bark-speaker');
   const davelBarkLine = requireElement<HTMLElement>('#davel-bark-line');
@@ -298,6 +302,7 @@ export async function startBrowserGame(): Promise<void> {
   const laserAudio = new LaserAudioSequencer();
   const bombFuseAudio = new BombFuseAudioSequencer();
   const combatPacing = new CombatPacingTracker();
+  const objectiveClearTracker = new ObjectiveClearTransitionTracker();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -911,6 +916,23 @@ export async function startBrowserGame(): Promise<void> {
       objectiveCompassDistance.textContent = ui('compassDistance', { distance });
       objectiveCompass.setAttribute('aria-label', ui('compassAria', { target, distance }));
     }
+    const objectiveTransition = objectiveClearTracker.sample(state);
+    const showObjectiveTransition = objectiveTransition !== null && compass !== null;
+    objectiveClearTransition.hidden = !showObjectiveTransition;
+    document.body.dataset.objectiveClearTransition = showObjectiveTransition
+      ? objectiveTransition.transitionKey : 'none';
+    if (showObjectiveTransition) {
+      const target = ui(COMPASS_TARGET_UI_KEYS[compass.target]);
+      const distance = Math.max(0, Math.round(compass.distanceMeters));
+      davelBark.classList.remove('show');
+      window.clearTimeout(barkTimeout);
+      objectiveClearTitle.textContent = ui('objectiveClearTitle', { target });
+      objectiveClearDistance.textContent = ui('objectiveClearDistance', { distance });
+      objectiveClearTransition.style.setProperty(
+        '--objective-clear-progress', `${objectiveTransition.remainingRatio * 100}%`,
+      );
+      objectiveClearTransition.setAttribute('aria-label', ui('objectiveClearAria', { target, distance }));
+    }
     const wave = waveTransitionPresentation(state.level.encounter);
     waveTransition.hidden = wave === null;
     document.body.dataset.waveTransition = wave?.transitionKey ?? 'none';
@@ -1169,6 +1191,7 @@ export async function startBrowserGame(): Promise<void> {
           laserAudio.reset();
           bombFuseAudio.reset();
           combatPacing.reset();
+          objectiveClearTracker.reset();
           renderer.clearPresentationEffects();
         }
         renderState = state;
@@ -1217,6 +1240,7 @@ export async function startBrowserGame(): Promise<void> {
         laserAudio.reset();
         bombFuseAudio.reset();
         combatPacing.reset();
+        objectiveClearTracker.reset();
         pendingPulseEffectTicks.length = 0;
         pendingSwordArcEvents.length = 0;
         renderer.clearPresentationEffects();

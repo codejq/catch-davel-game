@@ -320,8 +320,21 @@ try {
     const policy = new BaselineCampaignAgent();
     let baselineObservation = await api.reset({ mode: 'agent' });
     const baselineRun = LEVEL_001.agentValidation.runs[0];
+    let objectiveClearProof = null;
     while (!baselineObservation.victory && !baselineObservation.defeat && baselineObservation.tick < baselineRun.maxTicks) {
       baselineObservation = await api.act(policy.next(baselineObservation), 1);
+      const objectiveTransitionKey = document.body.dataset.objectiveClearTransition;
+      if (objectiveClearProof === null && objectiveTransitionKey !== undefined && objectiveTransitionKey !== 'none') {
+        objectiveClearProof = {
+          transitionKey: objectiveTransitionKey,
+          hidden: document.querySelector('#objective-clear-transition')?.hidden,
+          title: document.querySelector('#objective-clear-title')?.textContent,
+          distance: document.querySelector('#objective-clear-distance')?.textContent,
+          aria: document.querySelector('#objective-clear-transition')?.getAttribute('aria-label'),
+          progress: document.querySelector('#objective-clear-transition')?.style
+            .getPropertyValue('--objective-clear-progress'),
+        };
+      }
     }
     const baselineMetrics = api.getMetrics();
     const profilesAfterAgent = await readProfileRecords();
@@ -368,6 +381,7 @@ try {
       baselineComboHud,
       baselineBarkSpeaker,
       baselineBarkLine,
+      objectiveClearProof,
       baselineExpectedChecksum: baselineRun.expectedChecksum,
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
@@ -420,6 +434,12 @@ try {
     [typeof result.baselineBarkSpeaker === 'string' && result.baselineBarkSpeaker.length > 0
       && typeof result.baselineBarkLine === 'string' && result.baselineBarkLine.length > 0,
     'deterministic Davel personality bark did not reach the live presentation'],
+    [result.objectiveClearProof !== null && result.objectiveClearProof.hidden === false
+      && result.objectiveClearProof.title === 'ROUTE TO GREEN EXIT'
+      && result.objectiveClearProof.distance.includes('FOLLOW THE ARROW')
+      && result.objectiveClearProof.aria.includes('Maze stabilized')
+      && result.objectiveClearProof.progress.endsWith('%'),
+    'objective-clear route transition did not reach the live presentation'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],

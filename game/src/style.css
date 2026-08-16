@@ -135,6 +135,14 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #damage-direction.show { opacity: 1; }
 #combat-message { position: absolute; left: 50%; top: 39%; translate: -50% -50%; color: #fff; font-weight: 950; font-size: calc(22px * var(--ui-font-scale)); letter-spacing: .08em; opacity: 0; transform: scale(.8); transition: opacity .12s, transform .12s; }
 #combat-message.show { opacity: 1; transform: scale(1); }
+#objective-clear-transition { position: absolute; left: 50%; top: 31%; width: min(350px, calc(100vw - 36px)); translate: -50% -50%; padding: 13px 16px; border: 3px solid #70ffb1; border-radius: 14px; background: linear-gradient(135deg, #103d4bed, #174f3eed); text-align: center; box-shadow: 0 10px 38px #071d2699, inset 0 0 22px #70ffb126; }
+#objective-clear-transition[hidden] { display: none; }
+#objective-clear-transition small, #objective-clear-transition b, #objective-clear-transition em { display: block; }
+#objective-clear-transition small { color: #ffe56c; font-size: calc(9px * var(--ui-font-scale)); font-weight: 950; letter-spacing: .18em; }
+#objective-clear-transition b { margin: 4px 0 8px; color: #fff; font-size: calc(17px * var(--ui-font-scale)); letter-spacing: .06em; }
+#objective-clear-transition span { display: block; height: 7px; overflow: hidden; border-radius: 99px; background: #09292a; }
+#objective-clear-transition i { display: block; width: var(--objective-clear-progress, 100%); height: 100%; background: linear-gradient(90deg, #70ffb1, #72f4ff, #ffe56c); transition: width .08s linear; }
+#objective-clear-transition em { margin-top: 5px; color: #d9fbff; font-size: calc(11px * var(--ui-font-scale)); font-style: normal; font-weight: 900; }
 #sound-captions { position: absolute; left: 50%; bottom: 178px; width: min(500px, calc(100vw - 28px)); translate: -50%; display: grid; justify-items: center; gap: 5px; }
 #sound-captions[hidden] { display: none !important; }
 #sound-captions span { padding: 5px 10px; border: 1px solid #b7f7ffcc; border-radius: 7px; background: #102447e6; color: #fff; font-size: calc(12px * var(--ui-font-scale)); font-weight: 850; letter-spacing: .04em; box-shadow: 0 3px 14px #07112699; }
@@ -194,6 +202,7 @@ body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
   #davel-bark { transition: none; }
   #objective-compass-arrow { transition: none; }
   #wave-transition i { transition: none; }
+  #objective-clear-transition i { transition: none; }
   #boss-status i { transition: none; }
   body.feedback-weapon-kick #weapon, body.feedback-sword-swing #weapon,
   body.feedback-shake-light #game, body.feedback-shake-heavy #game { animation: none; }
