@@ -10,7 +10,7 @@ const manifest = parseFrozenChecksumManifest(JSON.parse(readFileSync(
 
 describe('one-command playable campaign QA', () => {
   it('completes every declared live Standard run within its safety gates', () => {
-    expect(results).toHaveLength(22);
+    expect(results).toHaveLength(23);
     for (const result of results) {
       expect(result.failure, JSON.stringify(result)).toBeNull();
       expect(result.victory, JSON.stringify(result)).toBe(true);

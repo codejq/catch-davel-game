@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 22 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 23 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-022`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-023`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-022'
+    && document.body.dataset.levelId === 'level-023'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   await chapterPage.keyboard.press('Digit3');
@@ -675,20 +675,20 @@ try {
     ? 'متبقٍ 4 من دافل'
     : '4 Davels remain';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
-    throw new Error('Production Level 22 did not render its opening four-Davel act in the active locale');
+    throw new Error('Production Level 23 did not render its opening four-Davel act in the active locale');
   }
-  const expectedLevelName = chapterLevel.language === 'ar' ? 'البخار الأخضر' : 'GREEN STEAM';
+  const expectedLevelName = chapterLevel.language === 'ar' ? 'مهرجان نافث النار' : 'FIREMOUTH FIESTA';
   if (!chapterLevel.levelName.includes(expectedLevelName)) {
-    throw new Error(`Production Level 22 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
+    throw new Error(`Production Level 23 did not expose its localized Chapter 3 identity: ${JSON.stringify(chapterLevel)}`);
   }
   if (chapterLevel.defenseHealth !== '0' || chapterLevel.defenseMaxHealth !== '0') {
-    throw new Error('Production Level 22 inherited the prior level defense target');
+    throw new Error('Production Level 23 inherited the prior level defense target');
   }
   if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
-    throw new Error('Production Level 22 did not retain the Chapter 2 dash control');
+    throw new Error('Production Level 23 did not retain the Chapter 2 dash control');
   }
   if (chapterLevel.weapon !== 'bomb' || chapterLevel.weaponStatus.length === 0) {
-    throw new Error('Production Level 22 did not expose the Chapter 3 bomb control');
+    throw new Error('Production Level 23 did not expose the Chapter 3 bomb control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -810,11 +810,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 22 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 23 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 22
-    || !toolingProof.balanceSummary.includes('Guaranteed 868 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 23
+    || !toolingProof.balanceSummary.includes('Guaranteed 920 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {

@@ -1,0 +1,535 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "b99f3042d75106d3",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "dff52cc3fa613256",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 15000,
+        "mode": "live-agent",
+        "parTicks": 10500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-firemouth-fiesta"
+        ],
+        "seed": "campaign-level-023-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "named-elite"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-023"
+  },
+  "briefingKey": "levels.023.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-023"
+    }
+  ],
+  "dance": {
+    "armPatternId": "flame-lick-flamenco-arms-v1",
+    "attackBeats": [
+      2,
+      5,
+      10,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 134,
+    "footPatternId": "flame-lick-flamenco-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "flame-lick-flamenco-head-v1",
+    "pathPatternId": "flame-lick-flamenco-path-v1",
+    "presetId": "flame-lick-flamenco",
+    "reducedMotionPresetId": "flame-lick-flamenco-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "flame-lick-flamenco-torso-v1",
+    "transitionIds": [
+      "fiesta-turn",
+      "blazing-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.94,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-023"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-023"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "firemouth-fiesta-company",
+      "rewardId": "chapter-03-clear-023",
+      "roomNodeId": "firemouth-fiesta-floor",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "flame-welcome",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "welcome-wobblers",
+              "modifierIds": [
+                "fiesta-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-1.wobblers",
+              "spawnPointSetId": "level-023-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "welcome-spinner",
+              "modifierIds": [
+                "flame-fan"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-1.spinner",
+              "spawnPointSetId": "level-023-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "welcome-firemouth",
+              "modifierIds": [
+                "fiesta-headliner"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-1.firemouth",
+              "spawnPointSetId": "level-023-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "fiesta-turn",
+          "id": "fiesta-turn",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "turn-sliders",
+              "modifierIds": [
+                "ember-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-2.sliders",
+              "spawnPointSetId": "level-023-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "turn-wobbler",
+              "modifierIds": [
+                "fiesta-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-2.wobbler",
+              "spawnPointSetId": "level-023-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 21
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "blazing-encore",
+          "id": "blazing-encore",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "encore-spinner",
+              "modifierIds": [
+                "flame-fan"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-3.spinner",
+              "spawnPointSetId": "level-023-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "encore-foreman",
+              "modifierIds": [
+                "inferno-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-3.foreman",
+              "spawnPointSetId": "level-023-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-23",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "flame-lick-flamenco",
+              "id": "encore-dj",
+              "modifierIds": [
+                "fiesta-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-23",
+              "rngStream": "encounter.level-023.wave-3.dj",
+              "spawnPointSetId": "level-023-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 20
+        }
+      ]
+    }
+  ],
+  "id": "level-023",
+  "mastery": [
+    {
+      "presetId": "level-023-par-time"
+    },
+    {
+      "presetId": "level-023-no-fireball-hit"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "furnace-entry",
+        "id": "entry-ignition",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "ignition-control",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "ignition-control",
+        "id": "ignition-crossing",
+        "requiredKeyId": "furnace-key",
+        "stateTrigger": "key-collected",
+        "to": "flame-shutter-crossing",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "flame-shutter-crossing",
+        "id": "crossing-fiesta",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "firemouth-fiesta-floor",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "firemouth-fiesta-floor",
+        "id": "floor-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "fiesta-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "fiesta-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "coolant-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ignition-control",
+        "id": "ignition-gallery",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "coolant-gallery",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "coolant-gallery",
+        "id": "gallery-fiesta",
+        "requiredKeyId": "furnace-key",
+        "stateTrigger": "key-collected",
+        "to": "firemouth-fiesta-floor",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "furnace-entry",
+    "exitNodeId": "coolant-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 84,
+        "collisionProfileId": "fiesta-flame-west-v1",
+        "id": "fiesta-flame-west",
+        "nodeId": "flame-shutter-crossing",
+        "periodTicks": 210
+      },
+      {
+        "activeTicks": 84,
+        "collisionProfileId": "fiesta-flame-east-v1",
+        "id": "fiesta-flame-east",
+        "nodeId": "flame-shutter-crossing",
+        "periodTicks": 210
+      },
+      {
+        "activeTicks": 150,
+        "collisionProfileId": "fiesta-hot-draft-v1",
+        "id": "fiesta-hot-draft",
+        "nodeId": "firemouth-fiesta-floor",
+        "periodTicks": 210
+      }
+    ],
+    "keys": [
+      {
+        "id": "furnace-key",
+        "placementNodeId": "ignition-control"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "furnace-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "furnace-gate"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ignition-control",
+        "pickupIds": [
+          "furnace-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "furnace-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "flame-shutter-crossing",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "alternating-flames"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "firemouth-fiesta-company"
+        ],
+        "id": "firemouth-fiesta-floor",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "red-firemouth",
+          "hot-draft"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "coolant-gallery",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-coolant"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-023",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "fiesta-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "coolant-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-firemouth-fiesta",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.023.name",
+  "number": 23,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-firemouth-fiesta",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "flame-welcome",
+        "fiesta-turn",
+        "blazing-encore"
+      ],
+      "titleKey": "objectives.level_023",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-23"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-023-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 60,
+    "maxActiveRobots": 4,
+    "maxHazards": 3,
+    "maxMazeNodes": 9,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-023-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "red-firemouth",
+    "flame-shutters",
+    "flame-lick-flamenco"
+  ]
+}

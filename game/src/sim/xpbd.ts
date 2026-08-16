@@ -229,6 +229,16 @@ function targets(
     leftFootY += toe * 0.2; rightFootY += recoil * 0.2;
     leftHand = [-0.86 - toe * 0.2, 1.48 + recoil * 0.32, 0.18];
     rightHand = [0.86 + recoil * 0.2, 1.48 + toe * 0.32, 0.18];
+  } else if (performance.motif === 'flame-lick') {
+    const stamp = Math.max(0, beat); const clap = Math.max(0, -beat);
+    bounce += stamp * 0.11 * intensity;
+    hipX = alternate * 0.24 * intensity; chestX = -alternate * 0.32 * intensity;
+    chestZ = stamp * 0.15; headX += -alternate * 0.24; headZ = -clap * 0.1;
+    leftFootX = -0.34 - clap * 0.15; rightFootX = 0.34 + stamp * 0.15;
+    leftFootZ = clap * 0.24; rightFootZ = stamp * 0.24;
+    leftFootY += clap * 0.22; rightFootY += stamp * 0.22;
+    leftHand = [-1.02, 1.18 + stamp * 0.62, 0.16 + clap * 0.24];
+    rightHand = [1.02, 1.18 + clap * 0.62, 0.16 + stamp * 0.24];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

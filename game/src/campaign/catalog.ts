@@ -23,6 +23,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-020': 'Ringmaster Davel',
   'level-021': 'Pipework Promenade',
   'level-022': 'Green Steam',
+  'level-023': 'Firemouth Fiesta',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {
