@@ -22,6 +22,18 @@ describe('Davel simulation', () => {
     expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.route.map((cell) => `${cell.column},${cell.row}`).join('|'))).size).toBeGreaterThanOrEqual(7);
     expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotIds(levelId).length)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1]);
     expect(campaignRobotWaves('level-009').map((wave) => wave.length)).toEqual([5, 5]);
+    expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotWaves(levelId))).toEqual([
+      [[0, 1, 2, 3, 4, 5]],
+      [[0, 1, 2, 8, 9]],
+      [[0, 1, 2, 4, 8, 9]],
+      [[0, 1, 2, 3, 4, 8, 9]],
+      [[0, 1, 2, 7, 8]],
+      [[0, 1, 2, 4, 8, 9]],
+      [[0, 1, 2, 3, 4, 8, 9]],
+      [[0, 1, 2, 3, 4, 5, 8, 9]],
+      [[0, 1, 2, 4, 8], [3, 5, 7, 9, 10]],
+      [[6]],
+    ]);
     expect(campaignRobotIds('level-005').map((id) => ROBOT_DEFINITIONS[id]!.name)).toContain('Foreman Stomp');
     expect(campaignRobotIds('level-010')).toEqual([6]);
   });

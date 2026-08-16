@@ -1,5 +1,7 @@
 import { CELL_SIZE, PLAYER_RADIUS } from './constants';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { mazeRuntimeProfile, type RuntimeGridCell } from '../content/runtime-manifests';
 
 export const LEVEL_ROWS = [
   '###############',
@@ -19,20 +21,7 @@ export const LEVEL_ROWS = [
   '###############',
 ] as const;
 
-const OPENINGS_BY_LEVEL: Readonly<Record<Chapter01LevelId, readonly CellCoordinate[]>> = {
-  'level-001': [],
-  'level-002': [{ column: 6, row: 1 }, { column: 6, row: 7 }],
-  'level-003': [{ column: 4, row: 2 }, { column: 10, row: 2 }, { column: 8, row: 10 }],
-  'level-004': [{ column: 4, row: 4 }, { column: 12, row: 4 }, { column: 2, row: 8 }, { column: 12, row: 10 }],
-  'level-005': [{ column: 6, row: 4 }, { column: 10, row: 4 }, { column: 6, row: 12 }],
-  'level-006': [{ column: 2, row: 6 }, { column: 6, row: 6 }, { column: 10, row: 6 }, { column: 12, row: 6 }],
-  'level-007': [{ column: 6, row: 2 }, { column: 4, row: 10 }, { column: 10, row: 12 }],
-  'level-008': [{ column: 12, row: 2 }, { column: 6, row: 8 }, { column: 10, row: 8 }, { column: 12, row: 8 }],
-  'level-009': [{ column: 4, row: 2 }, { column: 10, row: 4 }, { column: 2, row: 6 }, { column: 6, row: 8 }, { column: 12, row: 10 }],
-  'level-010': [{ column: 6, row: 1 }, { column: 4, row: 4 }, { column: 10, row: 4 }, { column: 2, row: 8 }, { column: 8, row: 10 }, { column: 10, row: 12 }],
-};
-
-function openedRows(openings: readonly CellCoordinate[]): readonly string[] {
+function openedRows(openings: readonly RuntimeGridCell[]): readonly string[] {
   const rows = LEVEL_ROWS.map((row) => [...row]);
   for (const opening of openings) {
     if (rows[opening.row]?.[opening.column] !== '#') throw new Error(`Level opening ${opening.column},${opening.row} is not a wall`);
@@ -42,7 +31,10 @@ function openedRows(openings: readonly CellCoordinate[]): readonly string[] {
 }
 
 export const LEVEL_ROWS_BY_ID: Readonly<Record<Chapter01LevelId, readonly string[]>> = Object.fromEntries(
-  CHAPTER_01_LEVEL_IDS.map((levelId) => [levelId, openedRows(OPENINGS_BY_LEVEL[levelId])]),
+  CHAPTER_01_LEVEL_IDS.map((levelId) => [
+    levelId,
+    openedRows(mazeRuntimeProfile(chapter01Level(levelId).maze.templateSetId).openings),
+  ]),
 ) as Readonly<Record<Chapter01LevelId, readonly string[]>>;
 
 export function levelRows(levelId: Chapter01LevelId = 'level-001'): readonly string[] {

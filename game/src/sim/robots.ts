@@ -4,7 +4,7 @@ import { decision, hashSeed } from './random';
 import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './balance';
 import type { PlayerState } from './player';
-import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { chapter01Level, type Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from './dance-performance';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
@@ -128,25 +128,44 @@ export const ROBOT_DEFINITIONS: readonly RobotDefinition[] = [
   },
 ] as const;
 
-const CHAPTER_01_ROBOT_WAVES: Readonly<Record<Chapter01LevelId, readonly (readonly number[])[]>> = {
-  'level-001': [[0, 1, 2, 3, 4, 5]],
-  'level-002': [[0, 1, 2, 8, 9]],
-  'level-003': [[0, 1, 2, 4, 8, 9]],
-  'level-004': [[0, 1, 2, 3, 4, 8, 9]],
-  'level-005': [[0, 1, 2, 7, 8]],
-  'level-006': [[0, 1, 2, 4, 8, 9]],
-  'level-007': [[0, 1, 2, 3, 4, 8, 9]],
-  'level-008': [[0, 1, 2, 3, 4, 5, 8, 9]],
-  'level-009': [[0, 1, 2, 4, 8], [3, 5, 7, 9, 10]],
-  'level-010': [[6]],
-};
+function materializeCampaignRobotWaves(levelId: Chapter01LevelId): readonly (readonly number[])[] {
+  const level = chapter01Level(levelId);
+  if (level.encounters.length !== 1) throw new Error(`${levelId} must resolve exactly one campaign encounter`);
+  const used = new Set<number>();
+  return level.encounters[0]!.waves.map((wave) => {
+    const ids: number[] = [];
+    for (const group of wave.spawnGroups) {
+      const rank: RobotRank = group.rank === 'normal' ? 'ordinary' : group.rank;
+      const candidates = ROBOT_DEFINITIONS
+        .map((definition, id) => ({ definition, id }))
+        .filter(({ definition, id }) => definition.archetype === group.archetypeId
+          && definition.rank === rank && !used.has(id))
+        .map(({ id }) => id);
+      if (candidates.length < group.count) {
+        throw new Error(`${levelId} group ${group.id} cannot resolve ${group.count} stable ${group.archetypeId}/${rank} Davels`);
+      }
+      for (const id of candidates.slice(0, group.count)) {
+        used.add(id);
+        ids.push(id);
+      }
+    }
+    return ids.sort((left, right) => left - right);
+  });
+}
+
+const campaignWaveCache = new Map<Chapter01LevelId, readonly (readonly number[])[]>();
 
 export function campaignRobotIds(levelId: Chapter01LevelId): readonly number[] {
-  return CHAPTER_01_ROBOT_WAVES[levelId].flat();
+  return campaignRobotWaves(levelId).flat();
 }
 
 export function campaignRobotWaves(levelId: Chapter01LevelId): readonly (readonly number[])[] {
-  return CHAPTER_01_ROBOT_WAVES[levelId];
+  let waves = campaignWaveCache.get(levelId);
+  if (waves === undefined) {
+    waves = materializeCampaignRobotWaves(levelId);
+    campaignWaveCache.set(levelId, waves);
+  }
+  return waves;
 }
 
 export function validateRobotDefinitions(): void {

@@ -37,7 +37,7 @@ npm run game:content:export
 npm run game:content:submission
 ```
 
-The build rejects stale generated content. Export first runs the same strict submission gate as `game:content:submission`: the authored `LevelDefinition` must pass unknown-field, stable-ID, cross-reference, objective-cycle, key/lock, encounter, agent-policy, and bounded-budget validation; all 30 visible Chapter 1 keys must exist in both English and Arabic; and all 100 referenced presentation asset IDs must have unambiguous provenance. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`; the designer workflow is documented in `docs/content/CONTENT_WORKBENCH.md`.
+The build rejects stale generated content. Export first runs the same strict submission gate as `game:content:submission`: the authored `LevelDefinition` must pass unknown-field, stable-ID, cross-reference, objective-cycle, key/lock, encounter, agent-policy, bounded-budget, and runtime-preset validation; all 30 visible Chapter 1 keys must exist in both English and Arabic; and all 100 referenced presentation asset IDs must have unambiguous provenance. Canonical per-level JSON, the materialized Chapter 1 runtime manifest, and the generated Draft 2020-12 schema live under `src/content`; the designer workflow is documented in `docs/content/CONTENT_WORKBENCH.md`.
 
 Tauri v2 packages the same offline Vite output for desktop/mobile. Packaged sessions replace IndexedDB with a fixed-path, read-back-verified app-data profile and previous-file recovery copy, without exposing general filesystem access to the webview. Windows MSI/NSIS and ARM64/x86_64 Android debug build instructions and current evidence are documented in `docs/packaging/TAURI_V2.md`.
 

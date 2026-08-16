@@ -29,6 +29,12 @@ describe('content submission localization and provenance gates', () => {
     expect(() => validateContentSubmission(CHAPTER_01_LEVELS, undefined, manifest)).toThrow(/Assets without provenance.*neon-workshop-08/);
   });
 
+  it('blocks export when an authored preset lacks a materialized runtime binding', () => {
+    const level = structuredClone(CHAPTER_01_LEVELS[6]);
+    (level.palette as { presetId: string }).presetId = 'missing-bright-palette';
+    expect(() => validateLevelSubmission(level)).toThrow(/Unknown palette runtime preset/);
+  });
+
   it('rejects ambiguous third-party intake before checking coverage', () => {
     const manifest = structuredClone(CHAPTER_01_ASSET_PROVENANCE) as unknown as { records: unknown[] };
     manifest.records.push({

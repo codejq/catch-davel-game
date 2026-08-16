@@ -4,6 +4,9 @@ import type { LevelDefinition } from './level-definition.ts';
 import type { LocalizationCatalog, ReleaseLocale } from './localization/catalogs.ts';
 import { RELEASE_LOCALES, RELEASE_LOCALIZATION_CATALOGS } from './localization/catalogs.ts';
 import { validateLevelDefinition } from './validate-level.ts';
+import {
+  danceRuntimeMotif, hazardRuntimeProfile, mazeRuntimeProfile, paletteRuntimeProfile,
+} from './runtime-manifests.ts';
 
 const ID = /^[a-z0-9][a-z0-9._-]*$/;
 const SHA256 = /^[0-9a-f]{64}$/;
@@ -50,6 +53,33 @@ function referencedAssetIds(level: LevelDefinition): string[] {
       (wave) => wave.spawnGroups.map((group) => group.dancePresetId),
     )),
   ])].sort();
+}
+
+function validateRuntimeBindings(level: LevelDefinition): void {
+  const maze = mazeRuntimeProfile(level.maze.templateSetId);
+  const palette = paletteRuntimeProfile(level.palette.presetId);
+  danceRuntimeMotif(level.dance.presetId);
+  for (const hazard of level.maze.hazards) hazardRuntimeProfile(hazard.collisionProfileId);
+  const cells = [
+    ...maze.openings,
+    maze.interactions.health, maze.interactions.key, maze.interactions.energy,
+    maze.interactions.door, maze.interactions.checkpoint,
+    ...(maze.interactions.coin === undefined ? [] : [maze.interactions.coin]),
+    ...(maze.interactions.secretCoin === undefined ? [] : [maze.interactions.secretCoin]),
+  ];
+  if (cells.some((cell) => !Number.isSafeInteger(cell.column) || !Number.isSafeInteger(cell.row)
+    || cell.column < 1 || cell.column > 13 || cell.row < 1 || cell.row > 13)) {
+    throw new Error(`Level ${level.id} has an out-of-bounds runtime grid binding`);
+  }
+  const pickupIds = new Set(level.maze.nodes.flatMap((node) => node.pickupIds));
+  if (pickupIds.has('coin-cache') !== (maze.interactions.coin !== undefined)
+    || pickupIds.has('secret-coin-cache') !== (maze.interactions.secretCoin !== undefined)) {
+    throw new Error(`Level ${level.id} pickup nodes disagree with its maze runtime profile`);
+  }
+  const colors = [palette.sky, palette.floor, ...palette.walls].flat();
+  if (colors.some((channel) => !Number.isFinite(channel) || channel < 0 || channel > 1)) {
+    throw new Error(`Level ${level.id} palette runtime profile has an invalid color channel`);
+  }
 }
 
 function validateCatalogs(
@@ -135,6 +165,7 @@ export function validateLevelSubmission(
   releaseLocales: readonly ReleaseLocale[] = RELEASE_LOCALES,
 ): ContentSubmissionLevelReport {
   const level = validateLevelDefinition(value);
+  validateRuntimeBindings(level);
   const localizationKeys = requiredLocalizationKeys(level);
   validateCatalogs(new Set(localizationKeys), catalogs, releaseLocales);
   const assetIds = referencedAssetIds(level);
@@ -152,6 +183,7 @@ export function validateContentSubmission(
 ): ContentSubmissionReport {
   if (values.length === 0) throw new Error('Content submission has no levels');
   const levels = values.map((value) => validateLevelDefinition(value));
+  levels.forEach(validateRuntimeBindings);
   const ids = levels.map((level) => level.id);
   if (new Set(ids).size !== ids.length) throw new Error('Content submission contains duplicate level IDs');
   levels.forEach((level, index) => {

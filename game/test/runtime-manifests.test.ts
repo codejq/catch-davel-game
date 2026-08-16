@@ -1,0 +1,49 @@
+import { describe, expect, it } from 'vitest';
+import { CHAPTER_01_LEVELS } from '../src/content/levels/chapter-01';
+import {
+  DANCE_RUNTIME_MOTIFS, MAZE_RUNTIME_PROFILES, PALETTE_RUNTIME_PROFILES,
+  danceRuntimeMotif, mazeRuntimeProfile, paletteRuntimeProfile,
+} from '../src/content/runtime-manifests';
+import { LEVEL_INTERACTION_DEFINITIONS } from '../src/sim/interactions';
+import { levelDancePerformance } from '../src/sim/dance-performance';
+import { levelRows } from '../src/sim/level';
+import type { Chapter01LevelId } from '../src/content/level-ids';
+
+describe('materialized Chapter 1 runtime manifests', () => {
+  it('resolves every reviewed maze, palette, and dance binding without a parallel level table', () => {
+    expect(Object.keys(MAZE_RUNTIME_PROFILES)).toHaveLength(10);
+    expect(Object.keys(PALETTE_RUNTIME_PROFILES)).toHaveLength(10);
+    expect(Object.keys(DANCE_RUNTIME_MOTIFS)).toHaveLength(10);
+    for (const level of CHAPTER_01_LEVELS) {
+      const levelId = level.id as Chapter01LevelId;
+      const maze = mazeRuntimeProfile(level.maze.templateSetId);
+      const palette = paletteRuntimeProfile(level.palette.presetId);
+      const dance = levelDancePerformance(levelId);
+      expect(LEVEL_INTERACTION_DEFINITIONS[levelId]).toBe(maze.interactions);
+      expect(levelRows(levelId)).toHaveLength(15);
+      expect(palette.walls).toHaveLength(4);
+      expect(dance).toMatchObject({
+        presetId: level.dance.presetId,
+        bpm: level.dance.bpm,
+        visualIntensity: level.dance.visualIntensity,
+        motif: danceRuntimeMotif(level.dance.presetId),
+      });
+    }
+  });
+
+  it('keeps all ten bright palette identities visually distinct', () => {
+    const signatures = CHAPTER_01_LEVELS.map((level) => JSON.stringify(paletteRuntimeProfile(level.palette.presetId)));
+    expect(new Set(signatures).size).toBe(10);
+    for (const level of CHAPTER_01_LEVELS) {
+      const palette = paletteRuntimeProfile(level.palette.presetId);
+      expect(Math.max(...palette.sky)).toBeGreaterThanOrEqual(0.72);
+      expect(Math.max(...palette.floor)).toBeGreaterThanOrEqual(0.84);
+    }
+  });
+
+  it('fails closed when authored content references an unknown runtime preset', () => {
+    expect(() => mazeRuntimeProfile('missing-maze')).toThrow(/Unknown maze/);
+    expect(() => paletteRuntimeProfile('missing-palette')).toThrow(/Unknown palette/);
+    expect(() => danceRuntimeMotif('missing-dance')).toThrow(/Unknown dance/);
+  });
+});

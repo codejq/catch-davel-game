@@ -4,7 +4,9 @@ import type { RenderGameState } from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
+import type { Chapter01LevelId } from '../content/level-ids';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -37,6 +39,7 @@ in vec3 vNormal;
 in vec3 vColor;
 in vec3 vWorld;
 in float vDistance;
+uniform vec3 uFogColor;
 out vec4 outColor;
 void main() {
   vec3 normal = normalize(vNormal);
@@ -49,7 +52,7 @@ void main() {
     color = mix(color, color * 0.72, line * 0.32);
   }
   float fog = smoothstep(25.0, 48.0, vDistance);
-  outColor = vec4(mix(color, vec3(0.32, 0.83, 1.0), fog), 1.0);
+  outColor = vec4(mix(color, uFogColor, fog), 1.0);
 }`;
 
 function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
@@ -81,6 +84,7 @@ export class WorldRenderer {
   private readonly matrixBuffer: WebGLBuffer;
   private readonly colorBuffer: WebGLBuffer;
   private readonly viewProjectionLocation: WebGLUniformLocation;
+  private readonly fogColorLocation: WebGLUniformLocation;
   private readonly matrices = new Float32Array(MAX_INSTANCES * 16);
   private readonly colors = new Float32Array(MAX_INSTANCES * 3);
   private readonly projection = new Float32Array(16);
@@ -91,6 +95,7 @@ export class WorldRenderer {
   private instanceCount = 0;
   private staticInstanceCount = 0;
   private worldLevelId: Chapter01LevelId = 'level-001';
+  private skyColor: RuntimeRgb = [0.32, 0.83, 1];
 
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
     this.program = program(gl);
@@ -128,9 +133,11 @@ export class WorldRenderer {
     gl.enableVertexAttribArray(6);
     gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 12, 0);
     gl.vertexAttribDivisor(6, 1);
-    const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
-    if (uniform === null) throw new Error('World shader uniform is unavailable');
-    this.viewProjectionLocation = uniform;
+    const viewProjectionUniform = gl.getUniformLocation(this.program, 'uViewProjection');
+    const fogColorUniform = gl.getUniformLocation(this.program, 'uFogColor');
+    if (viewProjectionUniform === null || fogColorUniform === null) throw new Error('World shader uniform is unavailable');
+    this.viewProjectionLocation = viewProjectionUniform;
+    this.fogColorLocation = fogColorUniform;
     this.buildWorldInstances(this.worldLevelId);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
@@ -163,10 +170,11 @@ export class WorldRenderer {
     lookAt(this.view, player.x, eyeY, player.z, player.x + directionX, eyeY + directionY, player.z + directionZ);
     multiplyMatrix4(this.viewProjection, this.projection, this.view);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    gl.clearColor(0.32, 0.83, 1, 1);
+    gl.clearColor(this.skyColor[0], this.skyColor[1], this.skyColor[2], 1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(this.program);
     gl.uniformMatrix4fv(this.viewProjectionLocation, false, this.viewProjection);
+    gl.uniform3f(this.fogColorLocation, this.skyColor[0], this.skyColor[1], this.skyColor[2]);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
     this.davels.render(state, this.viewProjection);
@@ -174,21 +182,18 @@ export class WorldRenderer {
 
   private buildWorldInstances(levelId: Chapter01LevelId): void {
     let instance = 0;
-    const stage = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
-    const accent = stage / Math.max(1, CHAPTER_01_LEVEL_IDS.length - 1);
+    const level = chapter01Level(levelId);
+    const palette = paletteRuntimeProfile(level.palette.presetId);
+    this.skyColor = palette.sky;
     instance = this.writeInstance(
       instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE,
-      [0.72 + accent * 0.24, 0.86 - accent * 0.22, 0.2 + accent * 0.34],
+      palette.floor,
     );
-    const palette: readonly (readonly [number, number, number])[] = [
-      [1, 0.24 + accent * 0.22, 0.44], [0.12, 0.9 - accent * 0.2, 0.72 + accent * 0.2],
-      [0.48 + accent * 0.4, 0.3, 0.98 - accent * 0.24], [1, 0.55 + accent * 0.24, 0.12],
-    ];
     for (const wall of wallCells(levelId)) {
       const center = cellCenter(wall.column, wall.row);
       instance = this.writeInstance(
         instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE,
-        palette[(wall.column + wall.row * 3 + stage) % palette.length]!,
+        palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!,
       );
     }
     this.staticInstanceCount = instance;

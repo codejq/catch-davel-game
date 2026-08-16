@@ -21,7 +21,7 @@ Open the printed local URL with `/tooling.html`. The production build also conta
 3. Review the deterministic 15×15 runtime grid and its pickups, lock, checkpoint, coin caches, conveyor, or timed gates. The preview comes from the production grid and runtime profile manifests, not a second mock implementation.
 4. Review the encounter graph. Critical rooms and optional rooms have distinct shapes; locked/triggered edges are labeled.
 5. Review the dance timeline, attack/vulnerability beats, robot groups, wave delays, and declared performance budgets.
-6. Confirm the validation report shows complete English/Arabic localization and resolved provenance for every palette, maze template, audio preset, and choreography component. A new key or asset ID remains invalid until its independent catalog or provenance record is added.
+6. Confirm the validation report shows complete English/Arabic localization, resolved runtime bindings, and provenance for every palette, maze template, audio preset, and choreography component. A new key, runtime preset, or asset ID remains invalid until its independent manifest/catalog/provenance record is added.
 7. Choose **Canonical format** before review. A valid edit that changes authoritative content shows `STALE DEPENDENCY`; that is expected until the reviewed source, replay hashes, exports, and frozen references are regenerated together.
 8. **Copy** or **Download JSON** creates review material only. It never writes into the repository. A developer must apply the approved change to the typed source definition and run the generated-export workflow.
 
@@ -45,7 +45,7 @@ npm run game:test
 npm run game:build
 ```
 
-The generated schema and canonical exports must be committed with their typed source. `game:content:submission` emits the machine-readable release-locale and provenance coverage report, while `game:content:export` invokes that gate before writing any output. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
+The generated schema, per-level canonical exports, and `chapter-01-runtime-manifest.json` must be committed with their typed source. The runtime manifest materializes maze openings/interactions, hazard collision profiles, dance motifs, and raw-WebGL2 palettes selected by reviewed level bindings. `game:content:submission` emits the machine-readable release-locale and provenance coverage report, while `game:content:export` invokes that gate before writing any output and fails on an unresolved runtime preset. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
 
 The workbench validates structure, deterministic reachability, budgets, production projections, release-locale coverage, and asset-provenance completeness. It does not certify human fun, translation quality, final company license/trademark approval, accessibility, device performance, or physical-device release readiness; those remain separate review gates. `THIRD_PARTY_ASSETS.md` documents the current zero-third-party inventory and the evidence future intake must provide.
 

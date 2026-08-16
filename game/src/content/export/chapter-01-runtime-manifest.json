@@ -1,0 +1,872 @@
+{
+  "danceMotifs": {
+    "clockwork-charleston": "clockwork-charleston",
+    "conveyor-conga": "conveyor-conga",
+    "corner-peek-groove": "corner-peek",
+    "flashlight-freeze-dance": "freeze-dance",
+    "giant-wobble-breakdown": "giant-breakdown",
+    "heavy-boot-two-step": "heavy-two-step",
+    "pocket-robot-pop": "robot-pop",
+    "side-to-side-shuffle": "side-shuffle",
+    "turbo-tool-shuffle": "turbo-shuffle",
+    "wobble-march": "wobble-march"
+  },
+  "hazardProfiles": {
+    "clockwork-gate-center-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.45,
+      "halfWidth": 1.45,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 60,
+      "row": 8
+    },
+    "clockwork-gate-east-v1": {
+      "column": 12,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.45,
+      "halfWidth": 1.45,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 120,
+      "row": 8
+    },
+    "clockwork-gate-west-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.45,
+      "halfWidth": 1.45,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "conveyor-lane-v1": {
+      "column": 9,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 4.25,
+      "halfWidth": 1.15,
+      "kind": "conveyor",
+      "phaseOffsetTicks": 0,
+      "row": 7
+    }
+  },
+  "manifestId": "chapter-01-runtime-v1",
+  "mazeProfiles": {
+    "workshop-basic": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 9
+        },
+        "door": {
+          "column": 7,
+          "row": 8
+        },
+        "energy": {
+          "amount": 35,
+          "column": 9,
+          "row": 7
+        },
+        "health": {
+          "amount": 25,
+          "column": 5,
+          "row": 3
+        },
+        "key": {
+          "column": 7,
+          "row": 5
+        }
+      },
+      "openings": []
+    },
+    "workshop-chief-wobble": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 13
+        },
+        "door": {
+          "column": 13,
+          "row": 12
+        },
+        "energy": {
+          "amount": 40,
+          "column": 3,
+          "row": 13
+        },
+        "health": {
+          "amount": 30,
+          "column": 7,
+          "row": 9
+        },
+        "key": {
+          "column": 9,
+          "row": 13
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 1
+        },
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "workshop-coin-circuit": {
+      "interactions": {
+        "checkpoint": {
+          "column": 7,
+          "row": 11
+        },
+        "coin": {
+          "amount": 5,
+          "column": 8,
+          "row": 3
+        },
+        "door": {
+          "column": 3,
+          "row": 10
+        },
+        "energy": {
+          "amount": 33,
+          "column": 7,
+          "row": 7
+        },
+        "health": {
+          "amount": 23,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 11,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 8,
+          "row": 10
+        }
+      ]
+    },
+    "workshop-conveyor-conga": {
+      "interactions": {
+        "checkpoint": {
+          "column": 7,
+          "row": 13
+        },
+        "coin": {
+          "amount": 8,
+          "column": 11,
+          "row": 5
+        },
+        "door": {
+          "column": 1,
+          "row": 10
+        },
+        "energy": {
+          "amount": 30,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 21,
+          "column": 5,
+          "row": 7
+        },
+        "key": {
+          "column": 3,
+          "row": 11
+        }
+      },
+      "openings": [
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        }
+      ]
+    },
+    "workshop-foremans-two-step": {
+      "interactions": {
+        "checkpoint": {
+          "column": 5,
+          "row": 11
+        },
+        "coin": {
+          "amount": 7,
+          "column": 7,
+          "row": 5
+        },
+        "door": {
+          "column": 9,
+          "row": 12
+        },
+        "energy": {
+          "amount": 31,
+          "column": 11,
+          "row": 7
+        },
+        "health": {
+          "amount": 22,
+          "column": 9,
+          "row": 5
+        },
+        "key": {
+          "column": 9,
+          "row": 11
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 12
+        }
+      ]
+    },
+    "workshop-grinning-hall": {
+      "interactions": {
+        "checkpoint": {
+          "column": 9,
+          "row": 9
+        },
+        "coin": {
+          "amount": 4,
+          "column": 8,
+          "row": 1
+        },
+        "door": {
+          "column": 5,
+          "row": 8
+        },
+        "energy": {
+          "amount": 34,
+          "column": 11,
+          "row": 5
+        },
+        "health": {
+          "amount": 24,
+          "column": 3,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 1
+        },
+        {
+          "column": 6,
+          "row": 7
+        }
+      ]
+    },
+    "workshop-lights-out-smiles-on": {
+      "interactions": {
+        "checkpoint": {
+          "column": 3,
+          "row": 11
+        },
+        "coin": {
+          "amount": 9,
+          "column": 13,
+          "row": 5
+        },
+        "door": {
+          "column": 13,
+          "row": 10
+        },
+        "energy": {
+          "amount": 29,
+          "column": 9,
+          "row": 9
+        },
+        "health": {
+          "amount": 20,
+          "column": 13,
+          "row": 7
+        },
+        "key": {
+          "column": 11,
+          "row": 7
+        },
+        "secretCoin": {
+          "amount": 15,
+          "column": 1,
+          "row": 11
+        }
+      },
+      "openings": [
+        {
+          "column": 6,
+          "row": 2
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "workshop-shift-change": {
+      "interactions": {
+        "checkpoint": {
+          "column": 9,
+          "row": 13
+        },
+        "coin": {
+          "amount": 10,
+          "column": 13,
+          "row": 3
+        },
+        "door": {
+          "column": 11,
+          "row": 10
+        },
+        "energy": {
+          "amount": 28,
+          "column": 5,
+          "row": 11
+        },
+        "health": {
+          "amount": 20,
+          "column": 3,
+          "row": 9
+        },
+        "key": {
+          "column": 7,
+          "row": 11
+        }
+      },
+      "openings": [
+        {
+          "column": 12,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        }
+      ]
+    },
+    "workshop-workshop-rush": {
+      "interactions": {
+        "checkpoint": {
+          "column": 3,
+          "row": 13
+        },
+        "coin": {
+          "amount": 12,
+          "column": 7,
+          "row": 7
+        },
+        "door": {
+          "column": 1,
+          "row": 12
+        },
+        "energy": {
+          "amount": 27,
+          "column": 11,
+          "row": 11
+        },
+        "health": {
+          "amount": 19,
+          "column": 11,
+          "row": 9
+        },
+        "key": {
+          "column": 5,
+          "row": 13
+        },
+        "secretCoin": {
+          "amount": 18,
+          "column": 13,
+          "row": 11
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 10
+        }
+      ]
+    },
+    "workshop-wrong-turn-boogie": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 6,
+          "column": 11,
+          "row": 3
+        },
+        "door": {
+          "column": 7,
+          "row": 12
+        },
+        "energy": {
+          "amount": 32,
+          "column": 1,
+          "row": 7
+        },
+        "health": {
+          "amount": 22,
+          "column": 1,
+          "row": 5
+        },
+        "key": {
+          "column": 5,
+          "row": 9
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 13,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 10
+        }
+      ]
+    }
+  },
+  "paletteProfiles": {
+    "neon-workshop-01": {
+      "floor": [
+        0.72,
+        0.86,
+        0.2
+      ],
+      "sky": [
+        0.32,
+        0.83,
+        1
+      ],
+      "walls": [
+        [
+          1,
+          0.24,
+          0.44
+        ],
+        [
+          0.12,
+          0.9,
+          0.72
+        ],
+        [
+          0.48,
+          0.3,
+          0.98
+        ],
+        [
+          1,
+          0.55,
+          0.12
+        ]
+      ]
+    },
+    "neon-workshop-02": {
+      "floor": [
+        0.45,
+        0.94,
+        0.48
+      ],
+      "sky": [
+        0.42,
+        0.88,
+        1
+      ],
+      "walls": [
+        [
+          0.1,
+          0.5,
+          1
+        ],
+        [
+          1,
+          0.28,
+          0.7
+        ],
+        [
+          0.65,
+          0.94,
+          0.18
+        ],
+        [
+          1,
+          0.62,
+          0.12
+        ]
+      ]
+    },
+    "neon-workshop-03": {
+      "floor": [
+        1,
+        0.83,
+        0.22
+      ],
+      "sky": [
+        0.62,
+        0.9,
+        1
+      ],
+      "walls": [
+        [
+          1,
+          0.46,
+          0.1
+        ],
+        [
+          0.04,
+          0.78,
+          0.92
+        ],
+        [
+          0.86,
+          0.22,
+          0.95
+        ],
+        [
+          0.2,
+          0.45,
+          1
+        ]
+      ]
+    },
+    "neon-workshop-04": {
+      "floor": [
+        0.86,
+        0.48,
+        0.95
+      ],
+      "sky": [
+        0.4,
+        0.78,
+        1
+      ],
+      "walls": [
+        [
+          0.58,
+          0.24,
+          1
+        ],
+        [
+          0.08,
+          0.88,
+          0.72
+        ],
+        [
+          1,
+          0.55,
+          0.1
+        ],
+        [
+          1,
+          0.25,
+          0.5
+        ]
+      ]
+    },
+    "neon-workshop-05": {
+      "floor": [
+        0.95,
+        0.55,
+        0.25
+      ],
+      "sky": [
+        0.55,
+        0.8,
+        0.95
+      ],
+      "walls": [
+        [
+          0.9,
+          0.12,
+          0.16
+        ],
+        [
+          0.18,
+          0.68,
+          1
+        ],
+        [
+          1,
+          0.74,
+          0.12
+        ],
+        [
+          0.48,
+          0.24,
+          0.92
+        ]
+      ]
+    },
+    "neon-workshop-06": {
+      "floor": [
+        0.35,
+        0.88,
+        0.76
+      ],
+      "sky": [
+        0.25,
+        0.86,
+        0.96
+      ],
+      "walls": [
+        [
+          1,
+          0.82,
+          0.08
+        ],
+        [
+          0.06,
+          0.72,
+          0.98
+        ],
+        [
+          0.72,
+          0.22,
+          1
+        ],
+        [
+          1,
+          0.32,
+          0.2
+        ]
+      ]
+    },
+    "neon-workshop-07": {
+      "floor": [
+        0.62,
+        0.7,
+        0.84
+      ],
+      "sky": [
+        0.42,
+        0.52,
+        0.92
+      ],
+      "walls": [
+        [
+          0.24,
+          0.9,
+          1
+        ],
+        [
+          1,
+          0.32,
+          0.78
+        ],
+        [
+          0.76,
+          0.54,
+          1
+        ],
+        [
+          1,
+          0.78,
+          0.16
+        ]
+      ]
+    },
+    "neon-workshop-08": {
+      "floor": [
+        0.9,
+        0.82,
+        0.42
+      ],
+      "sky": [
+        0.3,
+        0.82,
+        0.95
+      ],
+      "walls": [
+        [
+          0.85,
+          0.55,
+          0.1
+        ],
+        [
+          0.05,
+          0.78,
+          0.9
+        ],
+        [
+          0.9,
+          0.3,
+          0.72
+        ],
+        [
+          0.42,
+          0.34,
+          1
+        ]
+      ]
+    },
+    "neon-workshop-09": {
+      "floor": [
+        0.98,
+        0.55,
+        0.42
+      ],
+      "sky": [
+        0.65,
+        0.82,
+        1
+      ],
+      "walls": [
+        [
+          1,
+          0.18,
+          0.4
+        ],
+        [
+          0.1,
+          0.9,
+          0.72
+        ],
+        [
+          0.32,
+          0.45,
+          1
+        ],
+        [
+          1,
+          0.76,
+          0.08
+        ]
+      ]
+    },
+    "neon-workshop-10": {
+      "floor": [
+        0.85,
+        0.68,
+        0.32
+      ],
+      "sky": [
+        0.76,
+        0.45,
+        0.72
+      ],
+      "walls": [
+        [
+          0.35,
+          0.18,
+          0.5
+        ],
+        [
+          1,
+          0.22,
+          0.38
+        ],
+        [
+          0.12,
+          0.72,
+          0.85
+        ],
+        [
+          1,
+          0.68,
+          0.08
+        ]
+      ]
+    }
+  },
+  "schemaVersion": 1
+}
