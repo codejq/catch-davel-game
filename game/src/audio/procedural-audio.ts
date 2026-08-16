@@ -3,7 +3,7 @@ import type { AudioRuntimeProfile } from '../content/runtime-manifests';
 export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-detonate'
   | 'laser' | 'robot-impact' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
-  | 'robot-defeat' | 'victory' | 'defeat' | 'ambush';
+  | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush';
 
 export type AudioBus = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
@@ -24,7 +24,7 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   'bomb-detonate': 'combat', laser: 'combat', 'robot-impact': 'combat', 'robot-shot': 'combat',
   'robot-telegraph': 'combat', 'robot-melee': 'combat', 'dj-buff': 'combat', 'boss-phase': 'combat',
   'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
-  checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', victory: 'interface',
+  checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
   defeat: 'interface', ambush: 'interface',
 };
 
@@ -101,6 +101,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   checkpoint: [tone('sine', 330, 660, 0.36, 0.06), tone('triangle', 495, 990, 0.32, 0.05, 0.08)],
   objective: [tone('square', 260, 520, 0.28, 0.06), tone('sine', 390, 780, 0.34, 0.06, 0.08)],
   'robot-defeat': [noise('bandpass', 240, 0.3, 0.13), tone('square', 145, 52, 0.27, 0.11)],
+  'robot-taunt': [tone('square', 190, 270, 0.09, 0.045), tone('triangle', 380, 210, 0.12, 0.035, 0.08), noise('bandpass', 640, 0.18, 0.025)],
   victory: [tone('square', 262, 524, 0.34, 0.07), tone('triangle', 392, 784, 0.4, 0.065, 0.08), tone('sine', 523, 1046, 0.5, 0.07, 0.16)],
   defeat: [tone('sawtooth', 145, 42, 0.68, 0.16), noise('lowpass', 360, 0.55, 0.11)],
   ambush: [tone('sawtooth', 92, 46, 0.58, 0.16), noise('bandpass', 680, 0.32, 0.12), tone('square', 184, 69, 0.4, 0.08, 0.06)],

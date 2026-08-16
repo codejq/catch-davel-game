@@ -139,6 +139,8 @@ try {
     }
     const baselineScoreHud = document.querySelector('#run-score')?.textContent;
     const baselineComboHud = document.querySelector('#run-combo')?.textContent;
+    const baselineBarkSpeaker = document.querySelector('#davel-bark-speaker')?.textContent;
+    const baselineBarkLine = document.querySelector('#davel-bark-line')?.textContent;
 
     await api.releaseControl();
     const releasedTick = Number(document.body.dataset.snapshotTick);
@@ -169,6 +171,8 @@ try {
       baselineRunObservation: baselineObservation.run,
       baselineScoreHud,
       baselineComboHud,
+      baselineBarkSpeaker,
+      baselineBarkLine,
       baselineExpectedChecksum: baselineRun.expectedChecksum,
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
@@ -200,6 +204,9 @@ try {
     [typeof result.baselineScoreHud === 'string'
       && Number(result.baselineScoreHud.replace(/[^0-9]/g, '')) === result.baselineRunObservation.score
       && result.baselineComboHud === `×${result.baselineRunObservation.currentCombo}`, 'live score/combo HUD drifted from observation'],
+    [typeof result.baselineBarkSpeaker === 'string' && result.baselineBarkSpeaker.length > 0
+      && typeof result.baselineBarkLine === 'string' && result.baselineBarkLine.length > 0,
+    'deterministic Davel personality bark did not reach the live presentation'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],

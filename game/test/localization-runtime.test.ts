@@ -8,6 +8,8 @@ describe('runtime localization selection', () => {
     expect(releaseLocalizationCatalog('en')).toMatchObject({ locale: 'en', direction: 'ltr' });
     expect(releaseLocalizationCatalog('unsupported')).toMatchObject({ locale: 'en', direction: 'ltr' });
     expect(localizedContentString('ar', 'levels.001.name')).toBe('التمايل الأول');
+    expect(localizedContentString('en', 'barks.red_firemouth.telegraph_1')).toContain('Hot delivery');
+    expect(localizedContentString('ar', 'barks.red_firemouth.telegraph_1')).toContain('توصيل ساخن');
     expect(localizedContentString('unsupported', 'levels.001.name')).toBe('First Wobble');
     expect(localizedContentString('ar', 'missing.key')).toBe('missing.key');
   });

@@ -37,6 +37,7 @@ import {
   type RenderQualityPreference, type RenderQualityTier,
 } from '../render/quality';
 import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type CaptionRequest } from './event-captions';
+import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -102,6 +103,9 @@ export async function startBrowserGame(): Promise<void> {
   const objectiveTitle = requireElement<HTMLElement>('#objective-title');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
+  const davelBark = requireElement<HTMLElement>('#davel-bark');
+  const davelBarkSpeaker = requireElement<HTMLElement>('#davel-bark-speaker');
+  const davelBarkLine = requireElement<HTMLElement>('#davel-bark-line');
   const soundCaptions = requireElement<HTMLElement>('#sound-captions');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
   const shop = requireElement<HTMLElement>('#shop');
@@ -216,6 +220,8 @@ export async function startBrowserGame(): Promise<void> {
     motionScale: 1, flashScale: 1, qualityTier: resolvedQuality,
   };
   let messageTimeout = 0;
+  let barkTimeout = 0;
+  let lastBarkTick = -10_000;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
   let profileWrite: Promise<void> = Promise.resolve();
@@ -553,6 +559,23 @@ export async function startBrowserGame(): Promise<void> {
     messageTimeout = window.setTimeout(() => combatMessage.classList.remove('show'), 650);
   };
 
+  const showDavelBark = (
+    event: DecodedGameEvent,
+    occasion: DavelBarkOccasion,
+    minimumIntervalTicks: number,
+  ): void => {
+    if (event.tick - lastBarkTick < minimumIntervalTicks) return;
+    const request = davelBarkRequest(event.robotId, event.tick, occasion, event.value ?? 0);
+    if (request === null) return;
+    lastBarkTick = event.tick;
+    davelBarkSpeaker.textContent = localized(request.speakerKey);
+    davelBarkLine.textContent = localized(request.lineKey);
+    davelBark.classList.add('show');
+    window.clearTimeout(barkTimeout);
+    barkTimeout = window.setTimeout(() => davelBark.classList.remove('show'), 2_200);
+    sound('robot-taunt', event.robotId);
+  };
+
   const showCaption = (request: CaptionRequest): void => {
     if (!activeProfile.settings.captions) return;
     const existing = [...soundCaptions.children].find((element) => (
@@ -648,10 +671,17 @@ export async function startBrowserGame(): Promise<void> {
       sound('robot-impact', event.robotId);
     }
     if (event.type === 'robot-fired') sound('robot-shot', event.robotId);
-    if (event.type === 'robot-telegraph') sound('robot-telegraph', event.robotId);
+    if (event.type === 'robot-telegraph') {
+      sound('robot-telegraph', event.robotId);
+      showDavelBark(event, 'telegraph', 240);
+    }
     if (event.type === 'robot-melee') sound('robot-melee', event.robotId);
     if (event.type === 'robot-buff') { showMessage(ui('djBeat')); sound('dj-buff', event.robotId); }
-    if (event.type === 'boss-phase') { showMessage(ui('bossPhase', { phase: event.value ?? 1 })); sound('boss-phase', event.robotId); }
+    if (event.type === 'boss-phase') {
+      showMessage(ui('bossPhase', { phase: event.value ?? 1 }));
+      sound('boss-phase', event.robotId);
+      showDavelBark(event, 'boss-phase', 0);
+    }
     if (event.type === 'player-hit') {
       document.body.classList.add('hurt');
       window.setTimeout(() => document.body.classList.remove('hurt'), 130);
@@ -699,6 +729,7 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-defeated') {
       showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
       sound('robot-defeat', event.robotId);
+      showDavelBark(event, 'defeated', 150);
     }
     if (event.type === 'victory') {
       showMessage(ui('victory'));
