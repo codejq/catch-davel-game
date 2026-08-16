@@ -1,0 +1,463 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "0e6e03aed4a86a16",
+          "policyOrReplay": "ab8c698b5dea6c13",
+          "simulationLevel": "7e7f5e415446af14",
+          "simulationSchema": "9f5cdf6817cd80cd"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 11000,
+        "mode": "live-agent",
+        "parTicks": 8000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-sliding-sideshow"
+        ],
+        "seed": "campaign-level-012-v1",
+        "stuckTimeoutTicks": 1500
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-012"
+  },
+  "briefingKey": "levels.012.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-012"
+    }
+  ],
+  "dance": {
+    "armPatternId": "sideways-soft-shoe-arms-v1",
+    "attackBeats": [
+      2,
+      6,
+      10,
+      14
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 124,
+    "footPatternId": "sideways-soft-shoe-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "sideways-soft-shoe-head-v1",
+    "pathPatternId": "sideways-soft-shoe-path-v1",
+    "presetId": "sideways-soft-shoe",
+    "reducedMotionPresetId": "sideways-soft-shoe-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "sideways-soft-shoe-torso-v1",
+    "transitionIds": [
+      "sideshow-finale",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.84,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-012"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-012"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "sliding-sideshow-crew",
+      "rewardId": "chapter-02-clear-012",
+      "roomNodeId": "slider-stage",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "slider-spotlight-wave",
+          "interGroupDelayTicks": 16,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "spotlight-sliders",
+              "modifierIds": [
+                "sideshow-star"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-1.sliders",
+              "spawnPointSetId": "level-012-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "spotlight-wobblers",
+              "modifierIds": [
+                "sideshow-heckler"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-1.wobblers",
+              "spawnPointSetId": "level-012-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "sideshow-finale",
+          "id": "sideshow-finale-wave",
+          "interGroupDelayTicks": 14,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 5,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "finale-spinners",
+              "modifierIds": [
+                "mirror-ball"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-2.spinners",
+              "spawnPointSetId": "level-012-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "finale-firemouth",
+              "modifierIds": [
+                "hot-shoe"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-2.firemouth",
+              "spawnPointSetId": "level-012-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "finale-foreman",
+              "modifierIds": [
+                "hot-shoe-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-2.foreman",
+              "spawnPointSetId": "level-012-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-12",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "sideways-soft-shoe",
+              "id": "finale-dj",
+              "modifierIds": [
+                "sideshow-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-12",
+              "rngStream": "encounter.level-012.wave-2.dj",
+              "spawnPointSetId": "level-012-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 45
+        }
+      ]
+    }
+  ],
+  "id": "level-012",
+  "mastery": [
+    {
+      "presetId": "level-012-par-time"
+    },
+    {
+      "presetId": "level-012-dash-dodger"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "sideshow-entry",
+        "id": "entry-pass",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "pass-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "pass-booth",
+        "id": "pass-stage",
+        "requiredKeyId": "sideshow-pass",
+        "stateTrigger": "key-collected",
+        "to": "slider-stage",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "slider-stage",
+        "id": "stage-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "sideshow-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "sideshow-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "carousel-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "pass-booth",
+        "id": "pass-mirrors",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "mirror-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "mirror-loop",
+        "id": "mirrors-checkpoint",
+        "requiredKeyId": "sideshow-pass",
+        "stateTrigger": "key-collected",
+        "to": "sideshow-checkpoint",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "sideshow-entry",
+    "exitNodeId": "carousel-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 100,
+        "collisionProfileId": "sideshow-slide-north-v1",
+        "id": "slide-belt-north",
+        "nodeId": "slider-stage",
+        "periodTicks": 160
+      },
+      {
+        "activeTicks": 100,
+        "collisionProfileId": "sideshow-slide-south-v1",
+        "id": "slide-belt-south",
+        "nodeId": "slider-stage",
+        "periodTicks": 160
+      }
+    ],
+    "keys": [
+      {
+        "id": "sideshow-pass",
+        "placementNodeId": "pass-booth"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "sideshow-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "striped-entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "pass-booth",
+        "pickupIds": [
+          "sideshow-pass"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "sideshow-pass"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "sliding-sideshow-crew"
+        ],
+        "id": "slider-stage",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "blue-slider",
+          "dash-course",
+          "moving-floor"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "mirror-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "mirror-maze",
+          "coin-cache"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-012",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "sideshow-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "carousel-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-sliding-sideshow",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.012.name",
+  "number": 12,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-sliding-sideshow",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 9,
+      "targetIds": [
+        "slider-spotlight-wave",
+        "sideshow-finale-wave"
+      ],
+      "titleKey": "objectives.level_012",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-12"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-012-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 40,
+    "maxActiveRobots": 5,
+    "maxHazards": 2,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-012-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "blue-slider",
+    "dash-course",
+    "moving-floor",
+    "sideways-soft-shoe"
+  ]
+}

@@ -39,7 +39,7 @@ A replay contains:
 - contiguous tick-tagged command runs compressed only when commands are exactly equal;
 - checksums at the initial tick, each 60-tick boundary, and final tick.
 
-The level dependency includes the selected canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid, authoritative interaction/hazard state, and staged robot-wave roster. The generated JSON Schema and all eleven canonical playable-campaign exports are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
+The level dependency includes the selected canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid, authoritative interaction/hazard state, and staged robot-wave roster. The generated JSON Schema and all twelve canonical playable-campaign exports are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
 
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 
@@ -51,7 +51,7 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 `npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v16. Every admitted playable level must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v16 includes player resources/upgrades, pulse spread, dance/weak-point state, difficulty, run metrics, and the explicit dash unlock, cost, and cooldown; it does not grant hidden state or another simulation path.
 
-The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels and pins seed, final tick, final checksum, and all replay dependency hashes. Suite v12 records dash under simulation schema v19, replay v4, agent API v3, and observation v16 alongside the previously reviewed rules. The all-level report now validates all 33 playable level/difficulty pairs. Unknown fields, missing entries, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
+The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels and pins seed, final tick, final checksum, and all replay dependency hashes. Suite v12 records dash under simulation schema v19, replay v4, agent API v3, and observation v16 alongside the previously reviewed rules. The all-level report now validates all 36 playable level/difficulty pairs. Unknown fields, missing entries, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
 
 ## Profile v12
 

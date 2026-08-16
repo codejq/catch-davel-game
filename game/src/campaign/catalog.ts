@@ -12,6 +12,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-009': 'Workshop Rush',
   'level-010': 'Chief Wobble',
   'level-011': 'Ticket Trouble',
+  'level-012': 'Sliding Sideshow',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

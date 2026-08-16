@@ -63,6 +63,10 @@ function targets(
   let rightFootZ = -alternate * 0.13;
   let leftFootY = 0.13;
   let rightFootY = 0.13;
+  let leftKneeX = -0.22;
+  let rightKneeX = 0.22;
+  let leftFootX = -0.24;
+  let rightFootX = 0.24;
   let hipX = 0;
   let chestX = 0;
   let chestZ = 0;
@@ -128,6 +132,13 @@ function targets(
     hipX = alternate * 0.18 * intensity; chestX = -alternate * 0.24 * intensity; headX += alternate * 0.34;
     bounce += Math.abs(beat) * 0.14; leftHand = [-0.96, 1.12 + beat * 0.24, 0.08];
     rightHand = [0.96, 1.12 - beat * 0.24, 0.08];
+  } else if (performance.motif === 'soft-shoe') {
+    hipX = alternate * 0.2 * intensity; chestX = -hipX * 0.72; headX += alternate * 0.22;
+    leftKneeX = -0.25 + beat * 0.08; rightKneeX = 0.25 + beat * 0.08;
+    leftFootX = -0.3 + beat * 0.16; rightFootX = 0.3 + beat * 0.16;
+    leftFootZ = alternate * 0.42; rightFootZ = -alternate * 0.3;
+    leftFootY += Math.max(0, beat) * 0.08; rightFootY += Math.max(0, -beat) * 0.08;
+    leftHand = [-0.84, 1.34 + alternate * 0.16, 0.18]; rightHand = [0.42, 1.58 - alternate * 0.2, 0.12];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
@@ -136,10 +147,10 @@ function targets(
   setLocal(result, BODY_POINT.leftHand, rootX, rootZ, heading, leftHand[0] * scale, (leftHand[1] + bounce) * scale, leftHand[2] * scale);
   setLocal(result, BODY_POINT.rightElbow, rootX, rootZ, heading, rightElbow[0] * scale, (rightElbow[1] + bounce) * scale, rightElbow[2] * scale);
   setLocal(result, BODY_POINT.rightHand, rootX, rootZ, heading, rightHand[0] * scale, (rightHand[1] + bounce) * scale, rightHand[2] * scale);
-  setLocal(result, BODY_POINT.leftKnee, rootX, rootZ, heading, -0.22 * scale, (0.46 + bounce * 0.45) * scale, leftFootZ * 0.35 * scale);
-  setLocal(result, BODY_POINT.leftFoot, rootX, rootZ, heading, -0.24 * scale, leftFootY * scale, leftFootZ * scale);
-  setLocal(result, BODY_POINT.rightKnee, rootX, rootZ, heading, 0.22 * scale, (0.46 + bounce * 0.45) * scale, rightFootZ * 0.35 * scale);
-  setLocal(result, BODY_POINT.rightFoot, rootX, rootZ, heading, 0.24 * scale, rightFootY * scale, rightFootZ * scale);
+  setLocal(result, BODY_POINT.leftKnee, rootX, rootZ, heading, leftKneeX * scale, (0.46 + bounce * 0.45) * scale, leftFootZ * 0.35 * scale);
+  setLocal(result, BODY_POINT.leftFoot, rootX, rootZ, heading, leftFootX * scale, leftFootY * scale, leftFootZ * scale);
+  setLocal(result, BODY_POINT.rightKnee, rootX, rootZ, heading, rightKneeX * scale, (0.46 + bounce * 0.45) * scale, rightFootZ * 0.35 * scale);
+  setLocal(result, BODY_POINT.rightFoot, rootX, rootZ, heading, rightFootX * scale, rightFootY * scale, rightFootZ * scale);
   return result;
 }
 
