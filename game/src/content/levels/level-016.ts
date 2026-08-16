@@ -94,8 +94,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-laughing-mirrors'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_600,
       dependencyHashes: {
-        simulationSchema: '9f5cdf6817cd80cd', effectiveLevel: ZERO_HASH, simulationLevel: 'c2506c4c24c2adf2',
-        balanceData: '1f697b70870c7801', policyOrReplay: 'ab8c698b5dea6c13',
+        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'b9d98494a998b1f7',
+        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
       },
     }],
   },

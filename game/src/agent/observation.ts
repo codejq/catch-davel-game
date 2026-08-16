@@ -17,8 +17,9 @@ import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, weakPointPosition, weakPointRadius,
 } from '../sim/weak-point';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
+import { campaignLevel } from '../content/levels/catalog';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 16;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 17;
 
 export interface RobotObservation {
   readonly id: number;
@@ -52,7 +53,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 16;
+  readonly schemaVersion: 17;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: PlayableLevelId;
@@ -113,10 +114,22 @@ export interface AgentObservation {
   readonly victory: boolean;
   readonly defeat: boolean;
   readonly objective: {
-    readonly id: 'deactivate-davels';
+    readonly id: string;
     readonly complete: boolean;
     readonly exitUnlocked: boolean;
   };
+  readonly defense: {
+    readonly id: 'prize-bank';
+    readonly relativeX: number;
+    readonly relativeZ: number;
+    readonly health: number;
+    readonly maxHealth: number;
+    readonly attackRadius: number;
+    readonly damagePerStrike: number;
+    readonly attackIntervalTicks: number;
+    readonly nextStrikeInTicks: number | null;
+    readonly threatenedByRobotIds: readonly number[];
+  } | null;
   readonly dancePerformance: {
     readonly presetId: string;
     readonly bpm: number;
@@ -275,6 +288,25 @@ export function createObservation(state: GameState): AgentObservation {
       },
     };
   });
+  const primaryObjective = campaignLevel(state.levelId).objectives.find((objective) => objective.required)!;
+  const defense = state.level.defense === null ? null : (() => {
+    const target = state.level.defense!;
+    const threatenedByRobotIds = state.robots
+      .filter((robot) => robot.active && Math.hypot(robot.x - target.x, robot.z - target.z) <= target.attackRadius)
+      .map((robot) => robot.id);
+    const nextStrikeInTicks = !state.level.keyCollected || threatenedByRobotIds.length === 0 ? null : Math.min(
+      ...threatenedByRobotIds.map((robotId) => (
+        target.attackIntervalTicks - (state.tick + robotId * 11) % target.attackIntervalTicks
+      ) % target.attackIntervalTicks),
+    );
+    return {
+      id: target.id,
+      relativeX: round(target.x - state.player.x), relativeZ: round(target.z - state.player.z),
+      health: target.health, maxHealth: target.maxHealth,
+      attackRadius: target.attackRadius, damagePerStrike: target.damagePerStrike,
+      attackIntervalTicks: target.attackIntervalTicks, nextStrikeInTicks, threatenedByRobotIds,
+    };
+  })();
   return {
     schemaVersion: AGENT_OBSERVATION_SCHEMA_VERSION,
     tick: state.tick,
@@ -320,7 +352,8 @@ export function createObservation(state: GameState): AgentObservation {
     },
     victory: state.victory,
     defeat: state.defeat,
-    objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
+    objective: { id: primaryObjective.id, complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
+    defense,
     dancePerformance: { ...performance, ...danceTiming },
     encounter: { ...state.level.encounter },
     levelMechanic: {

@@ -83,8 +83,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-spinners-midway'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 8_200,
       dependencyHashes: {
-        simulationSchema: '9f5cdf6817cd80cd', effectiveLevel: ZERO_HASH, simulationLevel: 'f53b6b121e5d711f',
-        balanceData: '1f697b70870c7801', policyOrReplay: 'ab8c698b5dea6c13',
+        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: '1929beb042709d5e',
+        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
       },
     }],
   },

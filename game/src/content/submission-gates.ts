@@ -70,6 +70,7 @@ function validateRuntimeBindings(level: LevelDefinition): void {
     maze.interactions.door, maze.interactions.checkpoint,
     ...(maze.interactions.coin === undefined ? [] : [maze.interactions.coin]),
     ...(maze.interactions.secretCoin === undefined ? [] : [maze.interactions.secretCoin]),
+    ...(maze.interactions.defense === undefined ? [] : [maze.interactions.defense]),
   ];
   if (cells.some((cell) => !Number.isSafeInteger(cell.column) || !Number.isSafeInteger(cell.row)
     || cell.column < 1 || cell.column > 13 || cell.row < 1 || cell.row > 13)) {
@@ -79,6 +80,17 @@ function validateRuntimeBindings(level: LevelDefinition): void {
   if (pickupIds.has('coin-cache') !== (maze.interactions.coin !== undefined)
     || pickupIds.has('secret-coin-cache') !== (maze.interactions.secretCoin !== undefined)) {
     throw new Error(`Level ${level.id} pickup nodes disagree with its maze runtime profile`);
+  }
+  const primaryObjective = level.objectives.find((objective) => objective.required);
+  if ((primaryObjective?.type === 'defend') !== (maze.interactions.defense !== undefined)) {
+    throw new Error(`Level ${level.id} defend objective disagrees with its runtime target`);
+  }
+  const defense = maze.interactions.defense;
+  if (defense !== undefined && (!Number.isSafeInteger(defense.maxHealth) || defense.maxHealth <= 0
+    || !Number.isFinite(defense.attackRadius) || defense.attackRadius <= 0
+    || !Number.isSafeInteger(defense.damagePerStrike) || defense.damagePerStrike <= 0
+    || !Number.isSafeInteger(defense.attackIntervalTicks) || defense.attackIntervalTicks <= 0)) {
+    throw new Error(`Level ${level.id} has an invalid defense-target runtime profile`);
   }
   const colors = [palette.sky, palette.floor, ...palette.walls].flat();
   if (colors.some((channel) => !Number.isFinite(channel) || channel < 0 || channel > 1)) {

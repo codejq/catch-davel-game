@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "6f65847b321a131c",
+          "effectiveLevel": "f0a73000f4b2851e",
           "policyOrReplay": "5eedcddff4365989",
-          "simulationLevel": "b9d98494a998b1f7",
+          "simulationLevel": "f98fa3929a78c786",
           "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Standard",
@@ -16,131 +16,131 @@
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
-        "maxTicks": 13000,
+        "maxTicks": 14000,
         "mode": "live-agent",
-        "parTicks": 9600,
+        "parTicks": 10200,
         "policyId": "baseline-campaign-agent",
         "policyVersion": 1,
         "referenceReplayId": null,
         "requiredObjectiveIds": [
-          "clear-laughing-mirrors"
+          "defend-prize-bank"
         ],
-        "seed": "campaign-level-016-v1",
+        "seed": "campaign-level-017-v1",
         "stuckTimeoutTicks": 1800
       }
     ],
     "tier": "named-elite"
   },
   "audio": {
-    "presetId": "audio-copper-carnival-016"
+    "presetId": "audio-copper-carnival-017"
   },
-  "briefingKey": "levels.016.briefing",
+  "briefingKey": "levels.017.briefing",
   "chapterId": "chapter-02",
   "checkpoints": [
     {
-      "presetId": "checkpoint-016"
+      "presetId": "checkpoint-017"
     }
   ],
   "dance": {
-    "armPatternId": "mirrorball-lindy-arms-v1",
+    "armPatternId": "jackpot-jitterbug-arms-v1",
     "attackBeats": [
-      2,
-      6,
-      10,
-      14
+      1,
+      5,
+      9,
+      13
     ],
     "barsPerPhrase": 4,
-    "bpm": 140,
-    "footPatternId": "mirrorball-lindy-feet-v1",
+    "bpm": 146,
+    "footPatternId": "jackpot-jitterbug-feet-v1",
     "grammarVersion": 1,
-    "headAccentId": "mirrorball-lindy-head-v1",
-    "pathPatternId": "mirrorball-lindy-path-v1",
-    "presetId": "mirrorball-lindy",
-    "reducedMotionPresetId": "mirrorball-lindy-reduced-v1",
+    "headAccentId": "jackpot-jitterbug-head-v1",
+    "pathPatternId": "jackpot-jitterbug-path-v1",
+    "presetId": "jackpot-jitterbug",
+    "reducedMotionPresetId": "jackpot-jitterbug-reduced-v1",
     "timeSignature": "4/4",
-    "torsoPatternId": "mirrorball-lindy-torso-v1",
+    "torsoPatternId": "jackpot-jitterbug-torso-v1",
     "transitionIds": [
-      "mirror-mixup",
-      "last-laugh",
+      "vault-rush",
+      "jackpot-heist",
       "objective-clear"
     ],
-    "visualIntensity": 0.96,
+    "visualIntensity": 0.98,
     "vulnerableBeats": [
-      0,
-      4,
-      8,
-      12
+      3,
+      7,
+      11,
+      15
     ]
   },
   "difficulty": {
-    "presetId": "standard-chapter-02-016"
+    "presetId": "standard-chapter-02-017"
   },
   "economy": {
-    "presetId": "economy-chapter-02-016"
+    "presetId": "economy-chapter-02-017"
   },
   "encounters": [
     {
       "arenaLock": true,
       "checkpointOnComplete": null,
-      "completion": "all-defeated",
-      "id": "mirrorball-company",
-      "rewardId": "chapter-02-clear-016",
-      "roomNodeId": "laughing-mirror-arena",
+      "completion": "objective-event",
+      "id": "jackpot-raiders",
+      "rewardId": "chapter-02-clear-017",
+      "roomNodeId": "prize-bank-arena",
       "trigger": "on-enter",
       "triggerRef": null,
       "waves": [
         {
           "completion": "all-defeated",
           "danceTransitionId": null,
-          "id": "reflection-rehearsal",
-          "interGroupDelayTicks": 10,
+          "id": "coin-snatch-warmup",
+          "interGroupDelayTicks": 9,
           "invalidSpawnPolicy": "fail-level",
-          "maxConcurrentRobots": 3,
+          "maxConcurrentRobots": 4,
           "spawnGroups": [
             {
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-02-stage-16",
+              "aiProfileId": "chapter-02-stage-17",
               "archetypeId": "wobble-scout",
-              "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "rehearsal-wobbler",
+              "count": 2,
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "warmup-wobblers",
               "modifierIds": [
-                "mirror-copy"
+                "coin-snatcher"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-1.wobbler",
-              "spawnPointSetId": "level-016-arena-1"
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-1.wobblers",
+              "spawnPointSetId": "level-017-arena-1"
             },
             {
               "accessibilityVerificationId": "silhouette-blue-slider-v1",
-              "aiProfileId": "chapter-02-stage-16",
+              "aiProfileId": "chapter-02-stage-17",
               "archetypeId": "blue-slider",
               "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "rehearsal-slider",
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "warmup-slider",
               "modifierIds": [
-                "mirror-copy"
+                "till-skater"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-1.slider",
-              "spawnPointSetId": "level-016-arena-1"
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-1.slider",
+              "spawnPointSetId": "level-017-arena-1"
             },
             {
               "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
-              "aiProfileId": "chapter-02-stage-16",
+              "aiProfileId": "chapter-02-stage-17",
               "archetypeId": "yellow-spinner",
               "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "rehearsal-spinner",
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "warmup-spinner",
               "modifierIds": [
-                "mirror-copy"
+                "coin-tosser"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-1.spinner",
-              "spawnPointSetId": "level-016-arena-1"
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-1.spinner",
+              "spawnPointSetId": "level-017-arena-1"
             }
           ],
           "startCondition": "encounter-start",
@@ -148,143 +148,128 @@
         },
         {
           "completion": "all-defeated",
-          "danceTransitionId": "mirror-mixup",
-          "id": "mirrorball-mixup",
-          "interGroupDelayTicks": 9,
-          "invalidSpawnPolicy": "fail-level",
-          "maxConcurrentRobots": 4,
-          "spawnGroups": [
-            {
-              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "wobble-scout",
-              "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "mixup-wobbler",
-              "modifierIds": [
-                "wrong-reflection"
-              ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-2.wobbler",
-              "spawnPointSetId": "level-016-arena-2"
-            },
-            {
-              "accessibilityVerificationId": "silhouette-blue-slider-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "blue-slider",
-              "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "mixup-slider",
-              "modifierIds": [
-                "wrong-reflection"
-              ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-2.slider",
-              "spawnPointSetId": "level-016-arena-2"
-            },
-            {
-              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "yellow-spinner",
-              "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "mixup-spinner",
-              "modifierIds": [
-                "wrong-reflection"
-              ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-2.spinner",
-              "spawnPointSetId": "level-016-arena-2"
-            },
-            {
-              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "red-firemouth",
-              "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "mixup-firemouth",
-              "modifierIds": [
-                "wrong-reflection"
-              ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-2.firemouth",
-              "spawnPointSetId": "level-016-arena-2"
-            }
-          ],
-          "startCondition": "previous-wave-complete",
-          "startDelayTicks": 34
-        },
-        {
-          "completion": "all-defeated",
-          "danceTransitionId": "last-laugh",
-          "id": "last-laugh",
+          "danceTransitionId": "vault-rush",
+          "id": "vault-rush",
           "interGroupDelayTicks": 8,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 3,
           "spawnGroups": [
             {
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-02-stage-16",
+              "aiProfileId": "chapter-02-stage-17",
               "archetypeId": "wobble-scout",
               "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "laughing-wobbler",
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "rush-wobbler",
               "modifierIds": [
-                "last-laugh"
+                "vault-rusher"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-3.wobbler",
-              "spawnPointSetId": "level-016-arena-3"
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-2.wobbler",
+              "spawnPointSetId": "level-017-arena-2"
             },
             {
-              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "red-firemouth",
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-17",
+              "archetypeId": "blue-slider",
               "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "laughing-firemouth",
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "rush-slider",
               "modifierIds": [
-                "last-laugh"
+                "till-skater"
               ],
-              "rank": "elite",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-3.firemouth",
-              "spawnPointSetId": "level-016-arena-3"
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-2.slider",
+              "spawnPointSetId": "level-017-arena-2"
             },
             {
-              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
-              "aiProfileId": "chapter-02-stage-16",
-              "archetypeId": "cyan-dj",
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-17",
+              "archetypeId": "yellow-spinner",
               "count": 1,
-              "dancePresetId": "mirrorball-lindy",
-              "id": "laughing-dj",
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "rush-spinner",
               "modifierIds": [
-                "mirrorball-headliner"
+                "coin-tosser"
               ],
-              "rank": "elite",
-              "rewardProfileId": "chapter-02-coins-16",
-              "rngStream": "encounter.level-016.wave-3.dj",
-              "spawnPointSetId": "level-016-arena-3"
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-2.spinner",
+              "spawnPointSetId": "level-017-arena-2"
             }
           ],
           "startCondition": "previous-wave-complete",
-          "startDelayTicks": 30
+          "startDelayTicks": 28
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "jackpot-heist",
+          "id": "jackpot-heist",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-17",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "heist-firemouth",
+              "modifierIds": [
+                "vault-torcher"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-3.firemouth",
+              "spawnPointSetId": "level-017-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-17",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "heist-foreman",
+              "modifierIds": [
+                "jackpot-enforcer"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-3.foreman",
+              "spawnPointSetId": "level-017-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-17",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "jackpot-jitterbug",
+              "id": "heist-dj",
+              "modifierIds": [
+                "jackpot-mastermind"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-17",
+              "rngStream": "encounter.level-017.wave-3.dj",
+              "spawnPointSetId": "level-017-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 24
         }
       ]
     }
   ],
-  "id": "level-016",
+  "id": "level-017",
   "mastery": [
     {
-      "presetId": "level-016-par-time"
+      "presetId": "level-017-par-time"
     },
     {
-      "presetId": "level-016-no-false-turns"
+      "presetId": "level-017-bank-untouched"
     }
   ],
   "maze": {
@@ -296,105 +281,83 @@
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "mirror-entry",
-        "id": "entry-token",
+        "from": "cashier-entry",
+        "id": "entry-key",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "silver-token-booth",
+        "to": "vault-key-lane",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "ticket-gate",
-        "from": "silver-token-booth",
-        "id": "token-arena",
-        "requiredKeyId": "silver-token",
+        "from": "vault-key-lane",
+        "id": "key-bank",
+        "requiredKeyId": "vault-key",
         "stateTrigger": "key-collected",
-        "to": "laughing-mirror-arena",
+        "to": "prize-bank-arena",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "laughing-mirror-arena",
-        "id": "arena-checkpoint",
+        "from": "prize-bank-arena",
+        "id": "bank-checkpoint-edge",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "mirror-checkpoint",
+        "to": "bank-checkpoint",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "mirror-checkpoint",
+        "from": "bank-checkpoint",
         "id": "checkpoint-exit",
         "requiredKeyId": null,
         "stateTrigger": "primary-objective",
-        "to": "reflection-exit",
+        "to": "jackpot-exit",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "silver-token-booth",
-        "id": "token-left-reflection",
+        "from": "vault-key-lane",
+        "id": "key-golden",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "left-reflection",
+        "to": "golden-side-booth",
         "traversalCost": 2
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "left-reflection",
-        "id": "left-right-reflection",
+        "from": "golden-side-booth",
+        "id": "golden-crooked",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "right-reflection",
+        "to": "crooked-side-booth",
         "traversalCost": 2
       },
       {
         "bidirectional": true,
         "doorType": "ticket-gate",
-        "from": "right-reflection",
-        "id": "right-checkpoint",
-        "requiredKeyId": "silver-token",
+        "from": "crooked-side-booth",
+        "id": "crooked-checkpoint",
+        "requiredKeyId": "vault-key",
         "stateTrigger": "key-collected",
-        "to": "mirror-checkpoint",
+        "to": "bank-checkpoint",
         "traversalCost": 2
       }
     ],
-    "entranceNodeId": "mirror-entry",
-    "exitNodeId": "reflection-exit",
+    "entranceNodeId": "cashier-entry",
+    "exitNodeId": "jackpot-exit",
     "generationAttempts": 1,
     "generatorVersion": 1,
-    "hazards": [
-      {
-        "activeTicks": 70,
-        "collisionProfileId": "mirror-shutter-left-v1",
-        "id": "mirror-shutter-left",
-        "nodeId": "laughing-mirror-arena",
-        "periodTicks": 210
-      },
-      {
-        "activeTicks": 70,
-        "collisionProfileId": "mirror-shutter-center-v1",
-        "id": "mirror-shutter-center",
-        "nodeId": "laughing-mirror-arena",
-        "periodTicks": 210
-      },
-      {
-        "activeTicks": 70,
-        "collisionProfileId": "mirror-shutter-right-v1",
-        "id": "mirror-shutter-right",
-        "nodeId": "laughing-mirror-arena",
-        "periodTicks": 210
-      }
-    ],
+    "hazards": [],
     "keys": [
       {
-        "id": "silver-token",
-        "placementNodeId": "silver-token-booth"
+        "id": "vault-key",
+        "placementNodeId": "vault-key-lane"
       }
     ],
     "maxBranchDepth": 2,
@@ -403,7 +366,7 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "mirror-entry",
+        "id": "cashier-entry",
         "pickupIds": [
           "repair-kit"
         ],
@@ -412,32 +375,32 @@
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "mirror-entry"
+          "cashier-entry"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "silver-token-booth",
+        "id": "vault-key-lane",
         "pickupIds": [
-          "silver-token"
+          "vault-key"
         ],
         "role": "corridor",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "silver-token"
+          "vault-key"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [
-          "mirrorball-company"
+          "jackpot-raiders"
         ],
-        "id": "laughing-mirror-arena",
+        "id": "prize-bank-arena",
         "pickupIds": [
           "pulse-cell"
         ],
@@ -446,15 +409,15 @@
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "false-corridors",
-          "mirror-shutters"
+          "defense",
+          "prize-bank"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": false,
         "encounterIds": [],
-        "id": "left-reflection",
+        "id": "golden-side-booth",
         "pickupIds": [
           "coin-cache"
         ],
@@ -463,30 +426,28 @@
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "false-corridor",
-          "left-reflection"
+          "prize-loop"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": false,
         "encounterIds": [],
-        "id": "right-reflection",
+        "id": "crooked-side-booth",
         "pickupIds": [],
         "role": "corridor",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "false-corridor",
-          "right-reflection"
+          "decoy-loop"
         ]
       },
       {
-        "checkpointId": "checkpoint-016",
+        "checkpointId": "checkpoint-017",
         "criticalPath": true,
         "encounterIds": [],
-        "id": "mirror-checkpoint",
+        "id": "bank-checkpoint",
         "pickupIds": [],
         "role": "checkpoint",
         "sizeClass": "small",
@@ -500,7 +461,7 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "reflection-exit",
+        "id": "jackpot-exit",
         "pickupIds": [],
         "role": "exit",
         "sizeClass": "small",
@@ -516,52 +477,50 @@
       "minimum": 2
     },
     "secretCount": 0,
-    "templateSetId": "carnival-laughing-mirrors",
+    "templateSetId": "carnival-prize-booth-panic",
     "validationProfile": "authored-grid-v1"
   },
-  "nameKey": "levels.016.name",
-  "number": 16,
+  "nameKey": "levels.017.name",
+  "number": 17,
   "objectives": [
     {
       "completionMode": "count",
       "dependsOn": [],
       "durationTicks": null,
-      "id": "clear-laughing-mirrors",
+      "id": "defend-prize-bank",
       "markerPolicy": "always",
       "required": true,
       "targetCount": 10,
       "targetIds": [
-        "reflection-rehearsal",
-        "mirrorball-mixup",
-        "last-laugh"
+        "prize-bank-arena"
       ],
-      "titleKey": "objectives.level_016",
-      "type": "survive"
+      "titleKey": "objectives.level_017",
+      "type": "defend"
     }
   ],
   "palette": {
-    "presetId": "copper-carnival-16"
+    "presetId": "copper-carnival-17"
   },
   "performance": {
     "benchmarkScenarioIds": [
-      "level-016-standard-live"
+      "level-017-standard-live"
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
     "maxActivePickups": 4,
     "maxActiveProjectiles": 52,
     "maxActiveRobots": 4,
-    "maxHazards": 3,
+    "maxHazards": 0,
     "maxMazeNodes": 9,
     "maxRenderInstances": 1024
   },
   "schemaVersion": 1,
-  "seed": "campaign-level-016-v1",
+  "seed": "campaign-level-017-v1",
   "tags": [
     "chapter-02",
     "copper-carnival",
-    "false-corridors",
-    "mirror-shutters",
-    "mirrorball-lindy"
+    "defense",
+    "prize-bank",
+    "jackpot-jitterbug"
   ]
 }

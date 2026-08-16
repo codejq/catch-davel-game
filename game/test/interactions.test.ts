@@ -3,7 +3,7 @@ import { GameSimulation } from '../src/sim/game';
 import { isPlayerPositionValidWithBlockers } from '../src/sim/level';
 import {
   closedDoorCells, hazardTicksUntilToggle, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
-  stepLevelHazardPhases,
+  stepDefenseTarget, stepLevelHazardPhases,
 } from '../src/sim/interactions';
 import { createSimulationSnapshot, parseSimulationSnapshot } from '../src/sim/serialization';
 import { PLAYABLE_LEVELS, type PlayableLevelId } from '../src/content/levels/catalog';
@@ -230,5 +230,27 @@ describe('authoritative Level 1 interactions', () => {
     const game = new GameSimulation('boss-wave-proof', undefined, undefined, 'boss-training', 'level-009');
     expect(game.state.level.encounter).toEqual({ waveIndex: 0, waveCount: 1, pendingTicks: 0 });
     expect(game.state.robots).toHaveLength(1);
+  });
+
+  it('makes the Level 17 prize bank solid, authoritative, and destructible', () => {
+    const game = new GameSimulation('defense-target-proof', undefined, undefined, 'campaign', 'level-017');
+    const target = game.state.level.defense!;
+    expect(target).toMatchObject({ id: 'prize-bank', health: 360, maxHealth: 360 });
+    expect(closedDoorCells(game.state.level)).toContainEqual({ column: target.column, row: target.row });
+    game.state.level.keyCollected = true;
+    game.state.level.pickups.find((pickup) => pickup.kind === 'key')!.active = false;
+    const attacker = game.state.robots[0]!;
+    attacker.x = target.x;
+    attacker.z = target.z;
+    const strikes = stepDefenseTarget(game.state.level, game.state.robots, 0);
+    expect(strikes).toEqual([{ robotId: attacker.id, damage: 9 }]);
+    expect(target.health).toBe(351);
+
+    const restored = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+    expect(restored.level.defense).toEqual(target);
+    target.health = 1;
+    game.step(idle);
+    expect(target.health).toBe(0);
+    expect(game.state.defeat).toBe(true);
   });
 });

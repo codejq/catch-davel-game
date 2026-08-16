@@ -9,7 +9,7 @@ import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 
-export const TRANSPORT_CONTRACT_VERSION = 14;
+export const TRANSPORT_CONTRACT_VERSION = 15;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -21,7 +21,7 @@ export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
 export const RENDER_HAZARD_FLOATS = 8;
-export const RENDER_LEVEL_FLOATS = 9;
+export const RENDER_LEVEL_FLOATS = 14;
 export const RENDER_PLAYER_BOMB_FLOATS = 8;
 export const RENDER_EFFECT_FLOATS = 4;
 export const RENDER_SNAPSHOT_BYTES = RENDER_SNAPSHOT_HEADER_BYTES + (
@@ -256,6 +256,9 @@ export function writeRenderSnapshot(
     state.level.door.x, state.level.door.z, state.level.door.open ? 1 : 0,
     state.level.checkpoint.x, state.level.checkpoint.z, state.level.checkpoint.activated ? 1 : 0,
     state.level.exit.x, state.level.exit.z, state.level.objectiveComplete ? 1 : 0,
+    state.level.defense === null ? 0 : 1,
+    state.level.defense?.x ?? 0, state.level.defense?.z ?? 0,
+    state.level.defense?.health ?? 0, state.level.defense?.maxHealth ?? 0,
   ], offset);
   offset += RENDER_LEVEL_FLOATS;
   const pulseBurstShots = 'pulseSpreadRadians' in state
@@ -394,6 +397,11 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
           waveIndex: (levelFlags >>> 16) & 0xf,
           waveCount: (levelFlags >>> 20) & 0xf,
           pendingTicks: (levelFlags >>> 24) & 0xff,
+        },
+        defense: data[offset + 9] === 0 ? null : {
+          id: 'prize-bank',
+          x: data[offset + 10]!, z: data[offset + 11]!,
+          health: data[offset + 12]!, maxHealth: data[offset + 13]!,
         },
         keyCollected: (levelFlags & 1) !== 0,
         objectiveComplete: (levelFlags & 2) !== 0,

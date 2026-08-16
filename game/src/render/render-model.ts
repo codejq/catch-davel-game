@@ -84,6 +84,13 @@ export interface RenderLevelState {
   readonly checkpoint: { readonly x: number; readonly z: number; readonly activated: boolean };
   readonly exit: { readonly x: number; readonly z: number };
   readonly encounter: { readonly waveIndex: number; readonly waveCount: number; readonly pendingTicks: number };
+  readonly defense: {
+    readonly id: 'prize-bank';
+    readonly x: number;
+    readonly z: number;
+    readonly health: number;
+    readonly maxHealth: number;
+  } | null;
   readonly keyCollected: boolean;
   readonly objectiveComplete: boolean;
 }

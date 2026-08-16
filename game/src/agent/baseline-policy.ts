@@ -69,8 +69,10 @@ export class BaselineCampaignAgent {
   next(observation: AgentObservation): AgentAction {
     if (this.level.levelId !== observation.levelId) this.level = levelObservation(observation.levelId);
     if (observation.victory || observation.defeat) return {};
+    const defenseThreats = new Set(observation.defense?.threatenedByRobotIds ?? []);
     const visible = observation.robots.filter((robot) => robot.visible)
-      .sort((first, second) => first.distance - second.distance || first.id - second.id)[0];
+      .sort((first, second) => Number(defenseThreats.has(second.id)) - Number(defenseThreats.has(first.id))
+        || first.distance - second.distance || first.id - second.id)[0];
     if (visible !== undefined) {
       const targetBearing = visible.weakPoint.active ? visible.weakPoint.bearing : visible.bearing;
       const targetElevation = visible.weakPoint.active ? visible.weakPoint.elevation : visible.elevation;
@@ -105,7 +107,10 @@ export class BaselineCampaignAgent {
     } else if (observation.player.energy < 22 && activeEnergy !== undefined) {
       target = worldTarget(observation, activeEnergy.relativeX, activeEnergy.relativeZ);
     } else {
-      const targetRobot = observation.robots.slice().sort((first, second) => first.distance - second.distance || first.id - second.id)[0];
+      const targetRobot = observation.robots.slice().sort(
+        (first, second) => Number(defenseThreats.has(second.id)) - Number(defenseThreats.has(first.id))
+          || first.distance - second.distance || first.id - second.id,
+      )[0];
       if (targetRobot === undefined) target = worldTarget(observation, observation.exit.relativeX, observation.exit.relativeZ);
       else target = worldTarget(observation, targetRobot.relativeX, targetRobot.relativeZ);
     }

@@ -91,8 +91,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-tempo-tent'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_200,
       dependencyHashes: {
-        simulationSchema: '9f5cdf6817cd80cd', effectiveLevel: ZERO_HASH, simulationLevel: '8198ce8a2de7440c',
-        balanceData: '1f697b70870c7801', policyOrReplay: 'ab8c698b5dea6c13',
+        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'da526b66d52a0785',
+        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
       },
     }],
   },

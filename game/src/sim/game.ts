@@ -11,7 +11,7 @@ import { restoreSimulationState, type SimulationSnapshotV1 } from './serializati
 import {
   closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
   openNearbyDoor, queueNextEncounterWave, reachedUnlockedExit, stepEncounterWaves, stepLevelHazards,
-  stepLevelHazardPhases,
+  stepDefenseTarget, stepLevelHazardPhases,
   type LevelRuntimeState,
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
@@ -164,8 +164,13 @@ export class GameSimulation {
     }
     const robotsFrozen = freezeDanceWindow(this.state.levelId, this.state.tick).frozen;
     if (!robotsFrozen) {
-      stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId, this.state.difficulty);
+      const defenseTarget = this.state.level.keyCollected && !this.state.level.objectiveComplete
+        ? this.state.level.defense ?? undefined : undefined;
+      stepRobots(
+        this.state.robots, this.state.seed, this.state.player, this.state.levelId, this.state.difficulty, defenseTarget,
+      );
     }
+    stepDefenseTarget(this.state.level, this.state.robots, this.state.tick, this.state.difficulty);
     this.coolWeapons();
     const healthBeforeEnemyCombat = this.state.player.health;
     const enemyCombat = stepEnemyCombat(
@@ -182,7 +187,7 @@ export class GameSimulation {
       this.state.events.push({ tick: this.state.tick, type: 'boss-phase', robotId, value: this.state.robots.find((robot) => robot.id === robotId)!.bossPhase });
     }
     for (const robotId of enemyCombat.playerHitRobotIds) this.state.events.push({ tick: this.state.tick, type: 'player-hit', robotId });
-    if (this.state.player.health <= 0 && !this.state.defeat) {
+    if ((this.state.player.health <= 0 || this.state.level.defense?.health === 0) && !this.state.defeat) {
       this.state.defeat = true;
       this.state.events.push({ tick: this.state.tick, type: 'defeat' });
     }

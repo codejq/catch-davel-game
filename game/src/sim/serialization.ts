@@ -150,6 +150,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
       checkpoint: { ...state.level.checkpoint },
       exit: { ...state.level.exit },
       encounter: { ...state.level.encounter },
+      defense: state.level.defense === null ? null : { ...state.level.defense },
       keyCollected: state.level.keyCollected,
       objectiveComplete: state.level.objectiveComplete,
     },
@@ -330,7 +331,7 @@ function validateLevel(
   value: unknown, levelId: PlayableLevelId, encounter: EncounterId, difficulty: DifficultyId,
 ): LevelRuntimeState {
   assertRecord(value, 'snapshot.level');
-  assertExactKeys(value, ['pickups', 'hazards', 'door', 'checkpoint', 'exit', 'encounter', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
+  assertExactKeys(value, ['pickups', 'hazards', 'door', 'checkpoint', 'exit', 'encounter', 'defense', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
   const expected = createLevelRuntime(levelId, encounter);
   if (!Array.isArray(value.pickups) || value.pickups.length !== expected.pickups.length) {
     throw new Error(`snapshot.level.pickups must contain ${expected.pickups.length} records`);
@@ -374,6 +375,28 @@ function validateLevel(
     }
     return { ...expectedHazard, active: booleanValue(hazardValue.active, `snapshot.level.hazards[${index}].active`) };
   });
+  let defense: LevelRuntimeState['defense'] = null;
+  if (expected.defense === null) {
+    if (value.defense !== null) throw new Error('snapshot.level.defense is not valid for this level');
+  } else {
+    assertRecord(value.defense, 'snapshot.level.defense');
+    assertExactKeys(value.defense, [
+      'id', 'column', 'row', 'x', 'z', 'maxHealth', 'health', 'attackRadius', 'damagePerStrike',
+      'attackIntervalTicks',
+    ], 'snapshot.level.defense');
+    for (const field of [
+      'id', 'column', 'row', 'x', 'z', 'maxHealth', 'attackRadius', 'damagePerStrike', 'attackIntervalTicks',
+    ] as const) {
+      if (value.defense[field] !== expected.defense[field]) {
+        throw new Error(`snapshot.level.defense.${field} changed immutable level data`);
+      }
+    }
+    const health = finite(value.defense.health, 'snapshot.level.defense.health');
+    if (health < 0 || health > expected.defense.maxHealth) {
+      throw new Error('snapshot.level.defense.health is outside its bounds');
+    }
+    defense = { ...expected.defense, health };
+  }
   assertRecord(value.door, 'snapshot.level.door');
   assertExactKeys(value.door, ['id', 'keyId', 'column', 'row', 'x', 'z', 'open'], 'snapshot.level.door');
   assertRecord(value.checkpoint, 'snapshot.level.checkpoint');
@@ -406,6 +429,7 @@ function validateLevel(
     checkpoint: { ...expected.checkpoint, activated: booleanValue(value.checkpoint.activated, 'snapshot.level.checkpoint.activated') },
     exit: { ...expected.exit },
     encounter: { waveIndex, waveCount, pendingTicks },
+    defense,
     keyCollected: booleanValue(value.keyCollected, 'snapshot.level.keyCollected'),
     objectiveComplete: booleanValue(value.objectiveComplete, 'snapshot.level.objectiveComplete'),
   };
@@ -521,7 +545,11 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (level.objectiveComplete && (robots.some((robot) => robot.active) || robots.some((robot) => !robot.spawned))) {
     throw new Error('snapshot.level objective cannot complete before every Davel is spawned and inactive');
   }
+  if (level.objectiveComplete && level.defense?.health === 0) {
+    throw new Error('snapshot.level defend objective cannot complete after its target is destroyed');
+  }
   if (victory && !level.objectiveComplete) throw new Error('snapshot victory requires the primary objective');
+  if (level.defense?.health === 0 && !defeat) throw new Error('snapshot destroyed defense target requires defeat');
   if (victory && defeat) throw new Error('snapshot cannot be both victory and defeat');
   return {
     tick,

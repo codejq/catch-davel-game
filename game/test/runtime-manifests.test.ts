@@ -11,12 +11,12 @@ import { levelRows } from '../src/sim/level';
 
 describe('materialized playable campaign runtime manifests', () => {
   it('resolves every reviewed maze, palette, and dance binding without a parallel level table', () => {
-    expect(Object.keys(MAZE_RUNTIME_PROFILES)).toHaveLength(16);
-    expect(Object.keys(PALETTE_RUNTIME_PROFILES)).toHaveLength(16);
-    expect(Object.keys(DANCE_RUNTIME_MOTIFS)).toHaveLength(16);
-    expect(Object.keys(DANCE_GAMEPLAY_RUNTIME_PROFILES)).toHaveLength(16);
-    expect(Object.keys(AUDIO_RUNTIME_PROFILES)).toHaveLength(16);
-    expect(Object.keys(MUSIC_RUNTIME_PROFILES)).toHaveLength(16);
+    expect(Object.keys(MAZE_RUNTIME_PROFILES)).toHaveLength(17);
+    expect(Object.keys(PALETTE_RUNTIME_PROFILES)).toHaveLength(17);
+    expect(Object.keys(DANCE_RUNTIME_MOTIFS)).toHaveLength(17);
+    expect(Object.keys(DANCE_GAMEPLAY_RUNTIME_PROFILES)).toHaveLength(17);
+    expect(Object.keys(AUDIO_RUNTIME_PROFILES)).toHaveLength(17);
+    expect(Object.keys(MUSIC_RUNTIME_PROFILES)).toHaveLength(17);
     for (const level of PLAYABLE_LEVELS) {
       const levelId = level.id as PlayableLevelId;
       const maze = mazeRuntimeProfile(level.maze.templateSetId);
@@ -45,7 +45,7 @@ describe('materialized playable campaign runtime manifests', () => {
 
   it('keeps every bright palette identity visually distinct', () => {
     const signatures = PLAYABLE_LEVELS.map((level) => JSON.stringify(paletteRuntimeProfile(level.palette.presetId)));
-    expect(new Set(signatures).size).toBe(16);
+    expect(new Set(signatures).size).toBe(17);
     for (const level of PLAYABLE_LEVELS) {
       const palette = paletteRuntimeProfile(level.palette.presetId);
       expect(Math.max(...palette.sky)).toBeGreaterThanOrEqual(0.72);

@@ -7,9 +7,9 @@
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
           "effectiveLevel": "713c20b1eb916831",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "228dfc76d33f070e",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "0f8997387e91d233",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Standard",
         "expectedChecksum": null,

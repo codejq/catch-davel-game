@@ -42,6 +42,13 @@
       "roomSize": 0.94,
       "wetMix": 0.36
     },
+    "audio-copper-carnival-017": {
+      "dampingHz": 4900,
+      "decaySeconds": 0.72,
+      "pitchScale": 1.06,
+      "roomSize": 0.88,
+      "wetMix": 0.33
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -162,6 +169,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "jackpot-jitterbug": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "mirrorball-lindy": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -220,6 +233,7 @@
     "flashlight-freeze-dance": "freeze-dance",
     "giant-wobble-breakdown": "giant-breakdown",
     "heavy-boot-two-step": "heavy-two-step",
+    "jackpot-jitterbug": "jackpot-jitter",
     "mirrorball-lindy": "mirror-lindy",
     "pocket-robot-pop": "robot-pop",
     "side-to-side-shuffle": "side-shuffle",
@@ -526,6 +540,111 @@
           "amount": 18,
           "column": 9,
           "row": 5
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 24,
+          "column": 3,
+          "row": 9
+        },
+        "health": {
+          "amount": 18,
+          "column": 11,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 8,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
+    "carnival-prize-booth-panic": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 19,
+          "column": 9,
+          "row": 5
+        },
+        "defense": {
+          "attackIntervalTicks": 54,
+          "attackRadius": 1.65,
+          "column": 8,
+          "damagePerStrike": 9,
+          "maxHealth": 360,
+          "row": 9
         },
         "door": {
           "column": 10,
@@ -1581,6 +1700,33 @@
       ],
       "swing": 0.02
     },
+    "jackpot-jitterbug": {
+      "bassPattern": [
+        0,
+        3,
+        1,
+        4
+      ],
+      "leadPattern": [
+        0,
+        4,
+        2,
+        3,
+        1,
+        4,
+        0,
+        2
+      ],
+      "rootMidi": 63,
+      "scale": [
+        0,
+        2,
+        4,
+        7,
+        10
+      ],
+      "swing": 0.23
+    },
     "mirrorball-lindy": {
       "bassPattern": [
         0,
@@ -2000,6 +2146,40 @@
           1,
           0.74,
           0.16
+        ]
+      ]
+    },
+    "copper-carnival-17": {
+      "floor": [
+        0.96,
+        0.76,
+        0.2
+      ],
+      "sky": [
+        0.42,
+        0.9,
+        0.92
+      ],
+      "walls": [
+        [
+          0.05,
+          0.74,
+          0.68
+        ],
+        [
+          1,
+          0.48,
+          0.08
+        ],
+        [
+          0.86,
+          0.16,
+          0.58
+        ],
+        [
+          0.32,
+          0.24,
+          0.94
         ]
       ]
     },

@@ -6,13 +6,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "a258af218861ff36",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "e6712698dcfd120a",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "2dfe3ea1bc8a3d25",
+        "expectedChecksum": "da7d3f41d0849a18",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
@@ -32,13 +32,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "a258af218861ff36",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "e6712698dcfd120a",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Story",
-        "expectedChecksum": "aeb7c9bec7095ba0",
+        "expectedChecksum": "38929f729f37bd4f",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -58,13 +58,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "a258af218861ff36",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "fd7ff25ba218846f",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "e6712698dcfd120a",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "f5e4cab93159bedd",
+        "expectedChecksum": "246332eb827dc928",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,

@@ -987,8 +987,13 @@ export async function startBrowserGame(): Promise<void> {
       bossStatusHealth.dataset.health = String(health);
     }
     const remaining = state.robots.filter((robot) => robot.active).length;
+    document.body.dataset.defenseHealth = String(state.level.defense?.health ?? 0);
+    document.body.dataset.defenseMaxHealth = String(state.level.defense?.maxHealth ?? 0);
     remainingHud.textContent = state.victory ? ui('mazeClear')
       : state.level.objectiveComplete ? ui('reachExit')
+      : state.level.defense !== null ? ui('defenseRemain', {
+        health: Math.ceil(state.level.defense.health), max: state.level.defense.maxHealth, count: remaining,
+      })
       : bossTraining
         ? ui('bossHealth', { health: Math.ceil(state.robots[0]?.health ?? 0), phase: state.robots[0]?.bossPhase ?? 1 })
         : state.level.encounter.pendingTicks > 0

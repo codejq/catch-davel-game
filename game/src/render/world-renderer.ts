@@ -303,6 +303,18 @@ export class WorldRenderer {
     if (checkpoint.activated) {
       instance = this.writeInstance(instance, checkpoint.x, 0.85, checkpoint.z, 0.1, 1.55, 0.1, [0.36, 1, 0.88]);
     }
+    const defense = state.level.defense;
+    if (defense !== null) {
+      const healthRatio = Math.max(0, Math.min(1, defense.health / defense.maxHealth));
+      const bankColor: readonly [number, number, number] = [1 - healthRatio * 0.72, 0.22 + healthRatio * 0.72, 0.16];
+      instance = this.writeInstance(instance, defense.x, 0.46, defense.z, 1.7, 0.88, 1.25, [0.18, 0.26, 0.42]);
+      instance = this.writeInstance(instance, defense.x, 0.94, defense.z, 1.55, 0.12, 1.1, bankColor, 0.62);
+      instance = this.writeInstance(instance, defense.x, 1.18, defense.z, 0.26, 0.44, 0.22, [1, 0.78, 0.12], 0.76);
+      instance = this.writeInstance(instance, defense.x - 0.58, 0.16, defense.z - 0.42, 0.22, 0.32, 0.22, bankColor);
+      instance = this.writeInstance(instance, defense.x + 0.58, 0.16, defense.z - 0.42, 0.22, 0.32, 0.22, bankColor);
+      instance = this.writeInstance(instance, defense.x - 0.58, 0.16, defense.z + 0.42, 0.22, 0.32, 0.22, bankColor);
+      instance = this.writeInstance(instance, defense.x + 0.58, 0.16, defense.z + 0.42, 0.22, 0.32, 0.22, bankColor);
+    }
     for (const beaconBox of exitBeaconBoxes(
       state.levelId, state.level.exit, state.level.objectiveComplete, state.tick, settings.motionScale,
     )) {

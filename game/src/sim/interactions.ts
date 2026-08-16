@@ -37,6 +37,19 @@ export interface HazardRuntimeState {
   active: boolean;
 }
 
+export interface DefenseTargetState {
+  readonly id: 'prize-bank';
+  readonly column: number;
+  readonly row: number;
+  readonly x: number;
+  readonly z: number;
+  readonly maxHealth: number;
+  health: number;
+  readonly attackRadius: number;
+  readonly damagePerStrike: number;
+  readonly attackIntervalTicks: number;
+}
+
 export interface LevelRuntimeState {
   readonly pickups: PickupState[];
   readonly hazards: HazardRuntimeState[];
@@ -64,6 +77,7 @@ export interface LevelRuntimeState {
     readonly waveCount: number;
     pendingTicks: number;
   };
+  readonly defense: DefenseTargetState | null;
   keyCollected: boolean;
   objectiveComplete: boolean;
 }
@@ -85,6 +99,7 @@ function assertValidDefinition(levelId: PlayableLevelId, definition: LevelIntera
     definition.health, definition.key, definition.energy, definition.door, definition.checkpoint,
     ...(definition.coin === undefined ? [] : [definition.coin]),
     ...(definition.secretCoin === undefined ? [] : [definition.secretCoin]),
+    ...(definition.defense === undefined ? [] : [definition.defense]),
   ];
   const identities = placements.map((cell) => `${cell.column},${cell.row}`);
   if (new Set(identities).size !== identities.length) throw new Error(`${levelId} interaction placements overlap`);
@@ -103,6 +118,10 @@ export function createLevelRuntime(
   const exitCell = findCell('E', levelId);
   const exit = cellCenter(exitCell.column, exitCell.row);
   const levelDefinition = campaignLevel(levelId);
+  const primaryObjective = levelDefinition.objectives.find((objective) => objective.required)!;
+  if ((primaryObjective.type === 'defend') !== (definition.defense !== undefined)) {
+    throw new Error(`${levelId} defend objective and runtime target must be declared together`);
+  }
   const keyDefinition = levelDefinition.maze.keys[0];
   if (keyDefinition === undefined) throw new Error(`${levelId} has no campaign key`);
   const keyedEdge = levelDefinition.maze.edges.find((edge) => edge.requiredKeyId === keyDefinition.id);
@@ -133,6 +152,21 @@ export function createLevelRuntime(
       phaseOffsetTicks: profile.phaseOffsetTicks, active: phase < hazard.activeTicks,
     };
   });
+  const defense = definition.defense === undefined || encounter !== 'campaign' ? null : (() => {
+    const point = cellCenter(definition.defense.column, definition.defense.row);
+    return {
+      id: 'prize-bank' as const,
+      column: definition.defense.column,
+      row: definition.defense.row,
+      x: point.x,
+      z: point.z,
+      maxHealth: definition.defense.maxHealth,
+      health: definition.defense.maxHealth,
+      attackRadius: definition.defense.attackRadius,
+      damagePerStrike: definition.defense.damagePerStrike,
+      attackIntervalTicks: definition.defense.attackIntervalTicks,
+    };
+  })();
   return {
     pickups: pickupDefinitions.map((pickup) => {
       const point = cellCenter(pickup.column, pickup.row);
@@ -149,9 +183,36 @@ export function createLevelRuntime(
     },
     exit,
     encounter: { waveIndex: 0, waveCount: encounter === 'campaign' ? campaignRobotWaves(levelId).length : 1, pendingTicks: 0 },
+    defense,
     keyCollected: false,
     objectiveComplete: false,
   };
+}
+
+export interface DefenseStrike {
+  readonly robotId: number;
+  readonly damage: number;
+}
+
+export function stepDefenseTarget(
+  level: LevelRuntimeState,
+  robots: readonly RobotState[],
+  tick: number,
+  difficulty: DifficultyId = 'standard',
+): readonly DefenseStrike[] {
+  const target = level.defense;
+  if (target === null || !level.keyCollected || level.objectiveComplete || target.health <= 0) return [];
+  const multiplier = difficultyProfile(difficulty).incomingDamageMultiplier;
+  const strikes: DefenseStrike[] = [];
+  for (const robot of robots) {
+    if (!robot.active || Math.hypot(robot.x - target.x, robot.z - target.z) > target.attackRadius) continue;
+    if ((tick + robot.id * 11) % target.attackIntervalTicks !== 0) continue;
+    const damage = Math.max(1, Math.round(target.damagePerStrike * multiplier));
+    target.health = Math.max(0, target.health - damage);
+    strikes.push({ robotId: robot.id, damage });
+    if (target.health === 0) break;
+  }
+  return strikes;
 }
 
 export function queueNextEncounterWave(level: LevelRuntimeState, difficulty: DifficultyId = 'standard'): boolean {
@@ -211,6 +272,10 @@ export function hazardTicksUntilToggle(hazard: HazardRuntimeState, tick: number)
 export function closedDoorCells(level: LevelRuntimeState, player?: Pick<PlayerState, 'x' | 'z'>): readonly CellCoordinate[] {
   const result: CellCoordinate[] = level.door.open ? [] : [{ column: level.door.column, row: level.door.row }];
   const occupiedCell = player === undefined ? null : worldCell(player.x, player.z);
+  if (level.defense !== null
+    && (occupiedCell?.column !== level.defense.column || occupiedCell.row !== level.defense.row)) {
+    result.push({ column: level.defense.column, row: level.defense.row });
+  }
   for (const hazard of level.hazards) {
     if (hazard.kind !== 'timed-door' || !hazard.active) continue;
     if (occupiedCell?.column === hazard.column && occupiedCell.row === hazard.row) continue;

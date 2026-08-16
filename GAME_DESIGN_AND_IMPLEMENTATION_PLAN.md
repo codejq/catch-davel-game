@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **31 — playable Level 16 Laughing Mirrors implemented and deterministically validated**
+Revision: **32 — playable Level 17 Prize Booth Panic and authoritative defense objectives implemented**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -55,6 +55,8 @@ Revision 29 records playable Level 14, **Firebreather Funhouse**. Two opposite v
 Revision 30 records playable Level 15, **Tempo Tent Takeover**. Four independently phased timed gates surround a new Copper Carnival arena, forcing the player to read a rotating route instead of following one opening. Three acts stage ten stable Davels without identity reuse and culminate in an elite Red Firemouth and Cyan DJ. The 136 BPM `tempo-tent-twist` choreography adds a deterministic 30-tick stop-beat inside every 150-tick cycle, while the copper carnival palette and emissive speaker-tent landmark give the level its own bright silhouette. Standard clears deterministically at tick 4,412 with checksum `fd4014ee346c75ff`. The campaign now contains fifteen playable levels, 45 localized content strings per release locale, and 150 provenance-resolved assets. Levels 16–100 remain reserved and fail closed until authored; physical-device evidence remains certification-only.
 
 Revision 31 records playable Level 16, **Laughing Mirrors**. A symmetric maze adds two optional false-corridor loops and three mirror shutters that open on separate thirds of a 210-tick cycle. Three acts stage ten stable Davels from a mixed reflection rehearsal through an elite Firemouth/DJ last laugh. The 140 BPM `mirrorball-lindy` gives articulated bodies opposing heel kicks, counter-leaning torsos, mirrored arm folds, and exaggerated head snaps; a bright silver/blue/pink palette and emissive framed mirror-gallery landmarks keep the deception readable rather than dark. Standard clears deterministically at tick 2,583 with checksum `15372f1ae713e641`. The campaign now contains sixteen playable levels, 48 localized content strings per release locale, and 160 provenance-resolved assets. Levels 17–100 remain reserved and fail closed until authored; physical-device evidence remains certification-only.
+
+Revision 32 records playable Level 17, **Prize Booth Panic**, and the first real defense-objective contract. After the vault key is collected, every active Davel deterministically pathfinds toward a solid 360-health prize bank, stops inside its authored attack radius, and strikes on stable per-ID schedules; losing the bank causes authoritative defeat. The target crosses schema-v20 snapshots/checksums/replays, self-contained 9,896-byte RenderSnapshot v15, a raw-WebGL2 damage-colored prize-bank model, English/Arabic HUD, observation v17, API v4, baseline threat prioritization, and checksum-first profile v13 migration that clears only incompatible schema-v19 checkpoints. The 146 BPM `jackpot-jitterbug` adds exaggerated coin-grab and toss poses, while the bright teal/gold/pink/violet arena and prize-vault landmarks keep the target readable. Standard clears at tick 2,264 with checksum `23cec2a24827d6e3`, leaving the bank at 333/360 health. Frozen suite v13 re-records the six reference checksums and dependencies. The campaign now contains seventeen playable levels, 51 localized strings per release locale, and 170 provenance-resolved assets. Levels 18–100 remain reserved; physical-device availability is removed from implementation gating and remains only optional future platform-release certification evidence.
 
 ## 1. Executive summary
 
@@ -1180,7 +1182,7 @@ High-level accessibility/research actions:
 
 High-level actions are translated into the same low-level command stream and obey visibility, movement, cooldown, ammunition, and collision rules.
 
-The current public contract is agent API v3. Its `sprint: boolean` and `dash: boolean` actions enter the same schema-v19 `PlayerCommand` used by human input and replay v4. Observation v16 exposes maximum health/energy, bounded upgrade levels, and the Level 11 dash unlock, energy cost, and cooldown. Agent resets use zero upgrades, and the browser verifier measures both the fixed 1.55 walk-to-sprint ratio and the 2.7-unit Chapter 2 dash through the live Worker.
+The current public contract is agent API v4. Its `sprint: boolean` and `dash: boolean` actions enter the same schema-v20 `PlayerCommand` used by human input and replay v4. Observation v17 exposes maximum health/energy, bounded upgrade levels, the Level 11 dash unlock/readiness, and complete Level 17 prize-bank health, relative location, strike timing, and immediate threat IDs without hidden state. Agent resets use zero upgrades, and the browser verifier measures both the fixed 1.55 walk-to-sprint ratio and the 2.7-unit Chapter 2 dash through the live Worker.
 
 ### 16.4 Deterministic stepping
 

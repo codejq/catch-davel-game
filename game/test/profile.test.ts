@@ -47,7 +47,7 @@ describe('versioned profile persistence', () => {
   it('rejects corruption and never silently accepts a newer schema', () => {
     const profile = createDefaultProfile('validation-proof');
     expect(() => validateProfile({ ...profile, spendableCoins: 1 })).toThrow(/checksum mismatch/);
-    expect(() => validateProfile({ ...profile, profileSchemaVersion: 13 })).toThrow(/newer than supported/);
+    expect(() => validateProfile({ ...profile, profileSchemaVersion: 14 })).toThrow(/newer than supported/);
     expect(() => updateProfile(profile, {
       settings: { ...profile.settings, difficulty: 'nightmare' as 'hard' },
     })).toThrow(/difficulty/);

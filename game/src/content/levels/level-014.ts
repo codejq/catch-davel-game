@@ -89,8 +89,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-firebreather-funhouse'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_000,
       dependencyHashes: {
-        simulationSchema: '9f5cdf6817cd80cd', effectiveLevel: ZERO_HASH, simulationLevel: '97e5dc3922cdd6f6',
-        balanceData: '1f697b70870c7801', policyOrReplay: 'ab8c698b5dea6c13',
+        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'b05834f0d9e4201d',
+        balanceData: '1f697b70870c7801', policyOrReplay: '5eedcddff4365989',
       },
     }],
   },

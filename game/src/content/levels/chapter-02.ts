@@ -5,6 +5,7 @@ import { LEVEL_013 } from './level-013.ts';
 import { LEVEL_014 } from './level-014.ts';
 import { LEVEL_015 } from './level-015.ts';
 import { LEVEL_016 } from './level-016.ts';
+import { LEVEL_017 } from './level-017.ts';
 
 const ZERO_HASH = '0000000000000000';
 
@@ -130,11 +131,11 @@ const draft: LevelDefinition = {
       expectedChecksum: null,
       parTicks: 7_250,
       dependencyHashes: {
-        simulationSchema: '9f5cdf6817cd80cd',
+        simulationSchema: '6cafd562c735e11d',
         effectiveLevel: ZERO_HASH,
-        simulationLevel: '05416dfb93de80a4',
+        simulationLevel: '57038c81ca027089',
         balanceData: '1f697b70870c7801',
-        policyOrReplay: 'ab8c698b5dea6c13',
+        policyOrReplay: '5eedcddff4365989',
       },
     }],
   },
@@ -187,5 +188,8 @@ export { LEVEL_013 } from './level-013.ts';
 export { LEVEL_014 } from './level-014.ts';
 export { LEVEL_015 } from './level-015.ts';
 export { LEVEL_016 } from './level-016.ts';
+export { LEVEL_017 } from './level-017.ts';
 
-export const CHAPTER_02_LEVELS = [LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016] as const satisfies readonly LevelDefinition[];
+export const CHAPTER_02_LEVELS = [
+  LEVEL_011, LEVEL_012, LEVEL_013, LEVEL_014, LEVEL_015, LEVEL_016, LEVEL_017,
+] as const satisfies readonly LevelDefinition[];

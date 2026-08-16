@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v14', () => {
+describe('self-contained RenderSnapshot v15', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -19,8 +19,8 @@ describe('self-contained RenderSnapshot v14', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_876);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(14);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_896);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(15);
     expect(decoded.state.difficulty).toBe('standard');
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
@@ -101,6 +101,16 @@ describe('self-contained RenderSnapshot v14', () => {
     const simulation = new GameSimulation('render-cache', undefined, undefined, 'campaign', 'level-004');
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
     expect(decoded.state.level.pickups.filter((pickup) => pickup.kind === 'coin')).toHaveLength(2);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_876);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_896);
+  });
+
+  it('carries the complete Level 17 prize-bank target without delta state', () => {
+    const simulation = new GameSimulation('render-defense', undefined, undefined, 'campaign', 'level-017');
+    simulation.state.level.defense!.health = 271;
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.level.defense).toEqual({
+      id: 'prize-bank', x: simulation.state.level.defense!.x, z: simulation.state.level.defense!.z,
+      health: 271, maxHealth: 360,
+    });
   });
 });

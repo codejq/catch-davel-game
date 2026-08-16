@@ -17,6 +17,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-014': 'Firebreather Funhouse',
   'level-015': 'Tempo Tent Takeover',
   'level-016': 'Laughing Mirrors',
+  'level-017': 'Prize Booth Panic',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

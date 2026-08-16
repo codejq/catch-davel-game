@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(16);
+    expect(observation.schemaVersion).toBe(17);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,
@@ -84,6 +84,21 @@ describe('agent observation contract', () => {
     freeze.state.tick = 60;
     expect(createObservation(freeze.state).levelMechanic).toEqual({
       kind: 'freeze-dance', phase: 'hunt', robotsFrozen: false, ticksUntilPhaseChange: 120,
+    });
+  });
+
+  it('exposes the Level 17 defense target and its immediate threats', () => {
+    const game = new GameSimulation('agent-defense', undefined, undefined, 'campaign', 'level-017');
+    const target = game.state.level.defense!;
+    game.state.level.keyCollected = true;
+    game.state.robots[0]!.x = target.x;
+    game.state.robots[0]!.z = target.z;
+    expect(createObservation(game.state)).toMatchObject({
+      objective: { id: 'defend-prize-bank', complete: false },
+      defense: {
+        id: 'prize-bank', health: 360, maxHealth: 360,
+        threatenedByRobotIds: [game.state.robots[0]!.id],
+      },
     });
   });
 });

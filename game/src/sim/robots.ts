@@ -1,5 +1,5 @@
 import { FIXED_DT_SECONDS } from './constants';
-import { cellAt, cellCenter, isWallAtWorld, type CellCoordinate } from './level';
+import { cellAt, cellCenter, isWallAtWorld, worldCell, type CellCoordinate } from './level';
 import { decision, hashSeed } from './random';
 import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './balance';
@@ -18,6 +18,12 @@ export type EncounterId = 'campaign' | 'boss-training';
 export const ROBOT_CROWD_STEERING_VERSION = 1;
 export const ROBOT_PERSONAL_SPACE_SCALE = 0.52;
 export const ROBOT_SEPARATION_MAX_STEP = 0.035;
+
+export interface RobotDefenseTarget {
+  readonly x: number;
+  readonly z: number;
+  readonly attackRadius: number;
+}
 
 export interface RobotDefinition {
   readonly name: string;
@@ -249,6 +255,65 @@ function tryCombatMovement(
   return moved;
 }
 
+const defenseDistanceFields = new Map<string, ReadonlyMap<string, number>>();
+
+function defenseDistanceField(levelId: PlayableLevelId, target: RobotDefenseTarget): ReadonlyMap<string, number> {
+  const cell = worldCell(target.x, target.z);
+  const cacheKey = `${levelId}:${cell.column},${cell.row}`;
+  const cached = defenseDistanceFields.get(cacheKey);
+  if (cached !== undefined) return cached;
+  const distances = new Map<string, number>([[`${cell.column},${cell.row}`, 0]]);
+  const pending: CellCoordinate[] = [cell];
+  for (let index = 0; index < pending.length; index += 1) {
+    const current = pending[index]!;
+    const distance = distances.get(`${current.column},${current.row}`)!;
+    for (const [columnOffset, rowOffset] of [[1, 0], [0, 1], [-1, 0], [0, -1]] as const) {
+      const next = { column: current.column + columnOffset, row: current.row + rowOffset };
+      const key = `${next.column},${next.row}`;
+      if (cellAt(next.column, next.row, levelId) === '#' || distances.has(key)) continue;
+      distances.set(key, distance + 1);
+      pending.push(next);
+    }
+  }
+  defenseDistanceFields.set(cacheKey, distances);
+  return distances;
+}
+
+function tryDefenseMovement(
+  robot: RobotState,
+  definition: RobotDefinition,
+  target: RobotDefenseTarget,
+  levelId: PlayableLevelId,
+  movementSpeedMultiplier: number,
+): boolean {
+  const distanceToTarget = Math.hypot(target.x - robot.x, target.z - robot.z);
+  if (distanceToTarget <= target.attackRadius * 0.72) return true;
+  const current = worldCell(robot.x, robot.z);
+  const distances = defenseDistanceField(levelId, target);
+  const currentDistance = distances.get(`${current.column},${current.row}`);
+  if (currentDistance === undefined) return false;
+  let nextCell = current;
+  const neighborOrder = [[1, 0], [0, 1], [-1, 0], [0, -1]] as const;
+  for (let offset = 0; offset < neighborOrder.length; offset += 1) {
+    const [columnOffset, rowOffset] = neighborOrder[(offset + robot.id) % neighborOrder.length]!;
+    const candidate = { column: current.column + columnOffset, row: current.row + rowOffset };
+    const candidateDistance = distances.get(`${candidate.column},${candidate.row}`);
+    if (candidateDistance !== undefined && candidateDistance < currentDistance) {
+      nextCell = candidate;
+      break;
+    }
+  }
+  const nextCenter = nextCell === current ? target : cellCenter(nextCell.column, nextCell.row);
+  const deltaX = nextCenter.x - robot.x;
+  const deltaZ = nextCenter.z - robot.z;
+  const distance = Math.hypot(deltaX, deltaZ);
+  if (distance < 0.001) return false;
+  const amount = Math.min(distance, definition.speed * 0.78 * movementSpeedMultiplier * FIXED_DT_SECONDS);
+  moveRobotWithMazeCollision(robot, deltaX / distance * amount, deltaZ / distance * amount, levelId);
+  robot.heading = Math.atan2(deltaX, deltaZ);
+  return true;
+}
+
 function moveRobotWithMazeCollision(robot: RobotState, deltaX: number, deltaZ: number, levelId: PlayableLevelId): void {
   const nextX = robot.x + deltaX;
   const nextZ = robot.z + deltaZ;
@@ -297,7 +362,7 @@ export function resolveRobotCrowding(robots: RobotState[], levelId: PlayableLeve
 
 export function stepRobots(
   robots: RobotState[], seedText: string, player?: PlayerState, levelId: PlayableLevelId = 'level-001',
-  difficulty: DifficultyId = 'standard',
+  difficulty: DifficultyId = 'standard', defenseTarget?: RobotDefenseTarget,
 ): void {
   const seed = hashSeed(seedText);
   const performance = levelDancePerformance(levelId);
@@ -317,7 +382,10 @@ export function stepRobots(
       robot.knockbackX *= 0.82;
       robot.knockbackZ *= 0.82;
     }
-    if (player !== undefined && tryCombatMovement(robot, definition, player, levelId, movementSpeedMultiplier)) {
+    if (defenseTarget !== undefined
+      && tryDefenseMovement(robot, definition, defenseTarget, levelId, movementSpeedMultiplier)) {
+      // Defense pressure uses the static maze distance field and the same bounded collision movement.
+    } else if (player !== undefined && tryCombatMovement(robot, definition, player, levelId, movementSpeedMultiplier)) {
       // Combat movement is bounded by the same maze collision field as patrols.
     } else if (robot.holdTicks > 0) {
       robot.holdTicks -= 1;

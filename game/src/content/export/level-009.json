@@ -6,10 +6,10 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "9c27e8c9eef96e71",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "211a15d07d1a37e5",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "12c6b731b41ab6cf",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Standard",
         "expectedChecksum": null,
@@ -32,13 +32,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "9c27e8c9eef96e71",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "211a15d07d1a37e5",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "12c6b731b41ab6cf",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Story",
-        "expectedChecksum": "85e2eb02fd98f3a3",
+        "expectedChecksum": "6086b4c21fc44c2e",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -58,13 +58,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "1f697b70870c7801",
-          "effectiveLevel": "9c27e8c9eef96e71",
-          "policyOrReplay": "ab8c698b5dea6c13",
-          "simulationLevel": "211a15d07d1a37e5",
-          "simulationSchema": "9f5cdf6817cd80cd"
+          "effectiveLevel": "12c6b731b41ab6cf",
+          "policyOrReplay": "5eedcddff4365989",
+          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationSchema": "6cafd562c735e11d"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "e848c0f98d675ee6",
+        "expectedChecksum": "05f9ca3f8df9de57",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,

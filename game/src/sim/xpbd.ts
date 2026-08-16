@@ -168,6 +168,16 @@ function targets(
     leftFootY += kick * 0.18; rightFootY += counterKick * 0.18;
     leftHand = [-0.82 + counterKick * 0.36, 1.62 - kick * 0.34, 0.16];
     rightHand = [0.82 - kick * 0.36, 1.62 - counterKick * 0.34, 0.16];
+  } else if (performance.motif === 'jackpot-jitter') {
+    const grab = Math.max(0, beat); const toss = Math.max(0, -beat);
+    bounce += (grab * 0.13 + toss * 0.05) * intensity;
+    hipX = alternate * 0.24 * intensity; chestX = -alternate * 0.34 * intensity;
+    chestZ = grab * 0.12; headX += alternate * 0.2; headZ = toss * 0.12;
+    leftFootX = -0.28 - grab * 0.14; rightFootX = 0.28 + toss * 0.14;
+    leftFootZ = grab * 0.48 - toss * 0.12; rightFootZ = toss * 0.48 - grab * 0.12;
+    leftFootY += grab * 0.15; rightFootY += toss * 0.15;
+    leftHand = [-0.28 - toss * 0.64, 1.1 + grab * 0.86, 0.34];
+    rightHand = [0.28 + grab * 0.64, 1.1 + toss * 0.86, 0.34];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
