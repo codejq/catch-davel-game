@@ -1,5 +1,6 @@
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 import { updateProfile, type LevelProgressV1, type ProfileV1 } from '../storage/profile';
+import { standardParTicks } from './results';
 
 function emptyProgress(levelId: Chapter01LevelId): LevelProgressV1 {
   return {
@@ -53,6 +54,8 @@ export function completeCampaignLevel(
     levelProgress: updateLevelProgress(profile, levelId, (progress) => ({
       ...progress,
       completed: true,
+      medals: completionTicks <= standardParTicks(levelId) && !progress.medals.includes('par-time')
+        ? [...progress.medals, 'par-time'] : progress.medals,
       bestTicks: progress.bestTicks === null ? completionTicks : Math.min(progress.bestTicks, completionTicks),
     })),
   });

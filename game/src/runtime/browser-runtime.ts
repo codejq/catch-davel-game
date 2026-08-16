@@ -31,6 +31,7 @@ import {
   type InputAction, type InputBindings,
 } from '../storage/input-bindings';
 import { projectStandardGamepad } from './gamepad-input';
+import { campaignResultSummary, formatCampaignTicks, type CampaignResultSummary } from '../campaign/results';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -97,6 +98,16 @@ export async function startBrowserGame(): Promise<void> {
   const profileExport = requireElement<HTMLButtonElement>('#profile-export');
   const profileImport = requireElement<HTMLButtonElement>('#profile-import');
   const profileTransferStatus = requireElement<HTMLOutputElement>('#profile-transfer-status');
+  const missionResults = requireElement<HTMLElement>('#mission-results');
+  const resultsLevelName = requireElement<HTMLElement>('#results-level-name');
+  const resultsMedal = requireElement<HTMLElement>('#results-medal');
+  const resultsTime = requireElement<HTMLElement>('#results-time');
+  const resultsBest = requireElement<HTMLElement>('#results-best');
+  const resultsPar = requireElement<HTMLElement>('#results-par');
+  const resultsCoins = requireElement<HTMLElement>('#results-coins');
+  const resultsReplay = requireElement<HTMLButtonElement>('#results-replay');
+  const resultsNext = requireElement<HTMLButtonElement>('#results-next');
+  const resultsMap = requireElement<HTMLButtonElement>('#results-map');
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
@@ -135,6 +146,8 @@ export async function startBrowserGame(): Promise<void> {
     activeLevel = chapter01Level(activeLevelId);
   }
   let activeInputBindings: InputBindings = normalizeInputBindings(activeProfile.inputMappings);
+  let runStartingCoins = activeProfile.spendableCoins;
+  let latestCampaignResult: CampaignResultSummary | null = null;
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
   let renderPresentationSettings: RenderPresentationSettings = { reducedMotion: false };
@@ -212,11 +225,27 @@ export async function startBrowserGame(): Promise<void> {
       status.textContent = !unlocked ? ui('locked') : progress?.completed
         ? ui('clearedBest', { ticks: progress.bestTicks ?? '—' })
         : levelId === activeLevelId ? ui('currentMission') : ui('ready');
+      if (progress?.medals.includes('par-time')) status.textContent += ' · ★';
       button.append(number, title, status);
       return button;
     }));
   };
   renderCampaignMap();
+
+  const showMissionResults = (summary: CampaignResultSummary): void => {
+    latestCampaignResult = summary;
+    resultsLevelName.textContent = localized(activeLevel.nameKey);
+    resultsMedal.textContent = `${ui(summary.parMedal ? 'parMedal' : 'clearMedal')}${summary.newBest ? ` · ${ui('newBest')}` : ''}`;
+    resultsTime.textContent = formatCampaignTicks(summary.completionTicks);
+    resultsBest.textContent = formatCampaignTicks(summary.bestTicks);
+    resultsPar.textContent = formatCampaignTicks(summary.parTicks);
+    resultsCoins.textContent = `+${summary.coinsEarned}`;
+    resultsNext.textContent = ui(summary.nextLevelId === null ? 'chapterComplete' : 'nextMission');
+    missionResults.classList.add('open');
+    missionResults.setAttribute('aria-hidden', 'false');
+    document.exitPointerLock();
+    resultsNext.focus();
+  };
 
   const persistProfile = (profile: ProfileV1): void => {
     activeProfile = profile;
@@ -272,6 +301,7 @@ export async function startBrowserGame(): Promise<void> {
   const beginHumanSession = (): void => {
     if (humanSessionStarted || agentController?.isAgentControlled()) return;
     humanSessionStarted = true;
+    runStartingCoins = activeProfile.spendableCoins;
     shop.classList.remove('open');
     persistProfile(recordCampaignAttempt(activeProfile, activeLevelId));
   };
@@ -430,13 +460,12 @@ export async function startBrowserGame(): Promise<void> {
       showMessage(ui('victory'));
       sound('victory');
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
+        const summary = campaignResultSummary(
+          activeProfile, activeLevelId, renderState.tick, Math.max(0, renderState.player.coins - runStartingCoins),
+        );
         persistProfile(completeCampaignLevel(activeProfile, activeLevelId, renderState.tick));
         renderCampaignMap();
-        window.setTimeout(() => {
-          campaignMap.classList.add('open');
-          campaignMap.setAttribute('aria-hidden', 'false');
-          document.exitPointerLock();
-        }, 700);
+        window.setTimeout(() => showMissionResults(summary), 700);
       }
     }
     if (event.type === 'defeat') {
@@ -503,6 +532,10 @@ export async function startBrowserGame(): Promise<void> {
 
   let resumeAfterCampaignMap = false;
   const setCampaignMapOpen = (open: boolean): void => {
+    if (open) {
+      missionResults.classList.remove('open');
+      missionResults.setAttribute('aria-hidden', 'true');
+    }
     campaignMap.classList.toggle('open', open);
     campaignMap.setAttribute('aria-hidden', String(!open));
     if (open) {
@@ -531,6 +564,18 @@ export async function startBrowserGame(): Promise<void> {
     nextParameters.set('level', levelId);
     location.search = nextParameters.toString();
   });
+  resultsReplay.addEventListener('click', () => location.reload());
+  resultsNext.addEventListener('click', () => {
+    const nextLevelId = latestCampaignResult?.nextLevelId;
+    if (nextLevelId === null || nextLevelId === undefined) {
+      setCampaignMapOpen(true);
+      return;
+    }
+    const nextParameters = new URLSearchParams(location.search);
+    nextParameters.set('level', nextLevelId);
+    location.search = nextParameters.toString();
+  });
+  resultsMap.addEventListener('click', () => setCampaignMapOpen(true));
 
   const setProfileTransferBusy = (busy: boolean): void => {
     profileExport.disabled = busy;

@@ -22,6 +22,17 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #shop small { color: #9feeff; }
 #campaign-map { display: none; position: absolute; left: 50%; top: 50%; width: min(850px, calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow: auto; translate: -50% -50%; padding: 22px; border: 3px solid #c6fbff; border-radius: 18px; background: linear-gradient(150deg, #0d1836f7, #17366af5); pointer-events: auto; box-shadow: 0 22px 80px #071126b8, inset 0 0 42px #42e8ff18; }
 #campaign-map.open { display: block; }
+#mission-results { display: none; position: absolute; left: 50%; top: 50%; width: min(560px, calc(100vw - 28px)); translate: -50% -50%; padding: 28px; border: 3px solid #ffe56c; border-radius: 20px; background: linear-gradient(150deg, #11254df7, #176358f7); text-align: center; pointer-events: auto; box-shadow: 0 24px 90px #061128d9, inset 0 0 55px #66fff525; }
+#mission-results.open { display: block; }
+#mission-results > small { color: #ffe56c; font-weight: 950; letter-spacing: .16em; }
+#mission-results h2 { margin: 8px 0 14px; color: #83f7ff; letter-spacing: .08em; }
+#results-medal { min-height: 34px; color: #ffe56c; font-size: 18px; font-weight: 950; }
+#mission-results dl { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 14px 0 18px; }
+#mission-results dl div { padding: 10px 6px; border: 1px solid #8af5ff88; border-radius: 8px; background: #0d2045a8; }
+#mission-results dt { color: #b8f5ff; font-size: 9px; font-weight: 850; }
+#mission-results dd { margin: 5px 0 0; color: #fff; font-size: 14px; font-weight: 950; }
+#results-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+#results-actions button { padding: 9px 13px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
 #campaign-map header { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 #campaign-map h2, #campaign-map p { margin: 0 0 10px; }
 #campaign-map h2 { color: #72f4ff; letter-spacing: .11em; }
@@ -59,6 +70,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 @media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #level-name { top: 142px; } #profile-actions { align-items: stretch; flex-wrap: wrap; } #profile-transfer-status { flex-basis: 100%; } }
 @media (max-width: 720px) { #settings-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
 @media (max-width: 720px) { #input-binding-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
+@media (max-width: 560px) { #mission-results dl { grid-template-columns: repeat(2, 1fr); } }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; translate: -50% -50%; }
 #crosshair::before, #crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 4px #14284e; }
 #crosshair::before { left: 8px; width: 2px; height: 18px; }
