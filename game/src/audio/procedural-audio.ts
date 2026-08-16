@@ -3,7 +3,8 @@ import type { AudioRuntimeProfile } from '../content/runtime-manifests';
 export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-throw' | 'bomb-detonate'
   | 'laser' | 'robot-impact' | 'robot-shot' | 'robot-telegraph' | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
-  | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning';
+  | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
+  | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
 
 export type AudioBus = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
@@ -29,6 +30,8 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   'player-hit': 'combat', key: 'world', health: 'world', energy: 'world', coin: 'world', door: 'world',
   checkpoint: 'interface', objective: 'interface', 'robot-defeat': 'world', 'robot-taunt': 'world', victory: 'interface',
   defeat: 'interface', ambush: 'interface', 'wave-warning': 'interface',
+  'wobble-step': 'world', 'slider-step': 'world', 'spinner-step': 'world', 'firemouth-step': 'world',
+  'dj-step': 'world', 'overlord-step': 'world',
 };
 
 export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
@@ -109,6 +112,12 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   defeat: [tone('sawtooth', 145, 42, 0.68, 0.16), noise('lowpass', 360, 0.55, 0.11)],
   ambush: [tone('sawtooth', 92, 46, 0.58, 0.16), noise('bandpass', 680, 0.32, 0.12), tone('square', 184, 69, 0.4, 0.08, 0.06)],
   'wave-warning': [tone('square', 196, 294, 0.42, 0.07), tone('triangle', 392, 588, 0.32, 0.045, 0.08), noise('bandpass', 920, 0.2, 0.04)],
+  'wobble-step': [tone('sine', 142, 92, 0.11, 0.04), noise('bandpass', 580, 0.055, 0.025, 0.018)],
+  'slider-step': [noise('bandpass', 1260, 0.1, 0.035), tone('triangle', 310, 205, 0.12, 0.032, 0.012)],
+  'spinner-step': [tone('square', 720, 460, 0.055, 0.027), noise('highpass', 2100, 0.07, 0.024, 0.025)],
+  'firemouth-step': [noise('lowpass', 290, 0.14, 0.055), tone('square', 92, 58, 0.16, 0.05)],
+  'dj-step': [tone('sine', 104, 52, 0.17, 0.055), tone('square', 208, 104, 0.08, 0.024, 0.025)],
+  'overlord-step': [tone('sine', 66, 38, 0.24, 0.075), noise('lowpass', 230, 0.2, 0.065, 0.018)],
 };
 
 export function validateProceduralAudioDefinitions(): void {
@@ -253,19 +262,23 @@ export class ProceduralAudio {
 
   get ambienceSourceCount(): number { return this.ambienceSources.length; }
 
-  play(cue: AudioCue, pan = 0): void {
+  play(cue: AudioCue, pan = 0, gainScale = 1): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
+    const boundedGain = Math.max(0, Math.min(1, gainScale));
+    if (boundedGain === 0) return;
     if (this.activeSources + layers.length > TRANSIENT_AUDIO_SOURCE_CAP) return;
-    for (const layer of layers) this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue]);
+    for (const layer of layers) {
+      this.playLayer(layer, Math.max(-1, Math.min(1, pan)), AUDIO_CUE_BUS[cue], boundedGain);
+    }
   }
 
-  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus): void {
+  private playLayer(layer: AudioLayer, pan: number, bus: AudioBus, gainScale: number): void {
     const now = this.context.currentTime + (layer.delay ?? 0);
     const envelope = this.context.createGain();
     const panner = this.context.createStereoPanner();
     panner.pan.value = pan;
     envelope.gain.setValueAtTime(0.0001, now);
-    envelope.gain.exponentialRampToValueAtTime(layer.gain, now + Math.min(0.006, layer.duration * 0.2));
+    envelope.gain.exponentialRampToValueAtTime(layer.gain * gainScale, now + Math.min(0.006, layer.duration * 0.2));
     envelope.gain.exponentialRampToValueAtTime(0.0001, now + layer.duration);
     envelope.connect(panner);
     panner.connect(this.buses[bus]);

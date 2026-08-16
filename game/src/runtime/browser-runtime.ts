@@ -43,6 +43,7 @@ import { waveTransitionPresentation } from './wave-transition';
 import { bossPresentation } from './boss-presentation';
 import { difficultyProfile, isDifficultyId } from '../sim/difficulty';
 import { applyHumanAimAssist } from './human-aim-assist';
+import { DavelMovementAudioSequencer } from './davel-movement-audio';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -245,6 +246,7 @@ export async function startBrowserGame(): Promise<void> {
   let lastWaveTransitionKey: string | null = null;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
+  const davelMovementAudio = new DavelMovementAudioSequencer();
   let profileWrite: Promise<void> = Promise.resolve();
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
@@ -580,12 +582,12 @@ export async function startBrowserGame(): Promise<void> {
     return audio;
   };
 
-  const sound = (cue: AudioCue, robotId?: number): void => {
+  const sound = (cue: AudioCue, robotId?: number, gainScale = 1): void => {
     if (audio === null) return;
     const robot = robotId === undefined ? undefined : renderState?.robots.find((candidate) => candidate.id === robotId);
     const pan = robot === undefined || renderState === null
       ? 0 : Math.max(-1, Math.min(1, (robot.x - renderState.player.x) / 9));
-    audio.play(cue, pan);
+    audio.play(cue, pan, gainScale);
   };
 
   const showMessage = (text: string): void => {
@@ -860,6 +862,9 @@ export async function startBrowserGame(): Promise<void> {
         const frozen = freezeDanceWindow(state.levelId, state.tick).frozen;
         const ambienceActive = audio !== null && !state.victory && !state.defeat
           && !pauseMenu.classList.contains('open') && !campaignMap.classList.contains('open');
+        for (const request of davelMovementAudio.sample(state, ambienceActive && !frozen)) {
+          sound(request.cue, request.robotId, request.gainScale);
+        }
         audio?.setAmbience(ambienceActive, combatIntensity, frozen);
         document.body.dataset.ambienceActive = String(ambienceActive);
         music?.update(
@@ -870,6 +875,7 @@ export async function startBrowserGame(): Promise<void> {
       },
       onEvent: processEvent,
       onResync: (state) => {
+        davelMovementAudio.reset();
         renderState = state;
         updateHud(state);
         showMessage(ui('resynchronized'));
