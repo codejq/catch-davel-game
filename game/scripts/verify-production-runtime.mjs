@@ -82,6 +82,19 @@ try {
   if (result.campaignCards !== 10 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
+  await page.click('#pause-button');
+  await page.waitForFunction(() => document.querySelector('#pause-menu')?.classList.contains('open') === true);
+  await page.waitForTimeout(80);
+  const pauseStartTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.waitForTimeout(250);
+  const pauseEndTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.click('#pause-resume');
+  await page.waitForTimeout(250);
+  const pauseResumeTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  const pauseFlow = { pauseStartTick, pauseEndTick, pauseResumeTick };
+  if (pauseEndTick !== pauseStartTick || pauseResumeTick <= pauseEndTick) {
+    throw new Error(`Pause menu did not freeze and resume the authoritative Worker clock: ${JSON.stringify(pauseFlow)}`);
+  }
   await page.evaluate(() => {
     const buttons = Array.from({ length: 16 }, () => ({ pressed: false, touched: false, value: 0 }));
     const syntheticGamepad = { connected: true, axes: [0, 0, 0, 0], buttons };
@@ -143,6 +156,8 @@ try {
     failureLabel: document.querySelector('#mission-failed')?.getAttribute('aria-label') ?? '',
     failureTitle: document.querySelector('#mission-failed > small')?.textContent ?? '',
     failureRetry: document.querySelector('#failure-retry')?.textContent ?? '',
+    pauseLabel: document.querySelector('#pause-menu')?.getAttribute('aria-label') ?? '',
+    pauseResume: document.querySelector('#pause-resume')?.textContent ?? '',
     campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
@@ -179,6 +194,8 @@ try {
     || accessibilitySettings.failureLabel !== 'فشلت المهمة'
     || accessibilitySettings.failureTitle !== 'فشلت المهمة'
     || accessibilitySettings.failureRetry !== 'إعادة نقطة الحفظ'
+    || accessibilitySettings.pauseLabel !== 'اللعبة متوقفة مؤقتًا'
+    || accessibilitySettings.pauseResume !== 'متابعة'
     || !accessibilitySettings.objective.includes('متبقٍ')
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'
@@ -454,7 +471,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, gamepadDetected, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
+    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
     fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

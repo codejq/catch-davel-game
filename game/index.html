@@ -12,6 +12,7 @@
     <div id="hud">
       <div id="brand">QUANTUM BILLING // CATCH DAVEL</div>
       <button id="campaign-button" type="button" data-ui-text="campaignButton">M · LEVELS</button>
+      <button id="pause-button" type="button" data-ui-text="pauseButton">PAUSE</button>
       <div id="level-name">LEVEL 01 · WOBBLE WORKSHOP</div>
       <div id="objective"><span id="objective-title">Find and deactivate the dancing Davels</span> · <b id="remaining">6 remain</b></div>
       <div id="stats"><span><i data-ui-text="health">HEALTH</i> <b id="health">100</b></span><span><i data-ui-text="energy">ENERGY</i> <b id="energy">100</b></span><span><i data-ui-text="coins">COINS</i> <b id="coins">0</b></span></div>
@@ -91,6 +92,15 @@
           <button id="failure-retry" type="button" data-ui-text="retryCheckpoint">RETRY CHECKPOINT</button>
           <button id="failure-restart" type="button" data-ui-text="restartMission">RESTART MISSION</button>
           <button id="failure-map" type="button" data-ui-text="levelMap">LEVEL MAP</button>
+        </div>
+      </section>
+      <section id="pause-menu" aria-label="Game paused" data-ui-aria="pauseLabel" aria-hidden="true">
+        <small data-ui-text="paused">SIMULATION PAUSED</small>
+        <h2 id="pause-level-name">WOBBLE WORKSHOP</h2>
+        <p data-ui-text="pauseHint">Gameplay timers, projectiles, and Davels are frozen.</p>
+        <div id="pause-actions">
+          <button id="pause-resume" type="button" data-ui-text="resumeGame">RESUME</button>
+          <button id="pause-levels" type="button" data-ui-text="levelMap">LEVEL MAP</button>
         </div>
       </section>
       <div id="crosshair" aria-hidden="true"></div>

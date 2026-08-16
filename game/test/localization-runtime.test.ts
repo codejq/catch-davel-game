@@ -20,6 +20,7 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('en', 'restartMissionHint')).toContain('Restart the mission');
     expect(runtimeUiText('ar', 'renderQuality')).toBe('جودة العرض');
     expect(runtimeUiText('en', 'checkpointBanked', { coins: 9 })).toContain('+9 COINS BANKED');
+    expect(runtimeUiText('ar', 'pauseHint')).toContain('القذائف');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });

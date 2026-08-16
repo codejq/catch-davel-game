@@ -5,6 +5,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #hud { position: fixed; inset: 0; pointer-events: none; text-shadow: 0 2px 2px #17335c99; }
 #brand { position: absolute; top: 18px; left: 22px; color: #14284e; font-size: 13px; font-weight: 900; letter-spacing: .18em; text-shadow: none; }
 #campaign-button { position: absolute; top: 16px; left: 338px; padding: 7px 10px; border: 2px solid #14284e; border-radius: 7px; background: #eefdffdb; color: #14284e; font: inherit; font-size: 11px; font-weight: 950; letter-spacing: .1em; pointer-events: auto; cursor: pointer; }
+#pause-button { position: absolute; top: 16px; left: 440px; padding: 7px 10px; border: 2px solid #14284e; border-radius: 7px; background: #fff0a8e6; color: #14284e; font: inherit; font-size: 11px; font-weight: 950; letter-spacing: .1em; pointer-events: auto; cursor: pointer; }
 #level-name { position: absolute; top: 84px; left: 22px; color: #14284e; font-size: 11px; font-weight: 950; letter-spacing: .12em; text-shadow: 0 1px #fff9; }
 #objective { position: absolute; top: 42px; left: 22px; padding: 8px 12px; border-radius: 8px; background: #14284ed9; font-weight: 750; }
 #stats { position: absolute; top: 18px; right: 22px; display: flex; gap: 8px; }
@@ -38,6 +39,14 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #results-actions, #failure-actions { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
 #results-actions button, #failure-actions button { padding: 9px 13px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
 #failure-actions button:first-child { border-color: #ffe56c; background: #58451e; }
+#pause-menu { display: none; position: absolute; left: 50%; top: 50%; width: min(460px, calc(100vw - 28px)); translate: -50% -50%; padding: 28px; border: 3px solid #83f7ff; border-radius: 20px; background: linear-gradient(150deg, #10213cf7, #214f70f7); text-align: center; pointer-events: auto; box-shadow: 0 24px 90px #061128d9, inset 0 0 55px #66fff525; }
+#pause-menu.open { display: block; }
+#pause-menu > small { color: #ffe56c; font-weight: 950; letter-spacing: .16em; }
+#pause-menu h2 { margin: 8px 0; color: #83f7ff; letter-spacing: .08em; }
+#pause-menu p { margin: 0 auto 18px; color: #d9f9ff; }
+#pause-actions { display: flex; justify-content: center; gap: 8px; }
+#pause-actions button { padding: 9px 16px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
+#pause-actions button:first-child { border-color: #ffe56c; background: #58451e; }
 #campaign-map header { display: flex; align-items: center; justify-content: space-between; gap: 18px; }
 #campaign-map h2, #campaign-map p { margin: 0 0 10px; }
 #campaign-map h2 { color: #72f4ff; letter-spacing: .11em; }
@@ -72,7 +81,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .level-card b { color: #ffe56c; font-size: 12px; letter-spacing: .1em; }
 .level-card span { min-height: 36px; margin: 5px 0; font-weight: 900; }
 .level-card small { color: #a9edff; }
-@media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #level-name { top: 142px; } #profile-actions { align-items: stretch; flex-wrap: wrap; } #profile-transfer-status { flex-basis: 100%; } }
+@media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #pause-button { left: 130px; top: 108px; } #level-name { top: 142px; } #profile-actions { align-items: stretch; flex-wrap: wrap; } #profile-transfer-status { flex-basis: 100%; } }
 @media (max-width: 720px) { #settings-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
 @media (max-width: 720px) { #input-binding-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
 @media (max-width: 560px) { #mission-results dl { grid-template-columns: repeat(2, 1fr); } }

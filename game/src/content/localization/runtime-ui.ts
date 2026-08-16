@@ -1,7 +1,8 @@
 const ENGLISH_UI = {
   documentTitle: 'Catch Davel — First Playable',
   canvasLabel: 'Catch Davel first-person game',
-  campaignButton: 'M · LEVELS',
+  campaignButton: 'M · LEVELS', pauseButton: 'PAUSE', pauseLabel: 'Game paused', paused: 'SIMULATION PAUSED',
+  pauseHint: 'Gameplay timers, projectiles, and Davels are frozen.', resumeGame: 'RESUME',
   health: 'HEALTH', energy: 'ENERGY', coins: 'COINS',
   shopLabel: 'Quantum Coin upgrade shop', shopTitle: 'QUANTUM WORKBENCH',
   shopBalanceSuffix: ' coins · purchases apply before the run', shopClose: 'Press U to close',
@@ -65,7 +66,8 @@ type RuntimeUiKey = keyof typeof ENGLISH_UI;
 const ARABIC_UI: Record<RuntimeUiKey, string> = {
   documentTitle: 'كاتش دافل — النسخة التجريبية الأولى',
   canvasLabel: 'لعبة كاتش دافل بمنظور الشخص الأول',
-  campaignButton: 'M · المستويات',
+  campaignButton: 'M · المستويات', pauseButton: 'إيقاف مؤقت', pauseLabel: 'اللعبة متوقفة مؤقتًا', paused: 'المحاكاة متوقفة مؤقتًا',
+  pauseHint: 'توقفت مؤقتات اللعب والقذائف وروبوتات دافل.', resumeGame: 'متابعة',
   health: 'الصحة', energy: 'الطاقة', coins: 'العملات',
   shopLabel: 'متجر ترقيات عملات كوانتم', shopTitle: 'ورشة كوانتم',
   shopBalanceSuffix: ' عملة · تُطبّق المشتريات قبل الجولة', shopClose: 'اضغط U للإغلاق',

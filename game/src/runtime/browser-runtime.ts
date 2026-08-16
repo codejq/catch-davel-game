@@ -98,6 +98,7 @@ export async function startBrowserGame(): Promise<void> {
   const shop = requireElement<HTMLElement>('#shop');
   const shopCoins = requireElement<HTMLElement>('#shop-coins');
   const campaignButton = requireElement<HTMLButtonElement>('#campaign-button');
+  const pauseButton = requireElement<HTMLButtonElement>('#pause-button');
   const campaignMap = requireElement<HTMLElement>('#campaign-map');
   const campaignClose = requireElement<HTMLButtonElement>('#campaign-close');
   const campaignLevels = requireElement<HTMLElement>('#campaign-levels');
@@ -122,6 +123,10 @@ export async function startBrowserGame(): Promise<void> {
   const failureRetry = requireElement<HTMLButtonElement>('#failure-retry');
   const failureRestart = requireElement<HTMLButtonElement>('#failure-restart');
   const failureMap = requireElement<HTMLButtonElement>('#failure-map');
+  const pauseMenu = requireElement<HTMLElement>('#pause-menu');
+  const pauseLevelName = requireElement<HTMLElement>('#pause-level-name');
+  const pauseResume = requireElement<HTMLButtonElement>('#pause-resume');
+  const pauseLevels = requireElement<HTMLButtonElement>('#pause-levels');
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
@@ -631,6 +636,8 @@ export async function startBrowserGame(): Promise<void> {
       missionResults.setAttribute('aria-hidden', 'true');
       missionFailed.classList.remove('open');
       missionFailed.setAttribute('aria-hidden', 'true');
+      pauseMenu.classList.remove('open');
+      pauseMenu.setAttribute('aria-hidden', 'true');
     }
     campaignMap.classList.toggle('open', open);
     campaignMap.setAttribute('aria-hidden', String(!open));
@@ -824,7 +831,8 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   movePad.addEventListener('pointerdown', (event) => {
-    if (movePointerId !== null || campaignMap.classList.contains('open') || shop.classList.contains('open')) return;
+    if (movePointerId !== null || campaignMap.classList.contains('open') || shop.classList.contains('open')
+      || pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); movePointerId = event.pointerId;
     movePad.setPointerCapture(event.pointerId); updateMoveStick(event);
   });
@@ -833,7 +841,8 @@ export async function startBrowserGame(): Promise<void> {
   movePad.addEventListener('pointercancel', releaseMoveStick);
 
   canvas.addEventListener('pointerdown', (event) => {
-    if (event.pointerType === 'mouse' || lookPointerId !== null || agentController.isAgentControlled()) return;
+    if (event.pointerType === 'mouse' || lookPointerId !== null || agentController.isAgentControlled()
+      || pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); lookPointerId = event.pointerId;
     lookClientX = event.clientX; lookClientY = event.clientY; lastTouchPointerAt = performance.now();
     canvas.setPointerCapture(event.pointerId);
@@ -849,6 +858,7 @@ export async function startBrowserGame(): Promise<void> {
   canvas.addEventListener('pointercancel', releaseLook);
 
   touchFire.addEventListener('pointerdown', (event) => {
+    if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); touchFire.setPointerCapture(event.pointerId);
     fireHeld = true; touchFire.classList.add('active'); document.body.classList.add('firing');
   });
@@ -858,12 +868,14 @@ export async function startBrowserGame(): Promise<void> {
   touchFire.addEventListener('pointerup', releaseTouchFire);
   touchFire.addEventListener('pointercancel', releaseTouchFire);
   touchAlt.addEventListener('pointerdown', (event) => {
+    if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession(); fireQueued = true; altFireQueued = true;
     touchAlt.classList.add('active');
   });
   touchAlt.addEventListener('pointerup', () => touchAlt.classList.remove('active'));
   touchAlt.addEventListener('pointercancel', () => touchAlt.classList.remove('active'));
   touchWeapon.addEventListener('pointerdown', (event) => {
+    if (pauseMenu.classList.contains('open')) return;
     event.preventDefault(); beginTouchSession();
     if (renderState !== null) queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
     touchWeapon.classList.add('active');
@@ -878,12 +890,50 @@ export async function startBrowserGame(): Promise<void> {
     document.body.classList.remove('firing');
   };
 
+  const clearHumanInput = (): void => {
+    pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false; queuedWeapon = null;
+    yawDelta = 0; pitchDelta = 0;
+    clearTouchInput();
+  };
+
+  const setPauseOpen = (open: boolean): void => {
+    if (open && (agentController.isAgentControlled() || renderState?.victory || renderState?.defeat
+      || campaignMap.classList.contains('open') || shop.classList.contains('open'))) return;
+    pauseMenu.classList.toggle('open', open);
+    pauseMenu.setAttribute('aria-hidden', String(!open));
+    document.body.dataset.paused = String(open);
+    if (open) {
+      clearHumanInput();
+      pauseLevelName.textContent = localized(activeLevel.nameKey);
+      document.exitPointerLock();
+      void client.setMode('manual');
+      pauseResume.focus();
+      return;
+    }
+    if (!renderState?.victory && !renderState?.defeat && !campaignMap.classList.contains('open')) {
+      void client.setMode('realtime');
+      void audio?.resume();
+      if (humanSessionStarted && !document.body.classList.contains('touch-active') && document.pointerLockElement !== canvas) {
+        void canvas.requestPointerLock();
+      }
+    }
+  };
+
+  pauseButton.addEventListener('click', () => setPauseOpen(!pauseMenu.classList.contains('open')));
+  pauseResume.addEventListener('click', () => setPauseOpen(false));
+  pauseLevels.addEventListener('click', () => {
+    pauseMenu.classList.remove('open');
+    pauseMenu.setAttribute('aria-hidden', 'true');
+    document.body.dataset.paused = 'false';
+    setCampaignMapOpen(true);
+  });
+
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
-      pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false;
-      clearTouchInput();
+      clearHumanInput();
       resumeAfterVisibility = !agentController.isAgentControlled()
-        && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat;
+        && !campaignMap.classList.contains('open') && !pauseMenu.classList.contains('open')
+        && !renderState?.victory && !renderState?.defeat;
       if (resumeAfterVisibility) void client.setMode('manual');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         persistProfile(updateProfile(activeProfile, { lastCleanShutdown: true }));
@@ -895,7 +945,8 @@ export async function startBrowserGame(): Promise<void> {
         persistProfile(updateProfile(activeProfile, { lastCleanShutdown: false }));
       }
       if (resumeAfterVisibility && !agentController.isAgentControlled()
-        && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat) {
+        && !campaignMap.classList.contains('open') && !pauseMenu.classList.contains('open')
+        && !renderState?.victory && !renderState?.defeat) {
         resumeAfterVisibility = false;
         void client.setMode('realtime');
       }
@@ -912,6 +963,13 @@ export async function startBrowserGame(): Promise<void> {
         settingsStatus.textContent = ui('settingsHint');
       } else {
         commitInputBinding(bindingCaptureAction, event.code);
+      }
+      return;
+    }
+    if (pauseMenu.classList.contains('open')) {
+      if (event.code === 'Escape' && !event.repeat) {
+        event.preventDefault();
+        setPauseOpen(false);
       }
       return;
     }
@@ -953,7 +1011,7 @@ export async function startBrowserGame(): Promise<void> {
     pitchDelta -= event.movementY * LOOK_SCALE * activeProfile.settings.mouseSensitivity;
   });
   canvas.addEventListener('click', () => {
-    if (agentController.isAgentControlled()) return;
+    if (agentController.isAgentControlled() || pauseMenu.classList.contains('open')) return;
     beginHumanSession();
     void ensureAudio().resume();
     if (performance.now() - lastTouchPointerAt > 500 && document.pointerLockElement !== canvas) void canvas.requestPointerLock();
@@ -974,7 +1032,13 @@ export async function startBrowserGame(): Promise<void> {
   });
   canvas.addEventListener('contextmenu', (event) => event.preventDefault());
   document.addEventListener('pointerlockchange', () => {
-    document.body.classList.toggle('locked', document.pointerLockElement === canvas);
+    const locked = document.pointerLockElement === canvas;
+    document.body.classList.toggle('locked', locked);
+    if (!locked && document.visibilityState === 'visible' && humanSessionStarted && !agentController.isAgentControlled()
+      && !campaignMap.classList.contains('open') && !shop.classList.contains('open')
+      && !pauseMenu.classList.contains('open') && !renderState?.victory && !renderState?.defeat) {
+      setPauseOpen(true);
+    }
   });
   window.addEventListener('pagehide', () => {
     if (humanSessionStarted && !agentController.isAgentControlled()) persistProfile(updateProfile(activeProfile, { lastCleanShutdown: true }));
@@ -1004,7 +1068,8 @@ export async function startBrowserGame(): Promise<void> {
       if (gamepad.shop && !previousGamepadShop && !trainingMode && !humanSessionStarted) {
         shop.classList.toggle('open');
       }
-      const gameInputAllowed = !campaignMap.classList.contains('open') && !shop.classList.contains('open');
+      const gameInputAllowed = !campaignMap.classList.contains('open') && !shop.classList.contains('open')
+        && !pauseMenu.classList.contains('open');
       if (gameInputAllowed && gamepad.altFire && !previousGamepadAlt) { fireQueued = true; altFireQueued = true; }
       if (gameInputAllowed && gamepad.cycleWeapon && !previousGamepadCycle && renderState !== null) {
         queuedWeapon = nextUnlockedWeapon(renderState.player.selectedWeapon, renderState.player.unlockedWeaponMask);
