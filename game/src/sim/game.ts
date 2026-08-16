@@ -157,8 +157,8 @@ export class GameSimulation {
     this.coolWeapons();
     const healthBeforeEnemyCombat = this.state.player.health;
     const enemyCombat = stepEnemyCombat(
-      this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId, this.state.levelId,
-      robotsFrozen, this.state.difficulty,
+      this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId,
+      this.state.tick, this.state.levelId, robotsFrozen, this.state.difficulty,
     );
     recordDamageTaken(this.state.metrics, healthBeforeEnemyCombat - this.state.player.health);
     this.state.nextProjectileId = enemyCombat.nextProjectileId;

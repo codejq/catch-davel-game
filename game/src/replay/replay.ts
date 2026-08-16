@@ -36,6 +36,7 @@ import { DIFFICULTY_PROFILES } from '../sim/difficulty';
 import {
   WEAK_POINT_COIN_MULTIPLIER, WEAK_POINT_DAMAGE_MULTIPLIER, WEAK_POINT_RADIUS_SCALE,
 } from '../sim/weak-point';
+import { DANCE_ATTACK_SCHEDULE_VERSION } from '../sim/dance-timing';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -131,6 +132,7 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
         coinMultiplier: WEAK_POINT_COIN_MULTIPLIER,
         radiusScale: WEAK_POINT_RADIUS_SCALE,
       },
+      danceCombat: { attackScheduleVersion: DANCE_ATTACK_SCHEDULE_VERSION },
       enemyProjectile: {
         ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_ATTACK_RANGE,
         ENEMY_SLIDER_BOLT_SPEED, ENEMY_FIREBALL_SPEED, ENEMY_FIREBALL_DAMAGE, ENEMY_MELEE_DAMAGE,

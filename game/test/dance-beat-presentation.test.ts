@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { musicStepAtTick } from '../src/audio/music-sequencer';
 import { musicRuntimeProfile } from '../src/content/runtime-manifests';
 import { danceAbsoluteStepAtTick, danceBeatPresentation } from '../src/runtime/dance-beat-presentation';
-import { authoritativeDanceTiming, isDanceWeakPointActive } from '../src/sim/dance-timing';
+import { authoritativeDanceTiming, isDanceAttackOnset, isDanceWeakPointActive } from '../src/sim/dance-timing';
 
 describe('accessible dance-beat presentation', () => {
   it('shares the exact tick/BPM clock used by procedural music', () => {
@@ -44,5 +44,14 @@ describe('accessible dance-beat presentation', () => {
     expect(isDanceWeakPointActive('level-001', 19)).toBe(true);
     expect(authoritativeDanceTiming('level-007', 17)).toMatchObject({ barStep: 2, phase: 'frozen' });
     expect(isDanceWeakPointActive('level-007', 17)).toBe(false);
+  });
+
+  it('identifies only the exact authored attack-step onset and respects freeze windows', () => {
+    expect(isDanceAttackOnset('level-001', 37)).toBe(false);
+    expect(isDanceAttackOnset('level-001', 38)).toBe(true);
+    expect(isDanceAttackOnset('level-001', 39)).toBe(false);
+    expect(isDanceAttackOnset('level-001', 113)).toBe(true);
+    expect(isDanceAttackOnset('level-007', 34)).toBe(false);
+    expect(isDanceAttackOnset('level-007', 100)).toBe(true);
   });
 });

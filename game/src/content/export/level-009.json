@@ -5,8 +5,8 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "e6895b2c7dd8293a",
-          "effectiveLevel": "637da24aebc96678",
+          "balanceData": "fce1f4ab3c784705",
+          "effectiveLevel": "f1eb3f9ebb29bb9b",
           "policyOrReplay": "b13ba2d327b826a4",
           "simulationLevel": "211a15d07d1a37e5",
           "simulationSchema": "b03f2f88cc38d8fb"
@@ -31,8 +31,8 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "e6895b2c7dd8293a",
-          "effectiveLevel": "637da24aebc96678",
+          "balanceData": "fce1f4ab3c784705",
+          "effectiveLevel": "f1eb3f9ebb29bb9b",
           "policyOrReplay": "b13ba2d327b826a4",
           "simulationLevel": "211a15d07d1a37e5",
           "simulationSchema": "b03f2f88cc38d8fb"
@@ -57,14 +57,14 @@
       {
         "assistProfileId": null,
         "dependencyHashes": {
-          "balanceData": "e6895b2c7dd8293a",
-          "effectiveLevel": "637da24aebc96678",
+          "balanceData": "fce1f4ab3c784705",
+          "effectiveLevel": "f1eb3f9ebb29bb9b",
           "policyOrReplay": "b13ba2d327b826a4",
           "simulationLevel": "211a15d07d1a37e5",
           "simulationSchema": "b03f2f88cc38d8fb"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "34bf16403ab3bff6",
+        "expectedChecksum": "94be1b0f09cfcb9a",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,

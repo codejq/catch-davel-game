@@ -9,6 +9,7 @@ import {
 } from './balance';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { difficultyProfile, difficultyRobotHealth, type DifficultyId, type DifficultyProfile } from './difficulty';
+import { isDanceAttackOnset } from './dance-timing';
 
 export type EnemyProjectileKind = 'slider-bolt' | 'beat-bolt' | 'fireball';
 
@@ -109,6 +110,7 @@ export function stepEnemyCombat(
   robots: RobotState[],
   projectiles: EnemyProjectile[],
   nextProjectileId: number,
+  tick: number,
   levelId: Chapter01LevelId = 'level-001',
   robotsFrozen = false,
   difficulty: DifficultyId = 'standard',
@@ -120,6 +122,7 @@ export function stepEnemyCombat(
   const bossPhaseRobotIds: number[] = [];
   const playerHitRobotIds: number[] = [];
   const profile = difficultyProfile(difficulty);
+  const attackOnset = !robotsFrozen && isDanceAttackOnset(levelId, tick);
   let nextId = nextProjectileId;
   if (player.health > 0 && !robotsFrozen) {
     for (const robot of robots) {
@@ -144,8 +147,8 @@ export function stepEnemyCombat(
         continue;
       }
       if (robot.combatState === 'telegraph') {
-        robot.combatTicks -= 1;
-        if (robot.combatTicks > 0) continue;
+        robot.combatTicks = Math.max(0, robot.combatTicks - 1);
+        if (robot.combatTicks > 0 || !attackOnset) continue;
         if (definition.archetype === 'wobble-scout') {
           if (canBeginAttack(robot, player, levelId)) {
             player.health = Math.max(0, player.health - ENEMY_MELEE_DAMAGE * profile.incomingDamageMultiplier);
