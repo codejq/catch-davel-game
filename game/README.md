@@ -43,6 +43,7 @@ The version-1 observation includes the tick/seed, player pose and resources, sta
 - bright, bounded 15×15 maze with a reachable exit;
 - first-person collision, pointer-lock mouse aim, keyboard movement, gun, crosshair, and HUD;
 - six procedural sphere/capsule Davels with different scale, proportions, palettes, faces, routes, seeded decisions, and dance styles;
+- authoritative fixed-step Verlet/XPBD articulated bodies with two substeps and eight link/motor iterations per substep;
 - pulse hitscan with wall occlusion, energy/cooldown, damage, hit flash, knockback, defeat, coins, and victory;
 - deterministic simulation/agent contracts covered by automated tests.
 

@@ -2,6 +2,7 @@ import { PLAYER_EYE_HEIGHT } from './constants';
 import { isWallAtWorld } from './level';
 import { ROBOT_DEFINITIONS, type RobotState } from './robots';
 import type { PlayerState } from './player';
+import { applyRobotBodyImpulse } from './xpbd';
 
 export const PULSE_DAMAGE = 40;
 export const PULSE_COOLDOWN_TICKS = 10;
@@ -70,6 +71,7 @@ export function firePulse(player: PlayerState, robots: RobotState[], tick: numbe
   target.hitFlashTicks = 7;
   target.knockbackX += directionX * 0.075;
   target.knockbackZ += directionZ * 0.075;
+  applyRobotBodyImpulse(target, directionX * 0.055, 0.055, directionZ * 0.055);
   if (target.health > 0) return { fired: true, hitRobotId: target.id, defeatedRobotId: null, coinsAwarded: 0 };
   target.active = false;
   const reward = 10 + target.id * 3;

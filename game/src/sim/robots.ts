@@ -1,6 +1,7 @@
 import { FIXED_DT_SECONDS } from './constants';
 import { cellAt, cellCenter, isWallAtWorld, type CellCoordinate } from './level';
 import { decision, hashSeed } from './random';
+import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 
@@ -34,6 +35,7 @@ export interface RobotState {
   hitFlashTicks: number;
   knockbackX: number;
   knockbackZ: number;
+  readonly body: RobotBodyState;
 }
 
 const cells = (...coordinates: readonly [number, number][]): readonly CellCoordinate[] => coordinates.map(([column, row]) => ({ column, row }));
@@ -93,12 +95,13 @@ export function createRobots(): RobotState[] {
     const startIndex = Math.min(definition.route.length - 2, 2 + (id % 3));
     const start = definition.route[startIndex]!;
     const position = cellCenter(start.column, start.row);
-    return {
+    const robot: Omit<RobotState, 'body'> = {
       id, x: position.x, z: position.z, heading: id * 0.83, targetIndex: startIndex + 1,
       routeDirection: 1, holdTicks: id * 7, arrivalCount: 0, danceTime: definition.phaseOffset,
       health: 100, active: true,
       hitFlashTicks: 0, knockbackX: 0, knockbackZ: 0,
     };
+    return { ...robot, body: createRobotBody(robot.x, robot.z, robot.heading, robot.danceTime, definition) };
   });
 }
 
@@ -119,28 +122,29 @@ export function stepRobots(robots: RobotState[], seedText: string): void {
     }
     if (robot.holdTicks > 0) {
       robot.holdTicks -= 1;
-      continue;
+    } else {
+      const targetCell = definition.route[robot.targetIndex]!;
+      const target = cellCenter(targetCell.column, targetCell.row);
+      const deltaX = target.x - robot.x;
+      const deltaZ = target.z - robot.z;
+      const distance = Math.hypot(deltaX, deltaZ);
+      const stepDistance = definition.speed * FIXED_DT_SECONDS;
+      if (distance > stepDistance) {
+        robot.x += (deltaX / distance) * stepDistance;
+        robot.z += (deltaZ / distance) * stepDistance;
+        robot.heading = Math.atan2(deltaX, deltaZ);
+      } else {
+        robot.x = target.x;
+        robot.z = target.z;
+        robot.arrivalCount += 1;
+        const roll = decision(seed, robot.id, robot.arrivalCount);
+        robot.holdTicks = 4 + (roll & 31) + (robot.id === 2 ? 0 : (roll >>> 8) & 15);
+        const atStart = robot.targetIndex === 0;
+        const atEnd = robot.targetIndex === definition.route.length - 1;
+        if (atStart || atEnd || ((roll >>> 16) & 3) === 0) robot.routeDirection = robot.routeDirection === 1 ? -1 : 1;
+        robot.targetIndex += robot.routeDirection;
+      }
     }
-    const targetCell = definition.route[robot.targetIndex]!;
-    const target = cellCenter(targetCell.column, targetCell.row);
-    const deltaX = target.x - robot.x;
-    const deltaZ = target.z - robot.z;
-    const distance = Math.hypot(deltaX, deltaZ);
-    const stepDistance = definition.speed * FIXED_DT_SECONDS;
-    if (distance > stepDistance) {
-      robot.x += (deltaX / distance) * stepDistance;
-      robot.z += (deltaZ / distance) * stepDistance;
-      robot.heading = Math.atan2(deltaX, deltaZ);
-      continue;
-    }
-    robot.x = target.x;
-    robot.z = target.z;
-    robot.arrivalCount += 1;
-    const roll = decision(seed, robot.id, robot.arrivalCount);
-    robot.holdTicks = 4 + (roll & 31) + (robot.id === 2 ? 0 : (roll >>> 8) & 15);
-    const atStart = robot.targetIndex === 0;
-    const atEnd = robot.targetIndex === definition.route.length - 1;
-    if (atStart || atEnd || ((roll >>> 16) & 3) === 0) robot.routeDirection = robot.routeDirection === 1 ? -1 : 1;
-    robot.targetIndex += robot.routeDirection;
+    stepRobotBody(robot, definition);
   }
 }

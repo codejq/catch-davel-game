@@ -1,6 +1,7 @@
 import type { MeshData } from './geometry';
 import { createCapsule, createSphere } from './geometry';
 import { ROBOT_DEFINITIONS, type RobotDefinition, type RobotState } from '../sim/robots';
+import { BODY_POINT, readBodyPoint } from '../sim/xpbd';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -187,56 +188,19 @@ interface Pose {
   readonly rightFoot: Point;
 }
 
-function pose(robot: RobotState, definition: RobotDefinition): Pose {
-  const scale = definition.scale;
-  const time = robot.danceTime;
-  const beat = Math.sin(time * 5.2);
-  const alternate = Math.sin(time * 3.1);
-  let bounce = Math.abs(beat) * 0.08;
-  let leftHand: readonly [number, number, number] = [-0.62, 1.16, 0];
-  let rightHand: readonly [number, number, number] = [0.62, 1.16, 0];
-  let leftElbow: readonly [number, number, number] = [-0.48, 1.42, 0];
-  let rightElbow: readonly [number, number, number] = [0.48, 1.42, 0];
-  let leftFootZ = alternate * 0.13;
-  let rightFootZ = -alternate * 0.13;
-  if (definition.dance === 'rubber-chicken') {
-    leftElbow = [-0.68, 1.47 + beat * 0.16, 0]; rightElbow = [0.68, 1.47 - beat * 0.16, 0];
-    leftHand = [-0.48, 1.12 + beat * 0.27, 0.1]; rightHand = [0.48, 1.12 - beat * 0.27, 0.1];
-  } else if (definition.dance === 'moonwalker') {
-    bounce = 0.03; leftFootZ = alternate * 0.38; rightFootZ = -alternate * 0.38;
-    leftHand = [-0.72, 1.06, -alternate * 0.22]; rightHand = [0.72, 1.06, alternate * 0.22];
-  } else if (definition.dance === 'tiny-tyrant') {
-    bounce = Math.max(0, beat) * 0.14;
-    leftElbow = [-0.58, 1.55, 0]; rightElbow = [0.58, 1.55, 0];
-    leftHand = [-0.3, 1.73 + beat * 0.08, 0.12]; rightHand = [0.3, 1.73 - beat * 0.08, 0.12];
-  } else if (definition.dance === 'big-bouncer') {
-    bounce = Math.abs(beat) * 0.22;
-    leftHand = [-0.9, 1.05 + beat * 0.17, 0]; rightHand = [0.9, 1.05 + beat * 0.17, 0];
-  } else if (definition.dance === 'broken-marionette') {
-    bounce = Math.max(0, Math.sin(time * 2.3)) * 0.09;
-    leftElbow = [-0.38, 1.66 + Math.sin(time * 7.1) * 0.18, 0.08];
-    leftHand = [-0.73, 1.48 + Math.sin(time * 4.7) * 0.25, 0.2];
-    rightElbow = [0.66, 1.21, -0.1]; rightHand = [0.42, 0.92 + alternate * 0.13, 0.18];
-  } else {
-    const leftUp = Math.sin(time * 2.1) > 0;
-    leftElbow = leftUp ? [-0.46, 1.78, 0] : [-0.72, 1.36, 0];
-    leftHand = leftUp ? [-0.2, 2.16, 0.04] : [-0.92, 1.18, 0.1];
-    rightElbow = leftUp ? [0.72, 1.36, 0] : [0.46, 1.78, 0];
-    rightHand = leftUp ? [0.92, 1.18, 0.1] : [0.2, 2.16, 0.04];
-  }
-  const y = bounce * scale;
+function pose(robot: RobotState): Pose {
   return {
-    hip: localPoint(robot, 0, (0.76 + bounce) * scale, 0),
-    chest: localPoint(robot, 0, (1.36 + bounce) * scale, 0),
-    head: localPoint(robot, alternate * 0.025 * scale, (1.86 + bounce) * scale, 0.015),
-    leftElbow: localPoint(robot, leftElbow[0] * scale, (leftElbow[1] + bounce) * scale, leftElbow[2] * scale),
-    rightElbow: localPoint(robot, rightElbow[0] * scale, (rightElbow[1] + bounce) * scale, rightElbow[2] * scale),
-    leftHand: localPoint(robot, leftHand[0] * scale, (leftHand[1] + bounce) * scale, leftHand[2] * scale),
-    rightHand: localPoint(robot, rightHand[0] * scale, (rightHand[1] + bounce) * scale, rightHand[2] * scale),
-    leftKnee: localPoint(robot, -0.22 * scale, (0.46 + bounce * 0.45) * scale, leftFootZ * 0.35 * scale),
-    rightKnee: localPoint(robot, 0.22 * scale, (0.46 + bounce * 0.45) * scale, rightFootZ * 0.35 * scale),
-    leftFoot: localPoint(robot, -0.24 * scale, 0.13 * scale, leftFootZ * scale),
-    rightFoot: localPoint(robot, 0.24 * scale, 0.13 * scale, rightFootZ * scale),
+    hip: readBodyPoint(robot.body, BODY_POINT.hip),
+    chest: readBodyPoint(robot.body, BODY_POINT.chest),
+    head: readBodyPoint(robot.body, BODY_POINT.head),
+    leftElbow: readBodyPoint(robot.body, BODY_POINT.leftElbow),
+    rightElbow: readBodyPoint(robot.body, BODY_POINT.rightElbow),
+    leftHand: readBodyPoint(robot.body, BODY_POINT.leftHand),
+    rightHand: readBodyPoint(robot.body, BODY_POINT.rightHand),
+    leftKnee: readBodyPoint(robot.body, BODY_POINT.leftKnee),
+    rightKnee: readBodyPoint(robot.body, BODY_POINT.rightKnee),
+    leftFoot: readBodyPoint(robot.body, BODY_POINT.leftFoot),
+    rightFoot: readBodyPoint(robot.body, BODY_POINT.rightFoot),
   };
 }
 
@@ -276,7 +240,7 @@ export class DavelRenderer {
   }
 
   private addRobot(robot: RobotState, definition: RobotDefinition): void {
-    const p = pose(robot, definition);
+    const p = pose(robot);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
     const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1] : definition.bodyColor;
