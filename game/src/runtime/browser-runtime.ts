@@ -110,6 +110,14 @@ export async function startBrowserGame(): Promise<void> {
   const resultsReplay = requireElement<HTMLButtonElement>('#results-replay');
   const resultsNext = requireElement<HTMLButtonElement>('#results-next');
   const resultsMap = requireElement<HTMLButtonElement>('#results-map');
+  const missionFailed = requireElement<HTMLElement>('#mission-failed');
+  const failureLevelName = requireElement<HTMLElement>('#failure-level-name');
+  const failureRecovery = requireElement<HTMLElement>('#failure-recovery');
+  const failureDavels = requireElement<HTMLElement>('#failure-davels');
+  const failureCoins = requireElement<HTMLElement>('#failure-coins');
+  const failureRetry = requireElement<HTMLButtonElement>('#failure-retry');
+  const failureRestart = requireElement<HTMLButtonElement>('#failure-restart');
+  const failureMap = requireElement<HTMLButtonElement>('#failure-map');
   const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
   const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
   const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
@@ -269,6 +277,8 @@ export async function startBrowserGame(): Promise<void> {
 
   const showMissionResults = (summary: CampaignResultSummary): void => {
     latestCampaignResult = summary;
+    missionFailed.classList.remove('open');
+    missionFailed.setAttribute('aria-hidden', 'true');
     resultsLevelName.textContent = localized(activeLevel.nameKey);
     resultsMedal.textContent = `${ui(summary.parMedal ? 'parMedal' : 'clearMedal')}${summary.newBest ? ` · ${ui('newBest')}` : ''}`;
     resultsTime.textContent = formatCampaignTicks(summary.completionTicks);
@@ -280,6 +290,22 @@ export async function startBrowserGame(): Promise<void> {
     missionResults.setAttribute('aria-hidden', 'false');
     document.exitPointerLock();
     resultsNext.focus();
+  };
+
+  const showMissionFailure = (state: RenderGameState): void => {
+    const checkpointAvailable = activeProfile.campaignCheckpoint?.levelId === activeLevelId;
+    missionResults.classList.remove('open');
+    missionResults.setAttribute('aria-hidden', 'true');
+    failureLevelName.textContent = localized(activeLevel.nameKey);
+    failureRecovery.textContent = ui(checkpointAvailable ? 'retryCheckpointHint' : 'restartMissionHint');
+    failureDavels.textContent = `${state.robots.filter((robot) => !robot.active).length} / ${state.robots.length}`;
+    failureCoins.textContent = String(activeProfile.spendableCoins);
+    failureRetry.textContent = ui(checkpointAvailable ? 'retryCheckpoint' : 'restartMission');
+    failureRestart.hidden = !checkpointAvailable;
+    missionFailed.classList.add('open');
+    missionFailed.setAttribute('aria-hidden', 'false');
+    document.exitPointerLock();
+    failureRetry.focus();
   };
 
   const persistProfile = (profile: ProfileV2): void => {
@@ -525,6 +551,9 @@ export async function startBrowserGame(): Promise<void> {
       sound('defeat');
       if (humanSessionStarted && !agentController.isAgentControlled()) {
         persistProfile(recordCampaignDefeat(activeProfile, activeLevelId));
+        window.setTimeout(() => {
+          if (renderState?.defeat) showMissionFailure(renderState);
+        }, 550);
       }
     }
   };
@@ -587,6 +616,8 @@ export async function startBrowserGame(): Promise<void> {
     if (open) {
       missionResults.classList.remove('open');
       missionResults.setAttribute('aria-hidden', 'true');
+      missionFailed.classList.remove('open');
+      missionFailed.setAttribute('aria-hidden', 'true');
     }
     campaignMap.classList.toggle('open', open);
     campaignMap.setAttribute('aria-hidden', String(!open));
@@ -598,6 +629,10 @@ export async function startBrowserGame(): Promise<void> {
     } else if (resumeAfterCampaignMap && !renderState?.victory && !renderState?.defeat) {
       resumeAfterCampaignMap = false;
       void client.setMode('realtime');
+    } else if (!open && renderState?.victory && latestCampaignResult !== null) {
+      showMissionResults(latestCampaignResult);
+    } else if (!open && renderState?.defeat) {
+      showMissionFailure(renderState);
     }
   };
   campaignButton.hidden = trainingMode;
@@ -609,6 +644,10 @@ export async function startBrowserGame(): Promise<void> {
     const levelId = button?.dataset.levelId;
     if (button === null || button.disabled || levelId === undefined || !isChapter01LevelId(levelId)) return;
     if (levelId === activeLevelId) {
+      if (renderState?.victory || renderState?.defeat) {
+        void profileWrite.then(() => location.reload());
+        return;
+      }
       setCampaignMapOpen(false);
       return;
     }
@@ -628,6 +667,18 @@ export async function startBrowserGame(): Promise<void> {
     location.search = nextParameters.toString();
   });
   resultsMap.addEventListener('click', () => setCampaignMapOpen(true));
+  failureRetry.addEventListener('click', () => {
+    failureRetry.disabled = true;
+    failureRestart.disabled = true;
+    void profileWrite.then(() => location.reload());
+  });
+  failureRestart.addEventListener('click', () => {
+    failureRetry.disabled = true;
+    failureRestart.disabled = true;
+    persistProfile(updateProfile(activeProfile, { campaignCheckpoint: null, lastCleanShutdown: true }));
+    void profileWrite.then(() => location.reload());
+  });
+  failureMap.addEventListener('click', () => setCampaignMapOpen(true));
 
   const setProfileTransferBusy = (busy: boolean): void => {
     profileExport.disabled = busy;

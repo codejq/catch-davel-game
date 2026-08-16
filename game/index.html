@@ -78,6 +78,20 @@
           <button id="results-map" type="button" data-ui-text="levelMap">LEVEL MAP</button>
         </div>
       </section>
+      <section id="mission-failed" aria-label="Mission failed" data-ui-aria="failureLabel" aria-hidden="true">
+        <small data-ui-text="missionFailed">MISSION FAILED</small>
+        <h2 id="failure-level-name">WOBBLE WORKSHOP</h2>
+        <p id="failure-recovery" aria-live="polite">Retry from the latest checkpoint.</p>
+        <dl>
+          <div><dt data-ui-text="davelsDeactivated">DAVELS DEACTIVATED</dt><dd id="failure-davels">0 / 0</dd></div>
+          <div><dt data-ui-text="walletCoins">WALLET COINS</dt><dd id="failure-coins">0</dd></div>
+        </dl>
+        <div id="failure-actions">
+          <button id="failure-retry" type="button" data-ui-text="retryCheckpoint">RETRY CHECKPOINT</button>
+          <button id="failure-restart" type="button" data-ui-text="restartMission">RESTART MISSION</button>
+          <button id="failure-map" type="button" data-ui-text="levelMap">LEVEL MAP</button>
+        </div>
+      </section>
       <div id="crosshair" aria-hidden="true"></div>
       <div id="combat-message" aria-live="polite"></div>
       <div id="prompt">

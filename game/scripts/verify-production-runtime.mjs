@@ -139,6 +139,9 @@ try {
     levelName: document.querySelector('#level-name')?.textContent ?? '',
     objective: document.querySelector('#objective')?.textContent ?? '',
     briefing: document.querySelector('#prompt-briefing')?.textContent ?? '',
+    failureLabel: document.querySelector('#mission-failed')?.getAttribute('aria-label') ?? '',
+    failureTitle: document.querySelector('#mission-failed > small')?.textContent ?? '',
+    failureRetry: document.querySelector('#failure-retry')?.textContent ?? '',
     campaignButton: document.querySelector('#campaign-button')?.textContent ?? '',
     healthLabel: document.querySelector('#stats i')?.textContent ?? '',
     shopTitle: document.querySelector('#shop h2')?.textContent ?? '',
@@ -169,6 +172,9 @@ try {
     || !accessibilitySettings.levelName.includes('التمايل الأول')
     || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')
     || !accessibilitySettings.briefing.includes('ادخل الورشة المتوهجة')
+    || accessibilitySettings.failureLabel !== 'فشلت المهمة'
+    || accessibilitySettings.failureTitle !== 'فشلت المهمة'
+    || accessibilitySettings.failureRetry !== 'إعادة نقطة الحفظ'
     || !accessibilitySettings.objective.includes('متبقٍ')
     || accessibilitySettings.campaignButton !== 'M · المستويات'
     || accessibilitySettings.healthLabel !== 'الصحة'

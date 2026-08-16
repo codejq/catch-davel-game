@@ -16,6 +16,8 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('ar', 'remain', { count: 8 })).toBe('متبقٍ 8 من دافل');
     expect(runtimeUiText('ar', 'upgradePrice', { name: 'شحن النبضة', level: '1 → 2', cost: 10 }))
       .toBe('شحن النبضة · المستوى 1 → 2 · 10 عملة');
+    expect(runtimeUiText('ar', 'retryCheckpoint')).toBe('إعادة نقطة الحفظ');
+    expect(runtimeUiText('en', 'restartMissionHint')).toContain('Restart the mission');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });
