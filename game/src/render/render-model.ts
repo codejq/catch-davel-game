@@ -68,6 +68,7 @@ export interface RenderPickupState {
 export interface RenderLevelState {
   readonly pickups: readonly RenderPickupState[];
   readonly hazards: readonly {
+    readonly kind: 'conveyor' | 'timed-door';
     readonly x: number;
     readonly z: number;
     readonly halfWidth: number;

@@ -213,6 +213,20 @@ export class WorldRenderer {
       }
     }
     for (const hazard of state.level.hazards) {
+      if (hazard.kind === 'timed-door') {
+        const gateColor: readonly [number, number, number] = hazard.active ? [1, 0.12, 0.62] : [0.12, 1, 0.72];
+        const dimColor: readonly [number, number, number] = hazard.active ? [0.56, 0.08, 0.42] : [0.08, 0.56, 0.48];
+        instance = this.writeInstance(instance, hazard.x, 0.04, hazard.z, 2.72, 0.08, 2.72, dimColor);
+        for (const [offsetX, offsetZ] of [[-1.14, -1.14], [1.14, -1.14], [-1.14, 1.14], [1.14, 1.14]] as const) {
+          instance = this.writeInstance(instance, hazard.x + offsetX, 1.25, hazard.z + offsetZ, 0.18, 2.5, 0.18, gateColor);
+        }
+        if (hazard.active) {
+          const pulseHeight = 0.68 + Math.sin(state.tick * 0.14) * 0.12;
+          instance = this.writeInstance(instance, hazard.x, pulseHeight, hazard.z, 2.55, 0.12, 0.12, [1, 0.72, 0.95]);
+          instance = this.writeInstance(instance, hazard.x, 1.58, hazard.z, 0.12, 0.12, 2.55, [1, 0.72, 0.95]);
+        }
+        continue;
+      }
       const color: readonly [number, number, number] = hazard.active ? [1, 0.22, 0.08] : [0.25, 0.32, 0.4];
       instance = this.writeInstance(
         instance, hazard.x, 0.035, hazard.z, hazard.halfWidth * 2, 0.07, hazard.halfDepth * 2, color,

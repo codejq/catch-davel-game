@@ -4,7 +4,7 @@ import type { GameState } from './game';
 import type { PlayerState } from './player';
 import { ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, type EncounterId, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
-import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
+import { createLevelRuntime, hazardActiveAtTick, type LevelRuntimeState, type PickupKind } from './interactions';
 import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
@@ -317,7 +317,7 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: Enc
   const hazards = value.hazards.map((hazardValue, index) => {
     assertRecord(hazardValue, `snapshot.level.hazards[${index}]`);
     assertExactKeys(hazardValue, [
-      'id', 'kind', 'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
+      'id', 'kind', 'column', 'row', 'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
       'periodTicks', 'activeTicks', 'phaseOffsetTicks', 'active',
     ], `snapshot.level.hazards[${index}]`);
     const expectedHazard = expected.hazards[index]!;
@@ -325,7 +325,7 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: Enc
       throw new Error(`snapshot.level.hazards[${index}] has an invalid stable identity`);
     }
     for (const field of [
-      'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
+      'column', 'row', 'x', 'z', 'halfWidth', 'halfDepth', 'directionX', 'directionZ',
       'periodTicks', 'activeTicks', 'phaseOffsetTicks',
     ] as const) {
       if (finite(hazardValue[field], `snapshot.level.hazards[${index}].${field}`) !== expectedHazard[field]) {
@@ -378,6 +378,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
+  const tick = integer(snapshotValue.tick, 'snapshot.tick');
   if (typeof snapshotValue.seed !== 'string' || snapshotValue.seed.length === 0 || snapshotValue.seed.length > 256) throw new Error('snapshot.seed is invalid');
   if (typeof snapshotValue.levelId !== 'string' || !isChapter01LevelId(snapshotValue.levelId)) throw new Error('snapshot.levelId is invalid');
   const levelId = snapshotValue.levelId;
@@ -398,6 +399,9 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
   const level = validateLevel(snapshotValue.level, levelId, encounter);
+  if (level.hazards.some((hazard) => hazard.active !== hazardActiveAtTick(hazard, tick))) {
+    throw new Error('snapshot.level hazard phase is inconsistent with snapshot.tick');
+  }
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
   const key = level.pickups.find((pickup) => pickup.kind === 'key')!;
@@ -422,7 +426,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (victory && !level.objectiveComplete) throw new Error('snapshot victory requires the primary objective');
   if (victory && defeat) throw new Error('snapshot cannot be both victory and defeat');
   return {
-    tick: integer(snapshotValue.tick, 'snapshot.tick'),
+    tick,
     seed: snapshotValue.seed,
     levelId,
     encounter,

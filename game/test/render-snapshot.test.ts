@@ -7,7 +7,7 @@ import { TRAINING_WEAPON_MASK } from '../src/sim/weapons';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
-describe('self-contained RenderSnapshot v8', () => {
+describe('self-contained RenderSnapshot v9', () => {
   it('round-trips the complete presentation projection in a fixed buffer', () => {
     const simulation = new GameSimulation('render-snapshot-proof');
     simulation.state.player.coins = 123;
@@ -15,8 +15,8 @@ describe('self-contained RenderSnapshot v8', () => {
     const buffer = new ArrayBuffer(RENDER_SNAPSHOT_BYTES);
     writeRenderSnapshot(buffer, simulation.state, { eventEpoch: 3, eventHighWatermark: 77, resyncRequired: true });
     const decoded = decodeRenderSnapshot(buffer);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_584);
-    expect(TRANSPORT_CONTRACT_VERSION).toBe(8);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_840);
+    expect(TRANSPORT_CONTRACT_VERSION).toBe(9);
     expect(decoded.state.tick).toBe(simulation.state.tick);
     expect(decoded.state.player.coins).toBe(123);
     expect(decoded.state.player.selectedWeapon).toBe('pulse');
@@ -69,7 +69,15 @@ describe('self-contained RenderSnapshot v8', () => {
   it('carries the Level 6 conveyor as self-contained presentation state', () => {
     const simulation = new GameSimulation('render-conveyor', undefined, undefined, 'campaign', 'level-006');
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
-    expect(decoded.state.level.hazards).toEqual([expect.objectContaining({ active: true, directionX: 0, directionZ: 1 })]);
+    expect(decoded.state.level.hazards).toEqual([expect.objectContaining({ kind: 'conveyor', active: true, directionX: 0, directionZ: 1 })]);
+  });
+
+  it('carries all three typed Level 8 clockwork gates', () => {
+    const simulation = new GameSimulation('render-clockwork-gates', undefined, undefined, 'campaign', 'level-008');
+    const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
+    expect(decoded.state.level.hazards).toHaveLength(3);
+    expect(decoded.state.level.hazards.every((hazard) => hazard.kind === 'timed-door')).toBe(true);
+    expect(decoded.state.level.hazards.map((hazard) => hazard.active)).toEqual([true, true, false]);
   });
 
   it('carries staged-wave timing in the fixed header', () => {
@@ -84,6 +92,6 @@ describe('self-contained RenderSnapshot v8', () => {
     const simulation = new GameSimulation('render-cache', undefined, undefined, 'campaign', 'level-004');
     const decoded = decodeRenderSnapshot(writeRenderSnapshot(new ArrayBuffer(RENDER_SNAPSHOT_BYTES), simulation.state));
     expect(decoded.state.level.pickups.filter((pickup) => pickup.kind === 'coin')).toHaveLength(2);
-    expect(RENDER_SNAPSHOT_BYTES).toBe(9_584);
+    expect(RENDER_SNAPSHOT_BYTES).toBe(9_840);
   });
 });

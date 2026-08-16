@@ -5,7 +5,7 @@ import type {
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
-export const TRANSPORT_CONTRACT_VERSION = 8;
+export const TRANSPORT_CONTRACT_VERSION = 9;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -16,7 +16,7 @@ export const RENDER_PLAYER_FLOATS = 9;
 export const RENDER_ROBOT_FLOATS = 13 + BODY_POINT_COUNT * 3;
 export const RENDER_PROJECTILE_FLOATS = 10;
 export const RENDER_PICKUP_FLOATS = 5;
-export const RENDER_HAZARD_FLOATS = 7;
+export const RENDER_HAZARD_FLOATS = 8;
 export const RENDER_LEVEL_FLOATS = 9;
 export const RENDER_PLAYER_BOMB_FLOATS = 8;
 export const RENDER_EFFECT_FLOATS = 2;
@@ -97,6 +97,16 @@ function decodePickupKind(code: number): RenderPickupState['kind'] {
   if (code === 3) return 'energy';
   if (code === 4) return 'coin';
   throw new Error(`Unknown render pickup kind ${code}`);
+}
+
+function hazardKindCode(kind: RenderGameState['level']['hazards'][number]['kind']): number {
+  return kind === 'conveyor' ? 1 : 2;
+}
+
+function decodeHazardKind(code: number): RenderGameState['level']['hazards'][number]['kind'] {
+  if (code === 1) return 'conveyor';
+  if (code === 2) return 'timed-door';
+  throw new Error(`Unknown render hazard kind ${code}`);
 }
 
 export interface RenderSnapshotMetadata {
@@ -201,7 +211,7 @@ export function writeRenderSnapshot(
     + MAX_RENDER_PICKUPS * RENDER_PICKUP_FLOATS;
   for (const hazard of state.level.hazards) {
     data.set([
-      hazard.x, hazard.z, hazard.halfWidth, hazard.halfDepth,
+      hazardKindCode(hazard.kind), hazard.x, hazard.z, hazard.halfWidth, hazard.halfDepth,
       hazard.directionX, hazard.directionZ, hazard.active ? 1 : 0,
     ], offset);
     offset += RENDER_HAZARD_FLOATS;
@@ -303,8 +313,9 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   const hazards: RenderGameState['level']['hazards'][number][] = [];
   for (let index = 0; index < hazardCount; index += 1) {
     hazards.push({
-      x: data[offset]!, z: data[offset + 1]!, halfWidth: data[offset + 2]!, halfDepth: data[offset + 3]!,
-      directionX: data[offset + 4]!, directionZ: data[offset + 5]!, active: data[offset + 6] === 1,
+      kind: decodeHazardKind(data[offset]!),
+      x: data[offset + 1]!, z: data[offset + 2]!, halfWidth: data[offset + 3]!, halfDepth: data[offset + 4]!,
+      directionX: data[offset + 5]!, directionZ: data[offset + 6]!, active: data[offset + 7] === 1,
     });
     offset += RENDER_HAZARD_FLOATS;
   }

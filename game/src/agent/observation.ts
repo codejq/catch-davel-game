@@ -6,6 +6,7 @@ import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { levelDancePerformance } from '../sim/dance-performance';
+import { hazardTicksUntilToggle } from '../sim/interactions';
 
 export interface RobotObservation {
   readonly id: number;
@@ -28,7 +29,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 8;
+  readonly schemaVersion: 9;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -85,7 +86,7 @@ export interface AgentObservation {
   }[];
   readonly hazards: readonly {
     readonly id: string;
-    readonly kind: 'conveyor';
+    readonly kind: 'conveyor' | 'timed-door';
     readonly relativeX: number;
     readonly relativeZ: number;
     readonly halfWidth: number;
@@ -95,6 +96,7 @@ export interface AgentObservation {
     readonly active: boolean;
     readonly periodTicks: number;
     readonly activeTicks: number;
+    readonly ticksUntilToggle: number;
   }[];
   readonly door: {
     readonly id: string;
@@ -194,7 +196,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 8,
+    schemaVersion: 9,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
@@ -236,6 +238,7 @@ export function createObservation(state: GameState): AgentObservation {
       active: hazard.active,
       periodTicks: hazard.periodTicks,
       activeTicks: hazard.activeTicks,
+      ticksUntilToggle: hazardTicksUntilToggle(hazard, state.tick),
     })),
     door: {
       id: state.level.door.id,

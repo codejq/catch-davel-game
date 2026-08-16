@@ -31,7 +31,7 @@ function cellCenter(cell: Cell, level: LevelMap): { readonly x: number; readonly
 
 function key(cell: Cell): string { return `${cell.column},${cell.row}`; }
 
-function nextPathCell(start: Cell, goal: Cell, level: LevelMap, blocked: Cell | null): Cell | null {
+function nextPathCell(start: Cell, goal: Cell, level: LevelMap, blocked: readonly Cell[]): Cell | null {
   if (start.column === goal.column && start.row === goal.row) return goal;
   const queue: Cell[] = [start];
   const previous = new Map<string, Cell | null>([[key(start), null]]);
@@ -41,7 +41,7 @@ function nextPathCell(start: Cell, goal: Cell, level: LevelMap, blocked: Cell | 
       const candidate = { column: current.column + columnDelta, row: current.row + rowDelta };
       const candidateKey = key(candidate);
       if (previous.has(candidateKey) || level.rows[candidate.row]?.[candidate.column] === '#') continue;
-      if (blocked !== null && candidate.column === blocked.column && candidate.row === blocked.row
+      if (blocked.some((cell) => candidate.column === cell.column && candidate.row === cell.row)
         && !(candidate.column === goal.column && candidate.row === goal.row)) continue;
       previous.set(candidateKey, current);
       if (candidate.column === goal.column && candidate.row === goal.row) {
@@ -114,8 +114,15 @@ export class BaselineCampaignAgent {
     const start = { column: observation.player.cellColumn, row: observation.player.cellRow };
     const goal = worldCell(target.x, target.z, this.level);
     const doorWorld = worldTarget(observation, observation.door.relativeX, observation.door.relativeZ);
-    const blockedDoor = observation.door.open ? null : worldCell(doorWorld.x, doorWorld.z, this.level);
-    const step = nextPathCell(start, goal, this.level, blockedDoor);
+    const blockedCells = observation.door.open ? [] : [worldCell(doorWorld.x, doorWorld.z, this.level)];
+    for (const hazard of observation.hazards) {
+      if (hazard.kind !== 'timed-door' || !hazard.active) continue;
+      const hazardWorld = worldTarget(observation, hazard.relativeX, hazard.relativeZ);
+      const hazardCell = worldCell(hazardWorld.x, hazardWorld.z, this.level);
+      if (hazardCell.column === start.column && hazardCell.row === start.row) continue;
+      blockedCells.push(hazardCell);
+    }
+    const step = nextPathCell(start, goal, this.level, blockedCells);
     const waypoint = step === null || (step.column === goal.column && step.row === goal.row)
       ? target : cellCenter(step, this.level);
     const deltaX = waypoint.x - observation.player.x;

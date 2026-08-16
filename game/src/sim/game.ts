@@ -11,6 +11,7 @@ import { restoreSimulationState, type SimulationSnapshotV1 } from './serializati
 import {
   closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
   openNearbyDoor, queueNextEncounterWave, reachedUnlockedExit, stepEncounterWaves, stepLevelHazards,
+  stepLevelHazardPhases,
   type LevelRuntimeState,
 } from './interactions';
 import { DEFAULT_LEVEL_SEED } from './constants';
@@ -110,13 +111,15 @@ export class GameSimulation {
   step(command: PlayerCommand): void {
     this.state.events.length = 0;
     if (this.state.defeat || this.state.victory) {
+      stepLevelHazardPhases(this.state.level, this.state.tick + 1);
       this.state.tick += 1;
       return;
     }
     stepEncounterWaves(this.state.robots, this.state.level, this.state.levelId);
     const doorEvent = openNearbyDoor(this.state.player, this.state.level);
     if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
-    stepPlayer(this.state.player, command, closedDoorCells(this.state.level), this.state.levelId);
+    stepLevelHazardPhases(this.state.level, this.state.tick);
+    stepPlayer(this.state.player, command, closedDoorCells(this.state.level, this.state.player), this.state.levelId);
     stepLevelHazards(this.state.player, this.state.level, this.state.tick, this.state.levelId);
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
@@ -124,6 +127,7 @@ export class GameSimulation {
     if (reachedUnlockedExit(this.state.player, this.state.level)) {
       this.state.victory = true;
       this.state.events.push({ tick: this.state.tick, type: 'victory' });
+      stepLevelHazardPhases(this.state.level, this.state.tick + 1);
       quantizeSimulationState(this.state);
       this.state.tick += 1;
       return;
@@ -151,6 +155,7 @@ export class GameSimulation {
     const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs, this.state.levelId);
     for (const bombId of detonatedBombs.detonatedBombIds) this.state.events.push({ tick: this.state.tick, type: 'bomb-detonated', value: bombId });
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
+    stepLevelHazardPhases(this.state.level, this.state.tick + 1);
     quantizeSimulationState(this.state);
     this.state.tick += 1;
   }

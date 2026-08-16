@@ -22,12 +22,12 @@ interface Chapter01Recipe {
   readonly waves?: number;
   readonly branch?: boolean;
   readonly secret?: boolean;
-  readonly hazard?: { readonly periodTicks: number; readonly activeTicks: number; readonly profileId: string };
+  readonly hazards?: readonly { readonly periodTicks: number; readonly activeTicks: number; readonly profileId: string }[];
   readonly tier?: LevelDefinition['agentValidation']['tier'];
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: '4aff514e03b7bc96',
+  simulationSchema: 'ef569d373ae5f8cd',
   balanceData: 'd06573c4b4825196',
   policyOrReplay: 'd3d7c87fc057d2d4',
 } as const;
@@ -38,9 +38,9 @@ const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
   'level-003': 'fef54884b2088ec7',
   'level-004': '45d42bc012626e95',
   'level-005': '39c81753967df734',
-  'level-006': 'a80f92c0bdafe6ca',
+  'level-006': 'd01839d053094148',
   'level-007': '91dc732410ee198d',
-  'level-008': '99f8272be7b8e0d1',
+  'level-008': '6bcbc1989e7abfeb',
   'level-009': '9d07cf100bca26b2',
   'level-010': '7d360e3fbde5603b',
 };
@@ -139,10 +139,11 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       nodes,
       edges,
       keys: [{ id: 'workshop-key', placementNodeId: 'room-key' }],
-      hazards: recipe.hazard === undefined ? [] : [{
-        id: `hazard-${suffix}`, nodeId: 'room-arena', periodTicks: recipe.hazard.periodTicks,
-        activeTicks: recipe.hazard.activeTicks, collisionProfileId: recipe.hazard.profileId,
-      }],
+      hazards: (recipe.hazards ?? []).map((hazard, index, hazards) => ({
+        id: hazards.length === 1 ? `hazard-${suffix}` : `hazard-${suffix}-${index + 1}`,
+        nodeId: 'room-arena', periodTicks: hazard.periodTicks,
+        activeTicks: hazard.activeTicks, collisionProfileId: hazard.profileId,
+      })),
       generationAttempts: 1,
       validationProfile: 'authored-grid-v1',
     },
@@ -220,7 +221,7 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       maxActiveRobots: peakRobots,
       maxActiveProjectiles: Math.min(64, 12 + peakRobots * 3),
       maxActivePickups: 5,
-      maxHazards: recipe.hazard === undefined ? 0 : 1,
+      maxHazards: recipe.hazards?.length ?? 0,
       maxMazeNodes: 8,
       maxRenderInstances: 512 + peakRobots * 64,
       expectedPeakDrawCalls: 8,
@@ -282,7 +283,7 @@ export const LEVEL_005 = createChapter01Level({
 export const LEVEL_006 = createChapter01Level({
   number: 6, nameSlug: 'conveyor-conga', paletteId: 'neon-workshop-06', danceId: 'conveyor-conga',
   bpm: 106, visualIntensity: 0.76, mechanicTags: ['conveyor'], branch: true,
-  hazard: { periodTicks: 180, activeTicks: 120, profileId: 'conveyor-lane-v1' },
+  hazards: [{ periodTicks: 180, activeTicks: 120, profileId: 'conveyor-lane-v1' }],
   groups: [{ archetypeId: 'wobble-scout', count: 6 }],
 });
 
@@ -295,6 +296,11 @@ export const LEVEL_007 = createChapter01Level({
 export const LEVEL_008 = createChapter01Level({
   number: 8, nameSlug: 'shift-change', paletteId: 'neon-workshop-08', danceId: 'clockwork-charleston',
   bpm: 110, visualIntensity: 0.8, mechanicTags: ['timed-doors', 'mixed-scouts'], branch: true,
+  hazards: [
+    { periodTicks: 180, activeTicks: 105, profileId: 'clockwork-gate-west-v1' },
+    { periodTicks: 180, activeTicks: 105, profileId: 'clockwork-gate-center-v1' },
+    { periodTicks: 180, activeTicks: 105, profileId: 'clockwork-gate-east-v1' },
+  ],
   groups: [{ archetypeId: 'wobble-scout', count: 5 }, { archetypeId: 'blue-slider', count: 3 }],
 });
 

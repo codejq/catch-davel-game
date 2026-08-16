@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
 import { isPlayerPositionValidWithBlockers } from '../src/sim/level';
 import {
-  closedDoorCells, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
+  closedDoorCells, hazardTicksUntilToggle, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
+  stepLevelHazardPhases,
 } from '../src/sim/interactions';
 import { createSimulationSnapshot, parseSimulationSnapshot } from '../src/sim/serialization';
 import { CHAPTER_01_LEVELS, type Chapter01LevelId } from '../src/content/levels/chapter-01';
@@ -98,6 +99,34 @@ describe('authoritative Level 1 interactions', () => {
     stepLevelHazards(game.state.player, game.state.level, 120, game.state.levelId);
     expect(hazard.active).toBe(false);
     expect(game.state.player.z).toBe(inactiveZ);
+  });
+
+  it('cycles three staggered Level 8 clockwork gates without trapping a crossing player', () => {
+    const game = new GameSimulation('timed-door-proof', undefined, undefined, 'campaign', 'level-008');
+    const gates = game.state.level.hazards;
+    expect(gates.map((hazard) => hazard.kind)).toEqual(['timed-door', 'timed-door', 'timed-door']);
+    expect(gates.map((hazard) => hazard.active)).toEqual([true, true, false]);
+    expect(gates.map((hazard) => hazardTicksUntilToggle(hazard, 0))).toEqual([105, 45, 60]);
+    expect(closedDoorCells(game.state.level)).toEqual(expect.arrayContaining([
+      { column: 6, row: 8 }, { column: 10, row: 8 },
+    ]));
+
+    game.state.player.x = gates[0]!.x;
+    game.state.player.z = gates[0]!.z;
+    expect(closedDoorCells(game.state.level, game.state.player)).not.toContainEqual({ column: 6, row: 8 });
+
+    stepLevelHazardPhases(game.state.level, 60);
+    expect(gates.map((hazard) => hazard.active)).toEqual([true, false, true]);
+    stepLevelHazardPhases(game.state.level, 105);
+    expect(gates.map((hazard) => hazard.active)).toEqual([false, false, true]);
+
+    game.state.tick = 105;
+    const restored = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+    expect(restored.level.hazards).toEqual(gates);
+
+    const inconsistent = structuredClone(createSimulationSnapshot(game.state));
+    inconsistent.level.hazards[0]!.active = true;
+    expect(() => parseSimulationSnapshot(JSON.stringify(inconsistent))).toThrow(/hazard phase/);
   });
 
   it('holds and deterministically releases the second Level 9 wave across snapshots', () => {

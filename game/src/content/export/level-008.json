@@ -6,10 +6,10 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "d06573c4b4825196",
-          "effectiveLevel": "e616b59f6de319af",
+          "effectiveLevel": "691d851903b181ac",
           "policyOrReplay": "d3d7c87fc057d2d4",
-          "simulationLevel": "99f8272be7b8e0d1",
-          "simulationSchema": "4aff514e03b7bc96"
+          "simulationLevel": "6bcbc1989e7abfeb",
+          "simulationSchema": "ef569d373ae5f8cd"
         },
         "difficulty": "Standard",
         "expectedChecksum": null,
@@ -206,7 +206,29 @@
     "exitNodeId": "room-exit",
     "generationAttempts": 1,
     "generatorVersion": 1,
-    "hazards": [],
+    "hazards": [
+      {
+        "activeTicks": 105,
+        "collisionProfileId": "clockwork-gate-west-v1",
+        "id": "hazard-008-1",
+        "nodeId": "room-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 105,
+        "collisionProfileId": "clockwork-gate-center-v1",
+        "id": "hazard-008-2",
+        "nodeId": "room-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 105,
+        "collisionProfileId": "clockwork-gate-east-v1",
+        "id": "hazard-008-3",
+        "nodeId": "room-arena",
+        "periodTicks": 180
+      }
+    ],
     "keys": [
       {
         "id": "workshop-key",
@@ -349,7 +371,7 @@
     "maxActivePickups": 5,
     "maxActiveProjectiles": 36,
     "maxActiveRobots": 8,
-    "maxHazards": 0,
+    "maxHazards": 3,
     "maxMazeNodes": 8,
     "maxRenderInstances": 1024
   },

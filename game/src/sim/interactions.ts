@@ -1,8 +1,10 @@
 import type { PlayerState } from './player';
-import { cellAt, cellCenter, findCell, isPlayerPositionValidWithBlockers, type CellCoordinate } from './level';
+import { cellAt, cellCenter, findCell, isPlayerPositionValidWithBlockers, worldCell, type CellCoordinate } from './level';
 import { FIXED_DT_SECONDS, PLAYER_RADIUS } from './constants';
 import { campaignRobotWaves, type EncounterId, type RobotState } from './robots';
 import type { Chapter01LevelId } from '../content/level-ids';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { hazardRuntimeProfile } from '../content/runtime-manifests';
 
 export type PickupKind = 'key' | 'health' | 'energy' | 'coin';
 
@@ -17,7 +19,9 @@ export interface PickupState {
 
 export interface HazardRuntimeState {
   readonly id: string;
-  readonly kind: 'conveyor';
+  readonly kind: 'conveyor' | 'timed-door';
+  readonly column: number;
+  readonly row: number;
   readonly x: number;
   readonly z: number;
   readonly halfWidth: number;
@@ -124,12 +128,21 @@ export function createLevelRuntime(
   if (definition.secretCoin !== undefined) pickupDefinitions.push({
     id: 'secret-coin-cache', kind: 'coin', ...definition.secretCoin, amount: definition.secretCoin.amount ?? 12,
   });
-  const conveyorPoint = cellCenter(9, 7);
-  const hazards: HazardRuntimeState[] = levelId === 'level-006' ? [{
-    id: 'hazard-006', kind: 'conveyor', x: conveyorPoint.x, z: conveyorPoint.z,
-    halfWidth: 1.15, halfDepth: 4.25, directionX: 0, directionZ: 1,
-    periodTicks: 180, activeTicks: 120, phaseOffsetTicks: 0, active: true,
-  }] : [];
+  const hazards: HazardRuntimeState[] = chapter01Level(levelId).maze.hazards.map((hazard) => {
+    const profile = hazardRuntimeProfile(hazard.collisionProfileId);
+    if (cellAt(profile.column, profile.row, levelId) === '#') {
+      throw new Error(`${levelId} hazard ${hazard.id} enters a wall`);
+    }
+    const point = cellCenter(profile.column, profile.row);
+    const phase = profile.phaseOffsetTicks % hazard.periodTicks;
+    return {
+      id: hazard.id, kind: profile.kind, column: profile.column, row: profile.row, x: point.x, z: point.z,
+      halfWidth: profile.halfWidth, halfDepth: profile.halfDepth,
+      directionX: profile.directionX, directionZ: profile.directionZ,
+      periodTicks: hazard.periodTicks, activeTicks: hazard.activeTicks,
+      phaseOffsetTicks: profile.phaseOffsetTicks, active: phase < hazard.activeTicks,
+    };
+  });
   return {
     pickups: pickupDefinitions.map((pickup) => {
       const point = cellCenter(pickup.column, pickup.row);
@@ -175,10 +188,10 @@ export function stepEncounterWaves(
 export function stepLevelHazards(
   player: PlayerState, level: LevelRuntimeState, tick: number, levelId: Chapter01LevelId,
 ): void {
+  stepLevelHazardPhases(level, tick);
   for (const hazard of level.hazards) {
-    const phase = (tick + hazard.phaseOffsetTicks) % hazard.periodTicks;
-    hazard.active = phase < hazard.activeTicks;
-    if (!hazard.active || Math.abs(player.x - hazard.x) > hazard.halfWidth || Math.abs(player.z - hazard.z) > hazard.halfDepth) continue;
+    if (hazard.kind !== 'conveyor' || !hazard.active
+      || Math.abs(player.x - hazard.x) > hazard.halfWidth || Math.abs(player.z - hazard.z) > hazard.halfDepth) continue;
     const distance = 2.1 * FIXED_DT_SECONDS;
     const nextX = player.x + hazard.directionX * distance;
     const nextZ = player.z + hazard.directionZ * distance;
@@ -190,8 +203,30 @@ export function stepLevelHazards(
   }
 }
 
-export function closedDoorCells(level: LevelRuntimeState): readonly CellCoordinate[] {
-  return level.door.open ? [] : [{ column: level.door.column, row: level.door.row }];
+export function stepLevelHazardPhases(level: LevelRuntimeState, tick: number): void {
+  for (const hazard of level.hazards) {
+    hazard.active = hazardActiveAtTick(hazard, tick);
+  }
+}
+
+export function hazardActiveAtTick(hazard: HazardRuntimeState, tick: number): boolean {
+  return (tick + hazard.phaseOffsetTicks) % hazard.periodTicks < hazard.activeTicks;
+}
+
+export function hazardTicksUntilToggle(hazard: HazardRuntimeState, tick: number): number {
+  const phase = (tick + hazard.phaseOffsetTicks) % hazard.periodTicks;
+  return phase < hazard.activeTicks ? hazard.activeTicks - phase : hazard.periodTicks - phase;
+}
+
+export function closedDoorCells(level: LevelRuntimeState, player?: Pick<PlayerState, 'x' | 'z'>): readonly CellCoordinate[] {
+  const result: CellCoordinate[] = level.door.open ? [] : [{ column: level.door.column, row: level.door.row }];
+  const occupiedCell = player === undefined ? null : worldCell(player.x, player.z);
+  for (const hazard of level.hazards) {
+    if (hazard.kind !== 'timed-door' || !hazard.active) continue;
+    if (occupiedCell?.column === hazard.column && occupiedCell.row === hazard.row) continue;
+    result.push({ column: hazard.column, row: hazard.row });
+  }
+  return result;
 }
 
 function near(player: PlayerState, x: number, z: number, radius: number): boolean {

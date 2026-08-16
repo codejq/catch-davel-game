@@ -89,6 +89,9 @@ try {
       replayLevelId: levelEightReplay.levelId,
       observedLevelId: api.level().levelId,
       dancePerformance: levelEightObservation.dancePerformance,
+      gates: levelEightObservation.hazards.map((hazard) => ({
+        kind: hazard.kind, active: hazard.active, ticksUntilToggle: hazard.ticksUntilToggle,
+      })),
     };
 
     const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
@@ -187,6 +190,10 @@ try {
     [result.levelEightProof.dancePerformance.presetId === 'clockwork-charleston'
       && result.levelEightProof.dancePerformance.bpm === 110,
     'Level 8 did not expose its canonical choreography through the live Worker'],
+    [result.levelEightProof.gates.length === 3
+      && result.levelEightProof.gates.every((hazard) => hazard.kind === 'timed-door')
+      && result.levelEightProof.gates.every((hazard) => hazard.ticksUntilToggle > 0),
+    'Level 8 did not expose three phased clockwork gates through the live Worker'],
     [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
     [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
