@@ -9,6 +9,9 @@ describe('presentation-only render quality', () => {
     expect(initialRenderQuality({ deviceMemoryGiB: 8, hardwareConcurrency: 8, coarsePointer: false, viewportPixels: 2_000_000 })).toBe('medium');
     expect(initialRenderQuality({ deviceMemoryGiB: 16, hardwareConcurrency: 12, coarsePointer: false, viewportPixels: 2_000_000 })).toBe('high');
     expect(RENDER_QUALITY_PROFILES.low.pixelRatioCap).toBeLessThan(RENDER_QUALITY_PROFILES.high.pixelRatioCap);
+    expect(RENDER_QUALITY_PROFILES.low.fireSmokeCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.fireSmokeCount);
+    expect(RENDER_QUALITY_PROFILES.low.defeatFragmentCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.defeatFragmentCount);
+    expect(RENDER_QUALITY_PROFILES.low.coinBurstCount).toBeLessThan(RENDER_QUALITY_PROFILES.high.coinBurstCount);
     expect(() => normalizeRenderQuality('ultra')).toThrow(/quality/);
   });
 

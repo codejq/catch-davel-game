@@ -8,6 +8,7 @@ import type { RenderGameState, RenderRobotState } from './render-model';
 import { davelExpression, type DavelExpression } from './davel-expression';
 import { davelAccessory } from './davel-accessory';
 import { CoinBurstTracker, coinBurstPoint } from './coin-burst';
+import { fireballSmokePuff, mechanicalFragmentSegment } from './presentation-particles';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -310,19 +311,26 @@ export class DavelRenderer {
   ): void {
     this.spheres.reset();
     this.capsules.reset();
-    const coinBurstCount = qualityTier === 'low' ? 2 : qualityTier === 'medium' ? 3 : 5;
+    const quality = RENDER_QUALITY_PROFILES[qualityTier];
     for (const effect of this.coinBursts.update(state)) {
-      for (let coinIndex = 0; coinIndex < coinBurstCount; coinIndex += 1) {
+      for (let coinIndex = 0; coinIndex < quality.coinBurstCount; coinIndex += 1) {
         const current = coinBurstPoint(effect, state.tick, coinIndex, state.player, motionScale);
         const previous = coinBurstPoint(effect, Math.max(effect.startTick, state.tick - 1), coinIndex, state.player, motionScale);
         if (state.tick > effect.startTick) this.addCapsule(previous, current, current.scale * 0.28, [1, 0.54, 0.04]);
         this.addSphere(current, current.scale, coinIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.58, 0.05], 1.3, 0.28);
       }
+      for (let fragmentIndex = 0; fragmentIndex < quality.defeatFragmentCount; fragmentIndex += 1) {
+        const fragment = mechanicalFragmentSegment(effect, state.tick, fragmentIndex, motionScale);
+        if (fragment !== null) this.addCapsule(
+          fragment.start, fragment.end, fragment.radius,
+          fragmentIndex % 2 === 0 ? [0.24, 0.3, 0.4] : [0.52, 0.24, 0.12],
+        );
+      }
     }
     for (const robot of state.robots) {
       if (robot.active) this.addRobot(
         robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale,
-        RENDER_QUALITY_PROFILES[qualityTier].hitSparkCount,
+        quality.hitSparkCount,
       );
     }
     for (const projectile of state.projectiles) {
@@ -333,6 +341,10 @@ export class DavelRenderer {
         z: projectile.z - projectile.velocityZ * 0.055,
       };
       if (projectile.kind === 'fireball') {
+        for (let puffIndex = quality.fireSmokeCount - 1; puffIndex >= 0; puffIndex -= 1) {
+          const puff = fireballSmokePuff(projectile, puffIndex, motionScale);
+          this.addSphere(puff, puff.radius, puff.color, 1.1, 0.7);
+        }
         this.addCapsule(trail, center, 0.15, [1, 0.08, 0.02]);
         this.addSphere(center, 0.3, [1, 0.28, 0.035]);
         this.addSphere(center, 0.14, [1, 0.96, 0.38]);
