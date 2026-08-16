@@ -57,6 +57,15 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #davel-bark.show { translate: -50% 0; opacity: 1; }
 #davel-bark b { display: block; color: #79f4ff; font-size: calc(10px * var(--ui-font-scale)); letter-spacing: .12em; text-transform: uppercase; }
 #davel-bark span { display: block; margin-top: 3px; font-size: calc(13px * var(--ui-font-scale)); font-weight: 850; }
+#wave-transition { position: absolute; left: 50%; top: 31%; width: min(320px, calc(100vw - 36px)); translate: -50% -50%; padding: 13px 16px; border: 3px solid #ffdd67; border-radius: 14px; background: linear-gradient(135deg, #28194bed, #6a204ded); text-align: center; box-shadow: 0 10px 38px #130a2b99, inset 0 0 22px #ff6acb26; }
+#wave-transition[hidden] { display: none; }
+#wave-transition small, #wave-transition b, #wave-transition em { display: block; }
+#wave-transition small { color: #79f4ff; font-size: calc(9px * var(--ui-font-scale)); font-weight: 950; letter-spacing: .18em; }
+#wave-transition b { margin: 4px 0 8px; color: #fff; font-size: calc(17px * var(--ui-font-scale)); letter-spacing: .06em; }
+#wave-transition span { display: block; height: 7px; overflow: hidden; border-radius: 99px; background: #130d2d; }
+#wave-transition i { display: block; width: var(--wave-transition-progress, 100%); height: 100%; background: linear-gradient(90deg, #74f5ff, #ffe46d, #ff5f9f); transition: width .08s linear; }
+#wave-transition em { margin-top: 5px; color: #ffe56c; font-size: calc(11px * var(--ui-font-scale)); font-style: normal; font-weight: 900; }
+#wave-transition:not([hidden]) + #davel-bark { visibility: hidden; translate: -50% -8px; opacity: 0; }
 #failure-actions button:first-child { border-color: #ffe56c; background: #58451e; }
 #pause-menu { display: none; position: absolute; left: 50%; top: 50%; width: min(460px, calc(100vw - 28px)); translate: -50% -50%; padding: 28px; border: 3px solid #83f7ff; border-radius: 20px; background: linear-gradient(150deg, #10213cf7, #214f70f7); text-align: center; pointer-events: auto; box-shadow: 0 24px 90px #061128d9, inset 0 0 55px #66fff525; }
 #pause-menu.open { display: block; }
@@ -153,6 +162,7 @@ body.feedback-shake-heavy #game { animation: camera-shake-heavy .3s linear; }
 @media (prefers-reduced-motion: reduce) {
   #davel-bark { transition: none; }
   #objective-compass-arrow { transition: none; }
+  #wave-transition i { transition: none; }
   body.feedback-weapon-kick #weapon, body.feedback-sword-swing #weapon,
   body.feedback-shake-light #game, body.feedback-shake-heavy #game { animation: none; }
 }

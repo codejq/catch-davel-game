@@ -26,6 +26,7 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('en', 'compassAria', { target: 'WORKSHOP KEY', distance: 22 }))
       .toBe('WORKSHOP KEY, 22 meters away');
     expect(runtimeUiText('ar', 'compassDistance', { distance: 22 })).toBe('على بعد 22 م');
+    expect(runtimeUiText('ar', 'waveIncoming', { wave: 2, waves: 2 })).toBe('الموجة 2 / 2 قادمة');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });

@@ -101,6 +101,30 @@ try {
       })),
     };
 
+    const { BaselineCampaignAgent: WaveCampaignAgent } = await import('/src/agent/baseline-policy.ts');
+    const wavePolicy = new WaveCampaignAgent();
+    let levelNineObservation = await api.reset({ levelId: 'level-009', mode: 'agent' });
+    while (levelNineObservation.encounter.pendingTicks === 0 && !levelNineObservation.defeat
+      && levelNineObservation.tick < 6_000) {
+      levelNineObservation = await api.act(wavePolicy.next(levelNineObservation), 1);
+    }
+    const waveDeadline = performance.now() + 2_000;
+    while (document.body.dataset.waveTransition === 'none' && performance.now() < waveDeadline) {
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+    await new Promise((resolve) => setTimeout(resolve, 80));
+    const waveTransitionProof = {
+      levelId: levelNineObservation.levelId,
+      tick: levelNineObservation.tick,
+      encounter: levelNineObservation.encounter,
+      hidden: document.querySelector('#wave-transition')?.hidden,
+      transitionKey: document.body.dataset.waveTransition,
+      title: document.querySelector('#wave-transition-title')?.textContent,
+      time: document.querySelector('#wave-transition-time')?.textContent,
+      aria: document.querySelector('#wave-transition')?.getAttribute('aria-label'),
+      barkVisibility: getComputedStyle(document.querySelector('#davel-bark')).visibility,
+    };
+
     const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
     const bossProof = {
       count: bossObservation.robots.length,
@@ -186,6 +210,7 @@ try {
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
       levelEightProof,
+      waveTransitionProof,
       arsenalProof,
       bossProof,
     };
@@ -234,6 +259,17 @@ try {
       && result.levelEightProof.gates.every((hazard) => hazard.kind === 'timed-door')
       && result.levelEightProof.gates.every((hazard) => hazard.ticksUntilToggle > 0),
     'Level 8 did not expose three phased clockwork gates through the live Worker'],
+    [result.waveTransitionProof.levelId === 'level-009'
+      && result.waveTransitionProof.encounter.waveIndex === 0
+      && result.waveTransitionProof.encounter.waveCount === 2
+      && result.waveTransitionProof.encounter.pendingTicks > 0
+      && result.waveTransitionProof.hidden === false
+      && result.waveTransitionProof.transitionKey === '0:2'
+      && result.waveTransitionProof.title === 'WAVE 2 / 2 INCOMING'
+      && /0\.[1-8]s/.test(result.waveTransitionProof.time ?? '')
+      && result.waveTransitionProof.aria?.includes('wave 2 of 2')
+      && result.waveTransitionProof.barkVisibility === 'hidden',
+    'Level 9 staged wave did not reach the localized live transition presentation'],
     [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
     [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],

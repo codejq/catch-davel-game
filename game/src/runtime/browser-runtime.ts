@@ -39,6 +39,7 @@ import {
 import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type CaptionRequest } from './event-captions';
 import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
 import { objectiveCompassReading, type ObjectiveCompassTarget } from './objective-compass';
+import { waveTransitionPresentation } from './wave-transition';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -114,6 +115,9 @@ export async function startBrowserGame(): Promise<void> {
   const davelBark = requireElement<HTMLElement>('#davel-bark');
   const davelBarkSpeaker = requireElement<HTMLElement>('#davel-bark-speaker');
   const davelBarkLine = requireElement<HTMLElement>('#davel-bark-line');
+  const waveTransition = requireElement<HTMLElement>('#wave-transition');
+  const waveTransitionTitle = requireElement<HTMLElement>('#wave-transition-title');
+  const waveTransitionTime = requireElement<HTMLElement>('#wave-transition-time');
   const soundCaptions = requireElement<HTMLElement>('#sound-captions');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
   const shop = requireElement<HTMLElement>('#shop');
@@ -230,6 +234,7 @@ export async function startBrowserGame(): Promise<void> {
   let messageTimeout = 0;
   let barkTimeout = 0;
   let lastBarkTick = -10_000;
+  let lastWaveTransitionKey: string | null = null;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
   let profileWrite: Promise<void> = Promise.resolve();
@@ -575,6 +580,7 @@ export async function startBrowserGame(): Promise<void> {
     occasion: DavelBarkOccasion,
     minimumIntervalTicks: number,
   ): void => {
+    if (!waveTransition.hidden) return;
     if (event.tick - lastBarkTick < minimumIntervalTicks) return;
     const request = davelBarkRequest(event.robotId, event.tick, occasion, event.value ?? 0);
     if (request === null) return;
@@ -635,6 +641,23 @@ export async function startBrowserGame(): Promise<void> {
       objectiveCompassDistance.textContent = ui('compassDistance', { distance });
       objectiveCompass.setAttribute('aria-label', ui('compassAria', { target, distance }));
     }
+    const wave = waveTransitionPresentation(state.level.encounter);
+    waveTransition.hidden = wave === null;
+    document.body.dataset.waveTransition = wave?.transitionKey ?? 'none';
+    if (wave !== null) {
+      davelBark.classList.remove('show');
+      window.clearTimeout(barkTimeout);
+      waveTransitionTitle.textContent = ui('waveIncoming', { wave: wave.nextWave, waves: wave.waveCount });
+      waveTransitionTime.textContent = ui('waveTime', { seconds: wave.secondsRemaining });
+      waveTransition.style.setProperty('--wave-transition-progress', `${wave.remainingRatio * 100}%`);
+      waveTransition.setAttribute('aria-label', ui('waveAria', {
+        wave: wave.nextWave, waves: wave.waveCount, seconds: wave.secondsRemaining,
+      }));
+      if (lastWaveTransitionKey !== wave.transitionKey) sound('wave-warning');
+      lastWaveTransitionKey = wave.transitionKey;
+    } else if (state.level.encounter.waveIndex === 0) {
+      lastWaveTransitionKey = null;
+    }
     const remaining = state.robots.filter((robot) => robot.active).length;
     remainingHud.textContent = state.victory ? ui('mazeClear')
       : state.level.objectiveComplete ? ui('reachExit')
@@ -644,7 +667,7 @@ export async function startBrowserGame(): Promise<void> {
           ? ui('shift', {
             wave: state.level.encounter.waveIndex + 2,
             waves: state.level.encounter.waveCount,
-            ticks: state.level.encounter.pendingTicks,
+            seconds: wave?.secondsRemaining ?? '0.1',
           })
           : ui('remain', { count: remaining });
     const resource = state.player.selectedWeapon === 'bomb' ? ` · ${ui('bombs', { count: state.player.bombs })}`
