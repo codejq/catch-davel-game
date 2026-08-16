@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  AUDIO_BUSES, AUDIO_BUS_MIX_CHANNEL, AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
+  AUDIO_BUSES, AUDIO_CUE_BUS, AUDIO_CUE_DEFINITIONS, DEFAULT_AUDIO_MIX, DYNAMIC_RANGE_PRESETS,
   AMBIENCE_SOURCE_CAP, TOTAL_AUDIO_SOURCE_CAP, TRANSIENT_AUDIO_SOURCE_CAP,
   boundedAudioPitchScale, proceduralAmbienceProfile, validateAudioMixSettings, validateProceduralAudioDefinitions,
 } from '../src/audio/procedural-audio';
@@ -26,9 +26,6 @@ describe('project-original procedural audio contracts', () => {
     expect(AUDIO_CUE_BUS['wave-warning']).toBe('interface');
     expect(AUDIO_CUE_BUS['player-step']).toBe('environment');
     expect(AUDIO_CUE_BUS['wobble-step']).toBe('robots');
-    expect(AUDIO_BUS_MIX_CHANNEL).toEqual({
-      weapons: 'combat', robots: 'combat', environment: 'world', interface: 'interface', voice: 'world',
-    });
     for (const preset of Object.values(DYNAMIC_RANGE_PRESETS)) {
       expect(preset.threshold).toBeLessThan(0);
       expect(preset.knee).toBeGreaterThanOrEqual(0);
@@ -40,7 +37,7 @@ describe('project-original procedural audio contracts', () => {
     }
     expect(DYNAMIC_RANGE_PRESETS.night.ratio).toBeGreaterThan(DYNAMIC_RANGE_PRESETS.wide.ratio);
     expect(() => validateAudioMixSettings(DEFAULT_AUDIO_MIX)).not.toThrow();
-    expect(() => validateAudioMixSettings({ ...DEFAULT_AUDIO_MIX, combat: Number.NaN })).toThrow(/outside bounds/);
+    expect(() => validateAudioMixSettings({ ...DEFAULT_AUDIO_MIX, robots: Number.NaN })).toThrow(/outside bounds/);
     expect(() => validateAudioMixSettings({
       ...DEFAULT_AUDIO_MIX, dynamicRange: 'cinema' as 'wide',
     })).toThrow(/preset/);

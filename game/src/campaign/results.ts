@@ -1,6 +1,6 @@
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
-import type { ProfileV10 } from '../storage/profile';
+import type { ProfileV11 } from '../storage/profile';
 import type { RunMetrics } from '../sim/run-metrics';
 import { ROBOT_DEFINITIONS, type RobotArchetype } from '../sim/robots';
 import { campaignRunScore, runAccuracyPermille, standardCampaignParTicks } from '../sim/run-score';
@@ -42,7 +42,7 @@ export function standardParTicks(levelId: Chapter01LevelId): number {
 }
 
 export function campaignResultSummary(
-  profile: ProfileV10,
+  profile: ProfileV11,
   levelId: Chapter01LevelId,
   completionTicks: number,
   finalCoins: number,

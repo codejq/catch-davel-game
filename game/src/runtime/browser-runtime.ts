@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV10 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV11 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -220,9 +220,11 @@ export async function startBrowserGame(): Promise<void> {
   const settingMaster = requireElement<HTMLInputElement>('#setting-master');
   const settingMusic = requireElement<HTMLInputElement>('#setting-music');
   const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
-  const settingCombatVolume = requireElement<HTMLInputElement>('#setting-combat-volume');
-  const settingWorldVolume = requireElement<HTMLInputElement>('#setting-world-volume');
+  const settingWeaponsVolume = requireElement<HTMLInputElement>('#setting-weapons-volume');
+  const settingRobotsVolume = requireElement<HTMLInputElement>('#setting-robots-volume');
+  const settingEnvironmentVolume = requireElement<HTMLInputElement>('#setting-environment-volume');
   const settingInterfaceVolume = requireElement<HTMLInputElement>('#setting-interface-volume');
+  const settingVoiceVolume = requireElement<HTMLInputElement>('#setting-voice-volume');
   const settingDynamicRange = requireElement<HTMLSelectElement>('#setting-dynamic-range');
   const settingReducedMotion = requireElement<HTMLInputElement>('#setting-reduced-motion');
   const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
@@ -252,7 +254,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV10;
+  let activeProfile: ProfileV11;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -448,9 +450,11 @@ export async function startBrowserGame(): Promise<void> {
     settingMaster.value = String(activeProfile.settings.masterVolume);
     settingMusic.value = String(activeProfile.settings.musicVolume);
     settingEffects.value = String(activeProfile.settings.effectsVolume);
-    settingCombatVolume.value = String(activeProfile.settings.combatVolume);
-    settingWorldVolume.value = String(activeProfile.settings.worldVolume);
+    settingWeaponsVolume.value = String(activeProfile.settings.weaponsVolume);
+    settingRobotsVolume.value = String(activeProfile.settings.robotsVolume);
+    settingEnvironmentVolume.value = String(activeProfile.settings.environmentVolume);
     settingInterfaceVolume.value = String(activeProfile.settings.interfaceVolume);
+    settingVoiceVolume.value = String(activeProfile.settings.voiceVolume);
     settingDynamicRange.value = activeProfile.settings.dynamicRange;
     settingReducedMotion.checked = activeProfile.settings.reducedMotion;
     settingHighContrast.checked = activeProfile.settings.highContrast;
@@ -466,9 +470,11 @@ export async function startBrowserGame(): Promise<void> {
     renderInputBindings();
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     audio?.setMix({
-      combat: activeProfile.settings.combatVolume,
-      world: activeProfile.settings.worldVolume,
+      weapons: activeProfile.settings.weaponsVolume,
+      robots: activeProfile.settings.robotsVolume,
+      environment: activeProfile.settings.environmentVolume,
       interface: activeProfile.settings.interfaceVolume,
+      voice: activeProfile.settings.voiceVolume,
       dynamicRange: activeProfile.settings.dynamicRange,
     });
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
@@ -560,7 +566,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV10): void => {
+  const persistProfile = (profile: ProfileV11): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -600,9 +606,11 @@ export async function startBrowserGame(): Promise<void> {
       masterVolume: Number(settingMaster.value),
       musicVolume: Number(settingMusic.value),
       effectsVolume: Number(settingEffects.value),
-      combatVolume: Number(settingCombatVolume.value),
-      worldVolume: Number(settingWorldVolume.value),
+      weaponsVolume: Number(settingWeaponsVolume.value),
+      robotsVolume: Number(settingRobotsVolume.value),
+      environmentVolume: Number(settingEnvironmentVolume.value),
       interfaceVolume: Number(settingInterfaceVolume.value),
+      voiceVolume: Number(settingVoiceVolume.value),
       dynamicRange: settingDynamicRange.value === 'wide' ? 'wide' as const
         : settingDynamicRange.value === 'night' ? 'night' as const : 'balanced' as const,
       reducedMotion,
@@ -666,9 +674,11 @@ export async function startBrowserGame(): Promise<void> {
         context, audioRuntimeProfile(activeLevel.audio.presetId), activeLevel.audio.presetId,
         activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume,
         {
-          combat: activeProfile.settings.combatVolume,
-          world: activeProfile.settings.worldVolume,
+          weapons: activeProfile.settings.weaponsVolume,
+          robots: activeProfile.settings.robotsVolume,
+          environment: activeProfile.settings.environmentVolume,
           interface: activeProfile.settings.interfaceVolume,
+          voice: activeProfile.settings.voiceVolume,
           dynamicRange: activeProfile.settings.dynamicRange,
         },
       );

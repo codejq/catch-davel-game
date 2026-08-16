@@ -129,9 +129,11 @@ try {
     document.querySelector('#setting-master').value = '0.8';
     document.querySelector('#setting-music').value = '0.6';
     document.querySelector('#setting-effects').value = '0.7';
-    document.querySelector('#setting-combat-volume').value = '0.6';
-    document.querySelector('#setting-world-volume').value = '0.7';
+    document.querySelector('#setting-weapons-volume').value = '0.55';
+    document.querySelector('#setting-robots-volume').value = '0.6';
+    document.querySelector('#setting-environment-volume').value = '0.7';
     document.querySelector('#setting-interface-volume').value = '0.8';
+    document.querySelector('#setting-voice-volume').value = '0.65';
     document.querySelector('#setting-dynamic-range').value = 'night';
     document.querySelector('#setting-reduced-motion').checked = true;
     document.querySelector('#setting-high-contrast').checked = true;
@@ -189,9 +191,11 @@ try {
     recoilMotion: document.querySelector('#setting-recoil-motion')?.value,
     shakeMotion: document.querySelector('#setting-shake-motion')?.value,
     flashIntensity: document.querySelector('#setting-flash-intensity')?.value,
-    combatVolume: document.querySelector('#setting-combat-volume')?.value,
-    worldVolume: document.querySelector('#setting-world-volume')?.value,
+    weaponsVolume: document.querySelector('#setting-weapons-volume')?.value,
+    robotsVolume: document.querySelector('#setting-robots-volume')?.value,
+    environmentVolume: document.querySelector('#setting-environment-volume')?.value,
     interfaceVolume: document.querySelector('#setting-interface-volume')?.value,
+    voiceVolume: document.querySelector('#setting-voice-volume')?.value,
     dynamicRange: document.body.dataset.audioDynamicRange,
     qualityPreference: document.body.dataset.qualityPreference,
     qualityTier: document.body.dataset.qualityTier,
@@ -219,9 +223,11 @@ try {
     || settingsProfile.profile.settings.masterVolume !== 0.8
     || settingsProfile.profile.settings.musicVolume !== 0.6
     || settingsProfile.profile.settings.effectsVolume !== 0.7
-    || settingsProfile.profile.settings.combatVolume !== 0.6
-    || settingsProfile.profile.settings.worldVolume !== 0.7
+    || settingsProfile.profile.settings.weaponsVolume !== 0.55
+    || settingsProfile.profile.settings.robotsVolume !== 0.6
+    || settingsProfile.profile.settings.environmentVolume !== 0.7
     || settingsProfile.profile.settings.interfaceVolume !== 0.8
+    || settingsProfile.profile.settings.voiceVolume !== 0.65
     || settingsProfile.profile.settings.dynamicRange !== 'night'
     || settingsProfile.profile.settings.cameraMotion !== 0.25
     || settingsProfile.profile.settings.recoilMotion !== 0.35
@@ -269,9 +275,11 @@ try {
     || accessibilitySettings.recoilMotion !== '0.35'
     || accessibilitySettings.shakeMotion !== '0.45'
     || accessibilitySettings.flashIntensity !== '0.55'
-    || accessibilitySettings.combatVolume !== '0.6'
-    || accessibilitySettings.worldVolume !== '0.7'
+    || accessibilitySettings.weaponsVolume !== '0.55'
+    || accessibilitySettings.robotsVolume !== '0.6'
+    || accessibilitySettings.environmentVolume !== '0.7'
     || accessibilitySettings.interfaceVolume !== '0.8'
+    || accessibilitySettings.voiceVolume !== '0.65'
     || accessibilitySettings.dynamicRange !== 'night'
     || accessibilitySettings.qualityPreference !== 'low'
     || accessibilitySettings.qualityTier !== 'low'
@@ -301,18 +309,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v10.json'
-    || exportedProfile.profileSchemaVersion !== 10
+  if (download.suggestedFilename() !== 'catch-davel-profile-v11.json'
+    || exportedProfile.profileSchemaVersion !== 11
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v10 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v11 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v10.json',
+    name: 'catch-davel-profile-v11.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

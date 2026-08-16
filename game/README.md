@@ -14,7 +14,7 @@ Open the URL printed by Vite. Click the canvas to capture the mouse, use WASD or
 
 On a touch device, use the virtual stick to move, drag across the game view to aim, use **FIRE**, tap **ALT** for the selected weapon's alternate action, and tap the weapon label to cycle unlocked weapons. The accessibility panel can scale, fade, raise, swap, and dead-zone the controls and switch FIRE between hold and toggle behavior. Touch and desktop input both produce the same deterministic command stream.
 
-Audio is project-original procedural Web Audio. The same settings panel controls master, music, and effects gain plus independent combat, world, and interface buses; Wide, Balanced, and Night dynamic-range presets retune the protected output compressor without changing gameplay events.
+Audio is project-original procedural Web Audio. The same settings panel controls master, music, and effects gain plus independent weapons, robots, environment, interface, and voice buses; setting any bus to zero persists its mute. Wide, Balanced, and Night dynamic-range presets retune the protected output compressor without changing gameplay events.
 
 Open `/tooling.html` on the same Vite origin for the internal content workbench. It validates editable level JSON with the production schema, previews the committed runtime maze/interactions, visualizes the encounter graph and dance beats, summarizes waves/budgets, and produces canonical review JSON without writing source files. Its replay inspector accepts pasted/uploaded replay JSON, strictly parses and fully re-simulates it, compares all dependency hashes, and renders checksum and compressed-command timelines.
 
@@ -104,7 +104,7 @@ Difficulty QA statically checks reachability, objective resources, health/reward
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
 - The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, deterministic one/two/three-fireball spreads, and a localized snapshot-derived phase/health card;
 - deterministic simulation/agent contracts covered by automated tests.
-- authoritative Story/Standard/Hard profiles with bounded health, damage, movement, projectile, telegraph, wave-delay, resource, boss-phase, attack-token, AI, and human angular-assist values; selection and player upgrades persist in profile v10 and cross snapshots, replays, Worker transport, HUD, and LLM observations;
+- authoritative Story/Standard/Hard profiles with bounded health, damage, movement, projectile, telegraph, wave-delay, resource, boss-phase, attack-token, AI, and human angular-assist values; selection and player upgrades persist in profile v11 and cross snapshots, replays, Worker transport, HUD, and LLM observations;
 - one-command Chapter 1 campaign QA with all-level completion gates and a strict six-level frozen checksum manifest spanning tutorial, economy, elite, conveyor, timed-gate, and boss content;
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
 - Worker-owned 60 Hz authority with bounded snapshot/event transport; the main thread handles only input, HUD/audio feedback, persistence, and raw-WebGL2 presentation.

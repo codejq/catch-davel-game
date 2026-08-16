@@ -53,13 +53,13 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v11 records player-resource upgrades and authoritative sprint under simulation schema v18 and agent API v2, alongside the reviewed vulnerability timing, attack-step release schedule, crowd steering, pulse-spread rules, and observation v15 contract. A separate all-level static report validates all 30 level/difficulty pairs, while declared Story/Hard live runs freeze exact outcomes for Levels 1, 9, and 10. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
 
-## Profile v10
+## Profile v11
 
-Profiles include schema/migration history, identity, unlocks, per-level best/last complete results and replay proof, total/spendable coins, bounded weapon/player upgrades, cosmetics, achievements, Story/Standard/Hard and sprint hold/toggle settings, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum. Frozen v1 through v6 profiles plus integrity-checked v7, v8, and v9 boundaries are checksum-verified before sequential migration to v10. The v9→v10 migration validates the reserved `maxHealth`/`maxEnergy` levels and deliberately clears schema-v17 checkpoints that cannot resume under authoritative schema v18.
+Profiles include schema/migration history, identity, unlocks, per-level best/last complete results and replay proof, total/spendable coins, bounded weapon/player upgrades, cosmetics, achievements, Story/Standard/Hard, sprint hold/toggle, five independent effects-bus volumes, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum. Frozen v1 through v6 profiles plus integrity-checked v7, v8, v9, and v10 boundaries are checksum-verified before sequential migration to v11. The v9→v10 migration validates the reserved `maxHealth`/`maxEnergy` levels and deliberately clears schema-v17 checkpoints that cannot resume under authoritative schema v18. The presentation-only v10→v11 migration maps combat to weapons/robots, world to environment/voice, and interface to interface; it retains a valid schema-v18 checkpoint unchanged.
 
 IndexedDB stores alternating `a` and `b` envelopes plus an active pointer. Saving writes and reads back the inactive record first; only a fully parsed, checksum-valid record can become active. Loading prefers the active revision and then recovers the other known-good record. A newer unknown profile schema is never silently discarded.
 
-Packaged Tauri sessions use bounded, read-back-verified app-data persistence with a previous-file recovery copy. Browser and packaged builds share the same strict profile-v10 parser and 4 MiB import/export contract.
+Packaged Tauri sessions use bounded, read-back-verified app-data persistence with a previous-file recovery copy. Browser and packaged builds share the same strict profile-v11 parser and 4 MiB import/export contract.
 
 ## Presentation snapshot and ownership
 

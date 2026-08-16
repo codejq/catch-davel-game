@@ -4,7 +4,7 @@ Status: **Implementation active; release certification pending**
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-16**  
-Revision: **13 — granular Web Audio routing implemented; physical devices remain certification-only**
+Revision: **14 — persistent independent audio buses implemented; physical devices remain certification-only**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
 
@@ -19,6 +19,8 @@ Revision 11 records the implemented Davel defeat-collapse pass. A bounded render
 Revision 12 records the implemented spatial-transient audio pass. Robot attacks, impacts, defeat/taunt cues, and positioned bomb fuse/detonation cues now use camera-relative stereo direction rather than absolute world X and follow one monotonic distance curve from a 1.5-unit full-gain radius to a bounded 8% critical-cue tail at 18 units. Snapshot-derived Davel movement already applies its own proximity gain and therefore receives direction without double attenuation. Player-hit, player weapons, pickups, objectives, and interface cues remain listener-local. The projection uses only the newest immutable player/robot transforms or finite positioned events and changes no authoritative or replay state.
 
 Revision 13 records the implemented granular effects-bus graph. Every procedural cue now routes exhaustively to one of five dedicated Web Audio gain nodes—`weapons`, `robots`, `environment`, `interface`, or `voice`—before the shared dry/room-response/master chain; continuous ambience enters `environment`, Davel mechanisms enter `robots`, and personality taunts enter `voice`. Music retains its separately controlled sequencer path. The existing persisted combat/world/interface controls currently operate as grouped macros over those five nodes, preserving profile v10 while the next persistence slice adds independent five-bus controls and migration required by Section 15.10.
+
+Revision 14 records the completed independent effects-bus persistence contract. English and Arabic settings now expose separate `weapons`, `robots`, `environment`, `interface`, and `voice` controls; a persisted value of zero is the bus mute. Profile v11 stores all five values independently. Its checksum-first v10→v11 migration maps legacy combat gain to weapons and robots, world gain to environment and voice, and interface gain to interface. Because this is presentation-only, a valid schema-v18 campaign checkpoint is retained unchanged. The strict browser and packaged transfer filename is now `catch-davel-profile-v11.json`; simulation schema, replay format, transport contracts, frozen checksums, and LLM observations are unchanged.
 
 ## 1. Executive summary
 
@@ -1206,7 +1208,7 @@ The current public contract is agent API v2. Its `sprint: boolean` action enters
 - last clean shutdown marker;
 - integrity checksum for accidental-corruption detection, not anti-cheat security.
 
-The current profile contract is v10. It stores `sprintMode: "hold" | "toggle"` plus bounded `maxHealth` and `maxEnergy` upgrade levels. Checksum-valid v9 profiles migrate those reserved fields into the strict contract and discard schema-v17 checkpoints that cannot resume under schema v18.
+The current profile contract is v11. It stores `sprintMode: "hold" | "toggle"`, bounded `maxHealth` and `maxEnergy` upgrade levels, and independent weapons/robots/environment/interface/voice volume values where zero is a persisted mute. Checksum-valid v9 profiles first migrate reserved upgrade fields under v10 and discard schema-v17 checkpoints that cannot resume under schema v18. The checksum-first v10→v11 presentation migration maps the legacy combat value to weapons and robots, world to environment and voice, and interface to interface while retaining a valid schema-v18 campaign checkpoint unchanged.
 
 ### 17.3 Reliability
 

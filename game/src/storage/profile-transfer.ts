@@ -1,21 +1,21 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { parseProfile, validateProfile, type ProfileV10 } from './profile';
+import { parseProfile, validateProfile, type ProfileV11 } from './profile';
 
 export const PROFILE_TRANSFER_MAX_BYTES = 4 * 1024 * 1024;
-export const PROFILE_EXPORT_FILENAME = 'catch-davel-profile-v10.json';
+export const PROFILE_EXPORT_FILENAME = 'catch-davel-profile-v11.json';
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
 }
 
-export function serializeProfileExport(profileValue: ProfileV10): string {
+export function serializeProfileExport(profileValue: ProfileV11): string {
   const profile = validateProfile(profileValue);
   const serialized = `${JSON.stringify(profile, null, 2)}\n`;
   if (byteLength(serialized) > PROFILE_TRANSFER_MAX_BYTES) throw new Error('Profile export exceeds the 4 MiB safety limit');
   return serialized;
 }
 
-export function parseProfileExport(serialized: string): ProfileV10 {
+export function parseProfileExport(serialized: string): ProfileV11 {
   const length = byteLength(serialized);
   if (length === 0 || length > PROFILE_TRANSFER_MAX_BYTES) throw new Error('Profile import must contain 1 byte through 4 MiB');
   const profile = parseProfile(serialized);
@@ -62,14 +62,14 @@ function pickBrowserProfile(): Promise<string | null> {
   });
 }
 
-export async function exportProfileFile(profile: ProfileV10): Promise<boolean> {
+export async function exportProfileFile(profile: ProfileV11): Promise<boolean> {
   const serializedProfile = serializeProfileExport(profile);
   if (isTauri()) return invoke<boolean>('export_packaged_profile', { serializedProfile });
   downloadBrowserProfile(serializedProfile);
   return true;
 }
 
-export async function importProfileFile(): Promise<ProfileV10 | null> {
+export async function importProfileFile(): Promise<ProfileV11 | null> {
   const serialized = isTauri()
     ? await invoke<string | null>('import_packaged_profile')
     : await pickBrowserProfile();

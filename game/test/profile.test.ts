@@ -47,7 +47,7 @@ describe('versioned profile persistence', () => {
   it('rejects corruption and never silently accepts a newer schema', () => {
     const profile = createDefaultProfile('validation-proof');
     expect(() => validateProfile({ ...profile, spendableCoins: 1 })).toThrow(/checksum mismatch/);
-    expect(() => validateProfile({ ...profile, profileSchemaVersion: 11 })).toThrow(/newer than supported/);
+    expect(() => validateProfile({ ...profile, profileSchemaVersion: 12 })).toThrow(/newer than supported/);
     expect(() => updateProfile(profile, {
       settings: { ...profile.settings, difficulty: 'nightmare' as 'hard' },
     })).toThrow(/difficulty/);
@@ -58,7 +58,7 @@ describe('versioned profile persistence', () => {
     expect(() => updateProfile(profile, {
       settings: { ...profile.settings, sprintMode: 'automatic' as 'hold' },
     })).toThrow(/sprintMode/);
-    expect(() => updateProfile(profile, { settings: { ...profile.settings, combatVolume: 1.01 } })).toThrow(/outside bounds/);
+    expect(() => updateProfile(profile, { settings: { ...profile.settings, weaponsVolume: 1.01 } })).toThrow(/outside bounds/);
     expect(() => updateProfile(profile, {
       settings: { ...profile.settings, dynamicRange: 'cinema' as 'wide' },
     })).toThrow(/dynamicRange/);

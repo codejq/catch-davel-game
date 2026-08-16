@@ -8,7 +8,6 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
 
 export const AUDIO_BUSES = ['weapons', 'robots', 'environment', 'interface', 'voice'] as const;
 export type AudioBus = typeof AUDIO_BUSES[number];
-export type AudioMixChannel = 'combat' | 'world' | 'interface';
 export type DynamicRangePreset = 'wide' | 'balanced' | 'night';
 export const TRANSIENT_AUDIO_SOURCE_CAP = 48;
 export const AMBIENCE_SOURCE_CAP = 2;
@@ -19,14 +18,16 @@ export function boundedAudioPitchScale(value: number): number {
 }
 
 export interface AudioMixSettings {
-  readonly combat: number;
-  readonly world: number;
+  readonly weapons: number;
+  readonly robots: number;
+  readonly environment: number;
   readonly interface: number;
+  readonly voice: number;
   readonly dynamicRange: DynamicRangePreset;
 }
 
 export const DEFAULT_AUDIO_MIX: AudioMixSettings = {
-  combat: 1, world: 1, interface: 1, dynamicRange: 'balanced',
+  weapons: 1, robots: 1, environment: 1, interface: 1, voice: 1, dynamicRange: 'balanced',
 };
 
 export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
@@ -40,10 +41,6 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   'player-step': 'environment',
   'wobble-step': 'robots', 'slider-step': 'robots', 'spinner-step': 'robots', 'firemouth-step': 'robots',
   'dj-step': 'robots', 'overlord-step': 'robots',
-};
-
-export const AUDIO_BUS_MIX_CHANNEL: Readonly<Record<AudioBus, AudioMixChannel>> = {
-  weapons: 'combat', robots: 'combat', environment: 'world', interface: 'interface', voice: 'world',
 };
 
 export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
@@ -60,7 +57,7 @@ export const DYNAMIC_RANGE_PRESETS: Readonly<Record<DynamicRangePreset, {
 };
 
 export function validateAudioMixSettings(mix: AudioMixSettings): void {
-  for (const bus of ['combat', 'world', 'interface'] as const) {
+  for (const bus of AUDIO_BUSES) {
     if (!Number.isFinite(mix[bus]) || mix[bus] < 0 || mix[bus] > 1) {
       throw new Error(`Audio ${bus} bus gain is outside bounds`);
     }
@@ -254,7 +251,7 @@ export class ProceduralAudio {
     validateAudioMixSettings(mix);
     const timeConstant = immediate ? 0 : 0.04;
     for (const bus of AUDIO_BUSES) {
-      const value = mix[AUDIO_BUS_MIX_CHANNEL[bus]];
+      const value = mix[bus];
       if (immediate) this.buses[bus].gain.value = value;
       else this.buses[bus].gain.setTargetAtTime(value, this.context.currentTime, timeConstant);
     }
