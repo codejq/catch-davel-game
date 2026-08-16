@@ -7,10 +7,12 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "test": "vitest run"
+    "test": "vitest run",
+    "test:worker": "node scripts/verify-worker.mjs"
   },
   "devDependencies": {
     "@types/node": "26.2.0",
+    "playwright-core": "1.62.1",
     "typescript": "7.0.2",
     "vite": "8.2.1",
     "vitest": "4.1.10"

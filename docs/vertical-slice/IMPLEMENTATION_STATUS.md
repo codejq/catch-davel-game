@@ -24,6 +24,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Fixed 6,332-byte self-contained `RenderSnapshot` v1 with capacity for 24 Davels and 64 projectiles, transport epoch/high-watermark metadata, and a renderer-facing model decoupled from mutable authority.
 - Bounded three-buffer snapshot ownership with tested `producerOwned >= 1`, `inFlight <= 2`, coalescing, newest-state delivery, and independent consumer copies.
 - The live main-thread renderer now consumes the decoded immutable snapshot contract; simulation/render Worker hosting remains the next topology step.
+- Production simulation Worker adapter uses the same `GameSimulation`, supports seeded reset/manual action batches/checkpoint loading, publishes through the bounded pool, and generation-tags returns across resets.
 
 ## Verification evidence
 
@@ -35,6 +36,7 @@ Implementation is active. Missing physical devices do not block development; the
 - Browser replay check: two command runs advanced to tick 30, saved and verified, survived reset to another seed, restored the identical checksum, and remained paused at tick 30.
 - Browser persistence check: IndexedDB advanced atomically from slot `a` revision 1 to slot `b` revision 2 across reload; a subsequent 240-tick agent session did not change the human revision.
 - Production API check: the default built artifact loaded with profile storage ready and did not expose `window.CatchDavelAgent`.
+- Worker determinism/stall check: a 240-tick browser Worker run matched the direct checksum, retained two in-flight/one producer-owned buffer, coalesced 239 snapshots under a deliberate consumer stall, and delivered tick 240 when capacity returned.
 - Visual inspection confirmed a bright continuous floor, bounded colorful corridors, readable HUD/gun, rounded connected robot parts, angry-comic faces, and visible size/proportion differences.
 
 These are development/CI results, not physical-device release certification.

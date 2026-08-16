@@ -53,6 +53,8 @@ The renderer accepts only the render model decoded from this projection, not mut
 
 The production three-slot pool uses one staging slot, up to two in-flight transfers, and any remaining free slots. It will not publish when doing so would transfer the final producer-owned buffer; newer ticks overwrite staging and increment coalescing until a transfer returns.
 
+The simulation Worker adapter instantiates the exact production `GameSimulation` and accepts bounded manual action batches, resets, and complete checkpoint loads. Snapshot messages and returned buffers carry a generation, so an old transfer returned after reset cannot corrupt the new pool. `npm run game:test:worker` compares its checksum with the direct browser simulation and injects a 240-tick consumer stall to verify bounded ownership and newest-snapshot recovery.
+
 ## Agent isolation
 
 Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
