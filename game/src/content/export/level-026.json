@@ -1,0 +1,557 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "042cb7bf2ec6524f",
+          "policyOrReplay": "5ee9cddff43270b2",
+          "simulationLevel": "eac80a3af3d37d9a",
+          "simulationSchema": "6cafd562c735e11d"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 15000,
+        "mode": "live-agent",
+        "parTicks": 11000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 2,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-bombs-ballroom"
+        ],
+        "seed": "campaign-level-026-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-toxic-boiler-026"
+  },
+  "briefingKey": "levels.026.briefing",
+  "chapterId": "chapter-03",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-026"
+    }
+  ],
+  "dance": {
+    "armPatternId": "detonator-danzon-arms-v1",
+    "attackBeats": [
+      2,
+      6,
+      10,
+      14
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 146,
+    "footPatternId": "detonator-danzon-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "detonator-danzon-head-v1",
+    "pathPatternId": "detonator-danzon-path-v1",
+    "presetId": "detonator-danzon",
+    "reducedMotionPresetId": "detonator-danzon-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "detonator-danzon-torso-v1",
+    "transitionIds": [
+      "blast-crossfire",
+      "detonator-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.96,
+    "vulnerableBeats": [
+      0,
+      4,
+      8,
+      12
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-03-026"
+  },
+  "economy": {
+    "presetId": "economy-chapter-03-026"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "ballroom-company",
+      "rewardId": "chapter-03-clear-026",
+      "roomNodeId": "blast-ballroom",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "fuse-rehearsal",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "detonator-danzon",
+              "id": "fuse-wobblers",
+              "modifierIds": [
+                "fuse-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-1.wobblers",
+              "spawnPointSetId": "level-026-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "fuse-slider",
+              "modifierIds": [
+                "blast-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-1.slider",
+              "spawnPointSetId": "level-026-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "fuse-spinner",
+              "modifierIds": [
+                "fuse-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-1.spinner",
+              "spawnPointSetId": "level-026-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "blast-crossfire",
+          "id": "blast-crossfire",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "blast-firemouth",
+              "modifierIds": [
+                "powder-belch"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-2.firemouth",
+              "spawnPointSetId": "level-026-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "blue-slider",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "blast-slider",
+              "modifierIds": [
+                "blast-skater"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-2.slider",
+              "spawnPointSetId": "level-026-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "blast-wobbler",
+              "modifierIds": [
+                "fuse-mask"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-2.wobbler",
+              "spawnPointSetId": "level-026-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 20
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "detonator-encore",
+          "id": "detonator-encore",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "detonator-firemouth",
+              "modifierIds": [
+                "detonator-elite"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-3.firemouth",
+              "spawnPointSetId": "level-026-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "detonator-dj",
+              "modifierIds": [
+                "fuse-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-3.dj",
+              "spawnPointSetId": "level-026-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-03-stage-26",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "detonator-danzon",
+              "id": "detonator-spinner",
+              "modifierIds": [
+                "detonator-wheel"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-03-coins-26",
+              "rngStream": "encounter.level-026.wave-3.spinner",
+              "spawnPointSetId": "level-026-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 18
+        }
+      ]
+    }
+  ],
+  "id": "level-026",
+  "mastery": [
+    {
+      "presetId": "level-026-par-time"
+    },
+    {
+      "presetId": "level-026-open-one-shortcut"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 6,
+      "minimum": 6
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ballroom-entry",
+        "id": "entry-key",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "detonator-key-bay",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "detonator-key-bay",
+        "id": "key-gallery",
+        "requiredKeyId": "detonator-key",
+        "stateTrigger": "key-collected",
+        "to": "three-seal-gallery",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "three-seal-gallery",
+        "id": "gallery-ballroom",
+        "requiredKeyId": null,
+        "stateTrigger": "bomb-detonated",
+        "to": "blast-ballroom",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "blast-ballroom",
+        "id": "ballroom-checkpoint-edge",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "ballroom-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ballroom-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "blast-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "detonator-key-bay",
+        "id": "key-balcony",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "shortcut-balcony",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "shortcut-balcony",
+        "id": "balcony-ballroom",
+        "requiredKeyId": null,
+        "stateTrigger": "bomb-detonated",
+        "to": "blast-ballroom",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "ballroom-entry",
+    "exitNodeId": "blast-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "ballroom-bomb-seal-center-v1",
+        "id": "ballroom-bomb-seal-center",
+        "nodeId": "three-seal-gallery",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "ballroom-bomb-shortcut-left-v1",
+        "id": "ballroom-bomb-shortcut-left",
+        "nodeId": "shortcut-balcony",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 1,
+        "collisionProfileId": "ballroom-bomb-shortcut-right-v1",
+        "id": "ballroom-bomb-shortcut-right",
+        "nodeId": "shortcut-balcony",
+        "periodTicks": 1
+      },
+      {
+        "activeTicks": 132,
+        "collisionProfileId": "ballroom-blast-draft-v1",
+        "id": "ballroom-blast-draft",
+        "nodeId": "blast-ballroom",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "detonator-key",
+        "placementNodeId": "detonator-key-bay"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ballroom-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "bomb-ballroom"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "detonator-key-bay",
+        "pickupIds": [
+          "detonator-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "detonator-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "three-seal-gallery",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "destructible-routes"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "ballroom-company"
+        ],
+        "id": "blast-ballroom",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "blast-draft"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "shortcut-balcony",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "optional-shortcut"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-026",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ballroom-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "blast-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "toxic-boiler",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "boiler-bombs-ballroom",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.026.name",
+  "number": 26,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-bombs-ballroom",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "fuse-rehearsal",
+        "blast-crossfire",
+        "detonator-encore"
+      ],
+      "titleKey": "objectives.level_026",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "toxic-boiler-26"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-026-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 9,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-026-v1",
+  "tags": [
+    "chapter-03",
+    "toxic-boiler",
+    "bomb-seal",
+    "destructible-route-choices",
+    "bomb-ballroom",
+    "detonator-danzon"
+  ]
+}

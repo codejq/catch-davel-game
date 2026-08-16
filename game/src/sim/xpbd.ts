@@ -259,6 +259,16 @@ function targets(
     leftFootY += retreat * 0.12; rightFootY += lunge * 0.12;
     leftHand = [-1.04, 1.82 - lunge * 0.36, 0.18 + retreat * 0.3];
     rightHand = [1.04, 1.1 + lunge * 0.64, 0.42];
+  } else if (performance.motif === 'detonator-danzon') {
+    const fuse = Math.max(0, beat); const recoil = Math.max(0, -beat);
+    bounce += (fuse * 0.07 + recoil * 0.11) * intensity;
+    hipX = -alternate * 0.3 * intensity; chestX = alternate * 0.38 * intensity;
+    chestZ = fuse * 0.2 - recoil * 0.2; headX += -alternate * 0.3; headZ = recoil * 0.12;
+    leftFootX = -0.38 - fuse * 0.18; rightFootX = 0.38 + recoil * 0.18;
+    leftFootZ = recoil * 0.44; rightFootZ = fuse * 0.44;
+    leftFootY += recoil * 0.18; rightFootY += fuse * 0.18;
+    leftHand = [-0.9 - fuse * 0.22, 1.1 + recoil * 0.6, 0.42];
+    rightHand = [0.9 + recoil * 0.22, 1.72 - fuse * 0.5, 0.2];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

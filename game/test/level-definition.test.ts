@@ -9,7 +9,9 @@ import {
   LEVEL_018, LEVEL_019, LEVEL_020,
 } from '../src/content/levels/chapter-02';
 import { campaignLevel } from '../src/content/levels/catalog';
-import { CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025 } from '../src/content/levels/chapter-03';
+import {
+  CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026,
+} from '../src/content/levels/chapter-03';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -103,7 +105,7 @@ describe('Appendix A level-data contract', () => {
   });
 
   it('admits Pipework Promenade as the first Chapter 3 bomb tutorial', () => {
-    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025]);
+    expect(CHAPTER_03_LEVELS).toEqual([LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026]);
     expect(validateLevelDefinition(LEVEL_021)).toBe(LEVEL_021);
     expect(campaignLevel('level-021')).toBe(LEVEL_021);
     expect(LEVEL_021.chapterId).toBe('chapter-03');
@@ -131,6 +133,11 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_025.tags).toEqual(expect.arrayContaining(['synchronized-elite-duo', 'duelling-tango']));
     expect(LEVEL_025.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-025'));
+    expect(validateLevelDefinition(LEVEL_026)).toBe(LEVEL_026);
+    expect(campaignLevel('level-026')).toBe(LEVEL_026);
+    expect(LEVEL_026.tags).toEqual(expect.arrayContaining(['bomb-seal', 'destructible-route-choices', 'detonator-danzon']));
+    expect(LEVEL_026.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-026'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

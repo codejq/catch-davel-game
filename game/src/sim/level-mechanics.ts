@@ -62,6 +62,11 @@ export function levelMechanicDependency(levelId: PlayableLevelId): Readonly<Reco
     kind: 'synchronized-elite-duo', robotIds: [5, 7], telegraphTicks: 36,
     recoveryTicks: 32, repeatCooldownTicks: 96,
   };
+  if (campaignLevel(levelId).tags.includes('destructible-route-choices')) return {
+    kind: 'destructible-route-choices', trigger: 'bomb-detonated', breakRadius: BOMB_SEAL_BREAK_RADIUS,
+    requiredSealIds: ['ballroom-bomb-seal-center'],
+    optionalShortcutIds: ['ballroom-bomb-shortcut-left', 'ballroom-bomb-shortcut-right'],
+  };
   if (campaignLevel(levelId).tags.includes('bomb-seal')) return {
     kind: 'bomb-seal', trigger: 'bomb-detonated', activation: 'until-bomb',
     breakRadius: BOMB_SEAL_BREAK_RADIUS,

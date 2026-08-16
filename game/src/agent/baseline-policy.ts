@@ -73,9 +73,10 @@ export class BaselineCampaignAgent {
       this.bombSealPrimed = false;
     }
     if (observation.victory || observation.defeat) return {};
-    const bombSeal = observation.levelId === 'level-021'
-      ? observation.hazards.find((hazard) => hazard.id === 'promenade-bomb-seal' && hazard.active)
-      : undefined;
+    const bombRouteLevel = observation.hazards.some((hazard) => (
+      hazard.id.includes('bomb-seal') || hazard.id.includes('bomb-shortcut')
+    ));
+    const bombSeal = observation.hazards.find((hazard) => hazard.id.includes('bomb-seal') && hazard.active);
     if (bombSeal !== undefined) {
       const target = worldTarget(observation, bombSeal.relativeX, bombSeal.relativeZ);
       const distance = Math.hypot(bombSeal.relativeX, bombSeal.relativeZ);
@@ -110,7 +111,7 @@ export class BaselineCampaignAgent {
         strafe: dodge,
         turn: clamp(targetBearing * 0.72, -0.2, 0.2),
         look: clamp(targetElevation * 0.72, -0.12, 0.12),
-        ...(observation.levelId === 'level-021' ? { weapon: 'pulse' as const } : {}),
+        ...(bombRouteLevel ? { weapon: 'pulse' as const } : {}),
         fire: aligned,
       };
     }

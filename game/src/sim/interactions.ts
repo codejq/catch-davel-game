@@ -152,6 +152,7 @@ export function createLevelRuntime(
       periodTicks: hazard.periodTicks, activeTicks: hazard.activeTicks,
       phaseOffsetTicks: profile.phaseOffsetTicks,
       active: profile.activation === 'before-key' || profile.activation === 'until-bomb'
+        || profile.activation === 'until-bomb-optional'
         || (profile.activation !== 'after-key' && phase < hazard.activeTicks),
     };
   });
@@ -267,7 +268,7 @@ export function stepLevelHazardPhases(
 
 function hazardActivation(
   levelId: PlayableLevelId, hazardId: string,
-): 'periodic' | 'before-key' | 'after-key' | 'until-bomb' {
+): 'periodic' | 'before-key' | 'after-key' | 'until-bomb' | 'until-bomb-optional' {
   const authored = campaignLevel(levelId).maze.hazards.find((hazard) => hazard.id === hazardId);
   if (authored === undefined) return 'periodic';
   return hazardRuntimeProfile(authored.collisionProfileId).activation ?? 'periodic';
@@ -279,7 +280,7 @@ export function hazardActiveAtTick(
   const activation = hazardActivation(levelId, hazard.id);
   if (activation === 'before-key') return !keyCollected;
   if (activation === 'after-key') return keyCollected;
-  if (activation === 'until-bomb') return hazard.active;
+  if (activation === 'until-bomb' || activation === 'until-bomb-optional') return hazard.active;
   return (tick + hazard.phaseOffsetTicks) % hazard.periodTicks < hazard.activeTicks;
 }
 
@@ -299,7 +300,8 @@ export function breakBombSeals(
   if (detonations.length === 0) return [];
   const broken: string[] = [];
   for (const hazard of level.hazards) {
-    if (!hazard.active || hazardActivation(levelId, hazard.id) !== 'until-bomb') continue;
+    const activation = hazardActivation(levelId, hazard.id);
+    if (!hazard.active || (activation !== 'until-bomb' && activation !== 'until-bomb-optional')) continue;
     if (!detonations.some((detonation) => Math.hypot(detonation.x - hazard.x, detonation.z - hazard.z) <= BOMB_SEAL_BREAK_RADIUS)) continue;
     hazard.active = false;
     broken.push(hazard.id);
