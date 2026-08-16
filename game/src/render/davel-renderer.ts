@@ -5,6 +5,7 @@ import { BODY_POINT } from '../sim/xpbd';
 import { PLAYER_EYE_HEIGHT } from '../sim/constants';
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { RenderGameState, RenderRobotState } from './render-model';
+import { davelExpression, type DavelExpression } from './davel-expression';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -257,6 +258,26 @@ function motionScaledPose(robot: RenderRobotState, definition: RobotDefinition, 
   };
 }
 
+function shiftPoint(point: Point, robot: RenderRobotState, forward: number, vertical: number): Point {
+  return {
+    x: point.x + Math.sin(robot.heading) * forward,
+    y: point.y + vertical,
+    z: point.z + Math.cos(robot.heading) * forward,
+  };
+}
+
+function expressionPose(
+  base: Pose, robot: RenderRobotState, definition: RobotDefinition, expression: DavelExpression,
+): Pose {
+  const scale = definition.scale;
+  return {
+    ...base,
+    head: shiftPoint(base.head, robot, expression.headLean * scale, -Math.max(0, -expression.headLean) * scale),
+    leftHand: shiftPoint(base.leftHand, robot, expression.handReach * scale, expression.handLift * scale),
+    rightHand: shiftPoint(base.rightHand, robot, expression.handReach * scale, expression.handLift * scale),
+  };
+}
+
 function blendColor(from: Color, to: Color, amount: number): Color {
   return [
     from[0] + (to[0] - from[0]) * amount,
@@ -276,8 +297,8 @@ export class DavelRenderer {
     const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
     if (uniform === null) throw new Error('Davel view projection uniform is unavailable');
     this.viewProjectionLocation = uniform;
-    this.spheres = new InstanceBatch(gl, createSphere(), 768);
-    this.capsules = new InstanceBatch(gl, createCapsule(), 384);
+    this.spheres = new InstanceBatch(gl, createSphere(), 1024);
+    this.capsules = new InstanceBatch(gl, createCapsule(), 512);
   }
 
   render(
@@ -353,7 +374,9 @@ export class DavelRenderer {
   private addRobot(
     robot: RenderRobotState, definition: RobotDefinition, motionScale: number, flashScale: number, hitSparkCount: number,
   ): void {
-    const p = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
+    const basePose = motionScale < 1 ? motionScaledPose(robot, definition, motionScale) : pose(robot);
+    const expression = davelExpression(robot, motionScale);
+    const p = expressionPose(basePose, robot, definition, expression);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
     const bodyColor: Color = robot.hitFlashTicks > 0 ? blendColor(definition.bodyColor, [1, 1, 1], flashScale)
@@ -399,22 +422,35 @@ export class DavelRenderer {
     const eyeForward = headRadius * 0.78;
     const eyeLeft = localPoint(robot, -headRadius * 0.36, eyeY, eyeForward);
     const eyeRight = localPoint(robot, headRadius * 0.36, eyeY, eyeForward);
-    this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25, 0.55);
-    this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25, 0.55);
+    this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
+    this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
+    const pupilY = eyeY + expression.pupilOffset * headRadius;
+    const pupilLeft = localPoint(robot, -headRadius * 0.36, pupilY, eyeForward * 1.12);
+    const pupilRight = localPoint(robot, headRadius * 0.36, pupilY, eyeForward * 1.12);
+    this.addSphere(pupilLeft, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
+    this.addSphere(pupilRight, headRadius * 0.065, [0.025, 0.035, 0.07], expression.eyeOpen, 0.42);
     if (definition.archetype === 'blue-slider') {
       this.addCapsule(eyeLeft, eyeRight, headRadius * 0.14, [0.08, 0.16, 0.34]);
     }
     const browLeftStart = localPoint(robot, -headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
-    const browLeftEnd = localPoint(robot, -headRadius * 0.16, eyeY + headRadius * 0.13, eyeForward * 1.03);
+    const browLeftEnd = localPoint(robot, -headRadius * 0.16, eyeY + headRadius * (0.13 - expression.browPressure), eyeForward * 1.03);
     const browRightStart = localPoint(robot, headRadius * 0.53, eyeY + headRadius * 0.22, eyeForward * 1.01);
-    const browRightEnd = localPoint(robot, headRadius * 0.16, eyeY + headRadius * 0.13, eyeForward * 1.03);
+    const browRightEnd = localPoint(robot, headRadius * 0.16, eyeY + headRadius * (0.13 - expression.browPressure), eyeForward * 1.03);
     this.addCapsule(browLeftStart, browLeftEnd, headRadius * 0.045, jointColor);
     this.addCapsule(browRightStart, browRightEnd, headRadius * 0.045, jointColor);
     const smileLeft = localPoint(robot, -headRadius * 0.42, eyeY - headRadius * 0.36, eyeForward * 1.02);
-    const smileMiddle = localPoint(robot, 0, eyeY - headRadius * 0.48, eyeForward * 1.06);
+    const smileMiddle = localPoint(robot, 0, eyeY - headRadius * (0.4 + expression.grinDepth), eyeForward * 1.06);
     const smileRight = localPoint(robot, headRadius * 0.42, eyeY - headRadius * 0.36, eyeForward * 1.02);
     this.addCapsule(smileLeft, smileMiddle, headRadius * 0.045, jointColor);
     this.addCapsule(smileMiddle, smileRight, headRadius * 0.045, jointColor);
+    const mouthCenter = localPoint(robot, 0, eyeY - headRadius * 0.4, eyeForward * 1.025);
+    this.addSphere(mouthCenter, headRadius * 0.24, [0.07, 0.025, 0.07], 0.45 + expression.mouthOpen, 0.22);
+    if (robot.combatState === 'telegraph') {
+      const toothLeft = localPoint(robot, -headRadius * 0.12, eyeY - headRadius * 0.33, eyeForward * 1.15);
+      const toothRight = localPoint(robot, headRadius * 0.12, eyeY - headRadius * 0.33, eyeForward * 1.15);
+      this.addSphere(toothLeft, headRadius * 0.055, [1, 0.95, 0.72], 1.35, 0.42);
+      this.addSphere(toothRight, headRadius * 0.055, [1, 0.95, 0.72], 1.35, 0.42);
+    }
     if (definition.archetype === 'red-firemouth') {
       const nozzleBase = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 0.84);
       const nozzleTip = localPoint(robot, 0, eyeY - headRadius * 0.38, eyeForward * 1.55);
@@ -428,7 +464,10 @@ export class DavelRenderer {
       this.addSphere(shoulderRight, 0.11 * scale, accentColor, 1.15, 0.45);
     }
     const antennaBase = localPoint(robot, 0, p.head.y + headRadius * 0.8, 0);
-    const antennaTip = localPoint(robot, (robot.id % 2 === 0 ? -0.08 : 0.08) * scale, p.head.y + headRadius * 1.35, 0);
+    const antennaDirection = robot.id % 2 === 0 ? -1 : 1;
+    const antennaTip = localPoint(
+      robot, (antennaDirection * 0.08 + expression.antennaSway) * scale, p.head.y + headRadius * 1.35, 0,
+    );
     this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
     this.addSphere(antennaTip, 0.105 * scale, accentColor);
     if (definition.rank === 'boss') {
