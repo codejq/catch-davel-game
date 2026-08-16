@@ -1,6 +1,6 @@
 # Phase -1 approval packet
 
-Status: **Awaiting Quantum Billing approval**
+Status: **Approved for Phase -1 implementation**
 
 Applies to: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, Revision 6
 
@@ -10,11 +10,11 @@ Gate: Phase -1 may not begin until Decisions 16–20 are resolved.
 
 | Plan decision | Recommended approval | Why it is the spike input | Approval |
 |---:|---|---|---|
-| 16 | Use deterministic hitscan for the pulse gun; do not simulate a player pulse projectile. | Fixes the representative combat workload and replay behavior. | Pending |
-| 17 | Use a 60 Hz authoritative tick, two physics substeps, and exactly eight XPBD iterations per substep for simulation schema version 1 on every device. | Fixes the solver workload and deterministic replay envelope. | Pending |
-| 18 | Use a simulation-only Worker; host the shared renderer on the main thread or a render Worker; use the bounded three-buffer snapshot state machine and bounded credited event transport; keep `SharedArrayBuffer` optional behind verified isolation. | Fixes the topology and transport workload to measure. | Pending |
-| 19 | Cap concurrently active full-physics robots at 24 and use deterministic staged waves for larger encounters. | Fixes the maximum representative robot workload. | Pending |
-| 20 | Approve the provisional device/browser matrix in Section 19.1, or name replacement hardware before certification. | Makes absolute performance certification falsifiable. | Pending |
+| 16 | Use deterministic hitscan for the pulse gun; do not simulate a player pulse projectile. | Fixes the representative combat workload and replay behavior. | Approved as recommended |
+| 17 | Use a 60 Hz authoritative tick, two physics substeps, and exactly eight XPBD iterations per substep for simulation schema version 1 on every device. | Fixes the solver workload and deterministic replay envelope. | Approved as recommended |
+| 18 | Use a simulation-only Worker; host the shared renderer on the main thread or a render Worker; use the bounded three-buffer snapshot state machine and bounded credited event transport; keep `SharedArrayBuffer` optional behind verified isolation. | Fixes the topology and transport workload to measure. | Approved as recommended |
+| 19 | Cap concurrently active full-physics robots at 24 and use deterministic staged waves for larger encounters. | Fixes the maximum representative robot workload. | Approved as recommended |
+| 20 | Approve the provisional device/browser matrix in Section 19.1, or name replacement hardware before certification. | Makes absolute performance certification falsifiable. | Approved as recommended; original matrix retained |
 
 Approval of this packet authorizes the disposable Phase -1 feasibility spike only. It does not silently resolve later decisions whose gates are Phase 0 or beyond.
 
@@ -34,10 +34,10 @@ The current workspace reports an Intel Core i9-14900K through a virtualized six-
 
 ## Approval record
 
-Approver: **Pending**
+Approver: **Project owner, via the implementation thread**
 
-Approval date: **Pending**
+Approval date: **2026-08-16**
 
-Approved decisions or replacements: **Pending**
+Approved decisions or replacements: **Decisions 16–20 approved as recommended; no replacements**
 
 Available certification hardware/owners: **Pending**
