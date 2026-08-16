@@ -51,9 +51,19 @@ describe('canonical simulation serialization', () => {
   it('rejects unknown fields, incompatible schemas, and malformed bodies', () => {
     const snapshot = createSimulationSnapshot(new GameSimulation('validation-proof').state);
     expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, surprise: true }))).toThrow(/unknown or missing/);
-    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 8 }))).toThrow(/schema/);
+    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 9 }))).toThrow(/schema/);
     const malformed = structuredClone(snapshot);
     (malformed.robots[0]!.body.positions as number[]).pop();
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/33 numbers/);
+  });
+
+  it('round-trips the selected campaign level and rejects roster substitution', () => {
+    const simulation = new GameSimulation('level-eight-proof', undefined, undefined, 'campaign', 'level-008');
+    const snapshot = createSimulationSnapshot(simulation.state);
+    expect(snapshot.levelId).toBe('level-008');
+    expect(snapshot.robots).toHaveLength(8);
+    expect(parseSimulationSnapshot(JSON.stringify(snapshot)).levelId).toBe('level-008');
+    const wrongLevel = { ...snapshot, levelId: 'level-002' };
+    expect(() => parseSimulationSnapshot(JSON.stringify(wrongLevel))).toThrow(/robots do not match/);
   });
 });

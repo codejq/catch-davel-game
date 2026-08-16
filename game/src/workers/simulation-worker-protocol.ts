@@ -6,10 +6,12 @@ import type { AgentObservation } from '../agent/observation';
 import type { ReplayFileV1 } from '../replay/replay';
 import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
   readonly seed: string;
+  readonly levelId?: Chapter01LevelId;
   readonly snapshotPort: MessagePort;
   readonly eventPort: MessagePort;
   readonly mode?: 'manual' | 'realtime';
@@ -30,6 +32,7 @@ export interface ResetSimulationWorker {
   readonly type: 'reset';
   readonly requestId: number;
   readonly seed: string;
+  readonly levelId?: Chapter01LevelId;
   readonly initialCoins?: number;
   readonly agentRun?: boolean;
   readonly unlockedWeaponMask?: number;

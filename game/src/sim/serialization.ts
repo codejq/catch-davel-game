@@ -2,12 +2,13 @@ import { GAME_SCHEMA_VERSION } from './constants';
 import type { EnemyProjectile, EnemyProjectileKind } from './enemy-combat';
 import type { GameState } from './game';
 import type { PlayerState } from './player';
-import { ROBOT_DEFINITIONS, type EncounterId, type RobotState } from './robots';
+import { ROBOT_DEFINITIONS, campaignRobotIds, type EncounterId, type RobotState } from './robots';
 import { BODY_POINT_COUNT } from './xpbd';
 import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './interactions';
 import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -44,6 +45,7 @@ export interface SimulationSnapshotV1 {
   readonly simulationSchemaVersion: number;
   readonly tick: number;
   readonly seed: string;
+  readonly levelId: Chapter01LevelId;
   readonly encounter: EncounterId;
   readonly player: PlayerState;
   readonly robots: readonly RobotSnapshotV1[];
@@ -104,6 +106,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
     tick: state.tick,
     seed: state.seed,
+    levelId: state.levelId,
     encounter: state.encounter,
     player: copyPlayer(state.player),
     robots: state.robots.map(snapshotRobot),
@@ -327,13 +330,15 @@ function validateLevel(value: unknown): LevelRuntimeState {
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
-    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'encounter', 'player', 'robots', 'lastShotTick', 'shotSerial',
+    'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'player', 'robots', 'lastShotTick', 'shotSerial',
     'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
     'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level',
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
   if (typeof snapshotValue.seed !== 'string' || snapshotValue.seed.length === 0 || snapshotValue.seed.length > 256) throw new Error('snapshot.seed is invalid');
+  if (typeof snapshotValue.levelId !== 'string' || !isChapter01LevelId(snapshotValue.levelId)) throw new Error('snapshot.levelId is invalid');
+  const levelId = snapshotValue.levelId;
   if (snapshotValue.encounter !== 'campaign' && snapshotValue.encounter !== 'boss-training') throw new Error('snapshot.encounter is invalid');
   const encounter = snapshotValue.encounter as EncounterId;
   if (!Array.isArray(snapshotValue.robots)) throw new Error('snapshot.robots must be an array');
@@ -346,7 +351,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   const nextPlayerBombId = integer(snapshotValue.nextPlayerBombId, 'snapshot.nextPlayerBombId', 1);
   if (playerBombs.some((bomb) => bomb.id >= nextPlayerBombId)) throw new Error('snapshot.nextPlayerBombId must exceed every bomb ID');
   const robots = snapshotValue.robots.map(validateRobot);
-  const expectedRobotIds = encounter === 'campaign' ? [0, 1, 2, 3, 4, 5] : [6];
+  const expectedRobotIds = encounter === 'campaign' ? campaignRobotIds(levelId) : [6];
   if (robots.length !== expectedRobotIds.length || robots.some((robot, index) => robot.id !== expectedRobotIds[index])) {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
@@ -362,6 +367,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   return {
     tick: integer(snapshotValue.tick, 'snapshot.tick'),
     seed: snapshotValue.seed,
+    levelId,
     encounter,
     player: validatePlayer(snapshotValue.player),
     robots,

@@ -63,4 +63,16 @@ describe('versioned deterministic replays', () => {
     (incomplete.checksums as unknown as unknown[]).pop();
     expect(() => parseReplay(JSON.stringify(incomplete))).toThrow(/final ticks/);
   });
+
+  it('binds Chapter 1 replays to their authoritative level definition', () => {
+    const simulation = new GameSimulation('level-five-replay', undefined, undefined, 'campaign', 'level-005');
+    const recorder = new ReplayRecorder(simulation);
+    simulation.step(scriptedCommand(0));
+    recorder.record(scriptedCommand(0));
+    const replay = recorder.finish();
+    expect(replay.levelId).toBe('level-005');
+    expect(verifyReplay(replay).simulation.state.levelId).toBe('level-005');
+    const substituted = { ...replay, levelId: 'level-006' as const };
+    expect(() => verifyReplay(substituted)).toThrow(/level does not match/);
+  });
 });

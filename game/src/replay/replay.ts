@@ -10,7 +10,7 @@ import { GAME_SCHEMA_VERSION, TICK_HZ } from '../sim/constants';
 import { GameSimulation } from '../sim/game';
 import { LEVEL_ROWS } from '../sim/level';
 import { createLevelRuntime } from '../sim/interactions';
-import { LEVEL_001 } from '../content/levels/level-001';
+import { chapter01Level, isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
 import type { AgentValidationRunSpec } from '../content/level-definition';
 import { levelDefinitionDependencyHash } from '../content/validate-level';
 import { AUTHORITATIVE_DECIMAL_PLACES } from '../sim/quantization';
@@ -54,7 +54,7 @@ export interface ReplayChecksum {
 export interface ReplayFileV1 {
   readonly replayFormatVersion: 1;
   readonly simulationSchemaVersion: number;
-  readonly levelId: 'level-001';
+  readonly levelId: Chapter01LevelId;
   readonly seed: string;
   readonly agentRun: boolean;
   readonly dependencyHashes: ReplayDependencyHashes;
@@ -80,8 +80,8 @@ function robotBalanceData(): unknown {
   }));
 }
 
-export function currentReplayDependencies(): ReplayDependencyHashes {
-  const effectiveLevel = levelDefinitionDependencyHash(LEVEL_001);
+export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001'): ReplayDependencyHashes {
+  const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
   const simulationLevel = checksumCanonical({ rows: LEVEL_ROWS, interactions: createLevelRuntime() });
   return {
     simulationSchema: checksumCanonical({
@@ -116,11 +116,11 @@ export function currentReplayDependencies(): ReplayDependencyHashes {
   };
 }
 
-export function currentAgentValidationDependencies(): AgentValidationRunSpec['dependencyHashes'] {
-  const replay = currentReplayDependencies();
+export function currentAgentValidationDependencies(levelId: Chapter01LevelId = 'level-001'): AgentValidationRunSpec['dependencyHashes'] {
+  const replay = currentReplayDependencies(levelId);
   return {
     simulationSchema: replay.simulationSchema,
-    effectiveLevel: levelDefinitionDependencyHash(LEVEL_001),
+    effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
     simulationLevel: checksumCanonical({ rows: LEVEL_ROWS, interactions: createLevelRuntime() }),
     balanceData: replay.balanceData,
     policyOrReplay: replay.replayPolicy,
@@ -173,10 +173,10 @@ export class ReplayRecorder {
     return {
       replayFormatVersion: REPLAY_FORMAT_VERSION,
       simulationSchemaVersion: GAME_SCHEMA_VERSION,
-      levelId: 'level-001',
+      levelId: this.initialSnapshot.levelId,
       seed: this.initialSnapshot.seed,
       agentRun: this.agentRun,
-      dependencyHashes: currentReplayDependencies(),
+      dependencyHashes: currentReplayDependencies(this.initialSnapshot.levelId),
       initialSnapshot: this.initialSnapshot,
       commandRuns: this.commandRuns.map((run) => ({ ...run, command: copyCommand(run.command) })),
       checksums: finalChecksums,
@@ -239,11 +239,12 @@ export function parseReplay(serialized: string): ReplayFileV1 {
   ], 'replay');
   if (value.replayFormatVersion !== REPLAY_FORMAT_VERSION) throw new Error('Unsupported replay format version');
   if (value.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported replay simulation schema');
-  if (value.levelId !== 'level-001') throw new Error('Unsupported replay level');
+  if (typeof value.levelId !== 'string' || !isChapter01LevelId(value.levelId)) throw new Error('Unsupported replay level');
   if (typeof value.seed !== 'string' || value.seed.length === 0) throw new Error('replay.seed is invalid');
   if (typeof value.agentRun !== 'boolean') throw new Error('replay.agentRun must be boolean');
   const initialSnapshot = parseSimulationSnapshot(canonicalJson(value.initialSnapshot));
   if (initialSnapshot.seed !== value.seed) throw new Error('Replay seed does not match its initial snapshot');
+  if (initialSnapshot.levelId !== value.levelId) throw new Error('Replay level does not match its initial snapshot');
   if (!Array.isArray(value.commandRuns)) throw new Error('replay.commandRuns must be an array');
   let expectedTick = initialSnapshot.tick;
   const commandRuns = value.commandRuns.map((entry, index): ReplayCommandRun => {
@@ -273,7 +274,7 @@ export function parseReplay(serialized: string): ReplayFileV1 {
   return {
     replayFormatVersion: 1,
     simulationSchemaVersion: GAME_SCHEMA_VERSION,
-    levelId: 'level-001',
+    levelId: value.levelId,
     seed: value.seed,
     agentRun: value.agentRun,
     dependencyHashes: parseDependencies(value.dependencyHashes),
@@ -295,7 +296,7 @@ export interface ReplayVerification {
 
 export function verifyReplay(replayValue: ReplayFileV1): ReplayVerification {
   const replay = parseReplay(serializeReplay(replayValue));
-  const expectedDependencies = currentReplayDependencies();
+  const expectedDependencies = currentReplayDependencies(replay.levelId);
   for (const key of Object.keys(expectedDependencies) as (keyof ReplayDependencyHashes)[]) {
     if (replay.dependencyHashes[key] !== expectedDependencies[key]) throw new Error(`Replay dependency mismatch: ${key}`);
   }

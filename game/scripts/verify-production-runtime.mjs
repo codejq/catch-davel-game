@@ -73,9 +73,29 @@ try {
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
   if (fallbackErrors.length > 0) throw new Error(`Fallback browser errors: ${fallbackErrors.join('; ')}`);
+
+  const chapterPage = await browser.newPage();
+  const chapterErrors = [];
+  chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
+  chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-008`, { waitUntil: 'load' });
+  await chapterPage.waitForFunction(() => (
+    document.body.dataset.workerStatus === 'ready'
+    && document.body.dataset.levelId === 'level-008'
+    && Number(document.body.dataset.snapshotTick) > 0
+  ));
+  const chapterLevel = await chapterPage.evaluate(() => ({
+    levelId: document.body.dataset.levelId,
+    remaining: document.querySelector('#remaining')?.textContent ?? '',
+    agentApiExposed: window.CatchDavelAgent !== undefined,
+  }));
+  if (chapterLevel.remaining !== '8 Davels remain') throw new Error('Production Level 8 did not render its eight-Davel roster');
+  if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
+  if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
   console.log(JSON.stringify({
     passed: true, ...result, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
+    chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
   }, null, 2));
 } finally {
   await browser?.close();

@@ -80,6 +80,16 @@ try {
     await new Promise((resolve) => setTimeout(resolve, 250));
     const pausedTickAfterWait = Number(document.body.dataset.snapshotTick);
 
+    const levelEightObservation = await api.reset({ levelId: 'level-008', mode: 'agent' });
+    const levelEightReplay = await api.saveReplay();
+    const levelEightProof = {
+      levelId: levelEightObservation.levelId,
+      seed: levelEightObservation.seed,
+      count: levelEightObservation.robots.length,
+      replayLevelId: levelEightReplay.levelId,
+      observedLevelId: api.level().levelId,
+    };
+
     const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
     const bossProof = {
       count: bossObservation.robots.length,
@@ -148,6 +158,7 @@ try {
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
       rendererMode: document.body.dataset.rendererMode,
+      levelEightProof,
       arsenalProof,
       bossProof,
     };
@@ -168,6 +179,10 @@ try {
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],
+    [result.levelEightProof.levelId === 'level-008' && result.levelEightProof.replayLevelId === 'level-008'
+      && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
+    [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,
+      'Level 8 did not load its canonical seed and encounter roster'],
     [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
     [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],

@@ -8,7 +8,7 @@ This document records the implemented production contract. It does not replace t
 
 `SimulationSnapshotV1` is complete and self-contained. It contains:
 
-- simulation schema/snapshot format versions, tick, and seed;
+- simulation schema/snapshot format versions, authoritative campaign level, tick, and seed;
 - complete player pose, resources, coins, and camera/movement state;
 - every Davel route, AI, attack, dance, health, reaction, and stable-ID field;
 - all Verlet current/previous particle arrays and XPBD rest constraints;
@@ -24,7 +24,7 @@ The strict parser rejects unknown/missing fields, non-finite numbers, malformed 
 
 Canonical JSON sorts every object key, preserves declared array order, normalizes negative zero, and rejects unsupported/non-finite values. The current deterministic drift checksum is FNV-1a 64 over UTF-8 canonical snapshot bytes. It is a regression/corruption checksum, not a security signature.
 
-Simulation schema v7 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, and typed projectile position/velocity to eight decimal places at initial-state creation and after every mutating fixed tick. Encounter identity, weapon upgrade levels, boss phase, and Davel telegraph/recovery, strafe direction, and tempo-buff timers are snapshotted and replayed. The precision is part of the simulation dependency hash. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
+Simulation schema v8 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, and typed projectile position/velocity to eight decimal places at initial-state creation and after every mutating fixed tick. Campaign level and encounter identity, weapon upgrade levels, boss phase, and Davel telegraph/recovery, strafe direction, and tempo-buff timers are snapshotted and replayed. The precision is part of the simulation dependency hash. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
 
 Snapshot tests prove that a checkpoint restored at tick 420 and continued to tick 900 has the same complete state and checksum as an uninterrupted run. Presentation events can differ without affecting it.
 
@@ -38,7 +38,7 @@ A replay contains:
 - contiguous tick-tagged command runs compressed only when commands are exactly equal;
 - checksums at the initial tick, each 60-tick boundary, and final tick.
 
-The level dependency includes the canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid and authoritative interaction placement. The generated JSON Schema and canonical Level 1 export are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
+The level dependency includes the selected canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid and authoritative interaction placement. The generated JSON Schema and all ten canonical Chapter 1 exports are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
 
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 
@@ -52,7 +52,7 @@ Tauri app-data atomic-file persistence remains a Phase 9 deliverable. The browse
 
 ## Presentation snapshot and ownership
 
-`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 2 is a fixed 6,528-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, up to eight pickups, door/checkpoint/exit/objective state, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
+`RenderSnapshot` has its own transport contract version and is not part of replay dependencies. Version 5 is a fixed 7,792-byte binary projection containing complete player/HUD state, up to 24 complete articulated render bodies, up to 64 hostile projectiles, up to eight pickups, up to 16 player bombs, door/checkpoint/exit/objective state, laser state, terminal flags, and event epoch/high-watermark/resync metadata. Each snapshot is self-contained; there are no deltas or keyframe dependencies.
 
 The renderer accepts only the render model decoded from this projection, not mutable authoritative `GameState`. The live Simulation Worker produces this contract, and capable browsers pass its decoded immutable copy through a bounded one-in-flight/latest-pending mailbox to the unchanged `WorldRenderer` in an OffscreenCanvas Worker. Unsupported or failed initialization uses the same renderer on the main thread, so the enhancement introduces neither another gameplay implementation nor an unbounded browser message queue.
 

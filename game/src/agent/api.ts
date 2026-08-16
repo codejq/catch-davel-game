@@ -7,6 +7,9 @@ import {
 import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 import { isWeaponId, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
+import { chapter01Level, isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
+
+export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
 export interface AgentAction {
   readonly forward?: number;
@@ -44,7 +47,7 @@ export interface CatchDavelAgentApi {
   readonly version: 1;
   getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
-  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' }): Promise<AgentObservation>;
+  reset(options?: AgentResetOptions): Promise<AgentObservation>;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
@@ -117,7 +120,7 @@ export class AgentController {
       getActionSchema: () => agentActionSchema(),
       reset: async (options = {}) => this.resetSession(options),
       observe: () => createObservation(this.simulation.state),
-      level: () => levelObservation(),
+      level: () => levelObservation(this.simulation.state.levelId),
       act: (action, ticks = 1) => this.enqueue(action, ticks),
       step: (request) => this.enqueue(request.action, request.ticks ?? 1),
       saveReplay: async () => this.recorder.finish(),
@@ -181,18 +184,19 @@ export class AgentController {
     this.controlled = false;
   }
 
-  private resetSession(options: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' }): AgentObservation {
+  private resetSession(options: AgentResetOptions): AgentObservation {
     if (this.queue.length > 0) throw new Error('Cannot reset while agent actions are queued');
-    if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
+    if (options.levelId !== undefined && !isChapter01LevelId(options.levelId)) throw new Error('Agent levelId is invalid');
     if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
     if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
-    const seed = options.seed ?? DEFAULT_LEVEL_SEED;
+    const levelId = options.levelId ?? 'level-001';
+    const seed = options.seed ?? chapter01Level(levelId).seed;
     if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
     if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
     if (options.encounter !== undefined && options.encounter !== 'campaign' && options.encounter !== 'boss-training') throw new Error('Agent encounter is invalid');
     this.simulation.reset(
       seed, options.loadout === 'training' || options.encounter === 'boss-training' ? TRAINING_WEAPON_MASK : undefined,
-      undefined, options.encounter ?? 'campaign',
+      undefined, options.encounter ?? 'campaign', levelId,
     );
     this.controlled = true;
     this.replay.length = 0;

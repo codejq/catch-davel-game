@@ -12,6 +12,7 @@ import {
   type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
 import { purchaseWeaponUpgrade, weaponUpgradeCost, WEAPON_UPGRADE_CATALOG } from '../storage/economy';
+import { CHAPTER_01_LEVEL_IDS, chapter01Level, isChapter01LevelId } from '../content/levels/chapter-01';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -29,6 +30,10 @@ export async function startBrowserGame(): Promise<void> {
   const parameters = new URLSearchParams(location.search);
   const bossTraining = parameters.get('encounter') === 'boss-training';
   const trainingMode = parameters.get('arsenal') === 'training' || bossTraining;
+  const requestedLevelId = parameters.get('level');
+  let activeLevelId = requestedLevelId !== null && isChapter01LevelId(requestedLevelId)
+    ? requestedLevelId : bossTraining ? 'level-010' : 'level-001';
+  let activeLevel = chapter01Level(activeLevelId);
   let canvas = requireCanvas();
   const renderer = await createRendererHost(canvas, {
     forceMainThread: parameters.get('renderer') === 'main',
@@ -59,6 +64,11 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.profileReady = 'error';
     console.warn('Catch Davel profile load failed; continuing without durable persistence', error);
   }
+  if (!trainingMode && !activeProfile.unlockedLevelIds.includes(activeLevelId)) {
+    activeLevelId = 'level-001';
+    activeLevel = chapter01Level(activeLevelId);
+  }
+  document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
   let messageTimeout = 0;
   let audioContext: AudioContext | null = null;
@@ -67,7 +77,12 @@ export async function startBrowserGame(): Promise<void> {
   let agentController: WorkerAgentController;
 
   const updateLevelProgress = (profile: ProfileV1, update: (progress: LevelProgressV1) => LevelProgressV1): readonly LevelProgressV1[] => (
-    profile.levelProgress.map((progress) => progress.levelId === 'level-001' ? update(progress) : progress)
+    profile.levelProgress.some((progress) => progress.levelId === activeLevelId)
+      ? profile.levelProgress.map((progress) => progress.levelId === activeLevelId ? update(progress) : progress)
+      : [...profile.levelProgress, update({
+        levelId: activeLevelId, completed: false, medals: [], bestTicks: null, bestReplayId: null,
+        attempts: 0, defeats: 0, robotsDefeated: 0,
+      })]
   );
 
   const persistProfile = (profile: ProfileV1): void => {
@@ -198,8 +213,10 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'victory') {
       showMessage('MAZE STABILIZED!');
       if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
-        const unlocked = activeProfile.unlockedLevelIds.includes('level-002')
-          ? activeProfile.unlockedLevelIds : [...activeProfile.unlockedLevelIds, 'level-002'];
+        const currentIndex = CHAPTER_01_LEVEL_IDS.indexOf(activeLevelId);
+        const nextLevelId = CHAPTER_01_LEVEL_IDS[currentIndex + 1];
+        const unlocked = nextLevelId === undefined || activeProfile.unlockedLevelIds.includes(nextLevelId)
+          ? activeProfile.unlockedLevelIds : [...activeProfile.unlockedLevelIds, nextLevelId];
         persistProfile(updateProfile(activeProfile, {
           unlockedLevelIds: unlocked,
           campaignCheckpoint: null,
@@ -222,7 +239,8 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const client = await SimulationWorkerClient.create({
-    seed: DEFAULT_LEVEL_SEED,
+    seed: activeLevel.seed,
+    levelId: activeLevelId,
     initialCoins: trainingMode ? 0 : activeProfile.spendableCoins,
     mode: 'manual',
     unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
@@ -248,15 +266,16 @@ export async function startBrowserGame(): Promise<void> {
       },
     },
   });
-  if (!trainingMode && activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+  if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId) await client.loadSnapshot(activeProfile.campaignCheckpoint);
   await client.setMode('realtime');
   agentController = new WorkerAgentController(client, async () => {
-    if (!trainingMode && activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
+    if (!trainingMode && activeProfile.campaignCheckpoint?.levelId === activeLevelId) await client.loadSnapshot(activeProfile.campaignCheckpoint);
     else await client.reset(
-      DEFAULT_LEVEL_SEED, trainingMode ? 0 : activeProfile.spendableCoins, false,
+      activeLevel.seed, trainingMode ? 0 : activeProfile.spendableCoins, false,
       trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
       trainingMode ? undefined : normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades),
       bossTraining ? 'boss-training' : 'campaign',
+      activeLevelId,
     );
     await client.setMode('realtime');
     humanSessionStarted = false;
@@ -289,8 +308,9 @@ export async function startBrowserGame(): Promise<void> {
       persistProfile(upgraded);
       renderShop();
       void client.reset(
-        DEFAULT_LEVEL_SEED, upgraded.spendableCoins, false, CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        activeLevel.seed, upgraded.spendableCoins, false, CAMPAIGN_LEVEL_1_WEAPON_MASK,
         normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
+        'campaign', activeLevelId,
       ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
       showMessage(`${WEAPON_UPGRADE_CATALOG.find((entry) => entry.id === id)!.name.toUpperCase()} INSTALLED`);
     } catch (error) {

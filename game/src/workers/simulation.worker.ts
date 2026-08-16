@@ -8,6 +8,7 @@ import {
   type WeaponId, type WeaponUpgradeLevels,
 } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
 import { createObservation } from '../agent/observation';
 import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
@@ -117,6 +118,7 @@ function resetRuntime(
   unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
   encounter: EncounterId = 'campaign',
+  levelId: Chapter01LevelId = 'level-001',
 ): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
@@ -124,7 +126,8 @@ function resetRuntime(
     throw new Error('Worker weapon mask must include pulse and contain only known weapons');
   }
   if (encounter !== 'campaign' && encounter !== 'boss-training') throw new Error('Worker encounter is invalid');
-  simulation = new GameSimulation(seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter);
+  if (!isChapter01LevelId(levelId)) throw new Error('Worker levelId is invalid');
+  simulation = new GameSimulation(seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId);
   simulation.state.player.coins = initialCoins;
   generation += 1;
   snapshotPool = new SnapshotProducerPool();
@@ -222,6 +225,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
+        request.levelId ?? 'level-001',
       );
       setMode(request.mode ?? 'manual');
       post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
@@ -285,6 +289,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
         request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
+        request.levelId ?? 'level-001',
       );
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);

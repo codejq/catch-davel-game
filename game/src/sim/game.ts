@@ -17,6 +17,7 @@ import { quantizeSimulationState } from './quantization';
 import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export interface GameEvent {
   readonly tick: number;
@@ -33,6 +34,7 @@ export interface GameEvent {
 export interface GameState {
   tick: number;
   readonly seed: string;
+  readonly levelId: Chapter01LevelId;
   readonly encounter: EncounterId;
   readonly player: PlayerState;
   readonly robots: RobotState[];
@@ -62,8 +64,9 @@ export class GameSimulation {
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
+    levelId: Chapter01LevelId = 'level-001',
   ) {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId);
   }
 
   static fromSnapshot(snapshot: SimulationSnapshotV1): GameSimulation {
@@ -77,8 +80,9 @@ export class GameSimulation {
     unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
+    levelId: Chapter01LevelId = 'level-001',
   ): void {
-    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter);
+    this.state = GameSimulation.initialState(seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId);
   }
 
   loadSnapshot(snapshot: SimulationSnapshotV1): void {
@@ -87,9 +91,11 @@ export class GameSimulation {
 
   private static initialState(
     seed: string, unlockedWeaponMask: number, weaponUpgrades: WeaponUpgradeLevels, encounter: EncounterId,
+    levelId: Chapter01LevelId,
   ): GameState {
     const state: GameState = {
-      tick: 0, seed, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades), robots: createRobots(encounter), events: [],
+      tick: 0, seed, levelId, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades),
+      robots: createRobots(encounter, levelId), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,

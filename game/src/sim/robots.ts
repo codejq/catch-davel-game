@@ -4,6 +4,7 @@ import { decision, hashSeed } from './random';
 import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './balance';
 import type { PlayerState } from './player';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj' | 'invoice-overlord';
@@ -99,7 +100,48 @@ export const ROBOT_DEFINITIONS: readonly RobotDefinition[] = [
     speed: 0.78, phaseOffset: 0.72, bodyColor: [0.12, 0.12, 0.18], accentColor: [1, 0.68, 0.08], eyeColor: [1, 0.08, 0.18],
     route: cells([7, 9], [8, 9], [9, 9], [10, 9], [11, 9], [11, 10], [11, 11], [10, 11], [9, 11]),
   },
+  {
+    name: 'Foreman Stomp', dance: 'big-bouncer', archetype: 'red-firemouth', rank: 'elite', coinReward: 14, maxHealth: 190,
+    scale: 1.48, headScale: 1.02, torsoWidth: 1.3, legScale: 0.78,
+    speed: 0.9, phaseOffset: 1.12, bodyColor: [0.48, 0.08, 0.04], accentColor: [1, 0.64, 0.04], eyeColor: [1, 0.92, 0.18],
+    route: cells([5, 5], [6, 5], [7, 5], [8, 5], [9, 5], [9, 6], [9, 7], [8, 7], [7, 7]),
+  },
+  {
+    name: 'Gearbox Grin', dance: 'rubber-chicken', archetype: 'wobble-scout', rank: 'ordinary', coinReward: 3, maxHealth: 110,
+    scale: 0.82, headScale: 1.38, torsoWidth: 0.74, legScale: 1.18,
+    speed: 1.58, phaseOffset: 2.18, bodyColor: [0.3, 0.95, 0.28], accentColor: [0.08, 0.92, 1], eyeColor: [1, 0.18, 0.64],
+    route: cells([1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [5, 8], [5, 9], [4, 9], [3, 9]),
+  },
+  {
+    name: 'Bolt Jester', dance: 'moonwalker', archetype: 'blue-slider', rank: 'ordinary', coinReward: 4, maxHealth: 115,
+    scale: 1.16, headScale: 0.9, torsoWidth: 0.64, legScale: 1.42,
+    speed: 1.18, phaseOffset: 4.04, bodyColor: [0.08, 0.46, 1], accentColor: [0.92, 0.18, 1], eyeColor: [0.4, 1, 0.88],
+    route: cells([7, 9], [8, 9], [9, 9], [10, 9], [11, 9], [11, 10], [11, 11], [10, 11], [9, 11]),
+  },
+  {
+    name: 'Clockwork Crook', dance: 'broken-marionette', archetype: 'yellow-spinner', rank: 'ordinary', coinReward: 5, maxHealth: 125,
+    scale: 1.02, headScale: 1.25, torsoWidth: 0.88, legScale: 0.94,
+    speed: 1.3, phaseOffset: 5.24, bodyColor: [0.96, 0.76, 0.05], accentColor: [0.14, 0.3, 0.96], eyeColor: [1, 0.12, 0.34],
+    route: cells([9, 13], [10, 13], [11, 13], [12, 13], [13, 13], [13, 12], [13, 11], [13, 10], [13, 9]),
+  },
 ] as const;
+
+const CHAPTER_01_ROBOTS: Readonly<Record<Chapter01LevelId, readonly number[]>> = {
+  'level-001': [0, 1, 2, 3, 4, 5],
+  'level-002': [0, 1, 2, 8, 9],
+  'level-003': [0, 1, 2, 4, 8, 9],
+  'level-004': [0, 1, 2, 3, 4, 8, 9],
+  'level-005': [0, 1, 2, 7, 8],
+  'level-006': [0, 1, 2, 4, 8, 9],
+  'level-007': [0, 1, 2, 3, 4, 8, 9],
+  'level-008': [0, 1, 2, 3, 4, 5, 8, 9],
+  'level-009': [0, 1, 2, 4, 8],
+  'level-010': [6],
+};
+
+export function campaignRobotIds(levelId: Chapter01LevelId): readonly number[] {
+  return CHAPTER_01_ROBOTS[levelId];
+}
 
 export function validateRobotDefinitions(): void {
   for (const definition of ROBOT_DEFINITIONS) {
@@ -117,9 +159,9 @@ export function validateRobotDefinitions(): void {
   }
 }
 
-export function createRobots(encounter: EncounterId = 'campaign'): RobotState[] {
+export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapter01LevelId = 'level-001'): RobotState[] {
   validateRobotDefinitions();
-  const definitionIds = encounter === 'boss-training' ? [6] : [0, 1, 2, 3, 4, 5];
+  const definitionIds = encounter === 'boss-training' ? [6] : campaignRobotIds(levelId);
   return definitionIds.map((id) => {
     const definition = ROBOT_DEFINITIONS[id]!;
     const startIndex = Math.min(definition.route.length - 2, 2 + (id % 3));

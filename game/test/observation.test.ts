@@ -8,7 +8,8 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(4);
+    expect(observation.schemaVersion).toBe(5);
+    expect(observation.levelId).toBe('level-001');
     expect(observation.player.selectedWeapon).toBe('pulse');
     expect(observation.player.unlockedWeapons).toEqual(['pulse']);
     expect(observation.playerBombs).toEqual([]);

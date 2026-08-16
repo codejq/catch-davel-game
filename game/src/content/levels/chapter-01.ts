@@ -31,9 +31,9 @@ interface Chapter01Recipe {
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: 'be2cb2b2041c50ba',
+  simulationSchema: '0e49019e37b31663',
   simulationLevel: 'ca2195b229d1f939',
-  balanceData: 'abb88e1dff516df8',
+  balanceData: 'd06573c4b4825196',
   policyOrReplay: 'd3d7c87fc057d2d4',
 } as const;
 

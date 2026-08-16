@@ -7,8 +7,9 @@ import {
   type AgentAction, type CatchDavelAgentApi, type ReplayEntry,
 } from './api';
 import { TRAINING_WEAPON_MASK } from '../sim/weapons';
+import { chapter01Level, isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
 
-type ResetOptions = { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
+type ResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
 export class WorkerAgentController {
   private controlled = false;
@@ -30,7 +31,7 @@ export class WorkerAgentController {
       getActionSchema: () => agentActionSchema(),
       reset: (options = {}) => this.reset(options),
       observe: () => this.client.latestObservation,
-      level: () => levelObservation(),
+      level: () => levelObservation(this.client.latestObservation.levelId),
       act: (action, ticks = 1) => this.step(action, ticks),
       step: (request) => this.step(request.action, request.ticks ?? 1),
       saveReplay: () => this.task(() => this.client.saveReplay()),
@@ -56,17 +57,18 @@ export class WorkerAgentController {
 
   private reset(options: ResetOptions): Promise<AgentObservation> {
     return this.task(async () => {
-      if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
+      if (options.levelId !== undefined && !isChapter01LevelId(options.levelId)) throw new Error('Agent levelId is invalid');
       if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
       if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
       if (options.loadout !== undefined && options.loadout !== 'campaign' && options.loadout !== 'training') throw new Error('Agent loadout is invalid');
       if (options.encounter !== undefined && options.encounter !== 'campaign' && options.encounter !== 'boss-training') throw new Error('Agent encounter is invalid');
-      const seed = options.seed ?? DEFAULT_LEVEL_SEED;
+      const levelId = options.levelId ?? 'level-001';
+      const seed = options.seed ?? chapter01Level(levelId).seed;
       if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
       await this.client.setMode('manual', true);
       const training = options.loadout === 'training' || options.encounter === 'boss-training';
       const response = await this.client.reset(
-        seed, 0, true, training ? TRAINING_WEAPON_MASK : undefined, undefined, options.encounter ?? 'campaign',
+        seed, 0, true, training ? TRAINING_WEAPON_MASK : undefined, undefined, options.encounter ?? 'campaign', levelId,
       );
       this.controlled = true;
       this.replay.length = 0;

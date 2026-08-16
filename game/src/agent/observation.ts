@@ -4,6 +4,7 @@ import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, LEVEL_ROWS, worldCell } 
 import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export interface RobotObservation {
   readonly id: number;
@@ -26,9 +27,10 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 4;
+  readonly schemaVersion: 5;
   readonly tick: number;
   readonly seed: string;
+  readonly levelId: Chapter01LevelId;
   readonly player: {
     readonly x: number;
     readonly z: number;
@@ -164,9 +166,10 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     tick: state.tick,
     seed: state.seed,
+    levelId: state.levelId,
     player: {
       x: round(state.player.x), z: round(state.player.z),
       cellColumn: playerCell.column, cellRow: playerCell.row,
@@ -233,7 +236,8 @@ export function createObservation(state: GameState): AgentObservation {
   };
 }
 
-export function levelObservation(): {
+export function levelObservation(levelId: Chapter01LevelId = 'level-001'): {
+  readonly levelId: Chapter01LevelId;
   readonly rows: readonly string[];
   readonly cellSize: number;
   readonly originX: number;
@@ -241,7 +245,7 @@ export function levelObservation(): {
   readonly coordinateSystem: string;
 } {
   return {
-    rows: LEVEL_ROWS, cellSize: CELL_SIZE, originX: LEVEL_ORIGIN_X, originZ: LEVEL_ORIGIN_Z,
+    levelId, rows: LEVEL_ROWS, cellSize: CELL_SIZE, originX: LEVEL_ORIGIN_X, originZ: LEVEL_ORIGIN_Z,
     coordinateSystem: `right-handed world; +x east, +z south, yaw 0 faces -z; player eye y=${PLAYER_EYE_HEIGHT}`,
   };
 }
