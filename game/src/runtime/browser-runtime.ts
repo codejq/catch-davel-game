@@ -18,13 +18,13 @@ import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
   completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
 } from '../campaign/progression';
-import { chapter01LevelTitle } from '../campaign/catalog';
 import { nextUnlockedWeapon, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
 import { audioRuntimeProfile, musicRuntimeProfile } from '../content/runtime-manifests';
 import { presentationFeedback } from './presentation-feedback';
 import { ProceduralMusicSequencer } from '../audio/music-sequencer';
 import { freezeDanceWindow } from '../sim/level-mechanics';
+import { localizedContentString, releaseLocalizationCatalog } from '../content/localization/catalogs';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
@@ -57,6 +57,7 @@ export async function startBrowserGame(): Promise<void> {
   const energyHud = requireElement<HTMLElement>('#energy');
   const coinsHud = requireElement<HTMLElement>('#coins');
   const remainingHud = requireElement<HTMLElement>('#remaining');
+  const objectiveHud = requireElement<HTMLElement>('#objective');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const weaponStatus = requireElement<HTMLElement>('#weapon-status');
@@ -69,6 +70,15 @@ export async function startBrowserGame(): Promise<void> {
   const profileExport = requireElement<HTMLButtonElement>('#profile-export');
   const profileImport = requireElement<HTMLButtonElement>('#profile-import');
   const profileTransferStatus = requireElement<HTMLOutputElement>('#profile-transfer-status');
+  const settingsPanel = requireElement<HTMLDetailsElement>('#settings-panel');
+  const settingLanguage = requireElement<HTMLSelectElement>('#setting-language');
+  const settingSensitivity = requireElement<HTMLInputElement>('#setting-sensitivity');
+  const settingMaster = requireElement<HTMLInputElement>('#setting-master');
+  const settingMusic = requireElement<HTMLInputElement>('#setting-music');
+  const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
+  const settingReducedMotion = requireElement<HTMLInputElement>('#setting-reduced-motion');
+  const settingHighContrast = requireElement<HTMLInputElement>('#setting-high-contrast');
+  const settingsStatus = requireElement<HTMLOutputElement>('#settings-status');
   const levelName = requireElement<HTMLElement>('#level-name');
   const movePad = requireElement<HTMLElement>('#move-pad');
   const moveStick = requireElement<HTMLElement>('#move-stick');
@@ -96,7 +106,6 @@ export async function startBrowserGame(): Promise<void> {
     activeLevel = chapter01Level(activeLevelId);
   }
   document.body.dataset.levelId = activeLevelId;
-  levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${chapter01LevelTitle(activeLevelId).toUpperCase()}`;
   let renderState: RenderGameState | null = null;
   let messageTimeout = 0;
   let audio: ProceduralAudio | null = null;
@@ -105,6 +114,27 @@ export async function startBrowserGame(): Promise<void> {
   let humanSessionStarted = false;
   let agentController: WorkerAgentController;
   const feedbackTimers = new Map<string, number>();
+
+  const localized = (key: string): string => localizedContentString(activeProfile.settings.language, key);
+  const applyProfileSettings = (): void => {
+    const catalog = releaseLocalizationCatalog(activeProfile.settings.language);
+    document.documentElement.lang = catalog.locale;
+    document.documentElement.dir = catalog.direction;
+    document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
+    document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
+    levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
+    if (objectiveHud.firstChild !== null) objectiveHud.firstChild.textContent = `${localized(activeLevel.objectives[0]!.titleKey)} · `;
+    settingLanguage.value = catalog.locale;
+    settingSensitivity.value = String(activeProfile.settings.mouseSensitivity);
+    settingMaster.value = String(activeProfile.settings.masterVolume);
+    settingMusic.value = String(activeProfile.settings.musicVolume);
+    settingEffects.value = String(activeProfile.settings.effectsVolume);
+    settingReducedMotion.checked = activeProfile.settings.reducedMotion;
+    settingHighContrast.checked = activeProfile.settings.highContrast;
+    audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
+    music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
+  };
+  applyProfileSettings();
 
   const renderCampaignMap = (): void => {
     campaignLevels.replaceChildren(...CHAPTER_01_LEVEL_IDS.map((levelId, index) => {
@@ -118,7 +148,7 @@ export async function startBrowserGame(): Promise<void> {
       const number = document.createElement('b');
       number.textContent = `LEVEL ${String(index + 1).padStart(2, '0')}`;
       const title = document.createElement('span');
-      title.textContent = chapter01LevelTitle(levelId);
+      title.textContent = localized(chapter01Level(levelId).nameKey);
       const status = document.createElement('small');
       status.textContent = !unlocked ? 'LOCKED' : progress?.completed
         ? `CLEARED · BEST ${progress.bestTicks ?? '—'} TICKS` : levelId === activeLevelId ? 'CURRENT MISSION' : 'READY';
@@ -135,6 +165,22 @@ export async function startBrowserGame(): Promise<void> {
       console.warn('Catch Davel profile save failed', error);
     });
   };
+
+  settingsPanel.addEventListener('change', () => {
+    const nextSettings = {
+      language: settingLanguage.value === 'ar' ? 'ar' : 'en',
+      mouseSensitivity: Number(settingSensitivity.value),
+      masterVolume: Number(settingMaster.value),
+      musicVolume: Number(settingMusic.value),
+      effectsVolume: Number(settingEffects.value),
+      reducedMotion: settingReducedMotion.checked,
+      highContrast: settingHighContrast.checked,
+    };
+    persistProfile(updateProfile(activeProfile, { settings: nextSettings }));
+    applyProfileSettings();
+    renderCampaignMap();
+    settingsStatus.textContent = nextSettings.language === 'ar' ? 'تم حفظ الإعدادات.' : 'Settings saved.';
+  });
 
   const beginHumanSession = (): void => {
     if (humanSessionStarted || agentController?.isAgentControlled()) return;
@@ -532,8 +578,8 @@ export async function startBrowserGame(): Promise<void> {
   });
   canvas.addEventListener('pointermove', (event) => {
     if (event.pointerId !== lookPointerId) return;
-    yawDelta += (event.clientX - lookClientX) * LOOK_SCALE * 0.85;
-    pitchDelta -= (event.clientY - lookClientY) * LOOK_SCALE * 0.85;
+    yawDelta += (event.clientX - lookClientX) * LOOK_SCALE * 0.85 * activeProfile.settings.mouseSensitivity;
+    pitchDelta -= (event.clientY - lookClientY) * LOOK_SCALE * 0.85 * activeProfile.settings.mouseSensitivity;
     lookClientX = event.clientX; lookClientY = event.clientY;
   });
   const releaseLook = (event: PointerEvent): void => { if (event.pointerId === lookPointerId) lookPointerId = null; };
@@ -616,8 +662,8 @@ export async function startBrowserGame(): Promise<void> {
   window.addEventListener('blur', () => { pressed.clear(); fireHeld = false; clearTouchInput(); });
   window.addEventListener('mousemove', (event: MouseEvent) => {
     if (document.pointerLockElement !== canvas || agentController.isAgentControlled()) return;
-    yawDelta += event.movementX * LOOK_SCALE;
-    pitchDelta -= event.movementY * LOOK_SCALE;
+    yawDelta += event.movementX * LOOK_SCALE * activeProfile.settings.mouseSensitivity;
+    pitchDelta -= event.movementY * LOOK_SCALE * activeProfile.settings.mouseSensitivity;
   });
   canvas.addEventListener('click', () => {
     if (agentController.isAgentControlled()) return;

@@ -44,7 +44,7 @@ function midiFrequency(midi: number): number { return 440 * 2 ** ((midi - 69) / 
 
 export class ProceduralMusicSequencer {
   private readonly output: GainNode;
-  private readonly targetGain: number;
+  private targetGain: number;
   private lastStep = -1;
   private activeSources = 0;
 
@@ -91,6 +91,11 @@ export class ProceduralMusicSequencer {
       const frequency = midiFrequency(step.leadMidi);
       this.playTone(when, 'triangle', frequency, frequency * 0.985, 0.16, 0.07 + intensity * 0.04);
     }
+  }
+
+  setOutputGain(value: number): void {
+    this.targetGain = Math.max(0, Math.min(1, value)) * 0.24;
+    this.output.gain.setTargetAtTime(this.targetGain, this.context.currentTime, 0.04);
   }
 
   private playTone(

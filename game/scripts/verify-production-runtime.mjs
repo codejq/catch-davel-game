@@ -96,6 +96,42 @@ try {
     throw new Error(`Campaign map did not pause and resume the authoritative Worker clock: ${JSON.stringify(campaignFlow)}`);
   }
   await page.click('#campaign-button');
+  await page.evaluate(() => {
+    document.querySelector('#settings-panel').open = true;
+    document.querySelector('#setting-language').value = 'ar';
+    document.querySelector('#setting-sensitivity').value = '1.4';
+    document.querySelector('#setting-master').value = '0.8';
+    document.querySelector('#setting-music').value = '0.6';
+    document.querySelector('#setting-effects').value = '0.7';
+    document.querySelector('#setting-reduced-motion').checked = true;
+    document.querySelector('#setting-high-contrast').checked = true;
+    document.querySelector('#settings-panel').dispatchEvent(new Event('change', { bubbles: true }));
+  });
+  await page.waitForFunction(() => document.documentElement.dir === 'rtl'
+    && document.body.classList.contains('reduced-motion')
+    && document.body.classList.contains('high-contrast'));
+  await page.waitForTimeout(150);
+  const settingsProfile = await readBrowserProfile(page);
+  const accessibilitySettings = await page.evaluate(() => ({
+    language: document.documentElement.lang,
+    direction: document.documentElement.dir,
+    levelName: document.querySelector('#level-name')?.textContent ?? '',
+    objective: document.querySelector('#objective')?.textContent ?? '',
+    status: document.querySelector('#settings-status')?.textContent ?? '',
+    reducedMotion: document.body.classList.contains('reduced-motion'),
+    highContrast: document.body.classList.contains('high-contrast'),
+  }));
+  if (settingsProfile.profile.settings.language !== 'ar'
+    || settingsProfile.profile.settings.mouseSensitivity !== 1.4
+    || settingsProfile.profile.settings.masterVolume !== 0.8
+    || settingsProfile.profile.settings.musicVolume !== 0.6
+    || settingsProfile.profile.settings.effectsVolume !== 0.7
+    || !settingsProfile.profile.settings.reducedMotion || !settingsProfile.profile.settings.highContrast
+    || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
+    || !accessibilitySettings.levelName.includes('التمايل الأول')
+    || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')) {
+    throw new Error(`Production accessibility settings did not apply and persist: ${JSON.stringify({ settingsProfile, accessibilitySettings })}`);
+  }
   const downloadPromise = page.waitForEvent('download');
   await page.click('#profile-export');
   const download = await downloadPromise;
@@ -327,7 +363,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, campaignFlow, profileTransfer, lifecycle, browserErrors: errors,
+    passed: true, ...result, campaignFlow, accessibilitySettings, profileTransfer, lifecycle, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

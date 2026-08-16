@@ -129,6 +129,10 @@ export class ProceduralAudio {
 
   resume(): Promise<void> { return this.context.resume(); }
 
+  setOutputGain(value: number): void {
+    this.master.gain.setTargetAtTime(0.78 * Math.max(0, Math.min(1, value)), this.context.currentTime, 0.04);
+  }
+
   play(cue: AudioCue, pan = 0): void {
     const layers = AUDIO_CUE_DEFINITIONS[cue];
     if (this.activeSources + layers.length > 48) return;

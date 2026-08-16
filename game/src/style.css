@@ -25,6 +25,14 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #campaign-map h2, #campaign-map p { margin: 0 0 10px; }
 #campaign-map h2 { color: #72f4ff; letter-spacing: .11em; }
 #campaign-map header small { color: #ffe56c; font-weight: 950; letter-spacing: .16em; }
+#settings-panel { margin: 12px 0; padding: 10px 12px; border: 2px solid #58cddd; border-radius: 10px; background: #102447cc; }
+#settings-panel summary { color: #92f4ff; font-size: 12px; font-weight: 950; letter-spacing: .1em; cursor: pointer; }
+#settings-grid { display: grid; grid-template-columns: repeat(3, minmax(150px, 1fr)); gap: 10px 14px; margin: 12px 0 8px; }
+#settings-grid label { display: grid; gap: 5px; color: #d9f9ff; font-size: 11px; font-weight: 800; }
+#settings-grid select, #settings-grid input[type='range'] { width: 100%; accent-color: #65efff; }
+#settings-grid select { padding: 5px; border: 1px solid #71e8f5; border-radius: 5px; background: #162e58; color: #fff; }
+#settings-grid .setting-check { display: flex; align-items: center; gap: 7px; }
+#settings-status { color: #ffe56c; font-size: 10px; }
 #campaign-close { padding: 8px 12px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-weight: 900; cursor: pointer; }
 #profile-actions { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; }
 #profile-actions button { padding: 8px 11px; border: 2px solid #73ebf7; border-radius: 8px; background: #1d3968; color: #fff; font: inherit; font-size: 11px; font-weight: 900; cursor: pointer; }
@@ -41,6 +49,7 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 .level-card span { min-height: 36px; margin: 5px 0; font-weight: 900; }
 .level-card small { color: #a9edff; }
 @media (max-width: 720px) { #campaign-levels { grid-template-columns: repeat(2, minmax(120px, 1fr)); } #campaign-button { left: 22px; top: 108px; } #level-name { top: 142px; } #profile-actions { align-items: stretch; flex-wrap: wrap; } #profile-transfer-status { flex-basis: 100%; } }
+@media (max-width: 720px) { #settings-grid { grid-template-columns: repeat(2, minmax(120px, 1fr)); } }
 #crosshair { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; translate: -50% -50%; }
 #crosshair::before, #crosshair::after { content: ''; position: absolute; background: #fff; box-shadow: 0 0 4px #14284e; }
 #crosshair::before { left: 8px; width: 2px; height: 18px; }
@@ -65,6 +74,11 @@ body[data-weapon='bomb'] #weapon::before { top: -19px; left: 54px; width: 34px; 
 body[data-weapon='laser'] #weapon { background: linear-gradient(90deg, #1e2347, #ff4d8f 45%, #4df9f2 54%, #171c3a); box-shadow: inset 0 0 0 7px #152347, 0 0 35px #ff3e9588; }
 body[data-weapon='laser'] #weapon::before { background: #66fff3; box-shadow: inset 0 0 0 8px #ff4c93, 0 0 20px #60fff8; }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }
+body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
+body.high-contrast #hud { text-shadow: 0 2px 0 #000, 0 0 4px #000; }
+body.high-contrast #objective, body.high-contrast #stats span, body.high-contrast #weapon-status { background: #050914f2; border-color: #fff; }
+body.high-contrast #crosshair::before, body.high-contrast #crosshair::after { background: #fff600; box-shadow: 0 0 0 2px #000, 0 0 8px #fff; }
+body.reduced-motion #weapon { transition: none; }
 body.feedback-weapon-kick #weapon { animation: weapon-kick .13s ease-out; }
 body.feedback-sword-swing #weapon { animation: sword-swing .24s ease-out; }
 body.feedback-shake-light #game { animation: camera-shake-light .12s linear; }

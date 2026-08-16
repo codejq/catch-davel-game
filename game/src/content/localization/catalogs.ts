@@ -80,3 +80,14 @@ export const RELEASE_LOCALIZATION_CATALOGS = [
   { schemaVersion: 1, locale: 'en', direction: 'ltr', fallbackLocale: null, strings: ENGLISH_STRINGS },
   { schemaVersion: 1, locale: 'ar', direction: 'rtl', fallbackLocale: 'en', strings: ARABIC_STRINGS },
 ] as const satisfies readonly LocalizationCatalog[];
+
+export function releaseLocalizationCatalog(locale: string): LocalizationCatalog {
+  return RELEASE_LOCALIZATION_CATALOGS.find((catalog) => catalog.locale === locale)
+    ?? RELEASE_LOCALIZATION_CATALOGS[0];
+}
+
+export function localizedContentString(locale: string, key: string): string {
+  const catalog = releaseLocalizationCatalog(locale);
+  const english: Readonly<Record<string, string>> = RELEASE_LOCALIZATION_CATALOGS[0].strings;
+  return catalog.strings[key] ?? english[key] ?? key;
+}

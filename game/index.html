@@ -32,6 +32,19 @@
           <button id="campaign-close" type="button">CLOSE</button>
         </header>
         <p>Hunt the dancing Davels, bank coins, and unlock the route to Chief Wobble.</p>
+        <details id="settings-panel">
+          <summary>ACCESSIBILITY &amp; AUDIO</summary>
+          <div id="settings-grid">
+            <label>Language<select id="setting-language"><option value="en">English</option><option value="ar">العربية</option></select></label>
+            <label>Mouse sensitivity<input id="setting-sensitivity" type="range" min="0.25" max="3" step="0.05"></label>
+            <label>Master volume<input id="setting-master" type="range" min="0" max="1" step="0.05"></label>
+            <label>Music volume<input id="setting-music" type="range" min="0" max="1" step="0.05"></label>
+            <label>Effects volume<input id="setting-effects" type="range" min="0" max="1" step="0.05"></label>
+            <label class="setting-check"><input id="setting-reduced-motion" type="checkbox">Reduced motion</label>
+            <label class="setting-check"><input id="setting-high-contrast" type="checkbox">High contrast</label>
+          </div>
+          <output id="settings-status" aria-live="polite">Settings save to this profile.</output>
+        </details>
         <div id="campaign-levels"></div>
         <div id="profile-actions">
           <button id="profile-export" type="button">EXPORT SAVE</button>
