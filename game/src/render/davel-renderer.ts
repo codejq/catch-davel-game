@@ -7,6 +7,7 @@ import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
 import type { RenderGameState, RenderRobotState } from './render-model';
 import { davelExpression, type DavelExpression } from './davel-expression';
 import { davelAccessory } from './davel-accessory';
+import { CoinBurstTracker, coinBurstPoint } from './coin-burst';
 
 type Color = readonly [number, number, number];
 interface Point { readonly x: number; readonly y: number; readonly z: number }
@@ -292,6 +293,7 @@ export class DavelRenderer {
   private readonly viewProjectionLocation: WebGLUniformLocation;
   private readonly spheres: InstanceBatch;
   private readonly capsules: InstanceBatch;
+  private readonly coinBursts = new CoinBurstTracker();
 
   constructor(private readonly gl: WebGL2RenderingContext) {
     this.program = createProgram(gl);
@@ -308,6 +310,15 @@ export class DavelRenderer {
   ): void {
     this.spheres.reset();
     this.capsules.reset();
+    const coinBurstCount = qualityTier === 'low' ? 2 : qualityTier === 'medium' ? 3 : 5;
+    for (const effect of this.coinBursts.update(state)) {
+      for (let coinIndex = 0; coinIndex < coinBurstCount; coinIndex += 1) {
+        const current = coinBurstPoint(effect, state.tick, coinIndex, state.player, motionScale);
+        const previous = coinBurstPoint(effect, Math.max(effect.startTick, state.tick - 1), coinIndex, state.player, motionScale);
+        if (state.tick > effect.startTick) this.addCapsule(previous, current, current.scale * 0.28, [1, 0.54, 0.04]);
+        this.addSphere(current, current.scale, coinIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.58, 0.05], 1.3, 0.28);
+      }
+    }
     for (const robot of state.robots) {
       if (robot.active) this.addRobot(
         robot, ROBOT_DEFINITIONS[robot.id]!, motionScale, flashScale,
