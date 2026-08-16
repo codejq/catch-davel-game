@@ -7,7 +7,8 @@ import {
   type AgentAction, type CatchDavelAgentApi, type ReplayEntry,
 } from './api';
 import { TRAINING_WEAPON_MASK } from '../sim/weapons';
-import { chapter01Level, isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 
 type ResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 

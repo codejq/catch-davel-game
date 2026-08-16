@@ -7,7 +7,8 @@ import {
 import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 import { isWeaponId, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
-import { chapter01Level, isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 
 export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 

@@ -8,7 +8,7 @@ import {
   type WeaponId, type WeaponUpgradeLevels,
 } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import { createObservation } from '../agent/observation';
 import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';

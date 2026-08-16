@@ -4,7 +4,7 @@ import type { RenderGameState } from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es

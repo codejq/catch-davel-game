@@ -3,7 +3,7 @@ import type {
   RenderGameState, RenderPickupState, RenderPlayerBombState, RenderPlayerState, RenderProjectileState, RenderRobotState,
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
 export const TRANSPORT_CONTRACT_VERSION = 6;
 export const MAX_RENDER_ROBOTS = 24;

@@ -8,7 +8,7 @@ import { createLevelRuntime, type LevelRuntimeState, type PickupKind } from './i
 import {
   isWeaponId, normalizeWeaponUpgradeLevels, WEAPON_UPGRADE_IDS, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
-import { isChapter01LevelId, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 

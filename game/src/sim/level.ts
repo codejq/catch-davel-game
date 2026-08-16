@@ -1,5 +1,5 @@
 import { CELL_SIZE, PLAYER_RADIUS } from './constants';
-import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/levels/chapter-01';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/level-ids';
 
 export const LEVEL_ROWS = [
   '###############',

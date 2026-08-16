@@ -1,13 +1,9 @@
 import type { LevelDefinition, SpawnGroupSpec, WaveSpec } from '../level-definition';
 import { checksumCanonicalContent } from '../content-hash.ts';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../level-ids.ts';
 import { LEVEL_001 } from './level-001.ts';
 
-export const CHAPTER_01_LEVEL_IDS = [
-  'level-001', 'level-002', 'level-003', 'level-004', 'level-005',
-  'level-006', 'level-007', 'level-008', 'level-009', 'level-010',
-] as const;
-
-export type Chapter01LevelId = typeof CHAPTER_01_LEVEL_IDS[number];
+export { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../level-ids.ts';
 
 interface Chapter01Recipe {
   readonly number: number;
@@ -322,10 +318,6 @@ export const CHAPTER_01_LEVELS = [
 export const CHAPTER_01_LEVEL_BY_ID: ReadonlyMap<Chapter01LevelId, LevelDefinition> = new Map(
   CHAPTER_01_LEVELS.map((level) => [level.id as Chapter01LevelId, level]),
 );
-
-export function isChapter01LevelId(value: string): value is Chapter01LevelId {
-  return (CHAPTER_01_LEVEL_IDS as readonly string[]).includes(value);
-}
 
 export function chapter01Level(levelId: Chapter01LevelId): LevelDefinition {
   const level = CHAPTER_01_LEVEL_BY_ID.get(levelId);

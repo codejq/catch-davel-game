@@ -12,7 +12,8 @@ import {
   type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
 import { purchaseWeaponUpgrade, weaponUpgradeCost, WEAPON_UPGRADE_CATALOG } from '../storage/economy';
-import { CHAPTER_01_LEVEL_IDS, chapter01Level, isChapter01LevelId } from '../content/levels/chapter-01';
+import { chapter01Level } from '../content/levels/chapter-01';
+import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 
 function requireCanvas(): HTMLCanvasElement {
   const element = document.querySelector<HTMLCanvasElement>('#game');
