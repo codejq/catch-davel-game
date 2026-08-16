@@ -5,6 +5,7 @@ import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { levelDancePerformance } from '../sim/dance-performance';
 
 export interface RobotObservation {
   readonly id: number;
@@ -27,7 +28,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 6;
+  readonly schemaVersion: 7;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: Chapter01LevelId;
@@ -63,6 +64,12 @@ export interface AgentObservation {
     readonly id: 'deactivate-davels';
     readonly complete: boolean;
     readonly exitUnlocked: boolean;
+  };
+  readonly dancePerformance: {
+    readonly presetId: string;
+    readonly bpm: number;
+    readonly visualIntensity: number;
+    readonly motif: string;
   };
   readonly encounter: {
     readonly waveIndex: number;
@@ -160,6 +167,7 @@ function hasLineOfSight(
 }
 
 export function createObservation(state: GameState): AgentObservation {
+  const performance = levelDancePerformance(state.levelId);
   const playerCell = worldCell(state.player.x, state.player.z);
   const robots = state.robots.filter((robot) => robot.active).map((robot): RobotObservation => {
     const deltaX = robot.x - state.player.x;
@@ -186,7 +194,7 @@ export function createObservation(state: GameState): AgentObservation {
     };
   });
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     tick: state.tick,
     seed: state.seed,
     levelId: state.levelId,
@@ -207,6 +215,7 @@ export function createObservation(state: GameState): AgentObservation {
     victory: state.victory,
     defeat: state.defeat,
     objective: { id: 'deactivate-davels', complete: state.level.objectiveComplete, exitUnlocked: state.level.objectiveComplete },
+    dancePerformance: { ...performance },
     encounter: { ...state.level.encounter },
     pickups: state.level.pickups.map((pickup) => ({
       id: pickup.id,

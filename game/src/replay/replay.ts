@@ -29,6 +29,7 @@ import {
   ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED, ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP,
   ENEMY_SLIDER_BOLT_SPEED,
 } from '../sim/balance';
+import { levelDancePerformance } from '../sim/dance-performance';
 
 export const REPLAY_FORMAT_VERSION = 1;
 export const REPLAY_CHECKSUM_INTERVAL_TICKS = 60;
@@ -85,6 +86,7 @@ export function currentReplayDependencies(levelId: Chapter01LevelId = 'level-001
   const effectiveLevel = levelDefinitionDependencyHash(chapter01Level(levelId));
   const simulationLevel = checksumCanonical({
     rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
+    dancePerformance: levelDancePerformance(levelId),
   });
   return {
     simulationSchema: checksumCanonical({
@@ -126,6 +128,7 @@ export function currentAgentValidationDependencies(levelId: Chapter01LevelId = '
     effectiveLevel: levelDefinitionDependencyHash(chapter01Level(levelId)),
     simulationLevel: checksumCanonical({
       rows: levelRows(levelId), interactions: createLevelRuntime(levelId), robotWaves: campaignRobotWaves(levelId),
+      dancePerformance: levelDancePerformance(levelId),
     }),
     balanceData: replay.balanceData,
     policyOrReplay: replay.replayPolicy,

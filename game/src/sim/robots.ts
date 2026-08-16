@@ -5,6 +5,7 @@ import { createRobotBody, stepRobotBody, type RobotBodyState } from './xpbd';
 import { ENEMY_INITIAL_COOLDOWN_BASE, ENEMY_INITIAL_COOLDOWN_STEP } from './balance';
 import type { PlayerState } from './player';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import { levelDancePerformance } from './dance-performance';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
 export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj' | 'invoice-overlord';
@@ -166,6 +167,7 @@ export function validateRobotDefinitions(): void {
 
 export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapter01LevelId = 'level-001'): RobotState[] {
   validateRobotDefinitions();
+  const performance = levelDancePerformance(levelId);
   const definitionIds = encounter === 'boss-training' ? [6] : campaignRobotIds(levelId);
   return definitionIds.map((id) => {
     const definition = ROBOT_DEFINITIONS[id]!;
@@ -184,7 +186,7 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
       combatState: 'patrol', combatTicks: 0, strafeDirection: id % 2 === 0 ? 1 : -1, tempoBuffTicks: 0,
       bossPhase: definition.rank === 'boss' ? 1 : 0,
     };
-    return { ...robot, body: createRobotBody(robot.x, robot.z, robot.heading, robot.danceTime, definition) };
+    return { ...robot, body: createRobotBody(robot.x, robot.z, robot.heading, robot.danceTime, definition, performance) };
   });
 }
 
@@ -223,12 +225,13 @@ export function stepRobots(
   robots: RobotState[], seedText: string, player?: PlayerState, levelId: Chapter01LevelId = 'level-001',
 ): void {
   const seed = hashSeed(seedText);
+  const performance = levelDancePerformance(levelId);
   for (const robot of robots) {
     if (!robot.active) continue;
     const definition = ROBOT_DEFINITIONS[robot.id]!;
     if (robot.tempoBuffTicks > 0) robot.tempoBuffTicks -= 1;
     const tempoScale = robot.tempoBuffTicks > 0 ? 1.28 : 1;
-    robot.danceTime += FIXED_DT_SECONDS * (1.4 + robot.id * 0.13) * tempoScale;
+    robot.danceTime += FIXED_DT_SECONDS * (1.4 + robot.id * 0.13) * (performance.bpm / 96) * tempoScale;
     robot.hitFlashTicks = Math.max(0, robot.hitFlashTicks - 1);
     if (Math.abs(robot.knockbackX) + Math.abs(robot.knockbackZ) > 0.001) {
       const nextX = robot.x + robot.knockbackX;
@@ -266,6 +269,6 @@ export function stepRobots(
         robot.targetIndex += robot.routeDirection;
       }
     }
-    stepRobotBody(robot, definition);
+    stepRobotBody(robot, definition, performance);
   }
 }

@@ -88,6 +88,7 @@ try {
       count: levelEightObservation.robots.length,
       replayLevelId: levelEightReplay.levelId,
       observedLevelId: api.level().levelId,
+      dancePerformance: levelEightObservation.dancePerformance,
     };
 
     const bossObservation = await api.reset({ seed: 'live-boss-proof', mode: 'agent', encounter: 'boss-training' });
@@ -183,6 +184,9 @@ try {
       && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
     [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,
       'Level 8 did not load its canonical seed and encounter roster'],
+    [result.levelEightProof.dancePerformance.presetId === 'clockwork-charleston'
+      && result.levelEightProof.dancePerformance.bpm === 110,
+    'Level 8 did not expose its canonical choreography through the live Worker'],
     [result.arsenalProof.selectedWeapon === 'laser', 'training arsenal did not select the laser'],
     [result.arsenalProof.unlockedWeapons.join(',') === 'pulse,sword,bomb,laser', 'training arsenal did not unlock all weapons'],
     [result.arsenalProof.swordHeat > 0, 'Worker sword action did not generate heat'],
