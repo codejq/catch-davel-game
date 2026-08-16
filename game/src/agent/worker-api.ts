@@ -1,6 +1,6 @@
 import { REPLAY_FORMAT_VERSION, type ReplayFileV1 } from '../replay/replay';
 import type { SimulationWorkerClient } from '../runtime/simulation-worker-client';
-import { GAME_SCHEMA_VERSION } from '../sim/constants';
+import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { levelObservation, type AgentObservation } from './observation';
 import {
   agentActionSchema, normalizeAgentAction,
@@ -58,7 +58,7 @@ export class WorkerAgentController {
       if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
       if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
       if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
-      const seed = options.seed ?? 'first-playable-v1';
+      const seed = options.seed ?? DEFAULT_LEVEL_SEED;
       if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
       await this.client.setMode('manual', true);
       const response = await this.client.reset(seed, 0, true);

@@ -21,6 +21,15 @@ npm run game:test:worker
 npm run game:test:runtime
 ```
 
+Content contract commands:
+
+```powershell
+npm run game:content:schema
+npm run game:content:export
+```
+
+The build rejects stale generated content. The authored `LevelDefinition` is strictly validated for unknown fields, stable IDs, cross-references, objective cycles, key/lock solvability, encounter ownership, agent policy, and bounded performance budgets. Canonical JSON and the generated Draft 2020-12 schema live under `src/content`.
+
 ## LLM/browser-agent control
 
 Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.

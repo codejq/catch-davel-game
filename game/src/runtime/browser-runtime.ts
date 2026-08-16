@@ -1,7 +1,7 @@
 import { WorkerAgentController } from '../agent/worker-api';
 import { createRendererHost } from '../render/renderer-host';
 import type { RenderGameState } from '../render/render-model';
-import { LOOK_SCALE } from '../sim/constants';
+import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createBrowserProfileRepository } from '../storage/indexeddb';
 import { createDefaultProfile, updateProfile, type LevelProgressV1, type ProfileV1 } from '../storage/profile';
@@ -191,7 +191,7 @@ export async function startBrowserGame(): Promise<void> {
   };
 
   const client = await SimulationWorkerClient.create({
-    seed: 'first-playable-v1',
+    seed: DEFAULT_LEVEL_SEED,
     initialCoins: activeProfile.spendableCoins,
     mode: 'manual',
     callbacks: {
@@ -218,7 +218,7 @@ export async function startBrowserGame(): Promise<void> {
   await client.setMode('realtime');
   agentController = new WorkerAgentController(client, async () => {
     if (activeProfile.campaignCheckpoint !== null) await client.loadSnapshot(activeProfile.campaignCheckpoint);
-    else await client.reset('first-playable-v1', activeProfile.spendableCoins, false);
+    else await client.reset(DEFAULT_LEVEL_SEED, activeProfile.spendableCoins, false);
     await client.setMode('realtime');
     humanSessionStarted = false;
   });

@@ -1,4 +1,5 @@
 export const GAME_SCHEMA_VERSION = 2;
+export const DEFAULT_LEVEL_SEED = 'campaign-level-001-v1';
 export const TICK_HZ = 60;
 export const FIXED_DT_SECONDS = 1 / TICK_HZ;
 export const CELL_SIZE = 3;

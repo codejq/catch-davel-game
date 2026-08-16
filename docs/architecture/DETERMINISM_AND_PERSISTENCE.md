@@ -36,6 +36,8 @@ A replay contains:
 - contiguous tick-tagged command runs compressed only when commands are exactly equal;
 - checksums at the initial tick, each 60-tick boundary, and final tick.
 
+The level dependency includes the canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid and authoritative interaction placement. The generated JSON Schema and canonical Level 1 export are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
+
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 
 ## Profile v1

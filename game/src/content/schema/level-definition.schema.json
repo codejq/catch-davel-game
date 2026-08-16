@@ -1,0 +1,1287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://quantum-billing.example/schemas/catch-davel/level-definition-v1.json",
+  "title": "Catch Davel LevelDefinition v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "number",
+    "chapterId",
+    "nameKey",
+    "briefingKey",
+    "seed",
+    "palette",
+    "maze",
+    "objectives",
+    "encounters",
+    "dance",
+    "difficulty",
+    "economy",
+    "checkpoints",
+    "audio",
+    "mastery",
+    "agentValidation",
+    "performance",
+    "tags"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^level-\\d{3}$"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100
+    },
+    "chapterId": {
+      "type": "string",
+      "pattern": "^chapter-\\d{2}$"
+    },
+    "nameKey": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "maxLength": 256
+    },
+    "briefingKey": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "maxLength": 256
+    },
+    "seed": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9._-]*$",
+      "maxLength": 256
+    },
+    "palette": {
+      "$ref": "#/$defs/presetBinding"
+    },
+    "maze": {
+      "$ref": "#/$defs/maze"
+    },
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/objective"
+      }
+    },
+    "encounters": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/encounter"
+      }
+    },
+    "dance": {
+      "$ref": "#/$defs/dance"
+    },
+    "difficulty": {
+      "$ref": "#/$defs/presetBinding"
+    },
+    "economy": {
+      "$ref": "#/$defs/presetBinding"
+    },
+    "checkpoints": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/presetBinding"
+      }
+    },
+    "audio": {
+      "$ref": "#/$defs/presetBinding"
+    },
+    "mastery": {
+      "type": "array",
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/presetBinding"
+      }
+    },
+    "agentValidation": {
+      "$ref": "#/$defs/agentValidation"
+    },
+    "performance": {
+      "$ref": "#/$defs/performance"
+    },
+    "story": {
+      "$ref": "#/$defs/story"
+    },
+    "tags": {
+      "type": "array",
+      "maxItems": 1000,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9][a-z0-9._-]*$",
+        "maxLength": 256
+      }
+    }
+  },
+  "$defs": {
+    "presetBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "presetId"
+      ],
+      "properties": {
+        "presetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "override": {
+          "type": "object"
+        }
+      }
+    },
+    "integerRange": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum"
+      ],
+      "properties": {
+        "minimum": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "maximum": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "mazeNode": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "role",
+        "templateTags",
+        "sizeClass",
+        "encounterIds",
+        "pickupIds",
+        "checkpointId",
+        "storyIds",
+        "criticalPath"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "role": {
+          "enum": [
+            "entrance",
+            "corridor",
+            "arena",
+            "checkpoint",
+            "exit",
+            "secret"
+          ]
+        },
+        "templateTags": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "sizeClass": {
+          "enum": [
+            "small",
+            "medium",
+            "large"
+          ]
+        },
+        "encounterIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "pickupIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "checkpointId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "storyIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "criticalPath": {
+          "type": "boolean"
+        }
+      }
+    },
+    "mazeEdge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to",
+        "bidirectional",
+        "requiredKeyId",
+        "doorType",
+        "traversalCost",
+        "stateTrigger"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "from": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "to": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "bidirectional": {
+          "type": "boolean"
+        },
+        "requiredKeyId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "doorType": {
+          "enum": [
+            "open",
+            "workshop-lock",
+            "arena-lock"
+          ]
+        },
+        "traversalCost": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "stateTrigger": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "key": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "placementNodeId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "placementNodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "hazard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "nodeId",
+        "periodTicks",
+        "activeTicks",
+        "collisionProfileId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "nodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "periodTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36000
+        },
+        "activeTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 36000
+        },
+        "collisionProfileId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "maze": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "templateSetId",
+        "generatorVersion",
+        "criticalPathRooms",
+        "optionalRooms",
+        "maxBranchDepth",
+        "secretCount",
+        "entranceNodeId",
+        "exitNodeId",
+        "nodes",
+        "edges",
+        "keys",
+        "hazards",
+        "generationAttempts",
+        "validationProfile"
+      ],
+      "properties": {
+        "templateSetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "generatorVersion": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "criticalPathRooms": {
+          "$ref": "#/$defs/integerRange"
+        },
+        "optionalRooms": {
+          "$ref": "#/$defs/integerRange"
+        },
+        "maxBranchDepth": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 32
+        },
+        "secretCount": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 100
+        },
+        "entranceNodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "exitNodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "nodes": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 1024,
+          "items": {
+            "$ref": "#/$defs/mazeNode"
+          }
+        },
+        "edges": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4096,
+          "items": {
+            "$ref": "#/$defs/mazeEdge"
+          }
+        },
+        "keys": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/key"
+          }
+        },
+        "hazards": {
+          "type": "array",
+          "maxItems": 64,
+          "items": {
+            "$ref": "#/$defs/hazard"
+          }
+        },
+        "generationAttempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "validationProfile": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "required",
+        "titleKey",
+        "targetIds",
+        "targetCount",
+        "durationTicks",
+        "dependsOn",
+        "completionMode",
+        "markerPolicy"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "type": {
+          "enum": [
+            "deactivate",
+            "recover-keys",
+            "shutdown",
+            "survive",
+            "hunt",
+            "defend",
+            "escape",
+            "boss"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "titleKey": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "targetIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "targetCount": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "durationTicks": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "dependsOn": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "completionMode": {
+          "enum": [
+            "all",
+            "any",
+            "count",
+            "timer",
+            "reach"
+          ]
+        },
+        "markerPolicy": {
+          "enum": [
+            "always",
+            "discovered",
+            "nearby",
+            "none"
+          ]
+        }
+      }
+    },
+    "spawnGroup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "archetypeId",
+        "count",
+        "modifierIds",
+        "spawnPointSetId",
+        "dancePresetId",
+        "aiProfileId",
+        "rewardProfileId",
+        "rngStream",
+        "rank",
+        "accessibilityVerificationId"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "archetypeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "modifierIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "spawnPointSetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "dancePresetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "aiProfileId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "rewardProfileId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "rngStream": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "rank": {
+          "enum": [
+            "normal",
+            "elite",
+            "boss"
+          ]
+        },
+        "accessibilityVerificationId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "wave": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "startCondition",
+        "startDelayTicks",
+        "spawnGroups",
+        "maxConcurrentRobots",
+        "interGroupDelayTicks",
+        "danceTransitionId",
+        "completion",
+        "invalidSpawnPolicy"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "startCondition": {
+          "enum": [
+            "encounter-start",
+            "previous-wave-complete",
+            "timer"
+          ]
+        },
+        "startDelayTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36000
+        },
+        "spawnGroups": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 24,
+          "items": {
+            "$ref": "#/$defs/spawnGroup"
+          }
+        },
+        "maxConcurrentRobots": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "interGroupDelayTicks": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 36000
+        },
+        "danceTransitionId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "completion": {
+          "enum": [
+            "all-defeated",
+            "timer",
+            "target-defeated"
+          ]
+        },
+        "invalidSpawnPolicy": {
+          "const": "fail-level"
+        }
+      }
+    },
+    "encounter": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "roomNodeId",
+        "trigger",
+        "triggerRef",
+        "arenaLock",
+        "waves",
+        "completion",
+        "rewardId",
+        "checkpointOnComplete"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "roomNodeId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "trigger": {
+          "enum": [
+            "on-enter",
+            "on-objective",
+            "on-interact",
+            "on-tick",
+            "on-wave-complete"
+          ]
+        },
+        "triggerRef": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "arenaLock": {
+          "type": "boolean"
+        },
+        "waves": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/wave"
+          }
+        },
+        "completion": {
+          "enum": [
+            "all-defeated",
+            "timer",
+            "target-defeated",
+            "objective-event"
+          ]
+        },
+        "rewardId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "checkpointOnComplete": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "dance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "presetId",
+        "grammarVersion",
+        "bpm",
+        "timeSignature",
+        "barsPerPhrase",
+        "footPatternId",
+        "torsoPatternId",
+        "armPatternId",
+        "headAccentId",
+        "pathPatternId",
+        "attackBeats",
+        "vulnerableBeats",
+        "transitionIds",
+        "visualIntensity",
+        "reducedMotionPresetId"
+      ],
+      "properties": {
+        "presetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "grammarVersion": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "bpm": {
+          "type": "integer",
+          "minimum": 40,
+          "maximum": 220
+        },
+        "timeSignature": {
+          "enum": [
+            "4/4",
+            "3/4",
+            "7/8"
+          ]
+        },
+        "barsPerPhrase": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 32
+        },
+        "footPatternId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "torsoPatternId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "armPatternId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "headAccentId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "pathPatternId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "attackBeats": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "vulnerableBeats": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "transitionIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "visualIntensity": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "reducedMotionPresetId": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "dependencies": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "simulationSchema",
+        "effectiveLevel",
+        "simulationLevel",
+        "balanceData",
+        "policyOrReplay"
+      ],
+      "properties": {
+        "simulationSchema": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "effectiveLevel": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "simulationLevel": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "balanceData": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        },
+        "policyOrReplay": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{16}$"
+        }
+      }
+    },
+    "agentRun": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "mode",
+        "policyId",
+        "policyVersion",
+        "referenceReplayId",
+        "seed",
+        "difficulty",
+        "assistProfileId",
+        "maxTicks",
+        "stuckTimeoutTicks",
+        "maxIllegalActions",
+        "requiredObjectiveIds",
+        "expectedCompletion",
+        "expectedChecksum",
+        "parTicks",
+        "dependencyHashes"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "mode": {
+          "enum": [
+            "live-agent",
+            "reference-replay"
+          ]
+        },
+        "policyId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "policyVersion": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "referenceReplayId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "seed": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        },
+        "difficulty": {
+          "enum": [
+            "Story",
+            "Standard",
+            "Hard"
+          ]
+        },
+        "assistProfileId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "stuckTimeoutTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "maxIllegalActions": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 1000
+        },
+        "requiredObjectiveIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "expectedCompletion": {
+          "type": "boolean"
+        },
+        "expectedChecksum": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[0-9a-f]{16}$"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "parTicks": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3600000
+        },
+        "dependencyHashes": {
+          "$ref": "#/$defs/dependencies"
+        }
+      }
+    },
+    "agentValidation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "tier",
+        "runs",
+        "owner"
+      ],
+      "properties": {
+        "tier": {
+          "enum": [
+            "ordinary",
+            "boss",
+            "named-elite"
+          ]
+        },
+        "runs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/agentRun"
+          }
+        },
+        "owner": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9._-]*$",
+          "maxLength": 256
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "maxActiveRobots",
+        "maxActiveProjectiles",
+        "maxActivePickups",
+        "maxHazards",
+        "maxMazeNodes",
+        "maxRenderInstances",
+        "expectedPeakDrawCalls",
+        "expectedPeakMemoryMb",
+        "benchmarkScenarioIds"
+      ],
+      "properties": {
+        "maxActiveRobots": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "maxActiveProjectiles": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 64
+        },
+        "maxActivePickups": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        },
+        "maxHazards": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 64
+        },
+        "maxMazeNodes": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 1024
+        },
+        "maxRenderInstances": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000
+        },
+        "expectedPeakDrawCalls": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "expectedPeakMemoryMb": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4096
+        },
+        "benchmarkScenarioIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        }
+      }
+    },
+    "story": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "introId",
+        "outroId",
+        "logIds",
+        "dialogueCueIds",
+        "localizationKeys",
+        "skippable"
+      ],
+      "properties": {
+        "introId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "outroId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9._-]*$",
+              "maxLength": 256
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "logIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "dialogueCueIds": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "localizationKeys": {
+          "type": "array",
+          "maxItems": 1000,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9._-]*$",
+            "maxLength": 256
+          }
+        },
+        "skippable": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

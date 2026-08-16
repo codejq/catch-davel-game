@@ -6,7 +6,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
+    "content:schema": "node scripts/generate-level-schema.mjs",
+    "content:schema:check": "node scripts/generate-level-schema.mjs --check",
+    "content:export": "node scripts/export-level-content.mjs",
+    "content:export:check": "node scripts/export-level-content.mjs --check",
+    "build": "npm run content:schema:check && npm run content:export:check && tsc --noEmit && vite build",
     "test": "vitest run",
     "test:worker": "node scripts/verify-worker.mjs",
     "test:runtime": "vite build && node scripts/verify-live-runtime.mjs && node scripts/verify-production-runtime.mjs"

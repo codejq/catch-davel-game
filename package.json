@@ -10,6 +10,8 @@
   ],
   "scripts": {
     "game:dev": "npm run dev --workspace @quantum-billing/catch-davel-game",
+    "game:content:schema": "npm run content:schema --workspace @quantum-billing/catch-davel-game",
+    "game:content:export": "npm run content:export --workspace @quantum-billing/catch-davel-game",
     "game:build": "npm run build --workspace @quantum-billing/catch-davel-game",
     "game:test": "npm run test --workspace @quantum-billing/catch-davel-game",
     "game:test:worker": "npm run test:worker --workspace @quantum-billing/catch-davel-game",

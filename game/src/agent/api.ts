@@ -4,7 +4,7 @@ import { createObservation, levelObservation, type AgentObservation } from './ob
 import {
   REPLAY_FORMAT_VERSION, ReplayRecorder, parseReplay, verifyReplay, type ReplayFileV1,
 } from '../replay/replay';
-import { GAME_SCHEMA_VERSION } from '../sim/constants';
+import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 
 export interface AgentAction {
@@ -166,7 +166,7 @@ export class AgentController {
     if (options.levelId !== undefined && options.levelId !== 'level-001') throw new Error('Only level-001 is implemented');
     if (options.difficulty !== undefined && options.difficulty !== 'standard') throw new Error('Only standard difficulty is implemented');
     if (options.mode !== undefined && options.mode !== 'agent') throw new Error('Agent API reset requires agent mode');
-    const seed = options.seed ?? 'first-playable-v1';
+    const seed = options.seed ?? DEFAULT_LEVEL_SEED;
     if (seed.length === 0 || seed.length > 256) throw new Error('Agent seed must contain 1 to 256 characters');
     this.simulation.reset(seed);
     this.controlled = true;

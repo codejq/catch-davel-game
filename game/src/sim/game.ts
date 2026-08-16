@@ -7,6 +7,7 @@ import {
   closedDoorCells, collectLevelInteractions, completePrimaryObjective, createLevelRuntime,
   openNearbyDoor, reachedUnlockedExit, type LevelRuntimeState,
 } from './interactions';
+import { DEFAULT_LEVEL_SEED } from './constants';
 
 export interface GameEvent {
   readonly tick: number;
@@ -36,7 +37,7 @@ export interface GameState {
 export class GameSimulation {
   state: GameState;
 
-  constructor(seed = 'first-playable-v1') {
+  constructor(seed = DEFAULT_LEVEL_SEED) {
     this.state = GameSimulation.initialState(seed);
   }
 
@@ -46,7 +47,7 @@ export class GameSimulation {
     return simulation;
   }
 
-  reset(seed = 'first-playable-v1'): void {
+  reset(seed = DEFAULT_LEVEL_SEED): void {
     this.state = GameSimulation.initialState(seed);
   }
 
