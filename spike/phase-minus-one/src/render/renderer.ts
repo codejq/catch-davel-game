@@ -61,6 +61,7 @@ interface GpuMesh {
 
 export interface RenderStats {
   readonly cpuMs: number;
+  readonly gpuMs: number | null;
   readonly drawCalls: number;
   readonly instances: number;
   readonly tick: number;
@@ -81,6 +82,11 @@ export interface ContextRecoveryResult {
 }
 
 type RenderCanvas = HTMLCanvasElement | OffscreenCanvas;
+
+interface TimerQueryExtension {
+  readonly TIME_ELAPSED_EXT: number;
+  readonly GPU_DISJOINT_EXT: number;
+}
 
 function compileShader(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
   const shader = gl.createShader(type);
@@ -127,6 +133,8 @@ export class RawWebGL2Renderer {
   private readonly view = new Float32Array(16);
   private readonly viewProjection = new Float32Array(16);
   private readonly viewProjectionLocation: WebGLUniformLocation;
+  private readonly timerQuery: TimerQueryExtension | null;
+  private readonly pendingTimerQueries: WebGLQuery[] = [];
 
   constructor(private readonly canvas: RenderCanvas) {
     const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
@@ -144,6 +152,7 @@ export class RawWebGL2Renderer {
     const location = gl.getUniformLocation(this.program, 'uViewProjection');
     if (location === null) throw new Error('Renderer uniform uViewProjection is unavailable');
     this.viewProjectionLocation = location;
+    this.timerQuery = gl.getExtension('EXT_disjoint_timer_query_webgl2') as TimerQueryExtension | null;
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
@@ -200,6 +209,9 @@ export class RawWebGL2Renderer {
   render(snapshotBytes: Uint8Array, now: () => number = () => performance.now()): RenderStats {
     if (snapshotBytes.byteLength !== SNAPSHOT_BYTES) throw new Error('Renderer received malformed snapshot');
     const start = now();
+    const gpuMs = this.takeCompletedGpuTime();
+    const timerQuery = this.timerQuery === null ? null : this.gl.createQuery();
+    if (timerQuery !== null) this.gl.beginQuery(this.timerQuery!.TIME_ELAPSED_EXT, timerQuery);
     const header = new Uint32Array(snapshotBytes.buffer, snapshotBytes.byteOffset, 16);
     const particles = new Float32Array(
       snapshotBytes.buffer,
@@ -258,7 +270,26 @@ export class RawWebGL2Renderer {
       }
     }
     this.draw(this.capsule, linkInstance);
-    return { cpuMs: now() - start, drawCalls: 3, instances: 1 + PARTICLE_COUNT + linkInstance, tick: header[2]! };
+    if (timerQuery !== null) {
+      this.gl.endQuery(this.timerQuery!.TIME_ELAPSED_EXT);
+      this.pendingTimerQueries.push(timerQuery);
+      if (this.pendingTimerQueries.length > 8) {
+        this.gl.deleteQuery(this.pendingTimerQueries.shift()!);
+      }
+    }
+    return { cpuMs: now() - start, gpuMs, drawCalls: 3, instances: 1 + PARTICLE_COUNT + linkInstance, tick: header[2]! };
+  }
+
+  private takeCompletedGpuTime(): number | null {
+    if (this.timerQuery === null || this.pendingTimerQueries.length === 0) return null;
+    const query = this.pendingTimerQueries[0]!;
+    const available = this.gl.getQueryParameter(query, this.gl.QUERY_RESULT_AVAILABLE) as boolean;
+    if (!available) return null;
+    this.pendingTimerQueries.shift();
+    const disjoint = this.gl.getParameter(this.timerQuery.GPU_DISJOINT_EXT) as boolean;
+    const nanoseconds = Number(this.gl.getQueryParameter(query, this.gl.QUERY_RESULT));
+    this.gl.deleteQuery(query);
+    return disjoint ? null : nanoseconds / 1_000_000;
   }
 
   private createMesh(mesh: MeshData): GpuMesh {

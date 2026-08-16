@@ -37,6 +37,7 @@ interface CapturedData {
   readonly stallEvidence: readonly StallEvidence[];
   readonly contextRecovery: ContextRecoveryResult | null;
   readonly audioVisual: AudioVisualProbeResult | null;
+  readonly memory: { readonly beforeBytes: number; readonly afterBytes: number; readonly growthBytes: number } | null;
 }
 
 interface StallEvidence {
@@ -143,6 +144,15 @@ async function run(): Promise<void> {
     });
     browserVersion = browser.version();
     const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, deviceScaleFactor: 1 });
+    const devtools = await page.context().newCDPSession(page);
+    await devtools.send('Performance.enable');
+    const measureHeap = async (): Promise<number> => {
+      await devtools.send('HeapProfiler.collectGarbage');
+      const response = await devtools.send('Performance.getMetrics') as {
+        metrics: readonly { name: string; value: number }[];
+      };
+      return response.metrics.find((metric) => metric.name === 'JSHeapUsedSize')?.value ?? 0;
+    };
     page.on('pageerror', (error) => errors.push({ source: 'pageerror', message: error.message }));
     page.on('console', (message) => {
       if (message.type() === 'error') errors.push({ source: 'console', message: message.text() });
@@ -153,6 +163,7 @@ async function run(): Promise<void> {
       return capture?.rendererInfo() !== null;
     }, undefined, { timeout: 15_000 });
     await page.waitForTimeout(warmupSeconds * 1_000);
+    const memoryBeforeBytes = await measureHeap();
     await page.evaluate(() => {
       const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
         drainSimulationSamples: () => unknown;
@@ -182,6 +193,7 @@ async function run(): Promise<void> {
         stallEvidence: [],
         contextRecovery: null,
         audioVisual: null,
+        memory: null,
       };
     });
     const contextRecovery = await page.evaluate(async () => {
@@ -239,7 +251,27 @@ async function run(): Promise<void> {
         }
       }
     }
-    captured = { ...captured, stallEvidence };
+    const postProbe = await page.evaluate(() => {
+      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+        drainSimulationSamples: () => unknown;
+        drainRenderSamples: () => unknown;
+        drainErrors: () => string[];
+      } }).__CATCH_DAVEL_SPIKE__;
+      capture.drainSimulationSamples();
+      capture.drainRenderSamples();
+      return { errors: capture.drainErrors() };
+    });
+    const memoryAfterBytes = await measureHeap();
+    captured = {
+      ...captured,
+      runtimeErrors: [...captured.runtimeErrors, ...postProbe.errors],
+      stallEvidence,
+      memory: {
+        beforeBytes: memoryBeforeBytes,
+        afterBytes: memoryAfterBytes,
+        growthBytes: memoryAfterBytes - memoryBeforeBytes,
+      },
+    };
     await browser.close();
   } finally {
     await new Promise<void>((resolvePromise) => server.close(() => resolvePromise()));
@@ -304,6 +336,7 @@ async function run(): Promise<void> {
     snapshotLatencyMs: summarize(captured.simulation.map((sample) => sample.transport.snapshotLatencyMs)),
     queuedEvents: summarize(captured.simulation.map((sample) => sample.transport.queuedEvents)),
     renderCpuMs: summarize(captured.render.map((sample) => sample.cpuMs)),
+    renderGpuMs: summarize(captured.render.flatMap((sample) => sample.gpuMs === null ? [] : [sample.gpuMs])),
     drawCalls: summarize(captured.render.map((sample) => sample.drawCalls)),
     instances: summarize(captured.render.map((sample) => sample.instances)),
     firstTick: captured.simulation[0]?.tick ?? null,
@@ -321,6 +354,7 @@ async function run(): Promise<void> {
       audioVisualSeparationMs: summarize(captured.audioVisual.samples.map((sample) => sample.audioVisualSeparationMs)),
       limitation: captured.audioVisual.limitation,
     },
+    memory: captured.memory,
     errors: errors.length,
     certification: 'incomplete: development VMware host is not an approved baseline device',
   };

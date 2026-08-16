@@ -26,6 +26,7 @@ interface BrowserSummary {
   readonly simulation: Record<string, { readonly p95: number }>;
   readonly snapshotLatencyMs: { readonly p95: number };
   readonly renderCpuMs: { readonly p95: number };
+  readonly renderGpuMs?: { readonly samples: number; readonly p95: number };
   readonly drawCalls: { readonly maximum: number };
   readonly instances: { readonly maximum: number };
   readonly determinism?: { readonly matches: boolean; readonly workerChecksum: string };
@@ -36,6 +37,7 @@ interface BrowserSummary {
     readonly audioVisualSeparationMs: { readonly p95: number };
     readonly limitation: string;
   } | null;
+  readonly memory?: { readonly beforeBytes: number; readonly afterBytes: number; readonly growthBytes: number } | null;
   readonly errors: number;
 }
 
@@ -116,12 +118,14 @@ This report is evidence from the current development environment only. It cannot
 | Browser whole tick p95 | ${fixed(browser.summary.simulation.wholeTickMs?.p95 ?? 0)} ms | ≤ 4 ms desktop | Diagnostic pass |
 | Main snapshot latency p95 | ${fixed(browser.summary.snapshotLatencyMs.p95)} ms | ≤ 5 ms desktop | Diagnostic pass |
 | Raw WebGL2 CPU submission p95 | ${fixed(browser.summary.renderCpuMs.p95)} ms | GPU/frame budget | Informational; not GPU time |
+| Raw WebGL2 GPU elapsed p95 | ${(browser.summary.renderGpuMs?.samples ?? 0) > 0 ? `${fixed(browser.summary.renderGpuMs!.p95)} ms` : 'unavailable'} | ≤ 5.5 ms desktop | ${(browser.summary.renderGpuMs?.samples ?? 0) > 0 && browser.summary.renderGpuMs!.p95 <= 5.5 ? 'Diagnostic pass' : 'Open'} |
 | Render load | ${browser.summary.drawCalls.maximum} draws / ${browser.summary.instances.maximum} instances | Representative workload | Exercised |
 | Node ↔ simulation Worker checksum | ${browser.summary.determinism?.matches === true ? 'match' : 'missing/mismatch'} | Exact match | ${browser.summary.determinism?.matches === true ? 'Pass' : 'Open'} |
 | Browser consumer stalls | ${browser.summary.transportStalls?.filter((stall) => stall.simulationContinued).length ?? 0}/${browser.summary.transportStalls?.length ?? 0} continued | 50 ms–5 s, both consumers | ${(browser.summary.transportStalls?.every((stall) => stall.simulationContinued) ?? false) ? 'Pass' : 'Open'} |
 | WebGL2 context recovery | ${browser.summary.contextRecovery?.lost === true && browser.summary.contextRecovery.restored ? 'lost and restored' : 'missing/failed'} | Rebuild resources and resume | ${browser.summary.contextRecovery?.restored === true ? 'Pass' : 'Open'} |
 | Instrumented audio mapping p95 | ${Number.isFinite(audioMappingP95) ? `${fixed(audioMappingP95)} ms` : 'missing'} | ≤ 10 ms desktop | ${audioMappingP95 <= 10 ? 'Diagnostic pass' : 'Fail/open'} |
 | Instrumented audio/visual separation p95 | ${Number.isFinite(audioVisualP95) ? `${fixed(audioVisualP95)} ms` : 'missing'} | ≤ 15 ms | ${audioVisualP95 <= 15 ? 'Diagnostic pass' : 'Fail/open'} |
+| JavaScript heap change after probes + GC | ${browser.summary.memory === null || browser.summary.memory === undefined ? 'missing' : `${(browser.summary.memory.growthBytes / 1_048_576).toFixed(2)} MiB`} | Bounded; reset series required | Informational |
 | Browser runtime errors | ${browser.summary.errors} | 0 | ${browser.summary.errors === 0 ? 'Pass' : 'Fail'} |
 
 The Node 6,000-tick run ended at checksum \`${simulation.checksum}\`; its event peak was ${simulation.events.maximum} records/tick. The browser Worker checksum was \`${browser.summary.determinism?.workerChecksum ?? 'not recorded'}\` at its captured final tick and matched a direct Node replay at that same tick.
