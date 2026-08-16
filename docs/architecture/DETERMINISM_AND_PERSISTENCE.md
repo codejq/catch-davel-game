@@ -42,6 +42,8 @@ The level dependency includes the selected canonical validated Appendix A `Level
 
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 
+The offline content workbench exposes a read-only replay inspector around this exact parser/verifier. Pasted or user-selected replay JSON is strictly parsed and then fully re-simulated; recorded/current dependency hashes, periodic checksums, final verification, command compression, movement/fire/weapon usage, and the compressed command timeline remain visible for diagnosis. A stale dependency or checksum mismatch is reported as unverified and never rewritten automatically.
+
 ## Frozen campaign QA
 
 `npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v9. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.

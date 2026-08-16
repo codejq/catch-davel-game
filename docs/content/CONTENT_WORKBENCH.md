@@ -24,6 +24,12 @@ Open the printed local URL with `/tooling.html`. The production build also conta
 6. Choose **Canonical format** before review. A valid edit that changes authoritative content shows `STALE DEPENDENCY`; that is expected until the reviewed source, replay hashes, exports, and frozen references are regenerated together.
 7. **Copy** or **Download JSON** creates review material only. It never writes into the repository. A developer must apply the approved change to the typed source definition and run the generated-export workflow.
 
+## Replay inspection
+
+Paste a replay into the replay editor or choose a local JSON file. **Parse and re-simulate** uses the production replay parser and `GameSimulation`; it does not trust the recorded final result. The report shows identity, tick range, command-run compression, movement/fire/weapon usage, each recorded-versus-current dependency hash, periodic checksums, and the complete compressed command timeline. Stale dependencies and checksum drift preserve the parsed diagnostics but show `NOT VERIFIED` with the exact failure.
+
+**Create deterministic sample** records 180 ticks for the currently selected level and immediately re-simulates them. It is a tool smoke test and format example, not a campaign solvability reference or human balance result.
+
 ## Submission gate
 
 Before submitting a normal level change:

@@ -6,6 +6,9 @@ import type { LevelDefinition, MazeNodeSpec } from '../content/level-definition'
 import { createLevelRuntime } from '../sim/interactions';
 import { levelRows, worldCell } from '../sim/level';
 import { createLevelToolingReport, type LevelToolingReport } from './tooling-model';
+import { inspectReplay, type ReplayInspection } from './replay-inspector-model';
+import { GameSimulation } from '../sim/game';
+import { ReplayRecorder, serializeReplay } from '../replay/replay';
 
 function element<T extends Element>(selector: string): T {
   const result = document.querySelector<T>(selector);
@@ -22,6 +25,12 @@ const graph = element<SVGSVGElement>('#graph');
 const danceHeading = element<HTMLDivElement>('#dance-heading');
 const danceTimeline = element<HTMLDivElement>('#dance-timeline');
 const waves = element<HTMLDivElement>('#waves');
+const replaySource = element<HTMLTextAreaElement>('#replay-source');
+const replayStatus = element<HTMLDivElement>('#replay-status');
+const replaySummary = element<HTMLDListElement>('#replay-summary');
+const replayDependencies = element<HTMLDivElement>('#replay-dependencies');
+const replayChecksums = element<HTMLDivElement>('#replay-checksums');
+const replayCommands = element<HTMLDivElement>('#replay-commands');
 
 for (const levelId of CHAPTER_01_LEVEL_IDS) {
   const option = document.createElement('option');
@@ -200,6 +209,72 @@ function validate(): LevelToolingReport | null {
   }
 }
 
+function addReplaySummary(label: string, value: string): void {
+  const term = document.createElement('dt');
+  const description = document.createElement('dd');
+  term.textContent = label; description.textContent = value;
+  replaySummary.append(term, description);
+}
+
+function renderReplayInspection(inspection: ReplayInspection): void {
+  replaySummary.replaceChildren(); replayDependencies.replaceChildren();
+  replayChecksums.replaceChildren(); replayCommands.replaceChildren();
+  replayStatus.className = inspection.verified ? 'valid' : 'invalid';
+  replayStatus.textContent = inspection.verified
+    ? 'VERIFIED · strict parse, dependencies, periodic checksums, and final checksum agree'
+    : `NOT VERIFIED · ${inspection.verificationError}`;
+  addReplaySummary('Identity', `${inspection.replay.levelId} · ${inspection.replay.seed} · ${inspection.replay.agentRun ? 'agent' : 'human'} run`);
+  addReplaySummary('Ticks', `${inspection.initialTick} → ${inspection.finalTick} · ${inspection.ticksPlayed} played`);
+  addReplaySummary('Compression', `${inspection.commandRunCount} command runs · ${inspection.compressionRatio.toFixed(2)} ticks/run`);
+  addReplaySummary('Activity', `${inspection.movementTicks} movement ticks · ${inspection.fireTicks} fire ticks`);
+  addReplaySummary('Weapons', Object.entries(inspection.weaponSelectionTicks).map(([weapon, ticks]) => `${weapon} ${ticks}`).join(' · '));
+  addReplaySummary('Final checksum', `${inspection.declaredFinalChecksum}${inspection.verifiedFinalChecksum === null ? '' : ' · re-simulated match'}`);
+  for (const dependency of inspection.dependencies) {
+    const row = document.createElement('div');
+    row.className = dependency.matches ? 'dependency-match' : 'dependency-mismatch';
+    row.textContent = `${dependency.name} · ${dependency.recorded}${dependency.matches ? ' ✓' : ` ≠ ${dependency.current}`}`;
+    replayDependencies.append(row);
+  }
+  for (const checksum of inspection.replay.checksums) {
+    const cell = document.createElement('span');
+    cell.textContent = `${checksum.tick}\n${checksum.checksum}`;
+    replayChecksums.append(cell);
+  }
+  for (const [index, run] of inspection.replay.commandRuns.entries()) {
+    const row = document.createElement('div');
+    const command = run.command;
+    row.textContent = `${index + 1}. ticks ${run.startTick}–${run.startTick + run.ticks} (${run.ticks}) · move ${command.forward.toFixed(2)}/${command.strafe.toFixed(2)} · look ${command.yawDelta.toFixed(3)}/${command.pitchDelta.toFixed(3)} · ${command.fire ? 'FIRE' : 'hold'}${command.weapon === null || command.weapon === undefined ? '' : ` · ${command.weapon}`}`;
+    replayCommands.append(row);
+  }
+}
+
+function inspectReplaySource(): void {
+  try {
+    renderReplayInspection(inspectReplay(replaySource.value));
+  } catch (error) {
+    replayStatus.className = 'invalid';
+    replayStatus.textContent = `INVALID REPLAY · ${error instanceof Error ? error.message : String(error)}`;
+  }
+}
+
+function createSampleReplay(): void {
+  const levelId = selectedLevelId();
+  const level = authored(levelId);
+  const simulation = new GameSimulation(level.seed, undefined, undefined, 'campaign', levelId);
+  const recorder = new ReplayRecorder(simulation);
+  recorder.markAgentRun();
+  for (let tick = 0; tick < 180; tick += 1) {
+    const command = {
+      forward: tick < 90 ? 0.8 : 0, strafe: tick >= 90 ? 0.4 : 0,
+      yawDelta: tick % 30 === 0 ? 0.04 : 0, pitchDelta: 0,
+      fire: tick % 24 === 0, altFire: false, weapon: null,
+    } as const;
+    simulation.step(command); recorder.record(command);
+  }
+  replaySource.value = serializeReplay(recorder.finish());
+  inspectReplaySource();
+}
+
 element<HTMLButtonElement>('#load-level').addEventListener('click', () => load());
 element<HTMLButtonElement>('#validate-level').addEventListener('click', () => validate());
 element<HTMLButtonElement>('#format-level').addEventListener('click', () => {
@@ -223,5 +298,12 @@ element<HTMLButtonElement>('#download-level').addEventListener('click', () => {
 });
 select.addEventListener('change', () => load());
 source.addEventListener('input', () => { status.className = 'dirty'; status.textContent = 'EDITED · validate before review or export'; });
+element<HTMLButtonElement>('#sample-replay').addEventListener('click', createSampleReplay);
+element<HTMLButtonElement>('#inspect-replay').addEventListener('click', inspectReplaySource);
+element<HTMLInputElement>('#replay-file').addEventListener('change', async (event) => {
+  const file = (event.currentTarget as HTMLInputElement).files?.[0];
+  if (file === undefined) return;
+  replaySource.value = await file.text(); inspectReplaySource();
+});
 
 load('level-001');

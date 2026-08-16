@@ -121,6 +121,8 @@ try {
   await toolingPage.selectOption('#level-select', 'level-008');
   await toolingPage.waitForFunction(() => document.querySelector('#level-select')?.value === 'level-008'
     && document.querySelector('#validation-status')?.classList.contains('valid') === true);
+  await toolingPage.click('#sample-replay');
+  await toolingPage.waitForFunction(() => document.querySelector('#replay-status')?.classList.contains('valid') === true);
   const toolingProof = await toolingPage.evaluate(() => ({
     authoredLevels: document.querySelectorAll('#level-select option').length,
     mazeCells: document.querySelectorAll('#maze .maze-cell').length,
@@ -128,6 +130,10 @@ try {
     graphNodes: document.querySelectorAll('#graph rect').length,
     danceBeats: document.querySelectorAll('#dance-timeline span').length,
     status: document.querySelector('#validation-status')?.textContent ?? '',
+    replayStatus: document.querySelector('#replay-status')?.textContent ?? '',
+    replayDependencies: document.querySelectorAll('#replay-dependencies .dependency-match').length,
+    replayChecksums: document.querySelectorAll('#replay-checksums span').length,
+    replayCommandRuns: document.querySelectorAll('#replay-commands div').length,
   }));
   await toolingPage.evaluate(() => {
     const source = document.querySelector('#level-source');
@@ -138,7 +144,9 @@ try {
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
   if (toolingProof.authoredLevels !== 10 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
-    || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')) {
+    || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
+    || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1) {
     throw new Error(`Content Workbench did not render the canonical Level 8 projections: ${JSON.stringify(toolingProof)}`);
   }
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');

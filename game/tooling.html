@@ -32,6 +32,20 @@
         <article class="panel graph-panel"><h2>Encounter graph</h2><svg id="graph" viewBox="0 0 900 300" role="img" aria-label="Encounter and lock graph"></svg></article>
         <article class="panel dance-panel"><h2>Dance / combat timeline</h2><div id="dance-heading"></div><div id="dance-timeline"></div><p class="legend"><span class="attack-key"></span> attack beat <span class="vulnerable-key"></span> vulnerable beat</p></article>
         <article class="panel wave-panel"><h2>Waves and budgets</h2><div id="waves"></div></article>
+        <article class="panel replay-panel">
+          <h2>Replay inspector</h2>
+          <div class="toolbar">
+            <input id="replay-file" type="file" accept="application/json,.json" />
+            <button id="sample-replay" type="button">Create deterministic sample</button>
+            <button id="inspect-replay" type="button" class="primary">Parse and re-simulate</button>
+          </div>
+          <textarea id="replay-source" spellcheck="false" aria-label="Replay JSON" placeholder="Paste a Catch Davel replay or load a JSON file"></textarea>
+          <div id="replay-status" role="status" aria-live="polite">NO REPLAY LOADED</div>
+          <dl id="replay-summary"></dl>
+          <h3>Dependency hashes</h3><div id="replay-dependencies"></div>
+          <h3>Checksum timeline</h3><div id="replay-checksums"></div>
+          <h3>Command-run timeline</h3><div id="replay-commands"></div>
+        </article>
       </section>
     </main>
     <footer>Runtime previews use the same committed grid, interaction profiles, validators, and hashes as the production game. Run <code>npm run game:qa:campaign</code> before submission.</footer>
