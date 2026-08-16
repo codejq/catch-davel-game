@@ -38,6 +38,7 @@ import {
 } from '../render/quality';
 import { captionForEvent, relativeCaptionDirection, type CaptionDirection, type CaptionRequest } from './event-captions';
 import { davelBarkRequest, type DavelBarkOccasion } from './davel-barks';
+import { objectiveCompassReading, type ObjectiveCompassTarget } from './objective-compass';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -62,6 +63,10 @@ const INPUT_ACTION_UI_KEYS: Readonly<Record<InputAction, RuntimeUiKey>> = {
 
 const CAPTION_DIRECTION_UI_KEYS: Readonly<Record<CaptionDirection, RuntimeUiKey>> = {
   left: 'directionLeft', center: 'directionCenter', right: 'directionRight',
+};
+
+const COMPASS_TARGET_UI_KEYS: Readonly<Record<ObjectiveCompassTarget, RuntimeUiKey>> = {
+  key: 'compassKey', door: 'compassDoor', checkpoint: 'compassCheckpoint', exit: 'compassExit',
 };
 
 function requireCanvas(): HTMLCanvasElement {
@@ -101,6 +106,9 @@ export async function startBrowserGame(): Promise<void> {
   const runStatsHud = requireElement<HTMLElement>('#run-stats');
   const remainingHud = requireElement<HTMLElement>('#remaining');
   const objectiveTitle = requireElement<HTMLElement>('#objective-title');
+  const objectiveCompass = requireElement<HTMLElement>('#objective-compass');
+  const objectiveCompassTarget = requireElement<HTMLElement>('#objective-compass-target');
+  const objectiveCompassDistance = requireElement<HTMLElement>('#objective-compass-distance');
   const crosshair = requireElement<HTMLElement>('#crosshair');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
   const davelBark = requireElement<HTMLElement>('#davel-bark');
@@ -613,6 +621,17 @@ export async function startBrowserGame(): Promise<void> {
     runScoreHud.textContent = state.run.score.toLocaleString(activeProfile.settings.language);
     runComboHud.textContent = `×${state.run.currentCombo}`;
     runStatsHud.classList.toggle('combo-active', state.run.currentCombo > 1);
+    const compass = bossTraining ? null : objectiveCompassReading(state);
+    objectiveCompass.hidden = compass === null;
+    if (compass !== null) {
+      const target = ui(COMPASS_TARGET_UI_KEYS[compass.target]);
+      const distance = Math.max(0, Math.round(compass.distanceMeters));
+      objectiveCompass.dataset.target = compass.target;
+      objectiveCompass.style.setProperty('--compass-bearing', `${compass.bearingRadians}rad`);
+      objectiveCompassTarget.textContent = target;
+      objectiveCompassDistance.textContent = ui('compassDistance', { distance });
+      objectiveCompass.setAttribute('aria-label', ui('compassAria', { target, distance }));
+    }
     const remaining = state.robots.filter((robot) => robot.active).length;
     remainingHud.textContent = state.victory ? ui('mazeClear')
       : state.level.objectiveComplete ? ui('reachExit')

@@ -165,6 +165,9 @@ try {
     direction: document.documentElement.dir,
     levelName: document.querySelector('#level-name')?.textContent ?? '',
     objective: document.querySelector('#objective')?.textContent ?? '',
+    compassTarget: document.querySelector('#objective-compass-target')?.textContent ?? '',
+    compassDistance: document.querySelector('#objective-compass-distance')?.textContent ?? '',
+    compassAria: document.querySelector('#objective-compass')?.getAttribute('aria-label') ?? '',
     briefing: document.querySelector('#prompt-briefing')?.textContent ?? '',
     failureLabel: document.querySelector('#mission-failed')?.getAttribute('aria-label') ?? '',
     failureTitle: document.querySelector('#mission-failed > small')?.textContent ?? '',
@@ -233,6 +236,9 @@ try {
     || accessibilitySettings.language !== 'ar' || accessibilitySettings.direction !== 'rtl'
     || !accessibilitySettings.levelName.includes('التمايل الأول')
     || !accessibilitySettings.objective.includes('عطّل جميع روبوتات دافل الراقصة')
+    || accessibilitySettings.compassTarget !== 'مفتاح الورشة'
+    || !accessibilitySettings.compassDistance.includes('على بعد')
+    || !accessibilitySettings.compassAria.includes('مفتاح الورشة')
     || !accessibilitySettings.briefing.includes('ادخل الورشة المتوهجة')
     || accessibilitySettings.failureLabel !== 'فشلت المهمة'
     || accessibilitySettings.failureTitle !== 'فشلت المهمة'

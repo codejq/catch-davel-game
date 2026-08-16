@@ -71,6 +71,13 @@ try {
       action: { forward: 0.7, strafe: -0.15, turn: -0.008, look: 0.002, fire: true },
       ticks: 30,
     });
+    const objectiveCompass = {
+      hidden: document.querySelector('#objective-compass')?.hidden,
+      target: document.querySelector('#objective-compass')?.dataset.target,
+      label: document.querySelector('#objective-compass-target')?.textContent,
+      distance: document.querySelector('#objective-compass-distance')?.textContent,
+      aria: document.querySelector('#objective-compass')?.getAttribute('aria-label'),
+    };
     const savedMetrics = api.getMetrics();
     const replay = await api.saveReplay();
     await api.reset({ seed: 'different-agent-seed', mode: 'agent' });
@@ -154,6 +161,7 @@ try {
       realtimeEndTick,
       resetTick: resetObservation.tick,
       steppedTick: steppedObservation.tick,
+      objectiveCompass,
       loadedTick: loadedObservation.tick,
       savedChecksum: savedMetrics.checksum,
       loadedChecksum: loadedMetrics.checksum,
@@ -189,6 +197,11 @@ try {
     [result.realtimeEndTick > result.realtimeStartTick, 'realtime Worker clock did not advance'],
     [result.resetTick === 0, 'agent reset did not begin at tick zero'],
     [result.steppedTick === 30 && result.replayFinalTick === 30, 'agent step/replay tick mismatch'],
+    [result.objectiveCompass.hidden === false && result.objectiveCompass.target === 'key'
+      && result.objectiveCompass.label === 'WORKSHOP KEY'
+      && /\d+ m away/.test(result.objectiveCompass.distance ?? '')
+      && result.objectiveCompass.aria?.includes('meters away'),
+    'localized human objective compass did not follow the live key target'],
     [result.loadedTick === 30, 'loaded replay did not restore its final tick'],
     [result.savedChecksum === result.loadedChecksum, 'loaded replay checksum differs from the saved run'],
     [result.pausedTickAfterWait === result.pausedTick, 'manual agent simulation advanced without an action'],

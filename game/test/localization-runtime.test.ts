@@ -23,6 +23,9 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('ar', 'renderQuality')).toBe('جودة العرض');
     expect(runtimeUiText('en', 'checkpointBanked', { coins: 9 })).toContain('+9 COINS BANKED');
     expect(runtimeUiText('ar', 'pauseHint')).toContain('القذائف');
+    expect(runtimeUiText('en', 'compassAria', { target: 'WORKSHOP KEY', distance: 22 }))
+      .toBe('WORKSHOP KEY, 22 meters away');
+    expect(runtimeUiText('ar', 'compassDistance', { distance: 22 })).toBe('على بعد 22 م');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });
