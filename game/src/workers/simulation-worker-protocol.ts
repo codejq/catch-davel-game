@@ -2,6 +2,8 @@ import type { PlayerCommand } from '../sim/player';
 import type { SimulationSnapshotV1 } from '../sim/serialization';
 import type { SnapshotPoolMetrics } from '../transport/snapshot-pool';
 import type { EventProducerChannel } from '../transport/event-channel';
+import type { AgentObservation } from '../agent/observation';
+import type { ReplayFileV1 } from '../replay/replay';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
@@ -9,6 +11,7 @@ export interface InitializeSimulationWorker {
   readonly snapshotPort: MessagePort;
   readonly eventPort: MessagePort;
   readonly mode?: 'manual' | 'realtime';
+  readonly initialCoins?: number;
 }
 
 export interface StepSimulationWorker {
@@ -22,6 +25,8 @@ export interface ResetSimulationWorker {
   readonly type: 'reset';
   readonly requestId: number;
   readonly seed: string;
+  readonly initialCoins?: number;
+  readonly agentRun?: boolean;
 }
 
 export interface LoadSnapshotSimulationWorker {
@@ -44,16 +49,35 @@ export interface SetSimulationWorkerMode {
   readonly type: 'set-mode';
   readonly requestId: number;
   readonly mode: 'manual' | 'realtime';
+  readonly agentRun?: boolean;
+}
+
+export interface SaveReplaySimulationWorker {
+  readonly type: 'save-replay';
+  readonly requestId: number;
+}
+
+export interface LoadReplaySimulationWorker {
+  readonly type: 'load-replay';
+  readonly requestId: number;
+  readonly replay: ReplayFileV1 | string;
+}
+
+export interface GetStatusSimulationWorker {
+  readonly type: 'get-status';
+  readonly requestId: number;
 }
 
 export type SimulationWorkerRequest = InitializeSimulationWorker | StepSimulationWorker | ResetSimulationWorker
-  | LoadSnapshotSimulationWorker | InputSimulationWorker | SetSimulationWorkerMode;
+  | LoadSnapshotSimulationWorker | InputSimulationWorker | SetSimulationWorkerMode
+  | SaveReplaySimulationWorker | LoadReplaySimulationWorker | GetStatusSimulationWorker;
 
 export interface SimulationWorkerReady {
   readonly type: 'ready';
   readonly generation: number;
   readonly tick: number;
   readonly mode: 'manual' | 'realtime';
+  readonly observation: AgentObservation;
 }
 
 export interface SimulationWorkerComplete {
@@ -65,6 +89,15 @@ export interface SimulationWorkerComplete {
   readonly checksum: string;
   readonly transport: SnapshotPoolMetrics;
   readonly events: ReturnType<EventProducerChannel['metrics']>;
+  readonly observation: AgentObservation;
+  readonly commandRuns: number;
+  readonly checksumRecords: number;
+}
+
+export interface SimulationWorkerReplay {
+  readonly type: 'replay';
+  readonly requestId: number;
+  readonly replay: ReplayFileV1;
 }
 
 export interface SimulationWorkerFailure {
@@ -73,7 +106,7 @@ export interface SimulationWorkerFailure {
   readonly message: string;
 }
 
-export type SimulationWorkerResponse = SimulationWorkerReady | SimulationWorkerComplete | SimulationWorkerFailure;
+export type SimulationWorkerResponse = SimulationWorkerReady | SimulationWorkerComplete | SimulationWorkerReplay | SimulationWorkerFailure;
 
 export interface WorkerSnapshotMessage {
   readonly type: 'snapshot';

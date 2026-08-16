@@ -38,10 +38,15 @@ try {
   const result = await page.evaluate(async () => {
     const seed = 'worker-determinism-proof';
     const action = { forward: 0.65, strafe: -0.2, turn: 0.001, look: 0, fire: false };
-    const api = window.CatchDavelAgent;
-    api.reset({ seed });
-    await api.step({ action, ticks: 240 });
-    const directChecksum = api.getMetrics().checksum;
+    const [{ GameSimulation }, { stateChecksum }] = await Promise.all([
+      import('/src/sim/game.ts'),
+      import('/src/sim/serialization.ts'),
+    ]);
+    const direct = new GameSimulation(seed);
+    for (let tick = 0; tick < 240; tick += 1) {
+      direct.step({ forward: action.forward, strafe: action.strafe, yawDelta: action.turn, pitchDelta: action.look, fire: action.fire });
+    }
+    const directChecksum = stateChecksum(direct.state);
     const worker = new Worker(new URL('/src/workers/simulation.worker.ts', location.href), { type: 'module' });
     const channel = new MessageChannel();
     const eventChannel = new MessageChannel();

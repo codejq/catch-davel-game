@@ -3,7 +3,9 @@
 import { GameSimulation } from '../sim/game';
 import { FIXED_DT_SECONDS } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
-import { stateChecksum } from '../sim/serialization';
+import { createObservation } from '../agent/observation';
+import { ReplayRecorder, parseReplay, verifyReplay } from '../replay/replay';
+import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 import { writeRenderSnapshot } from '../transport/render-snapshot';
 import { SnapshotProducerPool } from '../transport/snapshot-pool';
 import { EventProducerChannel } from '../transport/event-channel';
@@ -30,6 +32,7 @@ let movementStrafe = 0;
 let pendingYawDelta = 0;
 let pendingPitchDelta = 0;
 let fireLatched = false;
+let recorder: ReplayRecorder | null = null;
 
 function post(message: SimulationWorkerResponse): void { scope.postMessage(message); }
 function realmTimestamp(): number { return performance.timeOrigin + performance.now(); }
@@ -99,9 +102,11 @@ function configurePorts(snapshotMessagePort: MessagePort, eventMessagePort: Mess
   eventMessagePort.start();
 }
 
-function resetRuntime(seed: string): void {
+function resetRuntime(seed: string, initialCoins = 0, agentRun = false): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
+  if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
   simulation = new GameSimulation(seed);
+  simulation.state.player.coins = initialCoins;
   generation += 1;
   snapshotPool = new SnapshotProducerPool();
   eventChannel = new EventProducerChannel();
@@ -113,12 +118,15 @@ function resetRuntime(seed: string): void {
   pendingYawDelta = 0;
   pendingPitchDelta = 0;
   fireLatched = false;
+  recorder = new ReplayRecorder(simulation);
+  if (agentRun) recorder.markAgentRun();
   stageSnapshot();
 }
 
 function executeTick(command: PlayerCommand): void {
   if (simulation === null) throw new Error('Simulation Worker is not initialized');
   simulation.step(command);
+  recorder?.record(command);
   eventChannel.enqueue(simulation.state.events);
   stageSnapshot();
   publishEventBatches();
@@ -165,9 +173,13 @@ function setMode(nextMode: 'manual' | 'realtime'): void {
 
 function postComplete(requestId: number): void {
   if (simulation === null) throw new Error('Simulation Worker is not initialized');
+  const replay = recorder?.finish();
   post({
     type: 'complete', requestId, generation, tick: simulation.state.tick, mode,
     checksum: stateChecksum(simulation.state), transport: snapshotPool.metrics(), events: eventChannel.metrics(),
+    observation: createObservation(simulation.state),
+    commandRuns: replay?.commandRuns.length ?? 0,
+    checksumRecords: replay?.checksums.length ?? 0,
   });
 }
 
@@ -176,9 +188,9 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
   try {
     if (request.type === 'initialize') {
       configurePorts(request.snapshotPort, request.eventPort);
-      resetRuntime(request.seed);
+      resetRuntime(request.seed, request.initialCoins ?? 0);
       setMode(request.mode ?? 'manual');
-      post({ type: 'ready', generation, tick: simulation!.state.tick, mode });
+      post({ type: 'ready', generation, tick: simulation!.state.tick, mode, observation: createObservation(simulation!.state) });
       return;
     }
     if (simulation === null || snapshotPort === null) throw new Error('Simulation Worker received a request before initialization');
@@ -195,11 +207,36 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
     }
     if (request.type === 'set-mode') {
       setMode(request.mode);
+      if (request.agentRun === true) recorder?.markAgentRun();
+      postComplete(request.requestId);
+      return;
+    }
+    if (request.type === 'save-replay') {
+      post({ type: 'replay', requestId: request.requestId, replay: recorder!.finish() });
+      return;
+    }
+    if (request.type === 'load-replay') {
+      setMode('manual');
+      const replay = typeof request.replay === 'string' ? parseReplay(request.replay) : request.replay;
+      const verified = verifyReplay(replay);
+      simulation.loadSnapshot(createSimulationSnapshot(verified.simulation.state));
+      generation += 1;
+      snapshotPool = new SnapshotProducerPool();
+      eventChannel = new EventProducerChannel();
+      stagedTick = -1;
+      publishedTick = -1;
+      recorder = new ReplayRecorder(simulation);
+      recorder.markAgentRun();
+      stageSnapshot();
+      postComplete(request.requestId);
+      return;
+    }
+    if (request.type === 'get-status') {
       postComplete(request.requestId);
       return;
     }
     if (request.type === 'reset') {
-      resetRuntime(request.seed);
+      resetRuntime(request.seed, request.initialCoins ?? 0, request.agentRun === true);
     } else if (request.type === 'load-snapshot') {
       simulation.loadSnapshot(request.snapshot);
       generation += 1;
@@ -207,6 +244,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       eventChannel = new EventProducerChannel();
       stagedTick = -1;
       publishedTick = -1;
+      recorder = new ReplayRecorder(simulation);
       stageSnapshot();
     } else if (request.type === 'step') {
       if (mode !== 'manual') throw new Error('Explicit Worker steps require manual mode');

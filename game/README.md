@@ -17,26 +17,29 @@ Validation commands:
 ```powershell
 npm run game:build
 npm run game:test
+npm run game:test:worker
+npm run game:test:runtime
 ```
 
 ## LLM/browser-agent control
 
 Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.
 
-The same `GameSimulation` used by the human controller is available through `window.CatchDavelAgent` in an enabled build:
+The same Worker-owned `GameSimulation` used by the human controller is available through `window.CatchDavelAgent` in an enabled build:
 
 ```js
 const api = window.CatchDavelAgent;
-api.reset({ levelId: 'level-001', seed: 'example', difficulty: 'standard', mode: 'agent' });
+await api.reset({ levelId: 'level-001', seed: 'example', difficulty: 'standard', mode: 'agent' });
 const map = api.level();
 const before = api.observe();
 const after = await api.step({
   action: { forward: 1, strafe: 0, turn: -0.02, look: 0, fire: false },
   ticks: 12,
 });
-const replay = api.saveReplay();
-api.reset({ seed: 'another-run' });
-api.loadReplay(replay); // validates dependencies and every recorded checksum
+const replay = await api.saveReplay();
+await api.reset({ seed: 'another-run' });
+await api.loadReplay(replay); // validates dependencies and every recorded checksum
+await api.releaseControl(); // starts a clean human session from durable profile state
 ```
 
 Calling `act` or `step` transfers control to the agent. Simulation time advances only for queued action ticks and pauses between requests, so model latency cannot change authoritative results. `releaseControl` returns to real-time human input once the queue is empty. Agent sessions are marked in replays and never write campaign coins, medals, attempts, or other human profile progress.
@@ -61,5 +64,6 @@ The version-1 observation includes the tick/seed, player pose and resources, sta
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, and agent-visible trajectories;
 - deterministic simulation/agent contracts covered by automated tests.
 - canonical snapshots/checksums, verified replay playback, and IndexedDB profile recovery.
+- Worker-owned 60 Hz authority with bounded snapshot/event transport; the main thread handles only input, HUD/audio feedback, persistence, and raw-WebGL2 presentation.
 
 Physical-device evidence is not an implementation prerequisite. It remains required before a release claims support for the corresponding platform.

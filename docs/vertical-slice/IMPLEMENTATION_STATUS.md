@@ -23,10 +23,11 @@ Implementation is active. Missing physical devices do not block development; the
 - Agent sessions are replay-marked and isolated from human campaign persistence.
 - Fixed 6,332-byte self-contained `RenderSnapshot` v1 with capacity for 24 Davels and 64 projectiles, transport epoch/high-watermark metadata, and a renderer-facing model decoupled from mutable authority.
 - Bounded three-buffer snapshot ownership with tested `producerOwned >= 1`, `inFlight <= 2`, coalescing, newest-state delivery, and independent consumer copies.
-- The live main-thread renderer now consumes the decoded immutable snapshot contract; simulation/render Worker hosting remains the next topology step.
+- The live main-thread renderer consumes only decoded immutable Worker snapshots; no authoritative `GameSimulation` runs in the browser entry point.
 - Production simulation Worker adapter uses the same `GameSimulation`, supports seeded reset/manual action batches/checkpoint loading, publishes through the bounded pool, and generation-tags returns across resets.
 - The Worker also owns an autonomous 60 Hz clock with bounded catch-up, persistent movement input, one-shot look/fire latches, and independent snapshot/event ports.
 - Ordered event transport uses fixed records, stable deduplicated IDs, tick correlation, acknowledgement only after presentation, one credited batch, presentation-first overflow eviction, and epoch/resync handling for critical overflow.
+- Human input, the LLM API, replay save/load, observations, and status queries now all use the same live Simulation Worker authority. Releasing agent control resets a clean human session from durable profile coins before realtime ticking resumes.
 
 ## Verification evidence
 
@@ -40,13 +41,14 @@ Implementation is active. Missing physical devices do not block development; the
 - Production API check: the default built artifact loaded with profile storage ready and did not expose `window.CatchDavelAgent`.
 - Worker determinism/stall check: a 240-tick browser Worker run matched the direct checksum, retained two in-flight/one producer-owned buffer, coalesced 239 snapshots under a deliberate consumer stall, and delivered tick 240 when capacity returned.
 - Autonomous-clock check: while the main browser thread was deliberately blocked for 300 ms, the simulation Worker advanced 18 fixed ticks, coalesced 17 snapshots, and delivered its newest tick 259 after recovery.
+- Live-runtime check: realtime advanced 18 ticks in 300 ms, the agent reset and stepped exactly to tick 30, replay reload restored checksum `633197248e47eb17`, manual mode stayed paused during a 250 ms think interval, the human IndexedDB profile did not change, and releasing control resumed realtime ticking.
 - Visual inspection confirmed a bright continuous floor, bounded colorful corridors, readable HUD/gun, rounded connected robot parts, angry-comic faces, and visible size/proportion differences.
 
 These are development/CI results, not physical-device release certification.
 
 ## Next implementation work
 
-1. Add Worker/OffscreenCanvas production transport using the already-proven bounded three-buffer transport contract.
+1. Add the optional OffscreenCanvas render Worker while retaining the required main-thread renderer fallback.
 2. Add richer combat AI states, pickups, and a complete exit/win flow.
 3. Add campaign level data, validators, automated agent scenarios, and the frozen checksum benchmark manifest.
 4. Add Tauri desktop/mobile packaging and its app-data save adapter before platform release certification.

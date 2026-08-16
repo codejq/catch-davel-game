@@ -8,7 +8,8 @@
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "test": "vitest run",
-    "test:worker": "node scripts/verify-worker.mjs"
+    "test:worker": "node scripts/verify-worker.mjs",
+    "test:runtime": "vite build && node scripts/verify-live-runtime.mjs && node scripts/verify-production-runtime.mjs"
   },
   "devDependencies": {
     "@types/node": "26.2.0",

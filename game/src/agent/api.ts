@@ -31,13 +31,13 @@ export interface CatchDavelAgentApi {
   readonly version: 1;
   getVersion(): { readonly apiVersion: 1; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
-  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): AgentObservation;
+  reset(options?: { readonly levelId?: 'level-001'; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent' }): Promise<AgentObservation>;
   observe(): AgentObservation;
   level(): ReturnType<typeof levelObservation>;
   act(action: AgentAction, ticks?: number): Promise<AgentObservation>;
   step(request: { readonly action: AgentAction; readonly ticks?: number }): Promise<AgentObservation>;
-  saveReplay(): ReplayFileV1;
-  loadReplay(replay: ReplayFileV1 | string): AgentObservation;
+  saveReplay(): Promise<ReplayFileV1>;
+  loadReplay(replay: ReplayFileV1 | string): Promise<AgentObservation>;
   getMetrics(): {
     readonly tick: number;
     readonly checksum: string;
@@ -46,7 +46,7 @@ export interface CatchDavelAgentApi {
     readonly controlled: boolean;
     readonly queuedActions: number;
   };
-  releaseControl(): void;
+  releaseControl(): Promise<void>;
   replayLog(): readonly ReplayEntry[];
 }
 
@@ -56,7 +56,7 @@ function finiteBounded(value: number | undefined, minimum: number, maximum: numb
   return Math.max(minimum, Math.min(maximum, value));
 }
 
-function normalizeAction(action: AgentAction): Required<AgentAction> {
+export function normalizeAgentAction(action: AgentAction): Required<AgentAction> {
   return {
     forward: finiteBounded(action.forward, -1, 1),
     strafe: finiteBounded(action.strafe, -1, 1),
@@ -64,6 +64,20 @@ function normalizeAction(action: AgentAction): Required<AgentAction> {
     look: finiteBounded(action.look, -0.12, 0.12),
     fire: action.fire === true,
   };
+}
+
+export function agentActionSchema(): Readonly<Record<string, unknown>> {
+  return Object.freeze({
+    type: 'object',
+    additionalProperties: false,
+    properties: Object.freeze({
+      forward: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
+      strafe: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
+      turn: Object.freeze({ type: 'number', minimum: -0.2, maximum: 0.2 }),
+      look: Object.freeze({ type: 'number', minimum: -0.12, maximum: 0.12 }),
+      fire: Object.freeze({ type: 'boolean' }),
+    }),
+  });
 }
 
 export class AgentController {
@@ -82,24 +96,14 @@ export class AgentController {
     const api: CatchDavelAgentApi = {
       version: 1,
       getVersion: () => ({ apiVersion: 1, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
-      getActionSchema: () => Object.freeze({
-        type: 'object',
-        additionalProperties: false,
-        properties: Object.freeze({
-          forward: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
-          strafe: Object.freeze({ type: 'number', minimum: -1, maximum: 1 }),
-          turn: Object.freeze({ type: 'number', minimum: -0.2, maximum: 0.2 }),
-          look: Object.freeze({ type: 'number', minimum: -0.12, maximum: 0.12 }),
-          fire: Object.freeze({ type: 'boolean' }),
-        }),
-      }),
-      reset: (options = {}) => this.resetSession(options),
+      getActionSchema: () => agentActionSchema(),
+      reset: async (options = {}) => this.resetSession(options),
       observe: () => createObservation(this.simulation.state),
       level: () => levelObservation(),
       act: (action, ticks = 1) => this.enqueue(action, ticks),
       step: (request) => this.enqueue(request.action, request.ticks ?? 1),
-      saveReplay: () => this.recorder.finish(),
-      loadReplay: (replay) => this.loadReplay(replay),
+      saveReplay: async () => this.recorder.finish(),
+      loadReplay: async (replay) => this.loadReplay(replay),
       getMetrics: () => {
         const replay = this.recorder.finish();
         return {
@@ -111,7 +115,7 @@ export class AgentController {
           queuedActions: this.queue.length,
         };
       },
-      releaseControl: () => this.release(),
+      releaseControl: async () => this.release(),
       replayLog: () => this.replay.map((entry) => ({ ...entry, action: { ...entry.action } })),
     };
     Object.freeze(api);
@@ -145,7 +149,7 @@ export class AgentController {
 
   private enqueue(action: AgentAction, ticksValue: number): Promise<AgentObservation> {
     if (!Number.isInteger(ticksValue) || ticksValue < 1 || ticksValue > 600) throw new Error('Agent ticks must be an integer from 1 to 600');
-    const normalized = normalizeAction(action);
+    const normalized = normalizeAgentAction(action);
     this.controlled = true;
     this.recorder.markAgentRun();
     this.replay.push({ tick: this.simulation.state.tick, ticks: ticksValue, action: normalized });
