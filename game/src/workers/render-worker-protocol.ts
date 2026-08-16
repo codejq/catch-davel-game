@@ -1,4 +1,5 @@
 import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
+import type { PulseEnergyCellEffect } from '../render/presentation-particles';
 
 export type RenderWorkerRequest = {
   readonly type: 'initialize';
@@ -16,6 +17,11 @@ export type RenderWorkerRequest = {
   readonly sequence: number;
   readonly state: RenderGameState;
   readonly settings: RenderPresentationSettings;
+} | {
+  readonly type: 'pulse-energy-cell';
+  readonly effect: PulseEnergyCellEffect;
+} | {
+  readonly type: 'clear-presentation-effects';
 };
 
 export type RenderWorkerResponse = {

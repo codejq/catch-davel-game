@@ -6,6 +6,7 @@ import {
 import { WorldRenderer } from './world-renderer';
 import type { RenderWorkerRequest, RenderWorkerResponse } from '../workers/render-worker-protocol';
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
+import type { PulseEnergyCellEffect } from './presentation-particles';
 
 export type RendererMode = 'offscreen-worker' | 'main-thread-fallback';
 
@@ -14,6 +15,8 @@ export interface RendererHost {
   readonly mode: RendererMode;
   resize(): void;
   setQuality(quality: RenderQualityTier): void;
+  emitPulseEnergyCell(effect: PulseEnergyCellEffect): void;
+  clearPresentationEffects(): void;
   present(state: RenderGameState, settings?: RenderPresentationSettings): void;
   dispose(): void;
 }
@@ -59,6 +62,13 @@ class MainThreadRendererHost implements RendererHost {
     this.quality = quality;
     this.resize();
   }
+
+  emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
+    this.renderer.emitPulseEnergyCell(effect);
+    if (this.previousState !== null && !this.contextLost) this.renderer.render(this.previousState, this.previousSettings);
+  }
+
+  clearPresentationEffects(): void { this.renderer.clearPresentationEffects(); }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     if (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
@@ -130,6 +140,18 @@ class OffscreenRendererHost implements RendererHost {
     if (quality === this.quality) return;
     this.quality = quality;
     this.resize();
+  }
+
+  emitPulseEnergyCell(effect: PulseEnergyCellEffect): void {
+    if (this.disposed) return;
+    this.worker.postMessage({ type: 'pulse-energy-cell', effect } satisfies RenderWorkerRequest);
+    this.pending = this.latest;
+    this.flush();
+  }
+
+  clearPresentationEffects(): void {
+    if (this.disposed) return;
+    this.worker.postMessage({ type: 'clear-presentation-effects' } satisfies RenderWorkerRequest);
   }
 
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {

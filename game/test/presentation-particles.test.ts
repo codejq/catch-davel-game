@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
-  MECHANICAL_FRAGMENT_DURATION_TICKS, fireballSmokePuff, mechanicalFragmentSegment,
+  MECHANICAL_FRAGMENT_DURATION_TICKS, PULSE_ENERGY_CELL_CAPACITY, PULSE_ENERGY_CELL_DURATION_TICKS,
+  PulseEnergyCellTracker, createPulseEnergyCellEffect, fireballSmokePuff, mechanicalFragmentSegment,
+  pulseEnergyCellSegment,
 } from '../src/render/presentation-particles';
 
 describe('bounded raw-WebGL2 presentation particles', () => {
@@ -38,5 +40,45 @@ describe('bounded raw-WebGL2 presentation particles', () => {
       + (near.y - projectile.y) * projectile.velocityY + (near.z - projectile.z) * projectile.velocityZ;
     expect(nearTrailDot).toBeLessThan(0);
     expect(far.radius).toBeGreaterThan(near.radius);
+  });
+
+  it('ejects one deterministic finite pulse energy cell from the first-person weapon side', () => {
+    const effect = createPulseEnergyCellEffect(40, { x: 3, z: 7, yaw: 0, pitch: 0 });
+    const early = pulseEnergyCellSegment(effect, 41, 1)!;
+    const late = pulseEnergyCellSegment(effect, 52, 1)!;
+    expect(early).toEqual(pulseEnergyCellSegment(effect, 41, 1));
+    expect(Object.values(late).flatMap((value) => (
+      typeof value === 'object' ? Object.values(value) : [value]
+    )).every(Number.isFinite)).toBe(true);
+    expect(late.center.x).toBeGreaterThan(early.center.x);
+    expect(pulseEnergyCellSegment(effect, 40 + PULSE_ENERGY_CELL_DURATION_TICKS, 1)).toBeNull();
+  });
+
+  it('keeps reduced-motion cell feedback visible while removing its exaggerated arc', () => {
+    const effect = createPulseEnergyCellEffect(10, { x: 0, z: 0, yaw: 0.7, pitch: -0.1 });
+    const full = pulseEnergyCellSegment(effect, 20, 1)!;
+    const reduced = pulseEnergyCellSegment(effect, 20, 0)!;
+    expect(full.center.y).toBeGreaterThan(reduced.center.y);
+    expect(reduced.radius).toBeGreaterThan(0);
+    expect(reduced.glowRadius).toBeGreaterThan(0);
+  });
+
+  it('deduplicates, bounds, expires, clears, and rewind-clears renderer-local cells', () => {
+    const tracker = new PulseEnergyCellTracker();
+    const player = { x: 0, z: 0, yaw: 0, pitch: 0 };
+    tracker.emit(createPulseEnergyCellEffect(1, player));
+    tracker.emit(createPulseEnergyCellEffect(1, player));
+    expect(tracker.update(1)).toHaveLength(1);
+    for (let tick = 2; tick <= PULSE_ENERGY_CELL_CAPACITY + 2; tick += 1) {
+      tracker.emit(createPulseEnergyCellEffect(tick, player));
+    }
+    expect(tracker.update(PULSE_ENERGY_CELL_CAPACITY + 2)).toHaveLength(PULSE_ENERGY_CELL_CAPACITY);
+    expect(tracker.update(1)).toHaveLength(0);
+    tracker.emit(createPulseEnergyCellEffect(5, player));
+    expect(tracker.update(5)).toHaveLength(1);
+    expect(tracker.update(5 + PULSE_ENERGY_CELL_DURATION_TICKS)).toHaveLength(0);
+    tracker.emit(createPulseEnergyCellEffect(50, player));
+    tracker.clear();
+    expect(tracker.update(50)).toHaveLength(0);
   });
 });

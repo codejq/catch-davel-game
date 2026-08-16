@@ -80,6 +80,7 @@ try {
       burstShots: steppedObservation.player.pulseBurstShots,
       radians: steppedObservation.player.pulseSpreadRadians,
       crosshairScale: document.querySelector('#crosshair')?.style.getPropertyValue('--pulse-spread-scale'),
+      energyCellTick: Number(document.body.dataset.pulseEnergyCellTick),
     };
     const objectiveCompass = {
       hidden: document.querySelector('#objective-compass')?.hidden,
@@ -332,8 +333,10 @@ try {
       && result.weakPointProof.damageMultiplier === 1.5 && result.weakPointProof.coinMultiplier === 2,
     'live Worker/presentation boundary did not expose the authored weak-point window'],
     [result.pulseSpreadProof.burstShots >= 2 && result.pulseSpreadProof.radians > 0
-      && Number(result.pulseSpreadProof.crosshairScale) > 1,
-    'authoritative pulse spread did not reach the LLM observation and human crosshair'],
+      && Number(result.pulseSpreadProof.crosshairScale) > 1
+      && Number.isFinite(result.pulseSpreadProof.energyCellTick)
+      && result.pulseSpreadProof.energyCellTick <= result.steppedTick,
+    'authoritative pulse spread did not reach the LLM observation, human crosshair, and 3D cell effect'],
     [result.levelEightProof.levelId === 'level-008' && result.levelEightProof.replayLevelId === 'level-008'
       && result.levelEightProof.observedLevelId === 'level-008', 'Level 8 identity did not cross the Worker/observation/replay boundary'],
     [result.levelEightProof.seed === 'campaign-level-008-v1' && result.levelEightProof.count === 8,

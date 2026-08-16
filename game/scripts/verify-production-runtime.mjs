@@ -349,7 +349,9 @@ try {
   }
   await page.mouse.down();
   await page.waitForFunction(() => document.querySelector('#sound-captions span')?.textContent?.includes('طلقة نبضية'));
+  await page.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
   const captionProof = await page.locator('#sound-captions span').first().textContent();
+  const pulseEnergyCellProof = await page.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
   await page.mouse.up();
   await page.evaluate(() => {
     window.__catchDavelTestVisibility = 'hidden';
@@ -442,6 +444,11 @@ try {
   }));
   if (!fallback.webgl2 || fallback.mode !== 'main-thread-fallback') throw new Error('Main-thread WebGL2 fallback did not initialize');
   if (fallback.agentApiExposed) throw new Error('Fallback production build exposed the mutation-capable agent API');
+  await fallbackPage.click('#game');
+  await fallbackPage.mouse.down();
+  await fallbackPage.waitForFunction(() => Number.isFinite(Number(document.body.dataset.pulseEnergyCellTick)));
+  const fallbackPulseEnergyCellTick = await fallbackPage.evaluate(() => Number(document.body.dataset.pulseEnergyCellTick));
+  await fallbackPage.mouse.up();
   const contextLossStartTick = fallback.tick;
   const supportsContextLoss = await fallbackPage.evaluate(() => {
     const gl = document.querySelector('#game')?.getContext('webgl2');
@@ -608,9 +615,10 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof, danceBeatProof, profileTransfer,
+    passed: true, ...result, gamepadDetected, pauseFlow, campaignFlow, accessibilitySettings, captionProof,
+    pulseEnergyCellProof, danceBeatProof, profileTransfer,
     ambienceProof, lifecycle, browserErrors: errors,
-    fallback: { ...fallback, contextRecovery, browserErrors: fallbackErrors },
+    fallback: { ...fallback, pulseEnergyCellTick: fallbackPulseEnergyCellTick, contextRecovery, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },
     tooling: { ...toolingProof, rejectsUnknownField, browserErrors: toolingErrors },

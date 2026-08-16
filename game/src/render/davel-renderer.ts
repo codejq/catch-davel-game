@@ -8,7 +8,10 @@ import type { RenderGameState, RenderRobotState } from './render-model';
 import { davelExpression, type DavelExpression } from './davel-expression';
 import { davelAccessory } from './davel-accessory';
 import { CoinBurstTracker, coinBurstPoint } from './coin-burst';
-import { fireballSmokePuff, mechanicalFragmentSegment } from './presentation-particles';
+import {
+  PulseEnergyCellTracker, fireballSmokePuff, mechanicalFragmentSegment, pulseEnergyCellSegment,
+  type PulseEnergyCellEffect,
+} from './presentation-particles';
 import { isDanceWeakPointActive } from '../sim/dance-timing';
 import { weakPointPosition, weakPointRadius } from '../sim/weak-point';
 
@@ -297,6 +300,7 @@ export class DavelRenderer {
   private readonly spheres: InstanceBatch;
   private readonly capsules: InstanceBatch;
   private readonly coinBursts = new CoinBurstTracker();
+  private readonly pulseEnergyCells = new PulseEnergyCellTracker();
 
   constructor(private readonly gl: WebGL2RenderingContext) {
     this.program = createProgram(gl);
@@ -306,6 +310,10 @@ export class DavelRenderer {
     this.spheres = new InstanceBatch(gl, createSphere(), 1024);
     this.capsules = new InstanceBatch(gl, createCapsule(), 512);
   }
+
+  emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.pulseEnergyCells.emit(effect); }
+
+  clearPresentationEffects(): void { this.pulseEnergyCells.clear(); }
 
   render(
     state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1,
@@ -329,6 +337,14 @@ export class DavelRenderer {
           fragmentIndex % 2 === 0 ? [0.24, 0.3, 0.4] : [0.52, 0.24, 0.12],
         );
       }
+    }
+    for (const effect of this.pulseEnergyCells.update(state.tick)) {
+      const cell = pulseEnergyCellSegment(effect, state.tick, motionScale);
+      if (cell === null) continue;
+      this.addCapsule(cell.start, cell.end, cell.radius, [0.08, 0.28, 0.42]);
+      this.addSphere(cell.center, cell.glowRadius, [0.24, 1, 0.96], 0.72, 0.72);
+      this.addSphere(cell.start, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
+      this.addSphere(cell.end, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
     }
     for (const robot of state.robots) {
       if (robot.active) this.addRobot(

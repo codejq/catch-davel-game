@@ -48,6 +48,9 @@ import { applyHumanAimAssist } from './human-aim-assist';
 import { DavelMovementAudioSequencer } from './davel-movement-audio';
 import { danceBeatPresentation, type DanceBeatPhase } from './dance-beat-presentation';
 import { PULSE_MAX_SPREAD_RADIANS } from '../sim/combat';
+import {
+  PULSE_ENERGY_CELL_DURATION_TICKS, createPulseEnergyCellEffect,
+} from '../render/presentation-particles';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -265,6 +268,28 @@ export async function startBrowserGame(): Promise<void> {
   let agentController: WorkerAgentController;
   const feedbackTimers = new Map<string, number>();
   const captionTimers = new Map<string, number>();
+  const pendingPulseEffectTicks: number[] = [];
+
+  const emitPulseEffect = (tick: number, state: RenderGameState): void => {
+    if (state.tick - tick >= PULSE_ENERGY_CELL_DURATION_TICKS) return;
+    renderer.emitPulseEnergyCell(createPulseEnergyCellEffect(tick, state.player));
+    document.body.dataset.pulseEnergyCellTick = String(tick);
+  };
+
+  const queuePulseEffect = (tick: number): void => {
+    if (renderState !== null && renderState.tick >= tick) {
+      emitPulseEffect(tick, renderState);
+      return;
+    }
+    if (!pendingPulseEffectTicks.includes(tick)) pendingPulseEffectTicks.push(tick);
+    if (pendingPulseEffectTicks.length > 4) pendingPulseEffectTicks.shift();
+  };
+
+  const flushPulseEffects = (state: RenderGameState): void => {
+    while (pendingPulseEffectTicks.length > 0 && pendingPulseEffectTicks[0]! <= state.tick) {
+      emitPulseEffect(pendingPulseEffectTicks.shift()!, state);
+    }
+  };
 
   const localized = (key: string): string => localizedContentString(activeProfile.settings.language, key);
   const ui = (key: RuntimeUiKey, parameters?: Readonly<Record<string, string | number>>): string => (
@@ -774,7 +799,7 @@ export async function startBrowserGame(): Promise<void> {
         navigator.vibrate(feedback.vibration as number | number[]);
       }
     }
-    if (event.type === 'pulse-fired') sound('pulse');
+    if (event.type === 'pulse-fired') { queuePulseEffect(event.tick); sound('pulse'); }
     if (event.type === 'sword-swung' || event.type === 'sword-charged') sound(event.type === 'sword-charged' ? 'charged-sword' : 'sword');
     if (event.type === 'projectile-deflected') sound('deflect');
     if (event.type === 'bomb-thrown') sound('bomb-throw');
@@ -897,7 +922,12 @@ export async function startBrowserGame(): Promise<void> {
     difficulty: activeProfile.settings.difficulty,
     callbacks: {
       onSnapshot: (state) => {
+        if (renderState !== null && (state.tick < renderState.tick || state.levelId !== renderState.levelId)) {
+          pendingPulseEffectTicks.length = 0;
+          renderer.clearPresentationEffects();
+        }
         renderState = state;
+        flushPulseEffects(state);
         updateHud(state);
         const activeRobots = state.robots.filter((robot) => robot.active).length;
         const combatIntensity = Math.min(1, 0.22 + activeRobots / Math.max(1, state.robots.length) * 0.58
@@ -921,6 +951,8 @@ export async function startBrowserGame(): Promise<void> {
       onEvent: processEvent,
       onResync: (state) => {
         davelMovementAudio.reset();
+        pendingPulseEffectTicks.length = 0;
+        renderer.clearPresentationEffects();
         renderState = state;
         updateHud(state);
         showMessage(ui('resynchronized'));

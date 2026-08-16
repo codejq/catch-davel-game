@@ -47,6 +47,14 @@ scope.onmessage = (event: MessageEvent<RenderWorkerRequest>) => {
       if (!contextLost) renderer.resize(cssWidth, cssHeight, pixelRatio);
       return;
     }
+    if (request.type === 'pulse-energy-cell') {
+      if (!contextLost) renderer.emitPulseEnergyCell(request.effect);
+      return;
+    }
+    if (request.type === 'clear-presentation-effects') {
+      renderer.clearPresentationEffects();
+      return;
+    }
     if (!contextLost) renderer.render(request.state, request.settings);
     post({ type: 'frame-presented', sequence: request.sequence, tick: request.state.tick });
   } catch (error) {

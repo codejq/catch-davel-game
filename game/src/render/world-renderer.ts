@@ -12,6 +12,7 @@ import type { Chapter01LevelId } from '../content/level-ids';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
 import { freezeDanceWindow } from '../sim/level-mechanics';
+import type { PulseEnergyCellEffect } from './presentation-particles';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -157,6 +158,10 @@ export class WorldRenderer {
     this.canvas.width = Math.max(1, Math.floor(width * pixelRatio));
     this.canvas.height = Math.max(1, Math.floor(height * pixelRatio));
   }
+
+  emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.davels.emitPulseEnergyCell(effect); }
+
+  clearPresentationEffects(): void { this.davels.clearPresentationEffects(); }
 
   render(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     const { gl } = this;
