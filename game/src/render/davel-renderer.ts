@@ -215,6 +215,46 @@ function pose(robot: RenderRobotState): Pose {
   };
 }
 
+function blendPoint(stable: Point, animated: Point, animatedWeight: number): Point {
+  return {
+    x: stable.x + (animated.x - stable.x) * animatedWeight,
+    y: stable.y + (animated.y - stable.y) * animatedWeight,
+    z: stable.z + (animated.z - stable.z) * animatedWeight,
+  };
+}
+
+function reducedMotionPose(robot: RenderRobotState, definition: RobotDefinition): Pose {
+  const animated = pose(robot);
+  const scale = definition.scale;
+  const width = definition.torsoWidth * scale;
+  const stable: Pose = {
+    hip: localPoint(robot, 0, 0.82 * scale, 0),
+    chest: localPoint(robot, 0, 1.34 * scale, 0),
+    head: localPoint(robot, 0, 1.92 * scale, 0),
+    leftElbow: localPoint(robot, -0.5 * width, 1.26 * scale, 0),
+    rightElbow: localPoint(robot, 0.5 * width, 1.26 * scale, 0),
+    leftHand: localPoint(robot, -0.56 * width, 0.88 * scale, 0.04 * scale),
+    rightHand: localPoint(robot, 0.56 * width, 0.88 * scale, 0.04 * scale),
+    leftKnee: localPoint(robot, -0.18 * scale, 0.45 * scale, 0),
+    rightKnee: localPoint(robot, 0.18 * scale, 0.45 * scale, 0),
+    leftFoot: localPoint(robot, -0.21 * scale, 0.1 * scale, 0.08 * scale),
+    rightFoot: localPoint(robot, 0.21 * scale, 0.1 * scale, 0.08 * scale),
+  };
+  return {
+    hip: blendPoint(stable.hip, animated.hip, 0.16),
+    chest: blendPoint(stable.chest, animated.chest, 0.16),
+    head: blendPoint(stable.head, animated.head, 0.16),
+    leftElbow: blendPoint(stable.leftElbow, animated.leftElbow, 0.16),
+    rightElbow: blendPoint(stable.rightElbow, animated.rightElbow, 0.16),
+    leftHand: blendPoint(stable.leftHand, animated.leftHand, 0.16),
+    rightHand: blendPoint(stable.rightHand, animated.rightHand, 0.16),
+    leftKnee: blendPoint(stable.leftKnee, animated.leftKnee, 0.16),
+    rightKnee: blendPoint(stable.rightKnee, animated.rightKnee, 0.16),
+    leftFoot: blendPoint(stable.leftFoot, animated.leftFoot, 0.16),
+    rightFoot: blendPoint(stable.rightFoot, animated.rightFoot, 0.16),
+  };
+}
+
 export class DavelRenderer {
   private readonly program: WebGLProgram;
   private readonly viewProjectionLocation: WebGLUniformLocation;
@@ -230,11 +270,11 @@ export class DavelRenderer {
     this.capsules = new InstanceBatch(gl, createCapsule(), 384);
   }
 
-  render(state: RenderGameState, viewProjection: Float32Array): void {
+  render(state: RenderGameState, viewProjection: Float32Array, reducedMotion = false): void {
     this.spheres.reset();
     this.capsules.reset();
     for (const robot of state.robots) {
-      if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!);
+      if (robot.active) this.addRobot(robot, ROBOT_DEFINITIONS[robot.id]!, reducedMotion);
     }
     for (const projectile of state.projectiles) {
       const center = { x: projectile.x, y: projectile.y, z: projectile.z };
@@ -258,7 +298,7 @@ export class DavelRenderer {
     }
     for (const bomb of state.playerBombs) {
       const center = { x: bomb.x, y: bomb.y, z: bomb.z };
-      const pulse = 0.19 + Math.sin(bomb.fuseTicks * 0.35) * 0.025;
+      const pulse = 0.19 + (reducedMotion ? 0 : Math.sin(bomb.fuseTicks * 0.35) * 0.025);
       this.addSphere(center, pulse, [0.08, 0.1, 0.16]);
       this.addSphere(
         { x: bomb.x, y: bomb.y + 0.15, z: bomb.z }, 0.07,
@@ -294,8 +334,8 @@ export class DavelRenderer {
     this.capsules.addMatrix(capsuleMatrix(start, end, radius), color);
   }
 
-  private addRobot(robot: RenderRobotState, definition: RobotDefinition): void {
-    const p = pose(robot);
+  private addRobot(robot: RenderRobotState, definition: RobotDefinition, reducedMotion: boolean): void {
+    const p = reducedMotion ? reducedMotionPose(robot, definition) : pose(robot);
     const scale = definition.scale;
     const jointColor: Color = [0.055, 0.075, 0.14];
     const bodyColor: Color = robot.hitFlashTicks > 0 ? [1, 1, 1]
@@ -307,7 +347,7 @@ export class DavelRenderer {
     const hipLeft = localPoint(robot, -0.2 * scale, p.hip.y, 0);
     const hipRight = localPoint(robot, 0.2 * scale, p.hip.y, 0);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
-    if (robot.hitFlashTicks > 0) {
+    if (robot.hitFlashTicks > 0 && !reducedMotion) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
       for (let index = 0; index < 4; index += 1) {
         const angle = robot.id * 1.37 + index * Math.PI * 0.5 + robot.hitFlashTicks * 0.11;

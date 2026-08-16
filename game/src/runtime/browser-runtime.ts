@@ -1,6 +1,6 @@
 import { WorkerAgentController } from '../agent/worker-api';
 import { createRendererHost } from '../render/renderer-host';
-import type { RenderGameState } from '../render/render-model';
+import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
@@ -107,6 +107,7 @@ export async function startBrowserGame(): Promise<void> {
   }
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
+  let renderPresentationSettings: RenderPresentationSettings = { reducedMotion: false };
   let messageTimeout = 0;
   let audio: ProceduralAudio | null = null;
   let music: ProceduralMusicSequencer | null = null;
@@ -122,6 +123,7 @@ export async function startBrowserGame(): Promise<void> {
     document.documentElement.dir = catalog.direction;
     document.body.classList.toggle('reduced-motion', activeProfile.settings.reducedMotion);
     document.body.classList.toggle('high-contrast', activeProfile.settings.highContrast);
+    renderPresentationSettings = { reducedMotion: activeProfile.settings.reducedMotion };
     levelName.textContent = `LEVEL ${activeLevelId.slice(-2)} · ${localized(activeLevel.nameKey).toLocaleUpperCase(catalog.locale)}`;
     if (objectiveHud.firstChild !== null) objectiveHud.firstChild.textContent = `${localized(activeLevel.objectives[0]!.titleKey)} · `;
     settingLanguage.value = catalog.locale;
@@ -133,6 +135,7 @@ export async function startBrowserGame(): Promise<void> {
     settingHighContrast.checked = activeProfile.settings.highContrast;
     audio?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.effectsVolume);
     music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
+    if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
   };
   applyProfileSettings();
 
@@ -709,7 +712,7 @@ export async function startBrowserGame(): Promise<void> {
       altFireQueued = false;
       queuedWeapon = null;
     }
-    if (renderState !== null) renderer.present(renderState);
+    if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);

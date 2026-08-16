@@ -1,6 +1,10 @@
 import { CELL_SIZE, PLAYER_EYE_HEIGHT } from '../sim/constants';
 import { cellCenter, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells } from '../sim/level';
-import type { RenderGameState } from './render-model';
+import {
+  DEFAULT_RENDER_PRESENTATION_SETTINGS,
+  type RenderGameState,
+  type RenderPresentationSettings,
+} from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
@@ -154,15 +158,15 @@ export class WorldRenderer {
     this.canvas.height = Math.max(1, Math.floor(height * pixelRatio));
   }
 
-  render(state: RenderGameState): void {
+  render(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     const { gl } = this;
     if (state.levelId !== this.worldLevelId) {
       this.worldLevelId = state.levelId;
       this.buildWorldInstances(state.levelId);
     }
-    this.buildDynamicInstances(state);
+    this.buildDynamicInstances(state, settings);
     const player = state.player;
-    const eyeY = PLAYER_EYE_HEIGHT + Math.sin(player.bobPhase) * 0.025;
+    const eyeY = PLAYER_EYE_HEIGHT + (settings.reducedMotion ? 0 : Math.sin(player.bobPhase) * 0.025);
     const cosPitch = Math.cos(player.pitch);
     const directionX = Math.sin(player.yaw) * cosPitch;
     const directionY = Math.sin(player.pitch);
@@ -171,7 +175,7 @@ export class WorldRenderer {
     lookAt(this.view, player.x, eyeY, player.z, player.x + directionX, eyeY + directionY, player.z + directionZ);
     multiplyMatrix4(this.viewProjection, this.projection, this.view);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);
-    const freezeFlash = freezeDanceWindow(state.levelId, state.tick).frozen;
+    const freezeFlash = !settings.reducedMotion && freezeDanceWindow(state.levelId, state.tick).frozen;
     const fogColor: RuntimeRgb = freezeFlash
       ? [this.skyColor[0] * 0.58 + 0.42, this.skyColor[1] * 0.58 + 0.42, this.skyColor[2] * 0.58 + 0.42]
       : this.skyColor;
@@ -182,7 +186,7 @@ export class WorldRenderer {
     gl.uniform3f(this.fogColorLocation, fogColor[0], fogColor[1], fogColor[2]);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
-    this.davels.render(state, this.viewProjection);
+    this.davels.render(state, this.viewProjection, settings.reducedMotion);
   }
 
   private buildWorldInstances(levelId: Chapter01LevelId): void {
@@ -205,9 +209,9 @@ export class WorldRenderer {
     this.uploadInstances(instance);
   }
 
-  private buildDynamicInstances(state: RenderGameState): void {
+  private buildDynamicInstances(state: RenderGameState, settings: RenderPresentationSettings): void {
     let instance = this.staticInstanceCount;
-    const bob = Math.sin(state.tick * 0.08) * 0.12;
+    const bob = settings.reducedMotion ? 0 : Math.sin(state.tick * 0.08) * 0.12;
     for (const pickup of state.level.pickups) {
       if (!pickup.active) continue;
       if (pickup.kind === 'key') {
@@ -231,7 +235,7 @@ export class WorldRenderer {
           instance = this.writeInstance(instance, hazard.x + offsetX, 1.25, hazard.z + offsetZ, 0.18, 2.5, 0.18, gateColor);
         }
         if (hazard.active) {
-          const pulseHeight = 0.68 + Math.sin(state.tick * 0.14) * 0.12;
+          const pulseHeight = 0.68 + (settings.reducedMotion ? 0 : Math.sin(state.tick * 0.14) * 0.12);
           instance = this.writeInstance(instance, hazard.x, pulseHeight, hazard.z, 2.55, 0.12, 0.12, [1, 0.72, 0.95]);
           instance = this.writeInstance(instance, hazard.x, 1.58, hazard.z, 0.12, 0.12, 2.55, [1, 0.72, 0.95]);
         }
@@ -241,7 +245,7 @@ export class WorldRenderer {
       instance = this.writeInstance(
         instance, hazard.x, 0.035, hazard.z, hazard.halfWidth * 2, 0.07, hazard.halfDepth * 2, color,
       );
-      const pulse = state.tick % 36 / 36;
+      const pulse = settings.reducedMotion ? 0.5 : state.tick % 36 / 36;
       instance = this.writeInstance(
         instance,
         hazard.x + hazard.directionX * (pulse - 0.5) * hazard.halfWidth * 1.4,

@@ -99,3 +99,11 @@ export interface RenderGameState {
   readonly defeat: boolean;
   readonly level: RenderLevelState;
 }
+
+export interface RenderPresentationSettings {
+  readonly reducedMotion: boolean;
+}
+
+export const DEFAULT_RENDER_PRESENTATION_SETTINGS: RenderPresentationSettings = Object.freeze({
+  reducedMotion: false,
+});

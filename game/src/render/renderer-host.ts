@@ -1,4 +1,8 @@
-import type { RenderGameState } from './render-model';
+import {
+  DEFAULT_RENDER_PRESENTATION_SETTINGS,
+  type RenderGameState,
+  type RenderPresentationSettings,
+} from './render-model';
 import { WorldRenderer } from './world-renderer';
 import type { RenderWorkerRequest, RenderWorkerResponse } from '../workers/render-worker-protocol';
 
@@ -8,7 +12,7 @@ export interface RendererHost {
   readonly canvas: HTMLCanvasElement;
   readonly mode: RendererMode;
   resize(): void;
-  present(state: RenderGameState): void;
+  present(state: RenderGameState, settings?: RenderPresentationSettings): void;
   dispose(): void;
 }
 
@@ -35,6 +39,7 @@ class MainThreadRendererHost implements RendererHost {
   readonly mode = 'main-thread-fallback' as const;
   private readonly renderer: WorldRenderer;
   private previousState: RenderGameState | null = null;
+  private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
 
   constructor(readonly canvas: HTMLCanvasElement) {
     this.renderer = new WorldRenderer(webGl2(canvas), canvas);
@@ -42,10 +47,11 @@ class MainThreadRendererHost implements RendererHost {
 
   resize(): void { this.renderer.resize(); }
 
-  present(state: RenderGameState): void {
-    if (state === this.previousState) return;
+  present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
+    if (state === this.previousState && settings.reducedMotion === this.previousSettings.reducedMotion) return;
     this.previousState = state;
-    this.renderer.render(state);
+    this.previousSettings = settings;
+    this.renderer.render(state, settings);
   }
 
   dispose(): void {}
@@ -56,8 +62,9 @@ class OffscreenRendererHost implements RendererHost {
   private readonly worker = new Worker(new URL('../workers/render.worker.ts', import.meta.url), { type: 'module' });
   private nextSequence = 1;
   private inFlight = false;
-  private pending: RenderGameState | null = null;
+  private pending: { readonly state: RenderGameState; readonly settings: RenderPresentationSettings } | null = null;
   private previousState: RenderGameState | null = null;
+  private previousSettings: RenderPresentationSettings = DEFAULT_RENDER_PRESENTATION_SETTINGS;
   private disposed = false;
   private resolveReady!: () => void;
   private rejectReady!: (error: Error) => void;
@@ -80,10 +87,11 @@ class OffscreenRendererHost implements RendererHost {
     this.worker.postMessage({ type: 'resize', ...canvasSize(this.canvas) } satisfies RenderWorkerRequest);
   }
 
-  present(state: RenderGameState): void {
-    if (this.disposed || state === this.previousState) return;
+  present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
+    if (this.disposed || (state === this.previousState && settings.reducedMotion === this.previousSettings.reducedMotion)) return;
     this.previousState = state;
-    this.pending = state;
+    this.previousSettings = settings;
+    this.pending = { state, settings };
     this.flush();
   }
 
@@ -108,10 +116,10 @@ class OffscreenRendererHost implements RendererHost {
 
   private flush(): void {
     if (this.inFlight || this.pending === null || this.disposed) return;
-    const state = this.pending;
+    const { state, settings } = this.pending;
     this.pending = null;
     this.inFlight = true;
-    this.worker.postMessage({ type: 'render', sequence: this.nextSequence++, state } satisfies RenderWorkerRequest);
+    this.worker.postMessage({ type: 'render', sequence: this.nextSequence++, state, settings } satisfies RenderWorkerRequest);
   }
 
   private fail(error: Error): void {

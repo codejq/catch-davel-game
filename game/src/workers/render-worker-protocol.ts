@@ -1,4 +1,4 @@
-import type { RenderGameState } from '../render/render-model';
+import type { RenderGameState, RenderPresentationSettings } from '../render/render-model';
 
 export type RenderWorkerRequest = {
   readonly type: 'initialize';
@@ -15,6 +15,7 @@ export type RenderWorkerRequest = {
   readonly type: 'render';
   readonly sequence: number;
   readonly state: RenderGameState;
+  readonly settings: RenderPresentationSettings;
 };
 
 export type RenderWorkerResponse = {

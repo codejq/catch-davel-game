@@ -25,7 +25,7 @@ scope.onmessage = (event: MessageEvent<RenderWorkerRequest>) => {
       renderer.resize(request.cssWidth, request.cssHeight, request.pixelRatio);
       return;
     }
-    renderer.render(request.state);
+    renderer.render(request.state, request.settings);
     post({ type: 'frame-presented', sequence: request.sequence, tick: request.state.tick });
   } catch (error) {
     post({ type: 'failure', message: error instanceof Error ? error.message : String(error) });
