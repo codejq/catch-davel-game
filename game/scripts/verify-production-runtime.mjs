@@ -17,6 +17,28 @@ function browserExecutable() {
   return executable;
 }
 
+async function readBrowserProfile(page) {
+  return page.evaluate(async () => {
+    const database = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('quantum-catch-davel', 1);
+      request.addEventListener('success', () => resolve(request.result), { once: true });
+      request.addEventListener('error', () => reject(request.error), { once: true });
+    });
+    const read = (key) => new Promise((resolve, reject) => {
+      const request = database.transaction('profile-records', 'readonly').objectStore('profile-records').get(key);
+      request.addEventListener('success', () => resolve(request.result ?? null), { once: true });
+      request.addEventListener('error', () => reject(request.error), { once: true });
+    });
+    try {
+      const pointer = JSON.parse(await read('profile:default:active'));
+      const envelope = JSON.parse(await read(`profile:default:${pointer.slot}`));
+      return { revision: pointer.revision, profile: JSON.parse(envelope.serializedProfile) };
+    } finally {
+      database.close();
+    }
+  });
+}
+
 const root = fileURLToPath(new URL('..', import.meta.url));
 const server = await preview({ root, preview: { host: '127.0.0.1', port: 0 }, logLevel: 'error' });
 let browser;
@@ -111,6 +133,72 @@ try {
     exportStatus,
     importedAndReloaded: true,
   };
+  const beforeLifecycle = await readBrowserProfile(page);
+  await page.keyboard.down('KeyW');
+  await page.waitForTimeout(100);
+  await page.evaluate(() => {
+    window.__catchDavelTestVisibility = 'hidden';
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      get: () => window.__catchDavelTestVisibility,
+    });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction(() => document.body.dataset.suspended === 'true');
+  await page.waitForTimeout(100);
+  const suspendedStartTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.waitForTimeout(250);
+  const suspendedEndTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  const suspendedProfile = await readBrowserProfile(page);
+  await page.evaluate(() => {
+    window.__catchDavelTestVisibility = 'visible';
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction((tick) => document.body.dataset.suspended === 'false'
+    && Number(document.body.dataset.snapshotTick) > tick, suspendedEndTick);
+  await page.keyboard.up('KeyW');
+  const resumedAfterVisibilityTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
+  await page.waitForTimeout(100);
+  const resumedProfile = await readBrowserProfile(page);
+  await page.evaluate(() => {
+    window.__catchDavelTestVisibility = 'hidden';
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await page.waitForFunction(() => document.body.dataset.suspended === 'true');
+  await page.waitForTimeout(100);
+  const restartPointProfile = await readBrowserProfile(page);
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => document.body.dataset.profileReady === 'true'
+    && document.body.dataset.workerStatus === 'ready');
+  const restartedProfile = await readBrowserProfile(page);
+  const lifecycle = {
+    beforeRevision: beforeLifecycle.revision,
+    suspendedRevision: suspendedProfile.revision,
+    resumedRevision: resumedProfile.revision,
+    restartPointRevision: restartPointProfile.revision,
+    restartedRevision: restartedProfile.revision,
+    suspendedStartTick,
+    suspendedEndTick,
+    resumedAfterVisibilityTick,
+    attemptsBefore: beforeLifecycle.profile.levelProgress[0].attempts,
+    attemptsAfter: restartedProfile.profile.levelProgress[0].attempts,
+    coinsBefore: beforeLifecycle.profile.totalCoins,
+    coinsAfter: restartedProfile.profile.totalCoins,
+    suspendedClean: suspendedProfile.profile.lastCleanShutdown,
+    resumedActive: !resumedProfile.profile.lastCleanShutdown,
+    restartPointClean: restartPointProfile.profile.lastCleanShutdown,
+    lastCleanShutdown: restartedProfile.profile.lastCleanShutdown,
+  };
+  if (suspendedStartTick !== suspendedEndTick || resumedAfterVisibilityTick <= suspendedEndTick
+    || lifecycle.attemptsAfter !== lifecycle.attemptsBefore + 1
+    || lifecycle.coinsAfter !== lifecycle.coinsBefore || !lifecycle.lastCleanShutdown
+    || !lifecycle.suspendedClean || !lifecycle.resumedActive || !lifecycle.restartPointClean
+    || lifecycle.suspendedRevision <= lifecycle.beforeRevision
+    || lifecycle.resumedRevision <= lifecycle.suspendedRevision
+    || lifecycle.restartPointRevision <= lifecycle.resumedRevision
+    || lifecycle.restartedRevision < lifecycle.restartPointRevision) {
+    throw new Error(`Production lifecycle did not suspend, persist, resume, and restart cleanly: ${JSON.stringify(lifecycle)}`);
+  }
   if (errors.length > 0) throw new Error(`Production browser errors: ${errors.join('; ')}`);
 
   const fallbackPage = await browser.newPage();
@@ -239,7 +327,7 @@ try {
   if (!rejectsUnknownField) throw new Error('Content Workbench accepted an unknown level field');
   if (toolingErrors.length > 0) throw new Error(`Content Workbench browser errors: ${toolingErrors.join('; ')}`);
   console.log(JSON.stringify({
-    passed: true, ...result, campaignFlow, profileTransfer, browserErrors: errors,
+    passed: true, ...result, campaignFlow, profileTransfer, lifecycle, browserErrors: errors,
     fallback: { ...fallback, browserErrors: fallbackErrors },
     chapterLevel: { ...chapterLevel, browserErrors: chapterErrors },
     mobile: { ...mobile, browserErrors: mobileErrors },

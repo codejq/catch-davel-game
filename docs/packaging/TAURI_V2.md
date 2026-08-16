@@ -32,11 +32,11 @@ The TypeScript side still performs the authoritative strict profile/schema/check
 
 ## Capability and lifecycle policy
 
-The only declared window capability is `core:default`; no generic dialog, filesystem, or shell command is exposed to JavaScript. The native dialog/filesystem plugins are registered solely so the dedicated Rust transfer commands can support desktop paths and mobile content URIs. The CSP permits bundled scripts/styles, IPC, the local Vite development connection, data icons, WebAudio media, and same-origin/blob workers needed by the simulation and OffscreenCanvas renderer. Background visibility pauses realtime authority, clears held input, queues a profile save, and resumes only if the game—not a campaign menu, terminal state, or agent—was running before suspension.
+The only declared window capability is `core:default`; no generic dialog, filesystem, or shell command is exposed to JavaScript. The native dialog/filesystem plugins are registered solely so the dedicated Rust transfer commands can support desktop paths and mobile content URIs. The CSP permits bundled scripts/styles, IPC, the local Vite development connection, data icons, WebAudio media, and same-origin/blob workers needed by the simulation and OffscreenCanvas renderer. Background visibility pauses realtime authority, clears held input, and queues a checksum-sealed profile with `lastCleanShutdown: true`. Resuming a live human session marks it active again and resumes only if the game—not a campaign menu, terminal state, or agent—was running before suspension. This makes an OS kill after a completed suspend save recoverable without relying on an asynchronous `pagehide` write.
 
 Coarse-pointer devices receive a safe-area-aware virtual movement stick, drag-to-aim on the game view, hold-to-fire, alternate-attack, and unlocked-weapon-cycle controls. These controls normalize into the same bounded `PlayerCommand` submitted by keyboard and mouse; there is no mobile-only simulation or replay path. A mobile Chromium production profile verifies the touch layout and start gesture, while physical-device feel and lifecycle certification remain deferred until hardware is available.
 
-## Current build evidence
+## Native build evidence for milestone `a771b2a`
 
 On the Windows development host:
 
@@ -48,6 +48,6 @@ On the Windows development host:
 - five Rust rotation/interruption/bounds/native-transfer tests and six TypeScript corruption/fallback/read-back/transfer tests pass.
 - current packaged smoke launch opened a responsive `Quantum Catch Davel` window (process 17900 for this run) and retained its valid profile at `%APPDATA%/com.quantumbilling.catchdavel/profiles/default/profile.json`.
 
-Build artifacts and native target caches are intentionally ignored. These hashes identify this development build only. Installer restart, native picker behavior, Android emulator/device behavior, touch feel, OS lifecycle edge cases, and signed release bundles require their named validation gates. Physical-device absence does not block further implementation and is never represented as certification.
+Build artifacts and native target caches are intentionally ignored. These hashes identify milestone `a771b2a`; later source changes require a fresh hash set before release. Installer restart, native picker behavior, Android emulator/device behavior, touch feel, OS lifecycle edge cases, and signed release bundles require their named validation gates. Physical-device absence does not block further implementation and is never represented as certification.
 
 The shell follows Tauri's official [project structure](https://v2.tauri.app/start/project-structure/), [capability](https://v2.tauri.app/security/capabilities/), [configuration](https://v2.tauri.app/reference/config/), [dialog](https://v2.tauri.app/plugin/dialog/), and [filesystem](https://v2.tauri.app/plugin/file-system/) contracts.

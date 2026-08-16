@@ -531,10 +531,15 @@ export async function startBrowserGame(): Promise<void> {
       resumeAfterVisibility = !agentController.isAgentControlled()
         && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat;
       if (resumeAfterVisibility) void client.setMode('manual');
-      if (humanSessionStarted) persistProfile(activeProfile);
+      if (humanSessionStarted && !agentController.isAgentControlled()) {
+        persistProfile(updateProfile(activeProfile, { lastCleanShutdown: true }));
+      }
       document.body.dataset.suspended = 'true';
     } else {
       document.body.dataset.suspended = 'false';
+      if (humanSessionStarted && !agentController.isAgentControlled()) {
+        persistProfile(updateProfile(activeProfile, { lastCleanShutdown: false }));
+      }
       if (resumeAfterVisibility && !agentController.isAgentControlled()
         && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat) {
         resumeAfterVisibility = false;
