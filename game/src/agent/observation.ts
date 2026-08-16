@@ -1,6 +1,6 @@
 import { PLAYER_EYE_HEIGHT } from '../sim/constants';
 import type { GameState } from '../sim/game';
-import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, LEVEL_ROWS, worldCell } from '../sim/level';
+import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, levelRows, worldCell } from '../sim/level';
 import { CELL_SIZE } from '../sim/constants';
 import { ROBOT_DEFINITIONS } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
@@ -127,14 +127,16 @@ function normalizeAngle(value: number): number {
   return angle;
 }
 
-function hasLineOfSight(originX: number, originZ: number, targetX: number, targetZ: number): boolean {
+function hasLineOfSight(
+  originX: number, originZ: number, targetX: number, targetZ: number, levelId: Chapter01LevelId,
+): boolean {
   const deltaX = targetX - originX;
   const deltaZ = targetZ - originZ;
   const distance = Math.hypot(deltaX, deltaZ);
   const steps = Math.max(1, Math.ceil(distance / 0.16));
   for (let step = 1; step < steps; step += 1) {
     const amount = step / steps;
-    if (isWallAtWorld(originX + deltaX * amount, originZ + deltaZ * amount)) return false;
+    if (isWallAtWorld(originX + deltaX * amount, originZ + deltaZ * amount, levelId)) return false;
   }
   return true;
 }
@@ -158,7 +160,7 @@ export function createObservation(state: GameState): AgentObservation {
       elevation: round(Math.atan2(ROBOT_DEFINITIONS[robot.id]!.scale * 1.16 - PLAYER_EYE_HEIGHT, Math.hypot(deltaX, deltaZ)) - state.player.pitch),
       heading: round(robot.heading),
       health: robot.health,
-      visible: hasLineOfSight(state.player.x, state.player.z, robot.x, robot.z),
+      visible: hasLineOfSight(state.player.x, state.player.z, robot.x, robot.z, state.levelId),
       combatState: robot.combatState,
       combatTicks: robot.combatTicks,
       tempoBuffed: robot.tempoBuffTicks > 0,
@@ -245,7 +247,7 @@ export function levelObservation(levelId: Chapter01LevelId = 'level-001'): {
   readonly coordinateSystem: string;
 } {
   return {
-    levelId, rows: LEVEL_ROWS, cellSize: CELL_SIZE, originX: LEVEL_ORIGIN_X, originZ: LEVEL_ORIGIN_Z,
+    levelId, rows: levelRows(levelId), cellSize: CELL_SIZE, originX: LEVEL_ORIGIN_X, originZ: LEVEL_ORIGIN_Z,
     coordinateSystem: `right-handed world; +x east, +z south, yaw 0 faces -z; player eye y=${PLAYER_EYE_HEIGHT}`,
   };
 }

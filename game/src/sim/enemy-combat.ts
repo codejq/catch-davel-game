@@ -7,6 +7,7 @@ import {
   ENEMY_FIREBALL_SPEED, ENEMY_MELEE_DAMAGE, ENEMY_PROJECTILE_DAMAGE, ENEMY_PROJECTILE_SPEED,
   ENEMY_REPEAT_COOLDOWN_BASE, ENEMY_REPEAT_COOLDOWN_STEP, ENEMY_SLIDER_BOLT_SPEED,
 } from './balance';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export type EnemyProjectileKind = 'slider-bolt' | 'beat-bolt' | 'fireball';
 
@@ -33,7 +34,10 @@ export interface EnemyCombatResult {
   readonly playerHitRobotIds: readonly number[];
 }
 
-function clearShot(fromX: number, fromZ: number, toX: number, toZ: number, maximumRange = ENEMY_ATTACK_RANGE): boolean {
+function clearShot(
+  fromX: number, fromZ: number, toX: number, toZ: number, maximumRange = ENEMY_ATTACK_RANGE,
+  levelId: Chapter01LevelId = 'level-001',
+): boolean {
   const deltaX = toX - fromX;
   const deltaZ = toZ - fromZ;
   const distance = Math.hypot(deltaX, deltaZ);
@@ -41,7 +45,7 @@ function clearShot(fromX: number, fromZ: number, toX: number, toZ: number, maxim
   const steps = Math.max(1, Math.ceil(distance / 0.18));
   for (let step = 1; step < steps; step += 1) {
     const amount = step / steps;
-    if (isWallAtWorld(fromX + deltaX * amount, fromZ + deltaZ * amount)) return false;
+    if (isWallAtWorld(fromX + deltaX * amount, fromZ + deltaZ * amount, levelId)) return false;
   }
   return true;
 }
@@ -71,12 +75,12 @@ function projectileDamage(kind: EnemyProjectileKind): number {
   return kind === 'fireball' ? ENEMY_FIREBALL_DAMAGE : ENEMY_PROJECTILE_DAMAGE;
 }
 
-function canBeginAttack(robot: RobotState, player: PlayerState): boolean {
+function canBeginAttack(robot: RobotState, player: PlayerState, levelId: Chapter01LevelId): boolean {
   const definition = ROBOT_DEFINITIONS[robot.id]!;
   const distance = Math.hypot(player.x - robot.x, player.z - robot.z);
-  if (definition.archetype === 'wobble-scout') return distance <= 1.85 && clearShot(robot.x, robot.z, player.x, player.z, 2.1);
+  if (definition.archetype === 'wobble-scout') return distance <= 1.85 && clearShot(robot.x, robot.z, player.x, player.z, 2.1, levelId);
   if (definition.archetype === 'cyan-dj') return distance <= 10;
-  return clearShot(robot.x, robot.z, player.x, player.z);
+  return clearShot(robot.x, robot.z, player.x, player.z, ENEMY_ATTACK_RANGE, levelId);
 }
 
 function fireProjectile(robot: RobotState, player: PlayerState, id: number): EnemyProjectile {
@@ -102,6 +106,7 @@ export function stepEnemyCombat(
   robots: RobotState[],
   projectiles: EnemyProjectile[],
   nextProjectileId: number,
+  levelId: Chapter01LevelId = 'level-001',
 ): EnemyCombatResult {
   const firedRobotIds: number[] = [];
   const telegraphRobotIds: number[] = [];
@@ -135,7 +140,7 @@ export function stepEnemyCombat(
         robot.combatTicks -= 1;
         if (robot.combatTicks > 0) continue;
         if (definition.archetype === 'wobble-scout') {
-          if (canBeginAttack(robot, player)) {
+          if (canBeginAttack(robot, player, levelId)) {
             player.health = Math.max(0, player.health - ENEMY_MELEE_DAMAGE);
             meleeRobotIds.push(robot.id);
             playerHitRobotIds.push(robot.id);
@@ -147,7 +152,7 @@ export function stepEnemyCombat(
             ally.attackCooldownTicks = Math.min(ally.attackCooldownTicks, 36);
           }
           buffRobotIds.push(robot.id);
-        } else if (clearShot(robot.x, robot.z, player.x, player.z)) {
+        } else if (clearShot(robot.x, robot.z, player.x, player.z, ENEMY_ATTACK_RANGE, levelId)) {
           const offsets = definition.rank === 'boss'
             ? (robot.bossPhase === 1 ? [0] : robot.bossPhase === 2 ? [-0.11, 0.11] : [-0.18, 0, 0.18])
             : [0];
@@ -172,7 +177,7 @@ export function stepEnemyCombat(
         continue;
       }
       if (robot.attackCooldownTicks > 0) robot.attackCooldownTicks -= robot.tempoBuffTicks > 0 ? 2 : 1;
-      if (robot.attackCooldownTicks > 0 || !canBeginAttack(robot, player)) continue;
+      if (robot.attackCooldownTicks > 0 || !canBeginAttack(robot, player, levelId)) continue;
       robot.combatState = 'telegraph';
       robot.combatTicks = telegraphTicks(definition.archetype, robot.bossPhase);
       telegraphRobotIds.push(robot.id);
@@ -192,7 +197,7 @@ export function stepEnemyCombat(
       player.health = Math.max(0, player.health - projectileDamage(projectile.kind));
       playerHitRobotIds.push(projectile.ownerRobotId);
       projectiles.splice(index, 1);
-    } else if (projectile.lifeTicks <= 0 || projectile.y < 0.05 || isWallAtWorld(projectile.x, projectile.z)) {
+    } else if (projectile.lifeTicks <= 0 || projectile.y < 0.05 || isWallAtWorld(projectile.x, projectile.z, levelId)) {
       projectiles.splice(index, 1);
     }
   }

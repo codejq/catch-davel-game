@@ -31,11 +31,23 @@ interface Chapter01Recipe {
 }
 
 const GLOBAL_DEPENDENCIES = {
-  simulationSchema: '0e49019e37b31663',
-  simulationLevel: 'ca2195b229d1f939',
+  simulationSchema: '778ba88614bc3d3c',
   balanceData: 'd06573c4b4825196',
   policyOrReplay: 'd3d7c87fc057d2d4',
 } as const;
+
+const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
+  'level-001': 'ca2195b229d1f939',
+  'level-002': '5e3c758e35a1da45',
+  'level-003': '1e31c1adf9fa22fc',
+  'level-004': '575aba989685f3b5',
+  'level-005': '3b3896eb25f8ff94',
+  'level-006': '898eb6ed40bc8ae5',
+  'level-007': '9682166c1dc1e3cc',
+  'level-008': '4984625ecb456c91',
+  'level-009': '0c1d3005514963a8',
+  'level-010': '71fa861fd8297d0d',
+};
 
 function pad(number: number): string {
   return String(number).padStart(3, '0');
@@ -202,7 +214,10 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
         expectedCompletion: true,
         expectedChecksum: null,
         parTicks: 4_500 + recipe.number * 250,
-        dependencyHashes: { ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000' },
+        dependencyHashes: {
+          ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',
+          simulationLevel: SIMULATION_LEVEL_HASHES[`level-${suffix}` as Chapter01LevelId],
+        },
       }],
     },
     performance: {

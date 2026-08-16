@@ -64,9 +64,10 @@ function worldTarget(observation: AgentObservation, relativeX: number, relativeZ
 }
 
 export class BaselineCampaignAgent {
-  private readonly level = levelObservation();
+  private level = levelObservation();
 
   next(observation: AgentObservation): AgentAction {
+    if (this.level.levelId !== observation.levelId) this.level = levelObservation(observation.levelId);
     if (observation.victory || observation.defeat) return {};
     const visible = observation.robots.filter((robot) => robot.visible)
       .sort((first, second) => first.distance - second.distance || first.id - second.id)[0];

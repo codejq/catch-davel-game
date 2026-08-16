@@ -59,7 +59,7 @@ The version-5 observation includes the authoritative Chapter 1 level ID, tick/se
 
 ## Persistence and replay guarantees
 
-- Complete v1 snapshots under simulation schema v8 include authoritative campaign-level and encounter identity plus every player, weapon upgrade/resource, bomb, laser-focus, robot/boss, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
+- Complete v1 snapshots under simulation schema v9 include authoritative campaign-level/grid and encounter identity plus every player, weapon upgrade/resource, bomb, laser-focus, robot/boss, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
 - Canonical key-sorted JSON and 64-bit deterministic checksums are used for state drift detection and accidental profile-corruption detection.
 - Replays include schema/level/balance/policy dependency hashes, a complete initial snapshot, contiguous compressed command runs, and checksums at the initial tick, every 60 ticks, and the final tick.
 - Browser profiles use IndexedDB with alternating records. A newly written record is read back and validated before the active pointer changes, leaving the previous known-good record available for recovery.
@@ -67,7 +67,7 @@ The version-5 observation includes the authoritative Chapter 1 level ID, tick/se
 
 ## Current slice
 
-- bright, bounded 15×15 maze with a reachable exit;
+- ten bright, bounded 15×15 Chapter 1 maze configurations with distinct deterministic loops/shortcuts and reachable exits;
 - authoritative repair/energy/key pickups, a key-gated collision door, checkpoint capture/recovery, objective-gated exit, and launch-to-results victory flow;
 - first-person collision, pointer-lock mouse aim, keyboard movement, gun, crosshair, and HUD;
 - eleven procedural sphere/capsule Davel definitions with different scale, proportions, palettes, faces, routes, ranks, seeded decisions, and dance styles;

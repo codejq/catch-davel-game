@@ -280,10 +280,10 @@ function validateProjectile(value: unknown, index: number): EnemyProjectile {
   };
 }
 
-function validateLevel(value: unknown): LevelRuntimeState {
+function validateLevel(value: unknown, levelId: Chapter01LevelId): LevelRuntimeState {
   assertRecord(value, 'snapshot.level');
   assertExactKeys(value, ['pickups', 'door', 'checkpoint', 'exit', 'keyCollected', 'objectiveComplete'], 'snapshot.level');
-  const expected = createLevelRuntime();
+  const expected = createLevelRuntime(levelId);
   if (!Array.isArray(value.pickups) || value.pickups.length !== expected.pickups.length) {
     throw new Error(`snapshot.level.pickups must contain ${expected.pickups.length} records`);
   }
@@ -355,7 +355,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
   if (robots.length !== expectedRobotIds.length || robots.some((robot, index) => robot.id !== expectedRobotIds[index])) {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
-  const level = validateLevel(snapshotValue.level);
+  const level = validateLevel(snapshotValue.level, levelId);
   const victory = booleanValue(snapshotValue.victory, 'snapshot.victory');
   const defeat = booleanValue(snapshotValue.defeat, 'snapshot.defeat');
   const key = level.pickups.find((pickup) => pickup.kind === 'key')!;

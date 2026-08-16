@@ -30,7 +30,7 @@ describe('Davel simulation', () => {
       second.step(idle);
       for (const robot of first.state.robots) {
         const cell = worldCell(robot.x, robot.z);
-        expect(cellAt(cell.column, cell.row)).not.toBe('#');
+        expect(cellAt(cell.column, cell.row, first.state.levelId)).not.toBe('#');
       }
     }
     expect(first.state.robots).toEqual(second.state.robots);

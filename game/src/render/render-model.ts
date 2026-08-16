@@ -75,6 +75,7 @@ export interface RenderLevelState {
 }
 
 export interface RenderGameState {
+  readonly levelId: import('../content/levels/chapter-01').Chapter01LevelId;
   readonly tick: number;
   readonly player: RenderPlayerState;
   readonly robots: readonly RenderRobotState[];

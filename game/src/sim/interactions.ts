@@ -1,5 +1,6 @@
 import type { PlayerState } from './player';
 import { cellCenter, findCell, type CellCoordinate } from './level';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export type PickupKind = 'key' | 'health' | 'energy';
 
@@ -52,10 +53,10 @@ const PICKUP_DEFINITIONS = [
 const DOOR_CELL = { column: 7, row: 8 } as const;
 const CHECKPOINT_CELL = { column: 11, row: 9 } as const;
 
-export function createLevelRuntime(): LevelRuntimeState {
+export function createLevelRuntime(levelId: Chapter01LevelId = 'level-001'): LevelRuntimeState {
   const door = cellCenter(DOOR_CELL.column, DOOR_CELL.row);
   const checkpoint = cellCenter(CHECKPOINT_CELL.column, CHECKPOINT_CELL.row);
-  const exitCell = findCell('E');
+  const exitCell = findCell('E', levelId);
   const exit = cellCenter(exitCell.column, exitCell.row);
   return {
     pickups: PICKUP_DEFINITIONS.map((definition) => {

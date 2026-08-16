@@ -25,8 +25,10 @@ describe('Appendix A level-data contract', () => {
       expect(serializeLevelDefinition(JSON.parse(serializeLevelDefinition(level)))).toBe(serializeLevelDefinition(level));
       expect(chapter01Level(CHAPTER_01_LEVEL_IDS[index]!)).toBe(level);
       expect(level.agentValidation.runs[0]?.dependencyHashes.effectiveLevel).toBe(levelDefinitionDependencyHash(level));
-      expect(level.agentValidation.runs[0]?.dependencyHashes).toEqual(currentAgentValidationDependencies(CHAPTER_01_LEVEL_IDS[index]!));
     }
+    expect(CHAPTER_01_LEVELS.map((level) => level.agentValidation.runs[0]?.dependencyHashes)).toEqual(
+      CHAPTER_01_LEVEL_IDS.map((levelId) => currentAgentValidationDependencies(levelId)),
+    );
     expect(CHAPTER_01_LEVELS[4].agentValidation.tier).toBe('named-elite');
     expect(CHAPTER_01_LEVELS[9].agentValidation.tier).toBe('boss');
   });

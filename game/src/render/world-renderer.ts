@@ -4,6 +4,7 @@ import type { RenderGameState } from './render-model';
 import { createCube } from './geometry';
 import { lookAt, multiplyMatrix4, perspective, writeTranslationScale } from './math';
 import { DavelRenderer } from './davel-renderer';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/levels/chapter-01';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -89,6 +90,7 @@ export class WorldRenderer {
   private readonly davels: DavelRenderer;
   private instanceCount = 0;
   private staticInstanceCount = 0;
+  private worldLevelId: Chapter01LevelId = 'level-001';
 
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
     this.program = program(gl);
@@ -129,7 +131,7 @@ export class WorldRenderer {
     const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
     if (uniform === null) throw new Error('World shader uniform is unavailable');
     this.viewProjectionLocation = uniform;
-    this.buildWorldInstances();
+    this.buildWorldInstances(this.worldLevelId);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.CULL_FACE);
   }
@@ -146,6 +148,10 @@ export class WorldRenderer {
 
   render(state: RenderGameState): void {
     const { gl } = this;
+    if (state.levelId !== this.worldLevelId) {
+      this.worldLevelId = state.levelId;
+      this.buildWorldInstances(state.levelId);
+    }
     this.buildDynamicInstances(state);
     const player = state.player;
     const eyeY = PLAYER_EYE_HEIGHT + Math.sin(player.bobPhase) * 0.025;
@@ -166,15 +172,24 @@ export class WorldRenderer {
     this.davels.render(state, this.viewProjection);
   }
 
-  private buildWorldInstances(): void {
+  private buildWorldInstances(levelId: Chapter01LevelId): void {
     let instance = 0;
-    instance = this.writeInstance(instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE, [1, 0.74, 0.27]);
-    const palette = [
-      [1, 0.31, 0.48], [0.2, 0.84, 0.76], [0.57, 0.38, 0.96], [1, 0.49, 0.2],
-    ] as const;
-    for (const wall of wallCells()) {
+    const stage = CHAPTER_01_LEVEL_IDS.indexOf(levelId);
+    const accent = stage / Math.max(1, CHAPTER_01_LEVEL_IDS.length - 1);
+    instance = this.writeInstance(
+      instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE,
+      [0.72 + accent * 0.24, 0.86 - accent * 0.22, 0.2 + accent * 0.34],
+    );
+    const palette: readonly (readonly [number, number, number])[] = [
+      [1, 0.24 + accent * 0.22, 0.44], [0.12, 0.9 - accent * 0.2, 0.72 + accent * 0.2],
+      [0.48 + accent * 0.4, 0.3, 0.98 - accent * 0.24], [1, 0.55 + accent * 0.24, 0.12],
+    ];
+    for (const wall of wallCells(levelId)) {
       const center = cellCenter(wall.column, wall.row);
-      instance = this.writeInstance(instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE, palette[(wall.column + wall.row * 3) % palette.length]!);
+      instance = this.writeInstance(
+        instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE,
+        palette[(wall.column + wall.row * 3 + stage) % palette.length]!,
+      );
     }
     this.staticInstanceCount = instance;
     this.uploadInstances(instance);

@@ -3,8 +3,9 @@ import type {
   RenderGameState, RenderPickupState, RenderPlayerBombState, RenderPlayerState, RenderProjectileState, RenderRobotState,
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
+import { CHAPTER_01_LEVEL_IDS, type Chapter01LevelId } from '../content/levels/chapter-01';
 
-export const TRANSPORT_CONTRACT_VERSION = 5;
+export const TRANSPORT_CONTRACT_VERSION = 6;
 export const MAX_RENDER_ROBOTS = 24;
 export const MAX_RENDER_PROJECTILES = 64;
 export const MAX_RENDER_PICKUPS = 8;
@@ -38,6 +39,14 @@ const HEADER_PLAYER_WEAPON = 44;
 const HEADER_UNLOCKED_WEAPON_MASK = 48;
 const HEADER_PLAYER_BOMBS = 52;
 const HEADER_PLAYER_BOMB_COUNT = 56;
+const HEADER_LEVEL_ID = 60;
+
+function levelCode(levelId: Chapter01LevelId): number { return CHAPTER_01_LEVEL_IDS.indexOf(levelId); }
+function decodeLevel(code: number): Chapter01LevelId {
+  const levelId = CHAPTER_01_LEVEL_IDS[code];
+  if (levelId === undefined) throw new Error(`Unknown render level code ${code}`);
+  return levelId;
+}
 
 function weaponCode(weapon: WeaponId): number { return WEAPON_IDS.indexOf(weapon); }
 function decodeWeapon(code: number): WeaponId {
@@ -136,6 +145,7 @@ export function writeRenderSnapshot(
   header.setUint32(HEADER_UNLOCKED_WEAPON_MASK, uint32(state.player.unlockedWeaponMask, 'player.unlockedWeaponMask'), true);
   header.setUint32(HEADER_PLAYER_BOMBS, uint32(state.player.bombs, 'player.bombs'), true);
   header.setUint32(HEADER_PLAYER_BOMB_COUNT, state.playerBombs.length, true);
+  header.setUint32(HEADER_LEVEL_ID, levelCode(state.levelId), true);
   const data = new Float32Array(buffer, RENDER_SNAPSHOT_HEADER_BYTES);
   writePlayer(data, state.player);
   let offset = RENDER_PLAYER_FLOATS;
@@ -277,6 +287,7 @@ export function decodeRenderSnapshot(buffer: ArrayBuffer | ArrayBufferView): Dec
   const effectOffset = offset + RENDER_LEVEL_FLOATS;
   return {
     state: {
+      levelId: decodeLevel(header.getUint32(HEADER_LEVEL_ID, true)),
       tick: header.getUint32(HEADER_TICK, true),
       player: readPlayer(data, header, header.getUint32(HEADER_COINS, true)),
       robots,

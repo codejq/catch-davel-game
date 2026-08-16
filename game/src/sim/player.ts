@@ -4,6 +4,7 @@ import {
   CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, normalizeWeaponUpgradeLevels, weaponUnlocked,
   type WeaponId, type WeaponUpgradeLevels,
 } from './weapons';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export interface PlayerState {
   x: number;
@@ -36,8 +37,9 @@ export interface PlayerCommand {
 export function createPlayer(
   unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
+  levelId: Chapter01LevelId = 'level-001',
 ): PlayerState {
-  const start = findCell('S');
+  const start = findCell('S', levelId);
   const point = cellCenter(start.column, start.row);
   return {
     x: point.x, z: point.z, yaw: Math.PI, pitch: 0, health: 100, energy: 100, coins: 0, bobPhase: 0,
@@ -47,7 +49,10 @@ export function createPlayer(
   };
 }
 
-export function stepPlayer(player: PlayerState, command: PlayerCommand, blockedCells: readonly CellCoordinate[] = []): void {
+export function stepPlayer(
+  player: PlayerState, command: PlayerCommand, blockedCells: readonly CellCoordinate[] = [],
+  levelId: Chapter01LevelId = 'level-001',
+): void {
   if (command.weapon !== undefined && command.weapon !== null && weaponUnlocked(player.unlockedWeaponMask, command.weapon)) player.selectedWeapon = command.weapon;
   player.yaw += command.yawDelta;
   player.pitch = Math.max(-1.25, Math.min(1.25, player.pitch + command.pitchDelta));
@@ -59,8 +64,8 @@ export function stepPlayer(player: PlayerState, command: PlayerCommand, blockedC
   const distance = PLAYER_SPEED * FIXED_DT_SECONDS;
   const deltaX = (sinYaw * forward + cosYaw * strafe) * distance;
   const deltaZ = (-cosYaw * forward + sinYaw * strafe) * distance;
-  if (isPlayerPositionValidWithBlockers(player.x + deltaX, player.z, PLAYER_RADIUS, blockedCells)) player.x += deltaX;
-  if (isPlayerPositionValidWithBlockers(player.x, player.z + deltaZ, PLAYER_RADIUS, blockedCells)) player.z += deltaZ;
+  if (isPlayerPositionValidWithBlockers(player.x + deltaX, player.z, PLAYER_RADIUS, blockedCells, levelId)) player.x += deltaX;
+  if (isPlayerPositionValidWithBlockers(player.x, player.z + deltaZ, PLAYER_RADIUS, blockedCells, levelId)) player.z += deltaZ;
   const movement = Math.hypot(deltaX, deltaZ);
   if (movement > 0.0001) player.bobPhase += movement * 2.8;
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { cellAt, findCell, LEVEL_HEIGHT, LEVEL_WIDTH } from '../src/sim/level';
+import { cellAt, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, levelRows } from '../src/sim/level';
+import { CHAPTER_01_LEVEL_IDS } from '../src/content/levels/chapter-01';
 
 describe('first playable maze', () => {
   it('is bounded by walls and has exactly one start and exit', () => {
@@ -16,21 +17,24 @@ describe('first playable maze', () => {
   });
 
   it('provides a reachable route from start to exit', () => {
-    const start = findCell('S');
-    const exit = findCell('E');
-    const pending = [start];
-    const visited = new Set([`${start.column},${start.row}`]);
-    while (pending.length > 0) {
-      const current = pending.shift()!;
-      for (const [deltaColumn, deltaRow] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
-        const column = current.column + deltaColumn;
-        const row = current.row + deltaRow;
-        const key = `${column},${row}`;
-        if (cellAt(column, row) === '#' || visited.has(key)) continue;
-        visited.add(key);
-        pending.push({ column, row });
+    for (const levelId of CHAPTER_01_LEVEL_IDS) {
+      const start = findCell('S', levelId);
+      const exit = findCell('E', levelId);
+      const pending = [start];
+      const visited = new Set([`${start.column},${start.row}`]);
+      while (pending.length > 0) {
+        const current = pending.shift()!;
+        for (const [deltaColumn, deltaRow] of [[1, 0], [-1, 0], [0, 1], [0, -1]] as const) {
+          const column = current.column + deltaColumn;
+          const row = current.row + deltaRow;
+          const key = `${column},${row}`;
+          if (cellAt(column, row, levelId) === '#' || visited.has(key)) continue;
+          visited.add(key);
+          pending.push({ column, row });
+        }
       }
+      expect(visited.has(`${exit.column},${exit.row}`), levelId).toBe(true);
     }
-    expect(visited.has(`${exit.column},${exit.row}`)).toBe(true);
+    expect(new Set(CHAPTER_01_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(10);
   });
 });

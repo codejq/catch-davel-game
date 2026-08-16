@@ -94,13 +94,13 @@ export class GameSimulation {
     levelId: Chapter01LevelId,
   ): GameState {
     const state: GameState = {
-      tick: 0, seed, levelId, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades),
+      tick: 0, seed, levelId, encounter, player: createPlayer(unlockedWeaponMask, weaponUpgrades, levelId),
       robots: createRobots(encounter, levelId), events: [],
       lastShotTick: -1_000, shotSerial: 0, victory: false,
       defeat: false, projectiles: [], nextProjectileId: 1,
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
       laserFocusTicks: 0, laserTargetRobotId: null, laserActive: false, laserBeamDistance: 0,
-      level: createLevelRuntime(),
+      level: createLevelRuntime(levelId),
     };
     quantizeSimulationState(state);
     return state;
@@ -114,7 +114,7 @@ export class GameSimulation {
     }
     const doorEvent = openNearbyDoor(this.state.player, this.state.level);
     if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
-    stepPlayer(this.state.player, command, closedDoorCells(this.state.level));
+    stepPlayer(this.state.player, command, closedDoorCells(this.state.level), this.state.levelId);
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
     }
@@ -125,10 +125,10 @@ export class GameSimulation {
       this.state.tick += 1;
       return;
     }
-    stepRobots(this.state.robots, this.state.seed, this.state.player);
+    stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId);
     this.coolWeapons();
     const enemyCombat = stepEnemyCombat(
-      this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId,
+      this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId, this.state.levelId,
     );
     this.state.nextProjectileId = enemyCombat.nextProjectileId;
     for (const robotId of enemyCombat.telegraphRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-telegraph', robotId });
@@ -145,7 +145,7 @@ export class GameSimulation {
     }
     this.state.player.energy = Math.min(100, this.state.player.energy + 0.12);
     if (!this.state.defeat && !this.state.victory) this.stepSelectedWeapon(command);
-    const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs);
+    const detonatedBombs = stepPlayerBombs(this.state.player, this.state.robots, this.state.playerBombs, this.state.levelId);
     for (const bombId of detonatedBombs.detonatedBombIds) this.state.events.push({ tick: this.state.tick, type: 'bomb-detonated', value: bombId });
     for (const hit of detonatedBombs.hits) this.applyWeaponHit(hit);
     quantizeSimulationState(this.state);
@@ -168,11 +168,14 @@ export class GameSimulation {
     }
     const player = this.state.player;
     if (player.selectedWeapon === 'pulse') {
-      this.applyShot(firePulse(player, this.state.robots, this.state.tick, this.state.lastShotTick));
+      this.applyShot(firePulse(player, this.state.robots, this.state.tick, this.state.lastShotTick, this.state.levelId));
       return;
     }
     if (player.selectedWeapon === 'sword') {
-      const result = swingSword(player, this.state.robots, this.state.projectiles, this.state.tick, this.state.lastSwordTick, command.altFire === true);
+      const result = swingSword(
+        player, this.state.robots, this.state.projectiles, this.state.tick, this.state.lastSwordTick,
+        command.altFire === true, this.state.levelId,
+      );
       if (!result.activated) return;
       this.state.lastSwordTick = this.state.tick;
       this.state.shotSerial += 1;
@@ -198,7 +201,9 @@ export class GameSimulation {
     player.laserHeat = Math.min(100, player.laserHeat + laserHeat);
     if (player.laserHeat >= 100) player.laserOverheated = true;
     const focus = Math.min(1, this.state.laserFocusTicks / 90);
-    const result = fireLaser(player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus);
+    const result = fireLaser(
+      player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus, this.state.levelId,
+    );
     this.state.laserActive = true;
     this.state.laserBeamDistance = result.beamDistance;
     this.state.shotSerial += 1;

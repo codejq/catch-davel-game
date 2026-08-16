@@ -180,7 +180,9 @@ export function createRobots(encounter: EncounterId = 'campaign', levelId: Chapt
   });
 }
 
-function tryCombatMovement(robot: RobotState, definition: RobotDefinition, player: PlayerState): boolean {
+function tryCombatMovement(
+  robot: RobotState, definition: RobotDefinition, player: PlayerState, levelId: Chapter01LevelId,
+): boolean {
   if (robot.combatState === 'telegraph') return true;
   const deltaX = player.x - robot.x;
   const deltaZ = player.z - robot.z;
@@ -202,14 +204,16 @@ function tryCombatMovement(robot: RobotState, definition: RobotDefinition, playe
   const nextX = robot.x + directionX * amount;
   const nextZ = robot.z + directionZ * amount;
   let moved = false;
-  if (!isWallAtWorld(nextX, robot.z)) { robot.x = nextX; moved = true; }
-  if (!isWallAtWorld(robot.x, nextZ)) { robot.z = nextZ; moved = true; }
+  if (!isWallAtWorld(nextX, robot.z, levelId)) { robot.x = nextX; moved = true; }
+  if (!isWallAtWorld(robot.x, nextZ, levelId)) { robot.z = nextZ; moved = true; }
   if (!moved && definition.archetype === 'blue-slider') robot.strafeDirection = robot.strafeDirection === 1 ? -1 : 1;
   if (moved) robot.heading = Math.atan2(directionX, directionZ);
   return moved;
 }
 
-export function stepRobots(robots: RobotState[], seedText: string, player?: PlayerState): void {
+export function stepRobots(
+  robots: RobotState[], seedText: string, player?: PlayerState, levelId: Chapter01LevelId = 'level-001',
+): void {
   const seed = hashSeed(seedText);
   for (const robot of robots) {
     if (!robot.active) continue;
@@ -221,12 +225,12 @@ export function stepRobots(robots: RobotState[], seedText: string, player?: Play
     if (Math.abs(robot.knockbackX) + Math.abs(robot.knockbackZ) > 0.001) {
       const nextX = robot.x + robot.knockbackX;
       const nextZ = robot.z + robot.knockbackZ;
-      if (!isWallAtWorld(nextX, robot.z)) robot.x = nextX;
-      if (!isWallAtWorld(robot.x, nextZ)) robot.z = nextZ;
+      if (!isWallAtWorld(nextX, robot.z, levelId)) robot.x = nextX;
+      if (!isWallAtWorld(robot.x, nextZ, levelId)) robot.z = nextZ;
       robot.knockbackX *= 0.82;
       robot.knockbackZ *= 0.82;
     }
-    if (player !== undefined && tryCombatMovement(robot, definition, player)) {
+    if (player !== undefined && tryCombatMovement(robot, definition, player, levelId)) {
       // Combat movement is bounded by the same maze collision field as patrols.
     } else if (robot.holdTicks > 0) {
       robot.holdTicks -= 1;

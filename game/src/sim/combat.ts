@@ -5,6 +5,7 @@ import type { PlayerState } from './player';
 import { applyRobotBodyImpulse } from './xpbd';
 import type { EnemyProjectile } from './enemy-combat';
 import type { PlayerBomb } from './weapons';
+import type { Chapter01LevelId } from '../content/levels/chapter-01';
 
 export const PULSE_DAMAGE = 40;
 export const PULSE_DAMAGE_PER_UPGRADE = 6;
@@ -70,21 +71,26 @@ interface AimTrace {
 
 const noShot: ShotResult = { fired: false, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0 };
 
-function clearLine(fromX: number, fromZ: number, toX: number, toZ: number): boolean {
+function clearLine(
+  fromX: number, fromZ: number, toX: number, toZ: number, levelId: Chapter01LevelId,
+): boolean {
   const deltaX = toX - fromX;
   const deltaZ = toZ - fromZ;
   const distance = Math.hypot(deltaX, deltaZ);
   const steps = Math.max(1, Math.ceil(distance / 0.15));
   for (let step = 1; step < steps; step += 1) {
     const amount = step / steps;
-    if (isWallAtWorld(fromX + deltaX * amount, fromZ + deltaZ * amount)) return false;
+    if (isWallAtWorld(fromX + deltaX * amount, fromZ + deltaZ * amount, levelId)) return false;
   }
   return true;
 }
 
-function wallDistance(originX: number, originZ: number, directionX: number, directionZ: number, maximumRange: number): number {
+function wallDistance(
+  originX: number, originZ: number, directionX: number, directionZ: number, maximumRange: number,
+  levelId: Chapter01LevelId,
+): number {
   for (let distance = 0.15; distance <= maximumRange; distance += 0.15) {
-    if (isWallAtWorld(originX + directionX * distance, originZ + directionZ * distance)) return distance;
+    if (isWallAtWorld(originX + directionX * distance, originZ + directionZ * distance, levelId)) return distance;
   }
   return maximumRange;
 }
@@ -107,12 +113,14 @@ function sphereDistance(
   return far >= 0 ? far : null;
 }
 
-function traceAim(player: PlayerState, robots: readonly RobotState[], maximumRange: number): AimTrace {
+function traceAim(
+  player: PlayerState, robots: readonly RobotState[], maximumRange: number, levelId: Chapter01LevelId,
+): AimTrace {
   const cosPitch = Math.cos(player.pitch);
   const directionX = Math.sin(player.yaw) * cosPitch;
   const directionY = Math.sin(player.pitch);
   const directionZ = -Math.cos(player.yaw) * cosPitch;
-  const obstructionDistance = wallDistance(player.x, player.z, directionX, directionZ, maximumRange);
+  const obstructionDistance = wallDistance(player.x, player.z, directionX, directionZ, maximumRange, levelId);
   let target: RobotState | null = null;
   let targetDistance = obstructionDistance;
   for (const robot of robots) {
@@ -151,11 +159,14 @@ export function damageRobot(
   return { robotId: robot.id, defeated: true, coinsAwarded: reward };
 }
 
-export function firePulse(player: PlayerState, robots: RobotState[], tick: number, lastShotTick: number): ShotResult {
+export function firePulse(
+  player: PlayerState, robots: RobotState[], tick: number, lastShotTick: number,
+  levelId: Chapter01LevelId = 'level-001',
+): ShotResult {
   const energyCost = Math.max(1, PULSE_ENERGY_COST - player.weaponUpgrades.pulseEfficiency * PULSE_ENERGY_REDUCTION_PER_UPGRADE);
   if (tick - lastShotTick < PULSE_COOLDOWN_TICKS || player.energy < energyCost) return noShot;
   player.energy -= energyCost;
-  const trace = traceAim(player, robots, PULSE_MAX_RANGE);
+  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId);
   if (trace.robot === null) return { fired: true, hitRobotId: null, defeatedRobotId: null, coinsAwarded: 0 };
   const damage = PULSE_DAMAGE + player.weaponUpgrades.pulseDamage * PULSE_DAMAGE_PER_UPGRADE;
   const hit = damageRobot(player, trace.robot, damage, trace.directionX * 0.075, 0.055, trace.directionZ * 0.075);
@@ -169,6 +180,7 @@ export function swingSword(
   tick: number,
   lastSwordTick: number,
   charged: boolean,
+  levelId: Chapter01LevelId = 'level-001',
 ): SwordResult {
   const cooldown = charged ? 40 : 14;
   const baseHeat = charged ? 44 : 18;
@@ -199,7 +211,7 @@ export function swingSword(
     const facing = distance < 0.001 ? 1 : (deltaX * forwardX + deltaZ * forwardZ) / distance;
     return { robot, deltaX, deltaZ, distance, facing };
   }).filter((candidate) => candidate.distance <= range && candidate.facing >= (charged ? 0.35 : 0.55)
-    && clearLine(player.x, player.z, candidate.robot.x, candidate.robot.z))
+    && clearLine(player.x, player.z, candidate.robot.x, candidate.robot.z, levelId))
     .sort((first, second) => first.distance - second.distance || first.robot.id - second.robot.id)[0];
   if (target === undefined) return { activated: true, charged, hit: null, deflectedProjectileIds };
   const inverseDistance = 1 / Math.max(0.001, target.distance);
@@ -211,8 +223,10 @@ export function swingSword(
   return { activated: true, charged, hit, deflectedProjectileIds };
 }
 
-export function fireLaser(player: PlayerState, robots: RobotState[], damage: number): LaserResult {
-  const trace = traceAim(player, robots, PULSE_MAX_RANGE);
+export function fireLaser(
+  player: PlayerState, robots: RobotState[], damage: number, levelId: Chapter01LevelId = 'level-001',
+): LaserResult {
+  const trace = traceAim(player, robots, PULSE_MAX_RANGE, levelId);
   if (trace.robot === null) return { hit: null, beamDistance: trace.distance };
   return {
     hit: damageRobot(player, trace.robot, damage, trace.directionX * 0.022, 0.012, trace.directionZ * 0.022),
@@ -232,7 +246,9 @@ export function createThrownBomb(player: PlayerState, id: number): PlayerBomb {
   };
 }
 
-export function stepPlayerBombs(player: PlayerState, robots: RobotState[], bombs: PlayerBomb[]): BombStepResult {
+export function stepPlayerBombs(
+  player: PlayerState, robots: RobotState[], bombs: PlayerBomb[], levelId: Chapter01LevelId = 'level-001',
+): BombStepResult {
   const detonatedBombIds: number[] = [];
   const hits: WeaponHit[] = [];
   for (let index = bombs.length - 1; index >= 0; index -= 1) {
@@ -240,9 +256,9 @@ export function stepPlayerBombs(player: PlayerState, robots: RobotState[], bombs
     bomb.velocityY -= 9.8 * FIXED_DT_SECONDS;
     const nextX = bomb.x + bomb.velocityX * FIXED_DT_SECONDS;
     const nextZ = bomb.z + bomb.velocityZ * FIXED_DT_SECONDS;
-    if (isWallAtWorld(nextX, bomb.z)) bomb.velocityX *= -0.52;
+    if (isWallAtWorld(nextX, bomb.z, levelId)) bomb.velocityX *= -0.52;
     else bomb.x = nextX;
-    if (isWallAtWorld(bomb.x, nextZ)) bomb.velocityZ *= -0.52;
+    if (isWallAtWorld(bomb.x, nextZ, levelId)) bomb.velocityZ *= -0.52;
     else bomb.z = nextZ;
     bomb.y += bomb.velocityY * FIXED_DT_SECONDS;
     if (bomb.y < 0.16) {
@@ -258,7 +274,7 @@ export function stepPlayerBombs(player: PlayerState, robots: RobotState[], bombs
       const deltaX = robot.x - bomb.x;
       const deltaZ = robot.z - bomb.z;
       const distance = Math.hypot(deltaX, deltaZ);
-      if (distance > BOMB_BLAST_RADIUS || !clearLine(bomb.x, bomb.z, robot.x, robot.z)) continue;
+      if (distance > BOMB_BLAST_RADIUS || !clearLine(bomb.x, bomb.z, robot.x, robot.z, levelId)) continue;
       const amount = 1 - 0.4 * distance / BOMB_BLAST_RADIUS;
       const inverseDistance = 1 / Math.max(0.25, distance);
       hits.push(damageRobot(
