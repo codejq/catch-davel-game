@@ -84,3 +84,14 @@ export const CHAPTER_01_ASSET_PROVENANCE = {
   scope: 'chapter-01-level-content',
   records: ORIGINAL_LEVEL_ASSET_RECIPES.map(originalRecord),
 } as const satisfies AssetProvenanceManifest;
+
+export const PACKAGING_ASSET_PROVENANCE = {
+  id: 'packaging-app-icon-original',
+  assetIds: ['quantum-catch-davel-app-icon'],
+  assetKind: 'mixed',
+  sourceType: 'project-original',
+  creator: 'Quantum Billing Catch Davel contributors',
+  licenseId: 'MIT',
+  sourcePath: 'game/src-tauri/icons/app-icon.svg',
+  modifications: 'Original vector Davel face, Quantum ring, gradients, and generated Tauri desktop/mobile raster variants.',
+} as const satisfies ProjectOriginalProvenanceRecord;

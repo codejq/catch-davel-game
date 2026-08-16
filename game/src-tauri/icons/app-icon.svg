@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Quantum Catch Davel app icon">
+  <defs>
+    <linearGradient id="bg" x1="90" y1="80" x2="930" y2="950" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6d36d9"/>
+      <stop offset="0.52" stop-color="#147fbd"/>
+      <stop offset="1" stop-color="#10c99a"/>
+    </linearGradient>
+    <linearGradient id="face" x1="300" y1="250" x2="730" y2="760" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff9b8"/>
+      <stop offset="1" stop-color="#ffb84d"/>
+    </linearGradient>
+  </defs>
+  <rect x="32" y="32" width="960" height="960" rx="224" fill="url(#bg)"/>
+  <path d="M512 132v100" stroke="#fff" stroke-width="52" stroke-linecap="round"/>
+  <circle cx="512" cy="126" r="45" fill="#ff5f90" stroke="#fff" stroke-width="20"/>
+  <path d="M274 314c0-72 58-130 130-130h216c72 0 130 58 130 130v358c0 92-74 166-166 166H440c-92 0-166-74-166-166V314z" fill="url(#face)" stroke="#fff" stroke-width="42"/>
+  <path d="M274 430H170v164h104M750 430h104v164H750" fill="none" stroke="#fff" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M410 822l-42 92M614 822l42 92" stroke="#fff" stroke-width="52" stroke-linecap="round"/>
+  <path d="M373 428l98 38M651 428l-98 38" stroke="#402477" stroke-width="42" stroke-linecap="round"/>
+  <circle cx="412" cy="502" r="34" fill="#1c2654"/>
+  <circle cx="612" cy="502" r="34" fill="#1c2654"/>
+  <circle cx="400" cy="490" r="10" fill="#fff"/>
+  <circle cx="600" cy="490" r="10" fill="#fff"/>
+  <path d="M374 624c72 94 204 94 276 0-94 34-182 34-276 0z" fill="#ff4f73" stroke="#402477" stroke-width="28" stroke-linejoin="round"/>
+  <path d="M512 683c52 0 91 18 112 46-72 44-152 44-224 0 21-28 60-46 112-46z" fill="#7a214b"/>
+  <path d="M754 753l116 116" stroke="#fff" stroke-width="42" stroke-linecap="round"/>
+  <circle cx="744" cy="742" r="70" fill="none" stroke="#fff" stroke-width="34"/>
+</svg>

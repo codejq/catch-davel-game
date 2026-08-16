@@ -48,11 +48,13 @@ try {
     rendererMode: document.body.dataset.rendererMode,
     workerStatus: document.body.dataset.workerStatus,
     profileReady: document.body.dataset.profileReady,
+    profileStorage: document.body.dataset.profileStorage,
     campaignCards: document.querySelectorAll('#campaign-levels .level-card').length,
     campaignUnlockedCards: document.querySelectorAll('#campaign-levels .level-card:not(:disabled)').length,
     campaignButtonVisible: !document.querySelector('#campaign-button')?.hidden,
   }), startTick);
   if (result.agentApiExposed) throw new Error('Default production build exposed the mutation-capable agent API');
+  if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
   if (result.campaignCards !== 10 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {

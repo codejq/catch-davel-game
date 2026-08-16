@@ -3,7 +3,7 @@ import { createRendererHost } from '../render/renderer-host';
 import type { RenderGameState } from '../render/render-model';
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
-import { createBrowserProfileRepository } from '../storage/indexeddb';
+import { createPlatformProfileRepository } from '../storage/platform';
 import { createDefaultProfile, updateProfile, type ProfileV1 } from '../storage/profile';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -62,7 +62,9 @@ export async function startBrowserGame(): Promise<void> {
   const levelName = requireElement<HTMLElement>('#level-name');
   document.body.dataset.loadout = trainingMode ? 'training' : 'campaign';
   document.body.dataset.encounter = bossTraining ? 'boss-training' : 'campaign';
-  const profileRepository = createBrowserProfileRepository();
+  const profileStorage = createPlatformProfileRepository();
+  const profileRepository = profileStorage.repository;
+  document.body.dataset.profileStorage = profileStorage.backend;
   let activeProfile: ProfileV1;
   try {
     const loadedProfile = await profileRepository.load('default');
@@ -377,6 +379,25 @@ export async function startBrowserGame(): Promise<void> {
   let altFireQueued = false;
   let fireHeld = false;
   let queuedWeapon: WeaponId | null = null;
+  let resumeAfterVisibility = false;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      pressed.clear(); fireHeld = false; fireQueued = false; altFireQueued = false;
+      resumeAfterVisibility = !agentController.isAgentControlled()
+        && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat;
+      if (resumeAfterVisibility) void client.setMode('manual');
+      if (humanSessionStarted) persistProfile(activeProfile);
+      document.body.dataset.suspended = 'true';
+    } else {
+      document.body.dataset.suspended = 'false';
+      if (resumeAfterVisibility && !agentController.isAgentControlled()
+        && !campaignMap.classList.contains('open') && !renderState?.victory && !renderState?.defeat) {
+        resumeAfterVisibility = false;
+        void client.setMode('realtime');
+      }
+    }
+  });
 
   window.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.code === 'KeyM' && !trainingMode && !agentController.isAgentControlled()) {

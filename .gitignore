@@ -10,8 +10,8 @@ game/davel-clucky.png
 spike/phase-minus-one/artifacts/runs/
 
 # Tauri and Rust build output
-src-tauri/target/
-src-tauri/gen/
+**/src-tauri/target/
+**/src-tauri/gen/schemas/
 
 # Local configuration and secrets
 .env
