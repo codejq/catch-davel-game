@@ -1,0 +1,521 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "1f697b70870c7801",
+          "effectiveLevel": "13dce65c9cff2833",
+          "policyOrReplay": "ab8c698b5dea6c13",
+          "simulationLevel": "8198ce8a2de7440c",
+          "simulationSchema": "9f5cdf6817cd80cd"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 12000,
+        "mode": "live-agent",
+        "parTicks": 9200,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-tempo-tent"
+        ],
+        "seed": "campaign-level-015-v1",
+        "stuckTimeoutTicks": 1600
+      }
+    ],
+    "tier": "named-elite"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-015"
+  },
+  "briefingKey": "levels.015.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-015"
+    }
+  ],
+  "dance": {
+    "armPatternId": "tempo-tent-twist-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 136,
+    "footPatternId": "tempo-tent-twist-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "tempo-tent-twist-head-v1",
+    "pathPatternId": "tempo-tent-twist-path-v1",
+    "presetId": "tempo-tent-twist",
+    "reducedMotionPresetId": "tempo-tent-twist-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "tempo-tent-twist-torso-v1",
+    "transitionIds": [
+      "tempo-twist",
+      "hostile-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.94,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-015"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-015"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "tempo-tent-crew",
+      "rewardId": "chapter-02-clear-015",
+      "roomNodeId": "tempo-tent-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "soundcheck-wave",
+          "interGroupDelayTicks": 10,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "soundcheck-wobblers",
+              "modifierIds": [
+                "soundcheck"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-1.wobblers",
+              "spawnPointSetId": "level-015-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "soundcheck-spinner",
+              "modifierIds": [
+                "soundcheck"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-1.spinner",
+              "spawnPointSetId": "level-015-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "tempo-twist",
+          "id": "tempo-twist-wave",
+          "interGroupDelayTicks": 9,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "twist-sliders",
+              "modifierIds": [
+                "tempo-twist"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-2.sliders",
+              "spawnPointSetId": "level-015-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "twist-spinner",
+              "modifierIds": [
+                "tempo-twist"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-2.spinner",
+              "spawnPointSetId": "level-015-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "twist-firemouth",
+              "modifierIds": [
+                "tempo-twist"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-2.firemouth",
+              "spawnPointSetId": "level-015-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 36
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "hostile-encore",
+          "id": "hostile-encore-wave",
+          "interGroupDelayTicks": 8,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "wobble-scout",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "encore-heckler",
+              "modifierIds": [
+                "encore"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-3.heckler",
+              "spawnPointSetId": "level-015-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "encore-foreman",
+              "modifierIds": [
+                "encore"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-3.foreman",
+              "spawnPointSetId": "level-015-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-02-stage-15",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "tempo-tent-twist",
+              "id": "encore-dj",
+              "modifierIds": [
+                "hostile-headliner"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-02-coins-15",
+              "rngStream": "encounter.level-015.wave-3.dj",
+              "spawnPointSetId": "level-015-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 32
+        }
+      ]
+    }
+  ],
+  "id": "level-015",
+  "mastery": [
+    {
+      "presetId": "level-015-par-time"
+    },
+    {
+      "presetId": "level-015-perfect-beat"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "tempo-entry",
+        "id": "entry-backstage",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "backstage-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "backstage-booth",
+        "id": "backstage-arena",
+        "requiredKeyId": "backstage-pass",
+        "stateTrigger": "key-collected",
+        "to": "tempo-tent-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "tempo-tent-arena",
+        "id": "arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "tempo-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "tempo-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "encore-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "backstage-booth",
+        "id": "backstage-speakers",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "speaker-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "speaker-loop",
+        "id": "speakers-checkpoint",
+        "requiredKeyId": "backstage-pass",
+        "stateTrigger": "key-collected",
+        "to": "tempo-checkpoint",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "tempo-entry",
+    "exitNodeId": "encore-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "tempo-gate-north-v1",
+        "id": "tempo-gate-north",
+        "nodeId": "tempo-tent-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "tempo-gate-west-v1",
+        "id": "tempo-gate-west",
+        "nodeId": "tempo-tent-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "tempo-gate-east-v1",
+        "id": "tempo-gate-east",
+        "nodeId": "tempo-tent-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "tempo-gate-south-v1",
+        "id": "tempo-gate-south",
+        "nodeId": "tempo-tent-arena",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "backstage-pass",
+        "placementNodeId": "backstage-booth"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "tempo-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "tempo-entry"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "backstage-booth",
+        "pickupIds": [
+          "backstage-pass"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "backstage-pass"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "tempo-tent-crew"
+        ],
+        "id": "tempo-tent-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "cyan-dj",
+          "freeze-window",
+          "staggered-gates"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "speaker-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "speaker-maze",
+          "coin-cache"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-015",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "tempo-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "encore-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-tempo-tent",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.015.name",
+  "number": 15,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-tempo-tent",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "soundcheck-wave",
+        "tempo-twist-wave",
+        "hostile-encore-wave"
+      ],
+      "titleKey": "objectives.level_015",
+      "type": "survive"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-15"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-015-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 48,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-015-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "cyan-dj",
+    "freeze-window",
+    "staggered-gates",
+    "tempo-tent-twist"
+  ]
+}

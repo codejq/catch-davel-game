@@ -152,6 +152,13 @@ function targets(
     leftFootX = -0.3 - Math.max(0, alternate) * 0.1; rightFootX = 0.3 + Math.max(0, -alternate) * 0.1;
     leftFootZ = alternate * 0.38; rightFootZ = alternate * 0.38;
     leftHand = [-0.96, 1.7 + beat * 0.18, 0.16]; rightHand = [0.96, 1.18 - beat * 0.12, 0.3];
+  } else if (performance.motif === 'tempo-twist') {
+    const snap = beat > 0.35 ? 1 : 0;
+    bounce += snap * 0.12 * intensity; hipX = alternate * 0.22 * intensity; chestX = -hipX * 0.9;
+    headX += snap * alternate * 0.28; leftFootZ = alternate * 0.5; rightFootZ = -alternate * 0.5;
+    leftFootY += Math.max(0, alternate) * 0.1; rightFootY += Math.max(0, -alternate) * 0.1;
+    leftHand = [-0.38 - snap * 0.5, 1.24 + snap * 0.55, 0.2];
+    rightHand = [0.38 + snap * 0.5, 1.24 + snap * 0.55, 0.2];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

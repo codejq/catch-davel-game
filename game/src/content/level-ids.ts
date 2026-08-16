@@ -3,7 +3,7 @@ export const CHAPTER_01_LEVEL_IDS = [
   'level-006', 'level-007', 'level-008', 'level-009', 'level-010',
 ] as const;
 
-export const CHAPTER_02_LEVEL_IDS = ['level-011', 'level-012', 'level-013', 'level-014'] as const;
+export const CHAPTER_02_LEVEL_IDS = ['level-011', 'level-012', 'level-013', 'level-014', 'level-015'] as const;
 
 /** IDs with complete authored content and runtime validation in this build. */
 export const PLAYABLE_LEVEL_IDS = [...CHAPTER_01_LEVEL_IDS, ...CHAPTER_02_LEVEL_IDS] as const;
