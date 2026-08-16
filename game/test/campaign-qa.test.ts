@@ -8,9 +8,9 @@ const manifest = parseFrozenChecksumManifest(JSON.parse(readFileSync(
   new URL('../qa/frozen-checksum-manifest.json', import.meta.url), 'utf8',
 )));
 
-describe('one-command Chapter 1 campaign QA', () => {
+describe('one-command playable campaign QA', () => {
   it('completes every declared live Standard run within its safety gates', () => {
-    expect(results).toHaveLength(10);
+    expect(results).toHaveLength(11);
     for (const result of results) {
       expect(result.failure, JSON.stringify(result)).toBeNull();
       expect(result.victory, JSON.stringify(result)).toBe(true);

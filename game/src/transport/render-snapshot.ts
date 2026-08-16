@@ -3,7 +3,7 @@ import type {
   RenderGameState, RenderPickupState, RenderPlayerBombState, RenderPlayerState, RenderProjectileState, RenderRobotState,
 } from '../render/render-model';
 import { WEAPON_IDS, type WeaponId } from '../sim/weapons';
-import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../content/level-ids';
+import { CAMPAIGN_LEVEL_IDS, isPlayableLevelId, type PlayableLevelId } from '../content/level-ids';
 import type { GameState } from '../sim/game';
 import { campaignRunScore } from '../sim/run-score';
 import { DIFFICULTY_IDS, type DifficultyId } from '../sim/difficulty';
@@ -51,10 +51,12 @@ const HEADER_RUN_SCORE = 64;
 const HEADER_CURRENT_COMBO = 72;
 const HEADER_HIGHEST_COMBO = 76;
 
-function levelCode(levelId: PlayableLevelId): number { return PLAYABLE_LEVEL_IDS.indexOf(levelId); }
+// The transport reserves the complete 100-level numeric envelope so admitting
+// authored content never renumbers an existing level or changes the wire layout.
+function levelCode(levelId: PlayableLevelId): number { return CAMPAIGN_LEVEL_IDS.indexOf(levelId); }
 function decodeLevel(code: number): PlayableLevelId {
-  const levelId = PLAYABLE_LEVEL_IDS[code];
-  if (levelId === undefined) throw new Error(`Unknown render level code ${code}`);
+  const levelId = CAMPAIGN_LEVEL_IDS[code];
+  if (levelId === undefined || !isPlayableLevelId(levelId)) throw new Error(`Unknown render level code ${code}`);
   return levelId;
 }
 

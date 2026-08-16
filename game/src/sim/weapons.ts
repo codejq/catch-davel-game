@@ -1,3 +1,5 @@
+import type { PlayableLevelId } from '../content/level-ids';
+
 export const WEAPON_IDS = ['pulse', 'sword', 'bomb', 'laser'] as const;
 export type WeaponId = typeof WEAPON_IDS[number];
 
@@ -10,6 +12,15 @@ export const WEAPON_MASK = {
 
 export const CAMPAIGN_LEVEL_1_WEAPON_MASK = WEAPON_MASK.pulse;
 export const TRAINING_WEAPON_MASK = WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb | WEAPON_MASK.laser;
+
+export function campaignWeaponMask(levelId: PlayableLevelId): number {
+  const levelNumber = Number(levelId.slice(-3));
+  let mask = WEAPON_MASK.pulse;
+  if (levelNumber >= 11) mask |= WEAPON_MASK.sword;
+  if (levelNumber >= 21) mask |= WEAPON_MASK.bomb;
+  if (levelNumber >= 41) mask |= WEAPON_MASK.laser;
+  return mask;
+}
 
 export function isWeaponId(value: unknown): value is WeaponId {
   return typeof value === 'string' && (WEAPON_IDS as readonly string[]).includes(value);

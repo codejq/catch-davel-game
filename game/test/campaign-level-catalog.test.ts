@@ -1,13 +1,24 @@
 import { describe, expect, it } from 'vitest';
 import { CAMPAIGN_LEVEL_IDS, isCampaignLevelId, isPlayableLevelId } from '../src/content/level-ids';
 import { PLAYABLE_LEVEL_IDS, PLAYABLE_LEVELS, campaignLevel } from '../src/content/levels/catalog';
+import { GameSimulation } from '../src/sim/game';
+import { campaignWeaponMask, WEAPON_MASK } from '../src/sim/weapons';
 
 describe('scalable campaign level registry', () => {
   it('keeps the 100-ID numbering envelope separate from implemented content', () => {
     expect(CAMPAIGN_LEVEL_IDS).toHaveLength(100);
-    expect(PLAYABLE_LEVEL_IDS).toHaveLength(10);
+    expect(PLAYABLE_LEVEL_IDS).toHaveLength(11);
     expect(isCampaignLevelId('level-100')).toBe(true);
     expect(isPlayableLevelId('level-100')).toBe(false);
+  });
+
+  it('unlocks the sword at the Chapter 2 boundary in the shared simulation path', () => {
+    expect(campaignWeaponMask('level-001')).toBe(WEAPON_MASK.pulse);
+    expect(campaignWeaponMask('level-011')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword);
+    const simulation = new GameSimulation(
+      'level-011-loadout-proof', undefined, undefined, 'campaign', 'level-011',
+    );
+    expect(simulation.state.player.unlockedWeaponMask).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword);
   });
 
   it('maps every playable ID to exactly one ordered authored definition', () => {

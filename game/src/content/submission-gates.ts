@@ -1,5 +1,5 @@
 import type { AssetProvenanceManifest, AssetProvenanceRecord } from './assets/provenance.ts';
-import { CHAPTER_01_ASSET_PROVENANCE } from './assets/provenance.ts';
+import { CAMPAIGN_ASSET_PROVENANCE } from './assets/provenance.ts';
 import type { LevelDefinition } from './level-definition.ts';
 import type { LocalizationCatalog, ReleaseLocale } from './localization/catalogs.ts';
 import { RELEASE_LOCALES, RELEASE_LOCALIZATION_CATALOGS } from './localization/catalogs.ts';
@@ -165,7 +165,7 @@ function validateProvenanceRecord(record: AssetProvenanceRecord): void {
 }
 
 function provenanceIndex(manifest: AssetProvenanceManifest): Map<string, AssetProvenanceRecord> {
-  if (manifest.schemaVersion !== 1 || manifest.scope !== 'chapter-01-level-content') {
+  if (manifest.schemaVersion !== 1 || manifest.scope !== 'campaign-level-content') {
     throw new Error('Asset provenance manifest has an unsupported contract');
   }
   const records = new Set<string>();
@@ -185,7 +185,7 @@ function provenanceIndex(manifest: AssetProvenanceManifest): Map<string, AssetPr
 export function validateLevelSubmission(
   value: unknown,
   catalogs: readonly LocalizationCatalog[] = RELEASE_LOCALIZATION_CATALOGS,
-  manifest: AssetProvenanceManifest = CHAPTER_01_ASSET_PROVENANCE,
+  manifest: AssetProvenanceManifest = CAMPAIGN_ASSET_PROVENANCE,
   releaseLocales: readonly ReleaseLocale[] = RELEASE_LOCALES,
 ): ContentSubmissionLevelReport {
   const level = validateLevelDefinition(value);
@@ -202,7 +202,7 @@ export function validateLevelSubmission(
 export function validateContentSubmission(
   values: readonly unknown[],
   catalogs: readonly LocalizationCatalog[] = RELEASE_LOCALIZATION_CATALOGS,
-  manifest: AssetProvenanceManifest = CHAPTER_01_ASSET_PROVENANCE,
+  manifest: AssetProvenanceManifest = CAMPAIGN_ASSET_PROVENANCE,
   releaseLocales: readonly ReleaseLocale[] = RELEASE_LOCALES,
 ): ContentSubmissionReport {
   if (values.length === 0) throw new Error('Content submission has no levels');

@@ -7,6 +7,7 @@ import {
   validateAudioMixSettings, validateProceduralAudioDefinitions,
 } from '../src/audio/procedural-audio';
 import { AUDIO_RUNTIME_PROFILES } from '../src/content/runtime-manifests';
+import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 
 describe('project-original procedural audio contracts', () => {
   it('keeps every gameplay cue layered and bounded', () => {
@@ -49,10 +50,10 @@ describe('project-original procedural audio contracts', () => {
     })).toThrow(/preset/);
   });
 
-  it('gives all ten authored rooms a distinct safe response profile', () => {
+  it('gives every playable room a distinct safe response profile', () => {
     const profiles = Object.values(AUDIO_RUNTIME_PROFILES);
-    expect(profiles).toHaveLength(10);
-    expect(new Set(profiles.map((profile) => JSON.stringify(profile))).size).toBe(10);
+    expect(profiles).toHaveLength(PLAYABLE_LEVEL_IDS.length);
+    expect(new Set(profiles.map((profile) => JSON.stringify(profile))).size).toBe(PLAYABLE_LEVEL_IDS.length);
     for (const profile of profiles) {
       expect(profile.decaySeconds).toBeGreaterThan(0);
       expect(profile.decaySeconds).toBeLessThanOrEqual(1);
@@ -67,7 +68,7 @@ describe('project-original procedural audio contracts', () => {
     expect(AMBIENCE_SOURCE_CAP).toBe(2);
     expect(TRANSIENT_AUDIO_SOURCE_CAP).toBe(48);
     expect(TOTAL_AUDIO_SOURCE_CAP).toBe(50);
-    expect(new Set(ambience.map((profile) => JSON.stringify(profile))).size).toBe(10);
+    expect(new Set(ambience.map((profile) => JSON.stringify(profile))).size).toBe(PLAYABLE_LEVEL_IDS.length);
     for (const profile of ambience) {
       expect(profile.primaryFrequency).toBeGreaterThanOrEqual(35);
       expect(profile.secondaryFrequency).toBeLessThan(100);

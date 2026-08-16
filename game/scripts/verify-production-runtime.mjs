@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 10 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 11 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-008`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-011`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-008'
+    && document.body.dataset.levelId === 'level-011'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   const chapterLevel = await chapterPage.evaluate(() => ({
@@ -664,7 +664,7 @@ try {
   }));
   const expectedChapterRemaining = chapterLevel.language === 'ar' ? 'متبقٍ 8 من دافل' : '8 Davels remain';
   if (chapterLevel.remaining !== expectedChapterRemaining) {
-    throw new Error('Production Level 8 did not render its eight-Davel roster in the active locale');
+    throw new Error('Production Level 11 did not render its eight-Davel roster in the active locale');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -785,11 +785,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 10 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 11 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 10
-    || !toolingProof.balanceSummary.includes('Guaranteed 283 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 11
+    || !toolingProof.balanceSummary.includes('Guaranteed 312 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {

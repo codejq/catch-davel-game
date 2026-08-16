@@ -105,7 +105,7 @@ function edge(value: unknown, index: number): MazeEdgeSpec {
   text(result.from, `${label}.from`); text(result.to, `${label}.to`);
   booleanValue(result.bidirectional, `${label}.bidirectional`);
   nullableText(result.requiredKeyId, `${label}.requiredKeyId`);
-  oneOf(result.doorType, ['open', 'workshop-lock', 'arena-lock'], `${label}.doorType`);
+  oneOf(result.doorType, ['open', 'workshop-lock', 'ticket-gate', 'arena-lock'], `${label}.doorType`);
   integer(result.traversalCost, `${label}.traversalCost`, 1, 1_000);
   nullableText(result.stateTrigger, `${label}.stateTrigger`);
   return result as unknown as MazeEdgeSpec;

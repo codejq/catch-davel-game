@@ -5,8 +5,8 @@ import {
   ROBOT_DEFINITIONS, campaignRobotIds, campaignRobotWaves, createRobots, resolveRobotCrowding, stepRobots,
   validateRobotDefinitions,
 } from '../src/sim/robots';
-import { CHAPTER_01_LEVEL_IDS, CHAPTER_01_LEVELS } from '../src/content/levels/chapter-01';
-import { CHAPTER_01_DANCE_PERFORMANCES, levelDancePerformance } from '../src/sim/dance-performance';
+import { PLAYABLE_LEVEL_IDS, PLAYABLE_LEVELS } from '../src/content/levels/catalog';
+import { CAMPAIGN_DANCE_PERFORMANCES, levelDancePerformance } from '../src/sim/dance-performance';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
@@ -21,9 +21,9 @@ describe('Davel simulation', () => {
     expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'elite').map((robot) => robot.name)).toEqual(['DJ Grin', 'Foreman Stomp']);
     expect(ROBOT_DEFINITIONS.filter((robot) => robot.rank === 'boss').map((robot) => robot.name)).toEqual(['The Final Invoice']);
     expect(new Set(ROBOT_DEFINITIONS.map((robot) => robot.route.map((cell) => `${cell.column},${cell.row}`).join('|'))).size).toBeGreaterThanOrEqual(7);
-    expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotIds(levelId).length)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1]);
+    expect(PLAYABLE_LEVEL_IDS.map((levelId) => campaignRobotIds(levelId).length)).toEqual([6, 5, 6, 7, 5, 6, 7, 8, 10, 1, 8]);
     expect(campaignRobotWaves('level-009').map((wave) => wave.length)).toEqual([5, 5]);
-    expect(CHAPTER_01_LEVEL_IDS.map((levelId) => campaignRobotWaves(levelId))).toEqual([
+    expect(PLAYABLE_LEVEL_IDS.map((levelId) => campaignRobotWaves(levelId))).toEqual([
       [[0, 1, 2, 3, 4, 5]],
       [[0, 1, 2, 8, 9]],
       [[0, 1, 2, 4, 8, 9]],
@@ -34,6 +34,7 @@ describe('Davel simulation', () => {
       [[0, 1, 2, 3, 4, 5, 8, 9]],
       [[0, 1, 2, 4, 8], [3, 5, 7, 9, 10]],
       [[6]],
+      [[0, 1, 2, 3, 4, 8, 9, 10]],
     ]);
     expect(campaignRobotIds('level-005').map((id) => ROBOT_DEFINITIONS[id]!.name)).toContain('Foreman Stomp');
     expect(campaignRobotIds('level-010')).toEqual([6]);
@@ -73,18 +74,18 @@ describe('Davel simulation', () => {
   });
 
   it('materializes every authored level dance as a distinct XPBD performance', () => {
-    expect(new Set(Object.values(CHAPTER_01_DANCE_PERFORMANCES).map((profile) => profile.presetId)).size).toBe(10);
-    for (const level of CHAPTER_01_LEVELS) {
-      const profile = levelDancePerformance(level.id as (typeof CHAPTER_01_LEVEL_IDS)[number]);
+    expect(new Set(Object.values(CAMPAIGN_DANCE_PERFORMANCES).map((profile) => profile.presetId)).size).toBe(11);
+    for (const level of PLAYABLE_LEVELS) {
+      const profile = levelDancePerformance(level.id as (typeof PLAYABLE_LEVEL_IDS)[number]);
       expect(profile.presetId).toBe(level.dance.presetId);
       expect(profile.bpm).toBe(level.dance.bpm);
       expect(profile.visualIntensity).toBe(level.dance.visualIntensity);
     }
-    const signatures = CHAPTER_01_LEVEL_IDS.slice(0, 9).map((levelId) => {
+    const signatures = PLAYABLE_LEVEL_IDS.filter((levelId) => levelId !== 'level-010').map((levelId) => {
       const robots = createRobots('campaign', levelId);
       for (let tick = 0; tick < 120; tick += 1) stepRobots(robots, 'dance-profile-proof', undefined, levelId);
       return Array.from(robots[0]!.body.positions).map((value) => value.toFixed(4)).join(',');
     });
-    expect(new Set(signatures).size).toBe(9);
+    expect(new Set(signatures).size).toBe(10);
   });
 });

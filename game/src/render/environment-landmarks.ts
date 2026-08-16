@@ -1,5 +1,5 @@
-import type { Chapter01LevelId } from '../content/level-ids';
-import { chapter01Level } from '../content/levels/chapter-01';
+import type { PlayableLevelId } from '../content/level-ids';
+import { campaignLevel } from '../content/levels/catalog';
 import { paletteRuntimeProfile, type RuntimeRgb } from '../content/runtime-manifests';
 import { CELL_SIZE } from '../sim/constants';
 import { cellAt, cellCenter, LEVEL_HEIGHT, LEVEL_WIDTH, wallCells, worldCell } from '../sim/level';
@@ -15,7 +15,7 @@ export interface EnvironmentBox {
   readonly emission: number;
 }
 
-export interface ChapterLandmarkLayout {
+export interface CampaignLandmarkLayout {
   readonly motif: LandmarkMotif;
   readonly anchorCells: readonly { readonly column: number; readonly row: number }[];
   readonly boxes: readonly EnvironmentBox[];
@@ -31,9 +31,10 @@ export type LandmarkMotif =
   | 'blackout-lamps'
   | 'shift-clock'
   | 'rush-stacks'
-  | 'invoice-crown';
+  | 'invoice-crown'
+  | 'ticket-booth';
 
-const LANDMARK_MOTIFS: Readonly<Record<Chapter01LevelId, LandmarkMotif>> = {
+const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
   'level-002': 'grinning-marquee',
   'level-003': 'coin-circuit',
@@ -44,11 +45,12 @@ const LANDMARK_MOTIFS: Readonly<Record<Chapter01LevelId, LandmarkMotif>> = {
   'level-008': 'shift-clock',
   'level-009': 'rush-stacks',
   'level-010': 'invoice-crown',
+  'level-011': 'ticket-booth',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-export const MAX_CHAPTER_LANDMARK_BOXES = 18;
+export const MAX_CAMPAIGN_LANDMARK_BOXES = 18;
 export const MAX_EXIT_BEACON_BOXES = 13;
 
 function box(
@@ -60,7 +62,7 @@ function box(
   return { x, y, z, sizeX, sizeY, sizeZ, color, emission };
 }
 
-function selectVisibleWallAnchors(levelId: Chapter01LevelId): readonly { column: number; row: number }[] {
+function selectVisibleWallAnchors(levelId: PlayableLevelId): readonly { column: number; row: number }[] {
   const candidates = wallCells(levelId).filter(({ column, row }) => {
     if (column === 0 || row === 0 || column === LEVEL_WIDTH - 1 || row === LEVEL_HEIGHT - 1) return false;
     const visibleSides = CARDINAL_OFFSETS.filter(
@@ -69,7 +71,7 @@ function selectVisibleWallAnchors(levelId: Chapter01LevelId): readonly { column:
     return visibleSides >= 2;
   });
   if (candidates.length < LANDMARKS_PER_LEVEL) throw new Error(`Level ${levelId} has too few visible landmark anchors`);
-  const levelNumber = chapter01Level(levelId).number;
+  const levelNumber = campaignLevel(levelId).number;
   const selected: { column: number; row: number }[] = [];
   for (let index = 0; index < LANDMARKS_PER_LEVEL; index += 1) {
     const target = Math.floor(((index + 0.5) * candidates.length) / LANDMARKS_PER_LEVEL);
@@ -156,11 +158,19 @@ function motifBoxes(
         box(anchorX, y + 1.02, anchorZ, 0.24, 1.45, 0.24, accent),
         box(anchorX + 0.65, y + 0.82, anchorZ, 0.22, 1.05, 0.24, accent),
       ];
+    case 'ticket-booth':
+      return [
+        box(anchorX - 0.68, y + 0.62, anchorZ, 0.18, 1.25, 0.24, primary, 0.22),
+        box(anchorX + 0.68, y + 0.62, anchorZ, 0.18, 1.25, 0.24, primary, 0.22),
+        box(anchorX, y + 1.2, anchorZ, 1.55, 0.2, 0.28, accent, 0.42),
+        box(anchorX, y + 0.62, anchorZ, 0.62, 0.42, 0.24, primary, 0.18),
+        box(anchorX + shift, y + 0.62, anchorZ - 0.14, 0.18, 0.72, 0.12, accent, 0.55),
+      ];
   }
 }
 
-export function chapterLandmarkLayout(levelId: Chapter01LevelId): ChapterLandmarkLayout {
-  const level = chapter01Level(levelId);
+export function campaignLandmarkLayout(levelId: PlayableLevelId): CampaignLandmarkLayout {
+  const level = campaignLevel(levelId);
   const palette = paletteRuntimeProfile(level.palette.presetId);
   const anchorCells = selectVisibleWallAnchors(levelId);
   const boxes = anchorCells.flatMap((anchor, index) => {
@@ -172,11 +182,11 @@ export function chapterLandmarkLayout(levelId: Chapter01LevelId): ChapterLandmar
       index,
     );
   });
-  if (boxes.length > MAX_CHAPTER_LANDMARK_BOXES) throw new Error(`Level ${levelId} exceeds its landmark box cap`);
+  if (boxes.length > MAX_CAMPAIGN_LANDMARK_BOXES) throw new Error(`Level ${levelId} exceeds its landmark box cap`);
   return { motif: LANDMARK_MOTIFS[levelId], anchorCells, boxes };
 }
 
-function exitApproach(levelId: Chapter01LevelId, x: number, z: number): readonly [number, number] {
+function exitApproach(levelId: PlayableLevelId, x: number, z: number): readonly [number, number] {
   const exitCell = worldCell(x, z);
   for (const [columnOffset, rowOffset] of [[-1, 0], [1, 0], [0, -1], [0, 1]] as const) {
     if (cellAt(exitCell.column + columnOffset, exitCell.row + rowOffset, levelId) !== '#') {
@@ -187,7 +197,7 @@ function exitApproach(levelId: Chapter01LevelId, x: number, z: number): readonly
 }
 
 export function exitBeaconBoxes(
-  levelId: Chapter01LevelId,
+  levelId: PlayableLevelId,
   exit: { readonly x: number; readonly z: number },
   unlocked: boolean,
   tick: number,

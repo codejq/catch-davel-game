@@ -26,6 +26,14 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'timed-door', column: 12, row: 8, halfWidth: 1.45, halfDepth: 1.45,
     directionX: 0, directionZ: 0, phaseOffsetTicks: 120,
   },
+  'ticket-gate-west-v1': {
+    kind: 'timed-door', column: 6, row: 7, halfWidth: 1.45, halfDepth: 1.45,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'ticket-gate-east-v1': {
+    kind: 'timed-door', column: 10, row: 7, halfWidth: 1.45, halfDepth: 1.45,
+    directionX: 0, directionZ: 0, phaseOffsetTicks: 90,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -96,6 +104,21 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
     openings: [{ column: 6, row: 1 }, { column: 4, row: 4 }, { column: 10, row: 4 }, { column: 2, row: 8 }, { column: 8, row: 10 }, { column: 10, row: 12 }],
     interactions: { health: { column: 7, row: 9, amount: 30 }, key: { column: 9, row: 13 }, energy: { column: 3, row: 13, amount: 40 }, door: { column: 13, row: 12 }, checkpoint: { column: 11, row: 13 } },
   },
+  'carnival-ticket-trouble': {
+    openings: [
+      { column: 4, row: 2 }, { column: 10, row: 4 }, { column: 2, row: 6 },
+      { column: 6, row: 7 }, { column: 10, row: 7 }, { column: 6, row: 8 },
+      { column: 12, row: 10 }, { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 3, row: 3, amount: 19 },
+      key: { column: 9, row: 5 },
+      energy: { column: 7, row: 7, amount: 27 },
+      door: { column: 5, row: 8 },
+      checkpoint: { column: 11, row: 9 },
+      coin: { column: 13, row: 5, amount: 13 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -106,7 +129,7 @@ export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
 
 export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 'corner-peek'
   | 'heavy-two-step' | 'conveyor-conga' | 'freeze-dance' | 'clockwork-charleston'
-  | 'turbo-shuffle' | 'giant-breakdown';
+  | 'turbo-shuffle' | 'giant-breakdown' | 'ticket-swing';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -119,6 +142,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'clockwork-charleston': 'clockwork-charleston',
   'turbo-tool-shuffle': 'turbo-shuffle',
   'giant-wobble-breakdown': 'giant-breakdown',
+  'ticket-taker-swing': 'ticket-swing',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -145,6 +169,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'clockwork-charleston': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'turbo-tool-shuffle': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'giant-wobble-breakdown': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'ticket-taker-swing': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -172,6 +197,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-neon-workshop-008': { roomSize: 0.52, decaySeconds: 0.4, dampingHz: 5400, wetMix: 0.19, pitchScale: 1.04 },
   'audio-neon-workshop-009': { roomSize: 0.64, decaySeconds: 0.5, dampingHz: 4400, wetMix: 0.23, pitchScale: 1.09 },
   'audio-neon-workshop-010': { roomSize: 0.86, decaySeconds: 0.74, dampingHz: 2400, wetMix: 0.33, pitchScale: 0.88 },
+  'audio-copper-carnival-011': { roomSize: 0.7, decaySeconds: 0.58, dampingHz: 3600, wetMix: 0.26, pitchScale: 0.98 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -199,6 +225,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'clockwork-charleston': { rootMidi: 55, scale: [0, 2, 4, 6, 9], leadPattern: [0, 3, 1, 4, 2, 4, 1, 3], bassPattern: [0, 4, 2, 3], swing: 0.22 },
   'turbo-tool-shuffle': { rootMidi: 49, scale: [0, 2, 3, 7, 10], leadPattern: [0, 2, 4, 1, 3, 4, 2, 1], bassPattern: [0, 3, 4, 2], swing: 0.1 },
   'giant-wobble-breakdown': { rootMidi: 38, scale: [0, 3, 5, 8, 10], leadPattern: [0, 1, 3, 4, 0, 2, 1, 4], bassPattern: [0, 0, 3, 4], swing: 0.06 },
+  'ticket-taker-swing': { rootMidi: 51, scale: [0, 2, 4, 7, 9], leadPattern: [0, 3, 1, 4, 2, 0, 4, 1], bassPattern: [0, 3, 0, 4], swing: 0.2 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -225,6 +252,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'neon-workshop-08': { sky: [0.3, 0.82, 0.95], floor: [0.9, 0.82, 0.42], walls: [[0.85, 0.55, 0.1], [0.05, 0.78, 0.9], [0.9, 0.3, 0.72], [0.42, 0.34, 1]] },
   'neon-workshop-09': { sky: [0.65, 0.82, 1], floor: [0.98, 0.55, 0.42], walls: [[1, 0.18, 0.4], [0.1, 0.9, 0.72], [0.32, 0.45, 1], [1, 0.76, 0.08]] },
   'neon-workshop-10': { sky: [0.76, 0.45, 0.72], floor: [0.85, 0.68, 0.32], walls: [[0.35, 0.18, 0.5], [1, 0.22, 0.38], [0.12, 0.72, 0.85], [1, 0.68, 0.08]] },
+  'copper-carnival-11': { sky: [0.28, 0.82, 0.86], floor: [0.88, 0.5, 0.2], walls: [[0.96, 0.42, 0.12], [0.04, 0.72, 0.68], [1, 0.72, 0.16], [0.48, 0.18, 0.58]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {
@@ -233,9 +261,9 @@ export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {
   return profile;
 }
 
-export const CHAPTER_01_RUNTIME_MANIFEST = {
+export const CAMPAIGN_RUNTIME_MANIFEST = {
   schemaVersion: 1,
-  manifestId: 'chapter-01-runtime-v1',
+  manifestId: 'campaign-runtime-v1',
   hazardProfiles: HAZARD_RUNTIME_PROFILES,
   mazeProfiles: MAZE_RUNTIME_PROFILES,
   danceMotifs: DANCE_RUNTIME_MOTIFS,

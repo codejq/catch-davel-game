@@ -39,7 +39,7 @@ A replay contains:
 - contiguous tick-tagged command runs compressed only when commands are exactly equal;
 - checksums at the initial tick, each 60-tick boundary, and final tick.
 
-The level dependency includes the selected canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid, authoritative interaction/hazard state, and staged robot-wave roster. The generated JSON Schema and all ten canonical Chapter 1 exports are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
+The level dependency includes the selected canonical validated Appendix A `LevelDefinition` hash as well as the current authored grid, authoritative interaction/hazard state, and staged robot-wave roster. The generated JSON Schema and all eleven canonical playable-campaign exports are checked for staleness before every production build, preventing source types, review artifacts, and replay dependencies from silently diverging.
 
 Playback validates the whole file and dependency hashes before execution, uses `GameSimulation` directly, and checks state at every declared checksum tick. There is no alternate replay simulation. Missing ticks, overlaps, stale dependencies, unknown fields, oversized runs, or checksum drift fail explicitly.
 

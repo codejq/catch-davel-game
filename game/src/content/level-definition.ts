@@ -23,7 +23,7 @@ export interface MazeEdgeSpec {
   readonly to: string;
   readonly bidirectional: boolean;
   readonly requiredKeyId: string | null;
-  readonly doorType: 'open' | 'workshop-lock' | 'arena-lock';
+  readonly doorType: 'open' | 'workshop-lock' | 'ticket-gate' | 'arena-lock';
   readonly traversalCost: number;
   readonly stateTrigger: string | null;
 }

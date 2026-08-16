@@ -9,7 +9,7 @@ import { createLevelToolingReport, type LevelToolingReport } from './tooling-mod
 import { inspectReplay, type ReplayInspection } from './replay-inspector-model';
 import { GameSimulation } from '../sim/game';
 import { ReplayRecorder, serializeReplay } from '../replay/replay';
-import { createChapter01BalanceReport } from '../qa/balance-harness';
+import { createCampaignBalanceReport } from '../qa/balance-harness';
 
 function element<T extends Element>(selector: string): T {
   const result = document.querySelector<T>(selector);
@@ -280,7 +280,7 @@ function createSampleReplay(): void {
 }
 
 function renderBalanceHarness(): void {
-  const report = createChapter01BalanceReport();
+  const report = createCampaignBalanceReport();
   balanceSummary.textContent = `Guaranteed ${report.guaranteedChapterCoins} coins · optional caches ${report.optionalCacheCoins} · maximum ${report.maximumChapterCoins} · full upgrade catalog ${report.fullUpgradeCatalogCost} · guaranteed affordable by Level ${report.fullCatalogGuaranteedAffordableLevel ?? '—'}`;
   balanceTableBody.replaceChildren();
   for (const level of report.levels) {

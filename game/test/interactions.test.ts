@@ -6,7 +6,7 @@ import {
   stepLevelHazardPhases,
 } from '../src/sim/interactions';
 import { createSimulationSnapshot, parseSimulationSnapshot } from '../src/sim/serialization';
-import { CHAPTER_01_LEVELS, type Chapter01LevelId } from '../src/content/levels/chapter-01';
+import { PLAYABLE_LEVELS, type PlayableLevelId } from '../src/content/levels/catalog';
 
 const idle = { forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false } as const;
 
@@ -128,10 +128,10 @@ describe('authoritative Level 1 interactions', () => {
     expect(game.state.robots.some((robot, index) => robot.danceTime !== before[index]!.danceTime)).toBe(true);
   });
 
-  it('materializes distinct valid interaction layouts for every Chapter 1 level', () => {
+  it('materializes distinct valid interaction layouts for every playable campaign level', () => {
     const signatures: string[] = [];
-    for (const definition of CHAPTER_01_LEVELS) {
-      const game = new GameSimulation(definition.seed, undefined, undefined, 'campaign', definition.id as Chapter01LevelId);
+    for (const definition of PLAYABLE_LEVELS) {
+      const game = new GameSimulation(definition.seed, undefined, undefined, 'campaign', definition.id as PlayableLevelId);
       const level = game.state.level;
       signatures.push([
         ...level.pickups.map((pickup) => `${pickup.x},${pickup.z},${pickup.amount}`),
@@ -143,7 +143,7 @@ describe('authoritative Level 1 interactions', () => {
       )).toBe(false);
       expect(new Set(level.pickups.map((pickup) => `${pickup.x},${pickup.z}`)).size).toBe(level.pickups.length);
     }
-    expect(new Set(signatures).size).toBe(10);
+    expect(new Set(signatures).size).toBe(PLAYABLE_LEVELS.length);
   });
 
   it('applies the Level 6 conveyor deterministically only during its active phase', () => {

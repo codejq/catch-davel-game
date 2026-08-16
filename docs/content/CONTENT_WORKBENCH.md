@@ -16,7 +16,7 @@ Open the printed local URL with `/tooling.html`. The production build also conta
 
 ## Authoring loop
 
-1. Select one of the ten canonical Chapter 1 levels and load it into the JSON editor.
+1. Select one of the eleven canonical playable levels and load it into the JSON editor.
 2. Edit the level definition, then choose **Validate**. Unknown fields, invalid types/IDs, stale references, objective cycles, impossible key order, invalid encounter ownership, and exceeded content budgets fail explicitly.
 3. Review the deterministic 15×15 runtime grid and its pickups, lock, checkpoint, coin caches, conveyor, or timed gates. The preview comes from the production grid and runtime profile manifests, not a second mock implementation.
 4. Review the encounter graph. Critical rooms and optional rooms have distinct shapes; locked/triggered edges are labeled.
@@ -45,7 +45,7 @@ npm run game:test
 npm run game:build
 ```
 
-The generated schema, per-level canonical exports, and `chapter-01-runtime-manifest.json` must be committed with their typed source. The runtime manifest materializes maze openings/interactions, hazard collision profiles, dance motifs, and raw-WebGL2 palettes selected by reviewed level bindings. `game:content:submission` emits the machine-readable release-locale and provenance coverage report, while `game:content:export` invokes that gate before writing any output and fails on an unresolved runtime preset. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
+The generated schema, per-level canonical exports, and `campaign-runtime-manifest.json` must be committed with their typed source. The runtime manifest materializes maze openings/interactions, hazard collision profiles, dance motifs, and raw-WebGL2 palettes selected by reviewed level bindings. `game:content:submission` emits the machine-readable release-locale and provenance coverage report, while `game:content:export` invokes that gate before writing any output and fails on an unresolved runtime preset. Do not update dependency hashes or the six-level frozen manifest merely to make a failure disappear: explain the authoritative change, inspect the before/after campaign report, increment the frozen suite version when its reviewed contract changes, and include the replacement ticks/checksums in review.
 
 ## Timed authoring dry run
 
@@ -61,4 +61,4 @@ This automation report is evidence for pipeline readiness and handoff time only.
 
 The workbench validates structure, deterministic reachability, budgets, production projections, release-locale coverage, and asset-provenance completeness. It does not certify human fun, translation quality, final company license/trademark approval, accessibility, device performance, or physical-device release readiness; those remain separate review gates. `THIRD_PARTY_ASSETS.md` documents the current zero-third-party inventory and the evidence future intake must provide.
 
-The Chapter 1 balance table is generated from the same harness as `game:qa:balance`. Authored archetype/rank groups must exactly match stable runtime IDs in every wave, objective counts must match total roster size, and declared peak robots must match the runtime wave peak. Coin caches remain optional in affordability reporting; guaranteed combat income is reported separately so an undiscovered secret cannot masquerade as required progression currency.
+The playable-campaign balance table is generated from the same harness as `game:qa:balance`. Authored archetype/rank groups must exactly match stable runtime IDs in every wave, objective counts must match total roster size, and declared peak robots must match the runtime wave peak. Coin caches remain optional in affordability reporting; guaranteed combat income is reported separately so an undiscovered secret cannot masquerade as required progression currency.

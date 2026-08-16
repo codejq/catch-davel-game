@@ -16,7 +16,7 @@ import type { PulseEnergyCellEffect } from './presentation-particles';
 import type { BombDetonationEffect } from './bomb-detonation';
 import type { SwordArcEffect } from './sword-arc';
 import type { PulseImpactEffect } from './pulse-impact';
-import { chapterLandmarkLayout, exitBeaconBoxes, type EnvironmentBox } from './environment-landmarks';
+import { campaignLandmarkLayout, exitBeaconBoxes, type EnvironmentBox } from './environment-landmarks';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -235,7 +235,7 @@ export class WorldRenderer {
         palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!,
       );
     }
-    for (const landmark of chapterLandmarkLayout(levelId).boxes) {
+    for (const landmark of campaignLandmarkLayout(levelId).boxes) {
       instance = this.writeEnvironmentBox(instance, landmark);
     }
     this.staticInstanceCount = instance;

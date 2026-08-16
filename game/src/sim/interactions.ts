@@ -102,9 +102,14 @@ export function createLevelRuntime(
   const checkpoint = cellCenter(definition.checkpoint.column, definition.checkpoint.row);
   const exitCell = findCell('E', levelId);
   const exit = cellCenter(exitCell.column, exitCell.row);
+  const levelDefinition = campaignLevel(levelId);
+  const keyDefinition = levelDefinition.maze.keys[0];
+  if (keyDefinition === undefined) throw new Error(`${levelId} has no campaign key`);
+  const keyedEdge = levelDefinition.maze.edges.find((edge) => edge.requiredKeyId === keyDefinition.id);
+  if (keyedEdge === undefined) throw new Error(`${levelId} has no door for campaign key ${keyDefinition.id}`);
   const pickupDefinitions: { readonly id: string; readonly kind: PickupKind; readonly column: number; readonly row: number; readonly amount: number }[] = [
     { id: 'repair-kit', kind: 'health' as const, ...definition.health, amount: definition.health.amount ?? 25 },
-    { id: 'workshop-key', kind: 'key' as const, ...definition.key, amount: 0 },
+    { id: keyDefinition.id, kind: 'key' as const, ...definition.key, amount: 0 },
     { id: 'pulse-cell', kind: 'energy' as const, ...definition.energy, amount: definition.energy.amount ?? 35 },
   ];
   if (definition.coin !== undefined) pickupDefinitions.push({
@@ -113,7 +118,7 @@ export function createLevelRuntime(
   if (definition.secretCoin !== undefined) pickupDefinitions.push({
     id: 'secret-coin-cache', kind: 'coin', ...definition.secretCoin, amount: definition.secretCoin.amount ?? 12,
   });
-  const hazards: HazardRuntimeState[] = campaignLevel(levelId).maze.hazards.map((hazard) => {
+  const hazards: HazardRuntimeState[] = levelDefinition.maze.hazards.map((hazard) => {
     const profile = hazardRuntimeProfile(hazard.collisionProfileId);
     if (cellAt(profile.column, profile.row, levelId) === '#') {
       throw new Error(`${levelId} hazard ${hazard.id} enters a wall`);
@@ -135,7 +140,7 @@ export function createLevelRuntime(
     }),
     hazards,
     door: {
-      id: 'workshop-lock', keyId: 'workshop-key', column: definition.door.column, row: definition.door.row,
+      id: keyedEdge.doorType, keyId: keyDefinition.id, column: definition.door.column, row: definition.door.row,
       x: door.x, z: door.z, open: false,
     },
     checkpoint: {

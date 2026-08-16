@@ -4,7 +4,7 @@ import { GameSimulation } from '../sim/game';
 import { FIXED_DT_SECONDS } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import {
-  CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, isWeaponId, normalizeWeaponUpgradeLevels,
+  campaignWeaponMask, DEFAULT_WEAPON_UPGRADES, isWeaponId, normalizeWeaponUpgradeLevels,
   type WeaponId, type WeaponUpgradeLevels,
 } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
@@ -120,7 +120,7 @@ function resetRuntime(
   seed: string,
   initialCoins = 0,
   agentRun = false,
-  unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+  unlockedWeaponMask: number | undefined = undefined,
   weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
   encounter: EncounterId = 'campaign',
   levelId: PlayableLevelId = 'level-001',
@@ -129,14 +129,15 @@ function resetRuntime(
 ): void {
   if (seed.length === 0 || seed.length > 256) throw new Error('Worker seed must contain 1 to 256 characters');
   if (!Number.isSafeInteger(initialCoins) || initialCoins < 0) throw new Error('Worker initial coins must be a non-negative safe integer');
-  if (!Number.isSafeInteger(unlockedWeaponMask) || unlockedWeaponMask < 1 || unlockedWeaponMask > 15 || (unlockedWeaponMask & 1) === 0) {
+  const resolvedWeaponMask = unlockedWeaponMask ?? campaignWeaponMask(levelId);
+  if (!Number.isSafeInteger(resolvedWeaponMask) || resolvedWeaponMask < 1 || resolvedWeaponMask > 15 || (resolvedWeaponMask & 1) === 0) {
     throw new Error('Worker weapon mask must include pulse and contain only known weapons');
   }
   if (encounter !== 'campaign' && encounter !== 'boss-training') throw new Error('Worker encounter is invalid');
   if (!isPlayableLevelId(levelId)) throw new Error('Worker levelId is invalid');
   if (!isDifficultyId(difficulty)) throw new Error('Worker difficulty is invalid');
   simulation = new GameSimulation(
-    seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId, difficulty,
+    seed, resolvedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId, difficulty,
     normalizePlayerUpgradeLevels(playerUpgrades),
   );
   simulation.state.player.coins = initialCoins;
@@ -245,7 +246,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
       configurePorts(request.snapshotPort, request.eventPort);
       resetRuntime(
         request.seed, request.initialCoins ?? 0, false,
-        request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        request.unlockedWeaponMask,
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',
@@ -312,7 +313,7 @@ scope.onmessage = (event: MessageEvent<SimulationWorkerRequest>) => {
     if (request.type === 'reset') {
       resetRuntime(
         request.seed, request.initialCoins ?? 0, request.agentRun === true,
-        request.unlockedWeaponMask ?? CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        request.unlockedWeaponMask,
         request.weaponUpgrades ?? DEFAULT_WEAPON_UPGRADES,
         request.encounter ?? 'campaign',
         request.levelId ?? 'level-001',

@@ -4,6 +4,8 @@ import { CHAPTER_01_LEVELS, CHAPTER_01_LEVEL_IDS, chapter01Level } from '../src/
 import { levelDefinitionDependencyHash, levelDefinitionHash, serializeLevelDefinition, validateLevelDefinition } from '../src/content/validate-level';
 import { DEFAULT_LEVEL_SEED } from '../src/sim/constants';
 import { currentAgentValidationDependencies } from '../src/replay/replay';
+import { LEVEL_011 } from '../src/content/levels/chapter-02';
+import { campaignLevel } from '../src/content/levels/catalog';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -31,6 +33,17 @@ describe('Appendix A level-data contract', () => {
     );
     expect(CHAPTER_01_LEVELS[4].agentValidation.tier).toBe('named-elite');
     expect(CHAPTER_01_LEVELS[9].agentValidation.tier).toBe('boss');
+  });
+
+  it('admits Level 11 through the shared catalog with current replay dependencies', () => {
+    expect(validateLevelDefinition(LEVEL_011)).toBe(LEVEL_011);
+    expect(campaignLevel('level-011')).toBe(LEVEL_011);
+    expect(LEVEL_011.chapterId).toBe('chapter-02');
+    expect(LEVEL_011.maze.keys[0]?.id).toBe('carnival-ticket');
+    expect(LEVEL_011.agentValidation.runs[0]?.dependencyHashes.effectiveLevel)
+      .toBe(levelDefinitionDependencyHash(LEVEL_011));
+    expect(LEVEL_011.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-011'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

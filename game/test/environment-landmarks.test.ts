@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest';
-import { CHAPTER_01_LEVEL_IDS } from '../src/content/level-ids';
+import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 import {
-  chapterLandmarkLayout, exitBeaconBoxes, MAX_CHAPTER_LANDMARK_BOXES, MAX_EXIT_BEACON_BOXES,
+  campaignLandmarkLayout, exitBeaconBoxes, MAX_CAMPAIGN_LANDMARK_BOXES, MAX_EXIT_BEACON_BOXES,
 } from '../src/render/environment-landmarks';
 import { cellAt, cellCenter, findCell, wallCells } from '../src/sim/level';
 
-describe('bounded Chapter 1 environmental landmarks', () => {
-  it('gives every workshop a distinct wall-mounted motif with three visible anchors', () => {
+describe('bounded campaign environmental landmarks', () => {
+  it('gives every playable maze a distinct wall-mounted motif with three visible anchors', () => {
     const motifs = new Set<string>();
     const signatures = new Set<string>();
-    for (const levelId of CHAPTER_01_LEVEL_IDS) {
-      const layout = chapterLandmarkLayout(levelId);
+    for (const levelId of PLAYABLE_LEVEL_IDS) {
+      const layout = campaignLandmarkLayout(levelId);
       motifs.add(layout.motif);
       signatures.add(JSON.stringify(layout.boxes));
       expect(layout.anchorCells).toHaveLength(3);
       expect(layout.boxes.length).toBeGreaterThanOrEqual(9);
-      expect(layout.boxes.length).toBeLessThanOrEqual(MAX_CHAPTER_LANDMARK_BOXES);
+      expect(layout.boxes.length).toBeLessThanOrEqual(MAX_CAMPAIGN_LANDMARK_BOXES);
       for (const anchor of layout.anchorCells) expect(cellAt(anchor.column, anchor.row, levelId)).toBe('#');
       for (const box of layout.boxes) {
         expect([box.x, box.y, box.z, box.sizeX, box.sizeY, box.sizeZ, box.emission, ...box.color].every(Number.isFinite)).toBe(true);
@@ -25,14 +25,14 @@ describe('bounded Chapter 1 environmental landmarks', () => {
         expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(3.1);
       }
     }
-    expect(motifs.size).toBe(CHAPTER_01_LEVEL_IDS.length);
-    expect(signatures.size).toBe(CHAPTER_01_LEVEL_IDS.length);
+    expect(motifs.size).toBe(PLAYABLE_LEVEL_IDS.length);
+    expect(signatures.size).toBe(PLAYABLE_LEVEL_IDS.length);
   });
 
   it('keeps the complete world cube batch comfortably below its hard cap', () => {
-    for (const levelId of CHAPTER_01_LEVEL_IDS) {
+    for (const levelId of PLAYABLE_LEVEL_IDS) {
       const worstDynamicBoxes = 5 + 21 + 3 + 2 + MAX_EXIT_BEACON_BOXES;
-      expect(wallCells(levelId).length + chapterLandmarkLayout(levelId).boxes.length + 1 + worstDynamicBoxes)
+      expect(wallCells(levelId).length + campaignLandmarkLayout(levelId).boxes.length + 1 + worstDynamicBoxes)
         .toBeLessThan(512);
     }
   });

@@ -26,7 +26,7 @@ function scaledResource(amount: number, multiplier: number): number {
 }
 
 /** Static difficulty analysis for every released level and supported default assist profile. */
-export function createChapter01DifficultyStaticReport(): readonly DifficultyStaticResult[] {
+export function createCampaignDifficultyStaticReport(): readonly DifficultyStaticResult[] {
   return PLAYABLE_LEVELS.flatMap((level) => DIFFICULTY_IDS.map((difficulty): DifficultyStaticResult => {
     validateLevelDefinition(level);
     const levelId = level.id as PlayableLevelId;

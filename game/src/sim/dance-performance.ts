@@ -11,7 +11,7 @@ export interface LevelDancePerformance {
   readonly motif: LevelDanceMotif;
 }
 
-export const CHAPTER_01_DANCE_PERFORMANCES: Readonly<Record<PlayableLevelId, LevelDancePerformance>> =
+export const CAMPAIGN_DANCE_PERFORMANCES: Readonly<Record<PlayableLevelId, LevelDancePerformance>> =
   Object.fromEntries(PLAYABLE_LEVEL_IDS.map((levelId) => {
     const dance = campaignLevel(levelId).dance;
     return [levelId, {
@@ -23,5 +23,5 @@ export const CHAPTER_01_DANCE_PERFORMANCES: Readonly<Record<PlayableLevelId, Lev
   })) as Readonly<Record<PlayableLevelId, LevelDancePerformance>>;
 
 export function levelDancePerformance(levelId: PlayableLevelId): LevelDancePerformance {
-  return CHAPTER_01_DANCE_PERFORMANCES[levelId];
+  return CAMPAIGN_DANCE_PERFORMANCES[levelId];
 }

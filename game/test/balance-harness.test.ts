@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { createChapter01BalanceReport } from '../src/qa/balance-harness';
+import { createCampaignBalanceReport } from '../src/qa/balance-harness';
 
-const report = createChapter01BalanceReport();
+const report = createCampaignBalanceReport();
 
-describe('Chapter 1 robot-wave and coin-economy balance harness', () => {
+describe('playable campaign robot-wave and coin-economy balance harness', () => {
   it('reconciles every runtime roster, objective target, and peak budget', () => {
-    expect(report.levels).toHaveLength(10);
+    expect(report.levels).toHaveLength(11);
     for (const level of report.levels) {
       expect(level.objectiveTargetCount, level.levelId).toBe(level.waves.reduce((sum, wave) => sum + wave.robotCount, 0));
       expect(level.declaredPeakRobots, level.levelId).toBe(level.actualPeakRobots);
@@ -25,7 +25,7 @@ describe('Chapter 1 robot-wave and coin-economy balance harness', () => {
   });
 
   it('prints the canonical balance report for review tooling', () => {
-    console.log(`CHAPTER_01_BALANCE_REPORT=${JSON.stringify(report)}`);
+    console.log(`CAMPAIGN_BALANCE_REPORT=${JSON.stringify(report)}`);
     expect(report.schemaVersion).toBe(1);
   });
 });

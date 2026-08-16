@@ -1,15 +1,16 @@
-import type { LevelDefinition } from '../level-definition';
-import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids';
-import { CHAPTER_01_LEVELS } from './chapter-01';
+import type { LevelDefinition } from '../level-definition.ts';
+import { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids.ts';
+import { CHAPTER_01_LEVELS } from './chapter-01.ts';
+import { CHAPTER_02_LEVELS } from './chapter-02.ts';
 
-export { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids';
+export { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids.ts';
 
 /**
  * The only runtime registry of fully authored, validated campaign levels.
  * Reserved 001–100 IDs do not become playable merely by existing in the public
  * numbering envelope; a definition must be added here and pass catalog tests.
  */
-export const PLAYABLE_LEVELS: readonly LevelDefinition[] = [...CHAPTER_01_LEVELS];
+export const PLAYABLE_LEVELS: readonly LevelDefinition[] = [...CHAPTER_01_LEVELS, ...CHAPTER_02_LEVELS];
 
 const PLAYABLE_LEVEL_BY_ID: ReadonlyMap<PlayableLevelId, LevelDefinition> = new Map(
   PLAYABLE_LEVELS.map((level) => [level.id as PlayableLevelId, level]),

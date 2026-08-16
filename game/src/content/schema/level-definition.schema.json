@@ -304,6 +304,7 @@
           "enum": [
             "open",
             "workshop-lock",
+            "ticket-gate",
             "arena-lock"
           ]
         },

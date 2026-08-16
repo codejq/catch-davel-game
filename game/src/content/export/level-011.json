@@ -1,0 +1,414 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "a5e6f8bc07332019",
+          "effectiveLevel": "4ca13ea1148b1c92",
+          "policyOrReplay": "099bbcd10283c041",
+          "simulationLevel": "05416dfb93de80a4",
+          "simulationSchema": "43c169b2e450b7c2"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 10000,
+        "mode": "live-agent",
+        "parTicks": 7250,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-ticket-trouble"
+        ],
+        "seed": "campaign-level-011-v1",
+        "stuckTimeoutTicks": 1200
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-copper-carnival-011"
+  },
+  "briefingKey": "levels.011.briefing",
+  "chapterId": "chapter-02",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-011"
+    }
+  ],
+  "dance": {
+    "armPatternId": "ticket-taker-swing-arms-v1",
+    "attackBeats": [
+      3,
+      11
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 118,
+    "footPatternId": "ticket-taker-swing-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "ticket-taker-swing-head-v1",
+    "pathPatternId": "ticket-taker-swing-path-v1",
+    "presetId": "ticket-taker-swing",
+    "reducedMotionPresetId": "ticket-taker-swing-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "ticket-taker-swing-torso-v1",
+    "transitionIds": [
+      "objective-clear"
+    ],
+    "visualIntensity": 0.78,
+    "vulnerableBeats": [
+      1,
+      5,
+      9,
+      13
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-02-011"
+  },
+  "economy": {
+    "presetId": "economy-chapter-02-011"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "ticket-taker-crew",
+      "rewardId": "chapter-02-clear-011",
+      "roomNodeId": "swing-arena",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "ticket-taker-wave",
+          "interGroupDelayTicks": 18,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 8,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-02-stage-11",
+              "archetypeId": "wobble-scout",
+              "count": 3,
+              "dancePresetId": "ticket-taker-swing",
+              "id": "ticket-wobblers",
+              "modifierIds": [
+                "ticket-taker"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-11",
+              "rngStream": "encounter.level-011.wave-1.wobblers",
+              "spawnPointSetId": "level-011-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-02-stage-11",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "ticket-taker-swing",
+              "id": "ticket-sliders",
+              "modifierIds": [
+                "ticket-taker"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-11",
+              "rngStream": "encounter.level-011.wave-1.sliders",
+              "spawnPointSetId": "level-011-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-02-stage-11",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "ticket-taker-swing",
+              "id": "ticket-spinners",
+              "modifierIds": [
+                "ticket-taker"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-11",
+              "rngStream": "encounter.level-011.wave-1.spinners",
+              "spawnPointSetId": "level-011-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-02-stage-11",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "ticket-taker-swing",
+              "id": "ticket-firemouth",
+              "modifierIds": [
+                "ticket-taker"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-02-coins-11",
+              "rngStream": "encounter.level-011.wave-1.firemouth",
+              "spawnPointSetId": "level-011-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        }
+      ]
+    }
+  ],
+  "id": "level-011",
+  "mastery": [
+    {
+      "presetId": "level-011-par-time"
+    },
+    {
+      "presetId": "level-011-sword-style"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 5,
+      "minimum": 5
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "ticket-entry",
+        "id": "entry-booth",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "brass-booth",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "brass-booth",
+        "id": "booth-arena",
+        "requiredKeyId": "carnival-ticket",
+        "stateTrigger": "key-collected",
+        "to": "swing-arena",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "swing-arena",
+        "id": "arena-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "carnival-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "carnival-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "big-top-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "brass-booth",
+        "id": "booth-prize",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "prize-loop",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "ticket-gate",
+        "from": "prize-loop",
+        "id": "prize-checkpoint",
+        "requiredKeyId": "carnival-ticket",
+        "stateTrigger": "key-collected",
+        "to": "carnival-checkpoint",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "ticket-entry",
+    "exitNodeId": "big-top-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "ticket-gate-west-v1",
+        "id": "ticket-gate-west",
+        "nodeId": "swing-arena",
+        "periodTicks": 180
+      },
+      {
+        "activeTicks": 90,
+        "collisionProfileId": "ticket-gate-east-v1",
+        "id": "ticket-gate-east",
+        "nodeId": "swing-arena",
+        "periodTicks": 180
+      }
+    ],
+    "keys": [
+      {
+        "id": "carnival-ticket",
+        "placementNodeId": "brass-booth"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "ticket-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "ticket-lane"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "brass-booth",
+        "pickupIds": [
+          "carnival-ticket"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "ticket-booth"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "ticket-taker-crew"
+        ],
+        "id": "swing-arena",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "sword-tutorial",
+          "timed-gates"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "prize-loop",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "prize-booth"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-011",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "carnival-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "big-top-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "carnival",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "carnival-ticket-trouble",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.011.name",
+  "number": 11,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-ticket-trouble",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 8,
+      "targetIds": [
+        "ticket-taker-wave"
+      ],
+      "titleKey": "objectives.level_011",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "copper-carnival-11"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-011-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 36,
+    "maxActiveRobots": 8,
+    "maxHazards": 2,
+    "maxMazeNodes": 8,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-011-v1",
+  "tags": [
+    "chapter-02",
+    "copper-carnival",
+    "sword-tutorial",
+    "timed-gates",
+    "ticket-taker-swing"
+  ]
+}

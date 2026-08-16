@@ -27,7 +27,7 @@ const definitions = {
   }),
   mazeEdge: strict({
     id, from: id, to: id, bidirectional: { type: 'boolean' }, requiredKeyId: nullableId,
-    doorType: { enum: ['open', 'workshop-lock', 'arena-lock'] },
+    doorType: { enum: ['open', 'workshop-lock', 'ticket-gate', 'arena-lock'] },
     traversalCost: integer(1, 1000), stateTrigger: nullableId,
   }),
   key: strict({ id, placementNodeId: id }),

@@ -19,7 +19,6 @@ const chapterBoundaryFiles = new Set([
   'content/levels/catalog.ts',
   'content/levels/chapter-01.ts',
   'qa/frozen-manifest.ts',
-  'render/environment-landmarks.ts',
 ]);
 for (const absolute of files) {
   const relative = absolute.slice(sourceRoot.length + 1).replaceAll('\\', '/');

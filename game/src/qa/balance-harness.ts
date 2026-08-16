@@ -40,7 +40,7 @@ export interface UpgradeCostReport {
   readonly firstGuaranteedAffordableLevel: number | null;
 }
 
-export interface Chapter01BalanceReport {
+export interface CampaignBalanceReport {
   readonly schemaVersion: 1;
   readonly levels: readonly LevelBalanceReport[];
   readonly guaranteedChapterCoins: number;
@@ -89,7 +89,7 @@ function rosterSignature(entries: readonly { readonly archetype: string; readonl
   return [...counts.entries()].sort(([first], [second]) => first.localeCompare(second)).map(([key, count]) => `${key}=${count}`).join('|');
 }
 
-export function createChapter01BalanceReport(): Chapter01BalanceReport {
+export function createCampaignBalanceReport(): CampaignBalanceReport {
   let cumulativeGuaranteedCoins = 0;
   let cumulativeMaximumCoins = 0;
   const levels = PLAYABLE_LEVELS.map((level): LevelBalanceReport => {

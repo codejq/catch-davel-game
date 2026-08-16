@@ -118,6 +118,12 @@ try {
     });
     await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 10));
     const upgraded = responses.find((message) => message.type === 'complete' && message.requestId === 10).observation;
+    worker.postMessage({
+      type: 'reset', requestId: 11, seed: 'campaign-level-011-v1',
+      levelId: 'level-011', encounter: 'campaign',
+    });
+    await waitFor(() => responses.some((message) => message.type === 'complete' && message.requestId === 11));
+    const levelEleven = responses.find((message) => message.type === 'complete' && message.requestId === 11).observation;
     worker.terminate();
     return {
       directChecksum, workerChecksum: complete.checksum, transport: complete.transport, initialTicks, newestTick,
@@ -136,6 +142,15 @@ try {
         maxHealth: upgraded.player.maxHealth,
         maxEnergy: upgraded.player.maxEnergy,
       },
+      levelElevenProof: {
+        levelId: levelEleven.levelId,
+        seed: levelEleven.seed,
+        remainingRobots: levelEleven.remainingRobots,
+        unlockedWeapons: levelEleven.player.unlockedWeapons,
+        hazardIds: levelEleven.hazards.map((hazard) => hazard.id),
+        doorId: levelEleven.door.id,
+        dancePresetId: levelEleven.dancePerformance.presetId,
+      },
     };
   });
   const failures = [...errors];
@@ -151,6 +166,15 @@ try {
     || result.upgradeProof.playerLevels.maxHealth !== 3 || result.upgradeProof.playerLevels.maxEnergy !== 2
     || result.upgradeProof.maxHealth !== 145 || result.upgradeProof.maxEnergy !== 124) {
     failures.push('Worker reset did not install authoritative profile upgrades');
+  }
+  if (result.levelElevenProof.levelId !== 'level-011'
+    || result.levelElevenProof.seed !== 'campaign-level-011-v1'
+    || result.levelElevenProof.remainingRobots !== 8
+    || result.levelElevenProof.unlockedWeapons.join(',') !== 'pulse,sword'
+    || result.levelElevenProof.hazardIds.join(',') !== 'ticket-gate-west,ticket-gate-east'
+    || result.levelElevenProof.doorId !== 'ticket-gate'
+    || result.levelElevenProof.dancePresetId !== 'ticket-taker-swing') {
+    failures.push('Worker/LLM observation did not preserve the authored Level 11 campaign identity');
   }
   if (failures.length > 0) throw new Error(failures.join('; '));
   process.stdout.write(`${JSON.stringify({ passed: true, ...result }, null, 2)}\n`);

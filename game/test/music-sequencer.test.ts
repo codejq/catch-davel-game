@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { musicStepAtTick } from '../src/audio/music-sequencer';
 import { MUSIC_RUNTIME_PROFILES, musicRuntimeProfile } from '../src/content/runtime-manifests';
+import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 
 describe('tick-correlated procedural music', () => {
   it('derives repeatable sixteenth-note steps from the level clock', () => {
@@ -20,10 +21,10 @@ describe('tick-correlated procedural music', () => {
     expect(musicStepAtTick(9, 108, profile, 1, false).hat).toBe(true);
   });
 
-  it('keeps ten distinct bounded authored musical identities', () => {
+  it('keeps distinct bounded authored musical identities for every playable level', () => {
     const profiles = Object.values(MUSIC_RUNTIME_PROFILES);
-    expect(profiles).toHaveLength(10);
-    expect(new Set(profiles.map((profile) => JSON.stringify(profile))).size).toBe(10);
+    expect(profiles).toHaveLength(PLAYABLE_LEVEL_IDS.length);
+    expect(new Set(profiles.map((profile) => JSON.stringify(profile))).size).toBe(PLAYABLE_LEVEL_IDS.length);
     for (const profile of profiles) {
       expect(profile.leadPattern.every((degree) => degree >= 0 && degree < profile.scale.length)).toBe(true);
       expect(profile.bassPattern.every((degree) => degree >= 0 && degree < profile.scale.length)).toBe(true);

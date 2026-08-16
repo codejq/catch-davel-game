@@ -3,8 +3,10 @@ export const CHAPTER_01_LEVEL_IDS = [
   'level-006', 'level-007', 'level-008', 'level-009', 'level-010',
 ] as const;
 
+export const CHAPTER_02_LEVEL_IDS = ['level-011'] as const;
+
 /** IDs with complete authored content and runtime validation in this build. */
-export const PLAYABLE_LEVEL_IDS = [...CHAPTER_01_LEVEL_IDS] as const;
+export const PLAYABLE_LEVEL_IDS = [...CHAPTER_01_LEVEL_IDS, ...CHAPTER_02_LEVEL_IDS] as const;
 
 export const CAMPAIGN_LEVEL_IDS = [
   'level-001', 'level-002', 'level-003', 'level-004', 'level-005', 'level-006', 'level-007', 'level-008', 'level-009', 'level-010',
@@ -20,11 +22,16 @@ export const CAMPAIGN_LEVEL_IDS = [
 ] as const;
 
 export type Chapter01LevelId = typeof CHAPTER_01_LEVEL_IDS[number];
+export type Chapter02LevelId = typeof CHAPTER_02_LEVEL_IDS[number];
 export type PlayableLevelId = typeof PLAYABLE_LEVEL_IDS[number];
 export type CampaignLevelId = typeof CAMPAIGN_LEVEL_IDS[number];
 
 export function isChapter01LevelId(value: string): value is Chapter01LevelId {
   return (CHAPTER_01_LEVEL_IDS as readonly string[]).includes(value);
+}
+
+export function isChapter02LevelId(value: string): value is Chapter02LevelId {
+  return (CHAPTER_02_LEVEL_IDS as readonly string[]).includes(value);
 }
 
 export function isPlayableLevelId(value: string): value is PlayableLevelId {

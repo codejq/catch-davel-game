@@ -9,7 +9,7 @@ import { exportProfileFile, importProfileFile } from '../storage/profile-transfe
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
 import {
-  CAMPAIGN_LEVEL_1_WEAPON_MASK, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
+  campaignWeaponMask, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
   MAX_WEAPON_UPGRADE_LEVEL, type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
 import {
@@ -110,6 +110,12 @@ const CAPTION_DIRECTION_UI_KEYS: Readonly<Record<CaptionDirection, RuntimeUiKey>
 const COMPASS_TARGET_UI_KEYS: Readonly<Record<ObjectiveCompassTarget, RuntimeUiKey>> = {
   key: 'compassKey', door: 'compassDoor', checkpoint: 'compassCheckpoint', exit: 'compassExit',
 };
+
+function compassTargetUiKey(target: ObjectiveCompassTarget, chapterId: string): RuntimeUiKey {
+  if (chapterId === 'chapter-02' && target === 'key') return 'compassTicket';
+  if (chapterId === 'chapter-02' && target === 'door') return 'compassTicketGate';
+  return COMPASS_TARGET_UI_KEYS[target];
+}
 
 const DANCE_BEAT_PHASE_UI_KEYS: Readonly<Record<DanceBeatPhase, RuntimeUiKey>> = {
   neutral: 'danceBeatNeutral', attack: 'danceBeatAttack', vulnerable: 'danceBeatVulnerable', frozen: 'danceBeatFrozen',
@@ -913,7 +919,7 @@ export async function startBrowserGame(): Promise<void> {
     const compass = bossTraining ? null : objectiveCompassReading(state);
     objectiveCompass.hidden = compass === null;
     if (compass !== null) {
-      const target = ui(COMPASS_TARGET_UI_KEYS[compass.target]);
+      const target = ui(compassTargetUiKey(compass.target, activeLevel.chapterId));
       const distance = Math.max(0, Math.round(compass.distanceMeters));
       objectiveCompass.dataset.target = compass.target;
       objectiveCompass.style.setProperty('--compass-bearing', `${compass.bearingRadians}rad`);
@@ -927,7 +933,7 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.objectiveClearTransition = showObjectiveTransition
       ? objectiveTransition.transitionKey : 'none';
     if (showObjectiveTransition) {
-      const target = ui(COMPASS_TARGET_UI_KEYS[compass.target]);
+      const target = ui(compassTargetUiKey(compass.target, activeLevel.chapterId));
       const distance = Math.max(0, Math.round(compass.distanceMeters));
       davelBark.classList.remove('show');
       window.clearTimeout(barkTimeout);
@@ -1188,7 +1194,7 @@ export async function startBrowserGame(): Promise<void> {
     levelId: activeLevelId,
     initialCoins: trainingMode ? 0 : activeProfile.spendableCoins,
     mode: 'manual',
-    unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    unlockedWeaponMask: trainingMode ? TRAINING_WEAPON_MASK : campaignWeaponMask(activeLevelId),
     ...(trainingMode ? {} : { weaponUpgrades: normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades) }),
     ...(trainingMode ? {} : { playerUpgrades: normalizePlayerUpgradeLevels(activeProfile.playerUpgrades) }),
     encounter: bossTraining ? 'boss-training' : 'campaign',
@@ -1293,7 +1299,7 @@ export async function startBrowserGame(): Promise<void> {
     }
     else await client.reset(
       activeLevel.seed, trainingMode ? 0 : activeProfile.spendableCoins, false,
-      trainingMode ? TRAINING_WEAPON_MASK : CAMPAIGN_LEVEL_1_WEAPON_MASK,
+      trainingMode ? TRAINING_WEAPON_MASK : campaignWeaponMask(activeLevelId),
       trainingMode ? undefined : normalizeWeaponUpgradeLevels(activeProfile.weaponUpgrades),
       bossTraining ? 'boss-training' : 'campaign',
       activeLevelId,
@@ -1460,7 +1466,7 @@ export async function startBrowserGame(): Promise<void> {
       persistProfile(upgraded);
       renderShop();
       void client.reset(
-        activeLevel.seed, upgraded.spendableCoins, false, CAMPAIGN_LEVEL_1_WEAPON_MASK,
+        activeLevel.seed, upgraded.spendableCoins, false, campaignWeaponMask(activeLevelId),
         normalizeWeaponUpgradeLevels(upgraded.weaponUpgrades),
         'campaign', activeLevelId,
         upgraded.settings.difficulty,

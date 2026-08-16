@@ -17,7 +17,7 @@ import {
 import { DEFAULT_LEVEL_SEED } from './constants';
 import { quantizeSimulationState } from './quantization';
 import {
-  CAMPAIGN_LEVEL_1_WEAPON_MASK, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
+  campaignWeaponMask, DEFAULT_WEAPON_UPGRADES, type PlayerBomb, type WeaponUpgradeLevels,
 } from './weapons';
 import type { PlayableLevelId } from '../content/level-ids';
 import { activateKeyAmbush, freezeDanceWindow } from './level-mechanics';
@@ -75,7 +75,7 @@ export class GameSimulation {
 
   constructor(
     seed = DEFAULT_LEVEL_SEED,
-    unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    unlockedWeaponMask: number | undefined = undefined,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
     levelId: PlayableLevelId = 'level-001',
@@ -83,7 +83,7 @@ export class GameSimulation {
     playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ) {
     this.state = GameSimulation.initialState(
-      seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
+      seed, unlockedWeaponMask ?? campaignWeaponMask(levelId), weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
     );
   }
 
@@ -95,7 +95,7 @@ export class GameSimulation {
 
   reset(
     seed = DEFAULT_LEVEL_SEED,
-    unlockedWeaponMask = CAMPAIGN_LEVEL_1_WEAPON_MASK,
+    unlockedWeaponMask: number | undefined = undefined,
     weaponUpgrades: WeaponUpgradeLevels = DEFAULT_WEAPON_UPGRADES,
     encounter: EncounterId = 'campaign',
     levelId: PlayableLevelId = 'level-001',
@@ -103,7 +103,7 @@ export class GameSimulation {
     playerUpgrades: PlayerUpgradeLevels = DEFAULT_PLAYER_UPGRADES,
   ): void {
     this.state = GameSimulation.initialState(
-      seed, unlockedWeaponMask, weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
+      seed, unlockedWeaponMask ?? campaignWeaponMask(levelId), weaponUpgrades, encounter, levelId, difficulty, playerUpgrades,
     );
   }
 

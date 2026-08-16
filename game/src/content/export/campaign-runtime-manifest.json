@@ -1,5 +1,12 @@
 {
   "audioProfiles": {
+    "audio-copper-carnival-011": {
+      "dampingHz": 3600,
+      "decaySeconds": 0.58,
+      "pitchScale": 0.98,
+      "roomSize": 0.7,
+      "wetMix": 0.26
+    },
     "audio-neon-workshop-001": {
       "dampingHz": 4200,
       "decaySeconds": 0.34,
@@ -120,6 +127,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "ticket-taker-swing": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "turbo-tool-shuffle": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -142,6 +155,7 @@
     "heavy-boot-two-step": "heavy-two-step",
     "pocket-robot-pop": "robot-pop",
     "side-to-side-shuffle": "side-shuffle",
+    "ticket-taker-swing": "ticket-swing",
     "turbo-tool-shuffle": "turbo-shuffle",
     "wobble-march": "wobble-march"
   },
@@ -185,10 +199,95 @@
       "kind": "conveyor",
       "phaseOffsetTicks": 0,
       "row": 7
+    },
+    "ticket-gate-east-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.45,
+      "halfWidth": 1.45,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 90,
+      "row": 7
+    },
+    "ticket-gate-west-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": 0,
+      "halfDepth": 1.45,
+      "halfWidth": 1.45,
+      "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 7
     }
   },
-  "manifestId": "chapter-01-runtime-v1",
+  "manifestId": "campaign-runtime-v1",
   "mazeProfiles": {
+    "carnival-ticket-trouble": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 9
+        },
+        "coin": {
+          "amount": 13,
+          "column": 13,
+          "row": 5
+        },
+        "door": {
+          "column": 5,
+          "row": 8
+        },
+        "energy": {
+          "amount": 27,
+          "column": 7,
+          "row": 7
+        },
+        "health": {
+          "amount": 19,
+          "column": 3,
+          "row": 3
+        },
+        "key": {
+          "column": 9,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 7
+        },
+        {
+          "column": 10,
+          "row": 7
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "workshop-basic": {
       "interactions": {
         "checkpoint": {
@@ -877,6 +976,33 @@
       ],
       "swing": 0.18
     },
+    "ticket-taker-swing": {
+      "bassPattern": [
+        0,
+        3,
+        0,
+        4
+      ],
+      "leadPattern": [
+        0,
+        3,
+        1,
+        4,
+        2,
+        0,
+        4,
+        1
+      ],
+      "rootMidi": 51,
+      "scale": [
+        0,
+        2,
+        4,
+        7,
+        9
+      ],
+      "swing": 0.2
+    },
     "turbo-tool-shuffle": {
       "bassPattern": [
         0,
@@ -933,6 +1059,40 @@
     }
   },
   "paletteProfiles": {
+    "copper-carnival-11": {
+      "floor": [
+        0.88,
+        0.5,
+        0.2
+      ],
+      "sky": [
+        0.28,
+        0.82,
+        0.86
+      ],
+      "walls": [
+        [
+          0.96,
+          0.42,
+          0.12
+        ],
+        [
+          0.04,
+          0.72,
+          0.68
+        ],
+        [
+          1,
+          0.72,
+          0.16
+        ],
+        [
+          0.48,
+          0.18,
+          0.58
+        ]
+      ]
+    },
     "neon-workshop-01": {
       "floor": [
         0.72,

@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { cellAt, findCell, LEVEL_HEIGHT, LEVEL_WIDTH, levelRows, worldCell, type CellCoordinate } from '../src/sim/level';
-import { CHAPTER_01_LEVEL_IDS } from '../src/content/levels/chapter-01';
+import { PLAYABLE_LEVEL_IDS } from '../src/content/levels/catalog';
 import { createLevelRuntime } from '../src/sim/interactions';
 
-function reachable(levelId: (typeof CHAPTER_01_LEVEL_IDS)[number], blocked: readonly CellCoordinate[]): Set<string> {
+function reachable(levelId: (typeof PLAYABLE_LEVEL_IDS)[number], blocked: readonly CellCoordinate[]): Set<string> {
   const start = findCell('S', levelId);
   const pending = [start];
   const visited = new Set([`${start.column},${start.row}`]);
@@ -37,7 +37,7 @@ describe('first playable maze', () => {
   });
 
   it('provides a reachable route from start to exit', () => {
-    for (const levelId of CHAPTER_01_LEVEL_IDS) {
+    for (const levelId of PLAYABLE_LEVEL_IDS) {
       const start = findCell('S', levelId);
       const exit = findCell('E', levelId);
       const pending = [start];
@@ -55,11 +55,11 @@ describe('first playable maze', () => {
       }
       expect(visited.has(`${exit.column},${exit.row}`), levelId).toBe(true);
     }
-    expect(new Set(CHAPTER_01_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(10);
+    expect(new Set(PLAYABLE_LEVEL_IDS.map((levelId) => levelRows(levelId).join('\n'))).size).toBe(11);
   });
 
   it('keeps the key reachable before the lock and every interaction reachable after it opens', () => {
-    for (const levelId of CHAPTER_01_LEVEL_IDS) {
+    for (const levelId of PLAYABLE_LEVEL_IDS) {
       const level = createLevelRuntime(levelId);
       const beforeUnlock = reachable(levelId, [{ column: level.door.column, row: level.door.row }]);
       const key = level.pickups.find((pickup) => pickup.kind === 'key')!;

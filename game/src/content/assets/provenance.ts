@@ -31,7 +31,7 @@ export type AssetProvenanceRecord = ProjectOriginalProvenanceRecord | ThirdParty
 
 export interface AssetProvenanceManifest {
   readonly schemaVersion: 1;
-  readonly scope: 'chapter-01-level-content';
+  readonly scope: 'campaign-level-content';
   readonly records: readonly AssetProvenanceRecord[];
 }
 
@@ -60,6 +60,7 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
   { level: '008', palette: 'neon-workshop-08', mazeTemplate: 'workshop-shift-change', audio: 'audio-neon-workshop-008', dance: 'clockwork-charleston', sourcePath: 'game/src/content/levels/chapter-01.ts' },
   { level: '009', palette: 'neon-workshop-09', mazeTemplate: 'workshop-workshop-rush', audio: 'audio-neon-workshop-009', dance: 'turbo-tool-shuffle', sourcePath: 'game/src/content/levels/chapter-01.ts' },
   { level: '010', palette: 'neon-workshop-10', mazeTemplate: 'workshop-chief-wobble', audio: 'audio-neon-workshop-010', dance: 'giant-wobble-breakdown', sourcePath: 'game/src/content/levels/chapter-01.ts' },
+  { level: '011', palette: 'copper-carnival-11', mazeTemplate: 'carnival-ticket-trouble', audio: 'audio-copper-carnival-011', dance: 'ticket-taker-swing', sourcePath: 'game/src/content/levels/chapter-02.ts' },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {
@@ -68,7 +69,7 @@ function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProven
     `${recipe.dance}-head-v1`, `${recipe.dance}-path-v1`,
   ];
   return {
-    id: `chapter-01-level-${recipe.level}-originals`,
+    id: `campaign-level-${recipe.level}-originals`,
     assetIds: [recipe.palette, recipe.mazeTemplate, recipe.audio, recipe.dance, ...danceParts, `${recipe.dance}-reduced-v1`],
     assetKind: 'mixed',
     sourceType: 'project-original',
@@ -79,9 +80,9 @@ function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProven
   };
 }
 
-export const CHAPTER_01_ASSET_PROVENANCE = {
+export const CAMPAIGN_ASSET_PROVENANCE = {
   schemaVersion: 1,
-  scope: 'chapter-01-level-content',
+  scope: 'campaign-level-content',
   records: ORIGINAL_LEVEL_ASSET_RECIPES.map(originalRecord),
 } as const satisfies AssetProvenanceManifest;
 
