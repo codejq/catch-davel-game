@@ -14,6 +14,7 @@ This document records the implemented production contract. It does not replace t
 - all Verlet current/previous particle arrays and XPBD rest constraints;
 - every hostile projectile, its stable ID/owner/position/velocity/lifetime, and the next-ID counter;
 - every pickup active flag, hazard phase, staged encounter timer/index, collected key, collision-door state, checkpoint activation, primary-objective completion, and exit state;
+- starting coins, ranged attempts/hits, accumulated damage, stable defeated-Davel IDs, secrets, and combo window/high-watermark;
 - pulse cooldown/serial state and victory/defeat flags.
 
 Transient presentation events are deliberately excluded. Changing delivery, buffer capacity, transport epochs, particles, audio scheduling, or another presentation-only concern therefore cannot change the authoritative checksum.
@@ -24,7 +25,7 @@ The strict parser rejects unknown/missing fields, non-finite numbers, malformed 
 
 Canonical JSON sorts every object key, preserves declared array order, normalizes negative zero, and rejects unsupported/non-finite values. The current deterministic drift checksum is FNV-1a 64 over UTF-8 canonical snapshot bytes. It is a regression/corruption checksum, not a security signature.
 
-Simulation schema v13 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, and typed projectile position/velocity to eight decimal places at initial-state creation and after every mutating fixed tick. Campaign level/grid and its derived choreography profile, resource/coin cache state, encounter wave/index/timer, typed hazard/gate identity and phase, weapon upgrade levels, boss phase, and Davel spawned/telegraph/recovery/strafe/buff state are snapshotted or deterministically selected and replayed. The precision and choreography selection are part of replay dependencies. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
+Simulation schema v14 quantizes every authoritative player and weapon resource, thrown bomb, Davel scalar/body particle, rest constraint, typed projectile position/velocity, and accumulated damage value to eight decimal places at initial-state creation and after every mutating fixed tick. Campaign state and run metrics are snapshotted and replayed. The precision and all authoritative selections are part of replay dependencies. This removes cross-runtime low-order differences from transcendental/XPBD math before they can accumulate while retaining far more precision than gameplay collision tolerances.
 
 Snapshot tests prove that a checkpoint restored at tick 420 and continued to tick 900 has the same complete state and checksum as an uninterrupted run. Presentation events can differ without affecting it.
 
@@ -48,11 +49,11 @@ The offline content workbench exposes a read-only replay inspector around this e
 
 `npm run game:qa:campaign` executes the production `GameSimulation` with `BaselineCampaignAgent` consuming only observation v10. All ten Chapter 1 levels must complete twice with the same tick/checksum and without defeat, illegal actions, declared stuck timeout, or maximum-tick exhaustion. Observation v10 makes the authored branch, key-ambush, and freeze/hunt phases explicit; it does not grant an alternate control or simulation path. The canonical stdout record is suitable for CI capture and later replay-inspector ingestion.
 
-The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation. Reference changes therefore require an explicit manifest and suite-version edit rather than being re-recorded during a test run.
+The strict versioned manifest at `game/qa/frozen-checksum-manifest.json` selects six representative levels—tutorial, economy, named elite, conveyor, timed gates, and boss—and pins seed, final tick, final checksum, and simulation/effective-level/runtime-level/balance/policy dependency hashes. Suite v3 deliberately re-froze the simulation hash and checksums after schema v14 added authoritative run metrics; all final ticks remained unchanged. Unknown fields, missing entries, duplicate level IDs, malformed hashes, dependency drift, tick drift, or checksum drift fail validation.
 
-## Profile v1
+## Profile v7
 
-Browser profiles include schema/migration history, identity, unlocks, per-level progress/replay references/statistics, total/spendable coins, upgrades, cosmetics, achievements, settings, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum.
+Profiles include schema/migration history, identity, unlocks, per-level best/last complete results and replay proof, total/spendable coins, upgrades, cosmetics, achievements, settings, input mappings, optional complete campaign checkpoint, clean-shutdown marker, and an integrity checksum. Frozen v1 through v6 profiles are checksum-verified before sequential migration to v7.
 
 IndexedDB stores alternating `a` and `b` envelopes plus an active pointer. Saving writes and reads back the inactive record first; only a fully parsed, checksum-valid record can become active. Loading prefers the active revision and then recovers the other known-good record. A newer unknown profile schema is never silently discarded.
 
@@ -76,4 +77,4 @@ Ordered events travel on a port independent from snapshots. The current provisio
 
 Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
 
-Agent action queues pause authoritative time between requests, and their replays carry `agentRun: true`. Human IndexedDB progress writes are suppressed while agent control is active. Reset, action batches, replay save/load, observations, and metrics are Worker RPCs; releasing control creates a clean human simulation from durable profile state before resuming realtime mode.
+Agent action queues pause authoritative time between requests, and their replays carry `agentRun: true`. Human IndexedDB progress writes are suppressed while agent control is active. Reset, action batches, replay save/load, observations, and metrics are Worker RPCs; the metrics response includes a defensive copy of the same authoritative run counters used by human results. Releasing control creates a clean human simulation from durable profile state before resuming realtime mode.

@@ -10,6 +10,7 @@ import {
 } from './weapons';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
 import { isKeyAmbushLevel } from './level-mechanics';
+import type { RunMetrics } from './run-metrics';
 
 export const SNAPSHOT_FORMAT_VERSION = 1;
 
@@ -66,6 +67,7 @@ export interface SimulationSnapshotV1 {
   readonly laserActive: boolean;
   readonly laserBeamDistance: number;
   readonly level: LevelRuntimeState;
+  readonly metrics: RunMetrics;
 }
 
 function copyPlayer(player: PlayerState): PlayerState {
@@ -137,6 +139,7 @@ export function createSimulationSnapshot(state: GameState): SimulationSnapshotV1
       keyCollected: state.level.keyCollected,
       objectiveComplete: state.level.objectiveComplete,
     },
+    metrics: { ...state.metrics, defeatedRobotIds: [...state.metrics.defeatedRobotIds] },
   };
 }
 
@@ -370,12 +373,57 @@ function validateLevel(value: unknown, levelId: Chapter01LevelId, encounter: Enc
   };
 }
 
+function validateRunMetrics(
+  value: unknown, robots: readonly RobotState[], level: LevelRuntimeState, player: PlayerState,
+): RunMetrics {
+  assertRecord(value, 'snapshot.metrics');
+  assertExactKeys(value, [
+    'startingCoins', 'rangedAttacksFired', 'rangedAttacksHit', 'damageTaken', 'defeatedRobotIds',
+    'secretsFound', 'currentCombo', 'highestCombo', 'comboExpiresTick',
+  ], 'snapshot.metrics');
+  if (!Array.isArray(value.defeatedRobotIds)) throw new Error('snapshot.metrics.defeatedRobotIds must be an array');
+  const defeatedRobotIds = value.defeatedRobotIds.map((id, index) => integer(id, `snapshot.metrics.defeatedRobotIds[${index}]`));
+  if (new Set(defeatedRobotIds).size !== defeatedRobotIds.length
+    || defeatedRobotIds.some((id) => !robots.some((robot) => robot.id === id && !robot.active))) {
+    throw new Error('snapshot.metrics.defeatedRobotIds must uniquely identify inactive Davels');
+  }
+  const rangedAttacksFired = integer(value.rangedAttacksFired, 'snapshot.metrics.rangedAttacksFired');
+  const rangedAttacksHit = integer(value.rangedAttacksHit, 'snapshot.metrics.rangedAttacksHit');
+  if (rangedAttacksHit > rangedAttacksFired) throw new Error('snapshot.metrics ranged hits exceed attacks');
+  const startingCoins = integer(value.startingCoins, 'snapshot.metrics.startingCoins');
+  if (startingCoins > player.coins) throw new Error('snapshot.metrics.startingCoins exceeds the current coin balance');
+  const secretCount = level.pickups.filter((pickup) => pickup.id === 'secret-coin-cache').length;
+  const secretsFound = integer(value.secretsFound, 'snapshot.metrics.secretsFound');
+  if (secretsFound > secretCount || (secretsFound > 0
+    && level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active))) {
+    throw new Error('snapshot.metrics.secretsFound is inconsistent with level pickups');
+  }
+  const currentCombo = integer(value.currentCombo, 'snapshot.metrics.currentCombo');
+  const highestCombo = integer(value.highestCombo, 'snapshot.metrics.highestCombo');
+  if (currentCombo > highestCombo || highestCombo > defeatedRobotIds.length) {
+    throw new Error('snapshot.metrics combo counters are inconsistent');
+  }
+  const damageTaken = finite(value.damageTaken, 'snapshot.metrics.damageTaken');
+  if (damageTaken < 0) throw new Error('snapshot.metrics.damageTaken must be non-negative');
+  return {
+    startingCoins,
+    rangedAttacksFired,
+    rangedAttacksHit,
+    damageTaken,
+    defeatedRobotIds,
+    secretsFound,
+    currentCombo,
+    highestCombo,
+    comboExpiresTick: integer(value.comboExpiresTick, 'snapshot.metrics.comboExpiresTick'),
+  };
+}
+
 export function restoreSimulationState(snapshotValue: unknown): GameState {
   assertRecord(snapshotValue, 'snapshot');
   assertExactKeys(snapshotValue, [
     'snapshotFormatVersion', 'simulationSchemaVersion', 'tick', 'seed', 'levelId', 'encounter', 'player', 'robots', 'lastShotTick', 'shotSerial',
     'victory', 'defeat', 'projectiles', 'nextProjectileId', 'playerBombs', 'nextPlayerBombId', 'lastSwordTick',
-    'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level',
+    'lastBombTick', 'laserFocusTicks', 'laserTargetRobotId', 'laserActive', 'laserBeamDistance', 'level', 'metrics',
   ], 'snapshot');
   if (snapshotValue.snapshotFormatVersion !== SNAPSHOT_FORMAT_VERSION) throw new Error('Unsupported snapshot format version');
   if (snapshotValue.simulationSchemaVersion !== GAME_SCHEMA_VERSION) throw new Error('Unsupported simulation schema version');
@@ -400,6 +448,8 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     throw new Error(`snapshot robots do not match ${encounter}`);
   }
   const level = validateLevel(snapshotValue.level, levelId, encounter);
+  const player = validatePlayer(snapshotValue.player);
+  const metrics = validateRunMetrics(snapshotValue.metrics, robots, level, player);
   if (level.hazards.some((hazard) => hazard.active !== hazardActiveAtTick(hazard, tick))) {
     throw new Error('snapshot.level hazard phase is inconsistent with snapshot.tick');
   }
@@ -432,7 +482,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     seed: snapshotValue.seed,
     levelId,
     encounter,
-    player: validatePlayer(snapshotValue.player),
+    player,
     robots,
     events: [],
     lastShotTick: integer(snapshotValue.lastShotTick, 'snapshot.lastShotTick', -1_000_000_000),
@@ -450,6 +500,7 @@ export function restoreSimulationState(snapshotValue: unknown): GameState {
     laserActive: booleanValue(snapshotValue.laserActive, 'snapshot.laserActive'),
     laserBeamDistance: finite(snapshotValue.laserBeamDistance, 'snapshot.laserBeamDistance'),
     level,
+    metrics,
   };
 }
 

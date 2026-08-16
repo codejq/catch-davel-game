@@ -25,6 +25,7 @@ describe('canonical simulation serialization', () => {
     }
     const serialized = serializeSimulationSnapshot(checkpointed.state);
     const parsed = parseSimulationSnapshot(serialized);
+    expect(parsed.metrics).toEqual(checkpointed.state.metrics);
     expect(canonicalJson(parsed)).toBe(serialized);
     const resumed = GameSimulation.fromSnapshot(parsed);
     expect(stateChecksum(resumed.state)).toBe(stateChecksum(uninterrupted.state));
@@ -51,10 +52,14 @@ describe('canonical simulation serialization', () => {
   it('rejects unknown fields, incompatible schemas, and malformed bodies', () => {
     const snapshot = createSimulationSnapshot(new GameSimulation('validation-proof').state);
     expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, surprise: true }))).toThrow(/unknown or missing/);
-    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 14 }))).toThrow(/schema/);
+    expect(() => parseSimulationSnapshot(JSON.stringify({ ...snapshot, simulationSchemaVersion: 15 }))).toThrow(/schema/);
     const malformed = structuredClone(snapshot);
     (malformed.robots[0]!.body.positions as number[]).pop();
     expect(() => parseSimulationSnapshot(JSON.stringify(malformed))).toThrow(/33 numbers/);
+    const impossibleAccuracy = structuredClone(snapshot);
+    impossibleAccuracy.metrics.rangedAttacksFired = 1;
+    impossibleAccuracy.metrics.rangedAttacksHit = 2;
+    expect(() => parseSimulationSnapshot(JSON.stringify(impossibleAccuracy))).toThrow(/hits exceed/);
   });
 
   it('round-trips the selected campaign level and rejects roster substitution', () => {

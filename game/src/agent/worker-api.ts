@@ -9,6 +9,7 @@ import {
 import { TRAINING_WEAPON_MASK } from '../sim/weapons';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import { createRunMetrics } from '../sim/run-metrics';
 
 type ResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
@@ -39,6 +40,7 @@ export class WorkerAgentController {
       loadReplay: (replay) => this.loadReplay(replay),
       getMetrics: () => {
         const metrics = this.client.latestMetrics;
+        const runMetrics = metrics?.runMetrics ?? createRunMetrics();
         return {
           tick: this.client.latestObservation.tick,
           checksum: metrics?.checksum ?? '0000000000000000',
@@ -46,6 +48,7 @@ export class WorkerAgentController {
           checksumRecords: metrics?.checksumRecords ?? 0,
           controlled: this.controlled,
           queuedActions: this.queuedActions,
+          runMetrics: { ...runMetrics, defeatedRobotIds: [...runMetrics.defeatedRobotIds] },
         };
       },
       releaseControl: () => this.release(),

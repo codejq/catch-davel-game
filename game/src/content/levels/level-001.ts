@@ -67,9 +67,9 @@ export const LEVEL_001 = {
       id: 'standard-live', mode: 'live-agent', policyId: 'baseline-campaign-agent', policyVersion: 1,
       referenceReplayId: null, seed: 'campaign-level-001-v1', difficulty: 'Standard', assistProfileId: null,
       maxTicks: 6_000, stuckTimeoutTicks: 900, maxIllegalActions: 0,
-      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '8080626a62a5996d', parTicks: 5_000,
+      requiredObjectiveIds: ['deactivate-davels'], expectedCompletion: true, expectedChecksum: '2fc12133dec4df02', parTicks: 5_000,
       dependencyHashes: {
-        simulationSchema: 'ef569d373ae5f8cd', effectiveLevel: 'deaf4b5d4a8e8fdc', simulationLevel: '89024bcb436256c9',
+        simulationSchema: '572b496e43a67168', effectiveLevel: '40633774af0752bc', simulationLevel: '89024bcb436256c9',
         balanceData: 'd06573c4b4825196', policyOrReplay: 'd3d7c87fc057d2d4',
       },
     }],

@@ -7,6 +7,7 @@ import type { ReplayFileV1 } from '../replay/replay';
 import type { WeaponId, WeaponUpgradeLevels } from '../sim/weapons';
 import type { EncounterId } from '../sim/robots';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
+import type { RunMetrics } from '../sim/run-metrics';
 
 export interface InitializeSimulationWorker {
   readonly type: 'initialize';
@@ -110,6 +111,7 @@ export interface SimulationWorkerComplete {
   readonly observation: AgentObservation;
   readonly commandRuns: number;
   readonly checksumRecords: number;
+  readonly runMetrics: RunMetrics;
 }
 
 export interface SimulationWorkerReplay {

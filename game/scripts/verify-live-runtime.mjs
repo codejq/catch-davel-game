@@ -158,6 +158,7 @@ try {
       baselineVictory: baselineObservation.victory,
       baselineDefeat: baselineObservation.defeat,
       baselineChecksum: baselineMetrics.checksum,
+      baselineRunMetrics: baselineMetrics.runMetrics,
       baselineExpectedChecksum: baselineRun.expectedChecksum,
       baselineMaxTicks: baselineRun.maxTicks,
       profileStableDuringAgentRun: JSON.stringify(profilesBeforeAgent) === JSON.stringify(profilesAfterAgent),
@@ -180,6 +181,10 @@ try {
     [result.baselineVictory && !result.baselineDefeat, 'public Worker agent did not complete Level 1'],
     [result.baselineTick < result.baselineMaxTicks, 'public Worker agent exceeded the Level 1 tick budget'],
     [result.baselineChecksum === result.baselineExpectedChecksum, 'public Worker agent missed the frozen Level 1 checksum'],
+    [result.baselineRunMetrics.rangedAttacksFired >= result.baselineRunMetrics.rangedAttacksHit
+      && result.baselineRunMetrics.rangedAttacksHit > 0, 'authoritative ranged accuracy metrics were not reported'],
+    [result.baselineRunMetrics.defeatedRobotIds.length === 6
+      && result.baselineRunMetrics.highestCombo > 0, 'authoritative Davel/combo metrics were not reported'],
     [result.resumedTick > result.releasedTick, 'human realtime simulation did not resume after releaseControl'],
     [result.profileStableDuringAgentRun, 'agent activity mutated the human profile'],
     [result.rendererMode === 'offscreen-worker', 'live runtime did not initialize the OffscreenCanvas render Worker'],

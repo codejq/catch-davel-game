@@ -281,8 +281,8 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v6.json'
-    || exportedProfile.profileSchemaVersion !== 6
+  if (download.suggestedFilename() !== 'catch-davel-profile-v7.json'
+    || exportedProfile.profileSchemaVersion !== 7
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
     throw new Error('Browser profile export did not produce the validated v6 JSON transfer');
@@ -292,7 +292,7 @@ try {
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v6.json',
+    name: 'catch-davel-profile-v7.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

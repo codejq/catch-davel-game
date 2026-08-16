@@ -80,7 +80,7 @@ The version-10 observation includes the authoritative Chapter 1 level ID and cho
 
 ## Persistence and replay guarantees
 
-- Complete v1 snapshots under simulation schema v13 include authoritative campaign-level/grid, level choreography, coin/resource pickups, typed hazard/gate identity and phase, staged encounter/spawn identity, and every player, weapon upgrade/resource, bomb, laser-focus, robot/boss, XPBD, combat-state, buff, typed-projectile, economy, and terminal-state field; presentation events are deliberately excluded.
+- Complete v1 snapshots under simulation schema v14 include authoritative campaign-level/grid, choreography, pickups, hazards/gates, waves, player/weapons, bombs, laser focus, robots/bosses, XPBD, combat, projectiles, economy, terminal state, and full run metrics; presentation events are deliberately excluded.
 - Canonical key-sorted JSON and 64-bit deterministic checksums are used for state drift detection and accidental profile-corruption detection.
 - Replays include schema/level/balance/policy dependency hashes, a complete initial snapshot, contiguous compressed command runs, and checksums at the initial tick, every 60 ticks, and the final tick.
 - Browser profiles use IndexedDB with alternating records. A newly written record is read back and validated before the active pointer changes, leaving the previous known-good record available for recovery.

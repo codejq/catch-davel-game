@@ -4,11 +4,29 @@ import { DEFAULT_INPUT_BINDINGS } from './input-bindings';
 import { isCampaignLevelId } from '../content/level-ids';
 import { normalizeRenderQuality, type RenderQualityPreference } from '../render/quality';
 
-export const PROFILE_SCHEMA_VERSION = 6;
+export const PROFILE_SCHEMA_VERSION = 7;
 
 export type TouchHandedness = 'right' | 'left';
 export type TouchFireMode = 'hold' | 'toggle';
 export type AudioDynamicRange = 'wide' | 'balanced' | 'night';
+export type CampaignMedalTier = 'bronze' | 'silver' | 'gold' | 'quantum';
+
+export interface StoredLevelResultV1 {
+  readonly completionTicks: number;
+  readonly score: number;
+  readonly accuracyPermille: number | null;
+  readonly damageTaken: number;
+  readonly robotsByArchetype: Readonly<Record<string, number>>;
+  readonly coinsCollected: number;
+  readonly secretsFound: number;
+  readonly totalSecrets: number;
+  readonly highestCombo: number;
+  readonly optionalObjectives: readonly { readonly id: string; readonly achieved: boolean }[];
+  readonly medalTier: CampaignMedalTier;
+  readonly seed: string;
+  readonly replayChecksum: string;
+  readonly replayId: string;
+}
 
 export interface LevelProgressV1 {
   readonly levelId: string;
@@ -19,10 +37,16 @@ export interface LevelProgressV1 {
   readonly attempts: number;
   readonly defeats: number;
   readonly robotsDefeated: number;
+  readonly bestScore: number | null;
+  readonly bestAccuracyPermille: number | null;
+  readonly leastDamageTaken: number | null;
+  readonly mostSecretsFound: number;
+  readonly highestCombo: number;
+  readonly lastResult: StoredLevelResultV1 | null;
 }
 
-export interface ProfileBodyV6 {
-  readonly profileSchemaVersion: 6;
+export interface ProfileBodyV7 {
+  readonly profileSchemaVersion: 7;
   readonly migrationHistory: readonly string[];
   readonly profileId: string;
   readonly displayName: string;
@@ -66,29 +90,31 @@ export interface ProfileBodyV6 {
   readonly lastCleanShutdown: boolean;
 }
 
-export interface ProfileV6 extends ProfileBodyV6 {
+export interface ProfileV7 extends ProfileBodyV7 {
   readonly integrityChecksum: string;
 }
 
-function profileBody(profile: ProfileV6): ProfileBodyV6 {
+function profileBody(profile: ProfileV7): ProfileBodyV7 {
   const { integrityChecksum: _integrityChecksum, ...body } = profile;
   return body;
 }
 
-export function sealProfile(body: ProfileBodyV6): ProfileV6 {
+export function sealProfile(body: ProfileBodyV7): ProfileV7 {
   return { ...body, integrityChecksum: checksumCanonical(body) };
 }
 
-export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV6 {
+export function createDefaultProfile(profileId = 'default', displayName = 'Ranger'): ProfileV7 {
   return sealProfile({
     profileSchemaVersion: PROFILE_SCHEMA_VERSION,
-    migrationHistory: ['created:v6'],
+    migrationHistory: ['created:v7'],
     profileId,
     displayName,
     unlockedLevelIds: ['level-001'],
     levelProgress: [{
       levelId: 'level-001', completed: false, medals: [], bestTicks: null, bestReplayId: null,
       attempts: 0, defeats: 0, robotsDefeated: 0,
+      bestScore: null, bestAccuracyPermille: null, leastDamageTaken: null,
+      mostSecretsFound: 0, highestCombo: 0, lastResult: null,
     }],
     totalCoins: 0,
     spendableCoins: 0,
@@ -163,11 +189,15 @@ function stringRecord(value: unknown, label: string): Record<string, string> {
   return result;
 }
 
-function levelProgress(value: unknown, index: number): LevelProgressV1 {
+type LegacyLevelProgressV6 = Omit<LevelProgressV1,
+  'bestScore' | 'bestAccuracyPermille' | 'leastDamageTaken' | 'mostSecretsFound' | 'highestCombo' | 'lastResult'>;
+
+function levelProgressV6(value: unknown, index: number, bestReplayMaximumLength = 128): LegacyLevelProgressV6 {
   const progress = object(value, `levelProgress[${index}]`);
   exactKeys(progress, ['levelId', 'completed', 'medals', 'bestTicks', 'bestReplayId', 'attempts', 'defeats', 'robotsDefeated'], `levelProgress[${index}]`);
   const bestTicks = progress.bestTicks === null ? null : integer(progress.bestTicks, `levelProgress[${index}].bestTicks`);
-  const bestReplayId = progress.bestReplayId === null ? null : text(progress.bestReplayId, `levelProgress[${index}].bestReplayId`, 128);
+  const bestReplayId = progress.bestReplayId === null ? null
+    : text(progress.bestReplayId, `levelProgress[${index}].bestReplayId`, bestReplayMaximumLength);
   const levelId = text(progress.levelId, `levelProgress[${index}].levelId`, 64);
   if (!isCampaignLevelId(levelId)) throw new Error(`levelProgress[${index}].levelId is not a reserved campaign level ID`);
   return {
@@ -179,6 +209,102 @@ function levelProgress(value: unknown, index: number): LevelProgressV1 {
     attempts: integer(progress.attempts, `levelProgress[${index}].attempts`),
     defeats: integer(progress.defeats, `levelProgress[${index}].defeats`),
     robotsDefeated: integer(progress.robotsDefeated, `levelProgress[${index}].robotsDefeated`),
+  };
+}
+
+const RESULT_ARCHETYPES = [
+  'wobble-scout', 'blue-slider', 'yellow-spinner', 'red-firemouth', 'cyan-dj', 'invoice-overlord',
+] as const;
+
+function storedLevelResult(value: unknown, label: string): StoredLevelResultV1 {
+  const result = object(value, label);
+  exactKeys(result, [
+    'completionTicks', 'score', 'accuracyPermille', 'damageTaken', 'robotsByArchetype', 'coinsCollected',
+    'secretsFound', 'totalSecrets', 'highestCombo', 'optionalObjectives', 'medalTier', 'seed',
+    'replayChecksum', 'replayId',
+  ], label);
+  const robots = object(result.robotsByArchetype, `${label}.robotsByArchetype`);
+  exactKeys(robots, RESULT_ARCHETYPES, `${label}.robotsByArchetype`);
+  const robotsByArchetype: Record<string, number> = {};
+  for (const archetype of RESULT_ARCHETYPES) {
+    robotsByArchetype[archetype] = integer(robots[archetype], `${label}.robotsByArchetype.${archetype}`);
+  }
+  if (!Array.isArray(result.optionalObjectives) || result.optionalObjectives.length > 16) {
+    throw new Error(`${label}.optionalObjectives must be a bounded array`);
+  }
+  const optionalObjectives = result.optionalObjectives.map((entry, index) => {
+    const objective = object(entry, `${label}.optionalObjectives[${index}]`);
+    exactKeys(objective, ['id', 'achieved'], `${label}.optionalObjectives[${index}]`);
+    return {
+      id: text(objective.id, `${label}.optionalObjectives[${index}].id`, 128),
+      achieved: booleanValue(objective.achieved, `${label}.optionalObjectives[${index}].achieved`),
+    };
+  });
+  const accuracyPermille = result.accuracyPermille === null ? null
+    : bounded(result.accuracyPermille, `${label}.accuracyPermille`, 0, 1_000);
+  if (accuracyPermille !== null && !Number.isInteger(accuracyPermille)) throw new Error(`${label}.accuracyPermille must be an integer`);
+  if (result.medalTier !== 'bronze' && result.medalTier !== 'silver'
+    && result.medalTier !== 'gold' && result.medalTier !== 'quantum') throw new Error(`${label}.medalTier is invalid`);
+  const replayChecksum = text(result.replayChecksum, `${label}.replayChecksum`, 16);
+  if (!/^[0-9a-f]{16}$/.test(replayChecksum)) throw new Error(`${label}.replayChecksum is invalid`);
+  const completionTicks = integer(result.completionTicks, `${label}.completionTicks`);
+  if (completionTicks === 0) throw new Error(`${label}.completionTicks must be positive`);
+  const score = integer(result.score, `${label}.score`);
+  const coinsCollected = integer(result.coinsCollected, `${label}.coinsCollected`);
+  const secretsFound = integer(result.secretsFound, `${label}.secretsFound`);
+  const totalSecrets = integer(result.totalSecrets, `${label}.totalSecrets`);
+  if (secretsFound > totalSecrets) throw new Error(`${label}.secretsFound cannot exceed totalSecrets`);
+  const seed = text(result.seed, `${label}.seed`, 256);
+  const replayId = text(result.replayId, `${label}.replayId`, 512);
+  if (!replayId.endsWith(`:${seed}:${replayChecksum}`)) {
+    throw new Error(`${label}.replayId does not match its seed and checksum`);
+  }
+  return {
+    completionTicks,
+    score,
+    accuracyPermille,
+    damageTaken: bounded(result.damageTaken, `${label}.damageTaken`, 0, 1_000_000),
+    robotsByArchetype,
+    coinsCollected,
+    secretsFound,
+    totalSecrets,
+    highestCombo: integer(result.highestCombo, `${label}.highestCombo`),
+    optionalObjectives,
+    medalTier: result.medalTier,
+    seed,
+    replayChecksum,
+    replayId,
+  };
+}
+
+function levelProgress(value: unknown, index: number): LevelProgressV1 {
+  const progress = object(value, `levelProgress[${index}]`);
+  exactKeys(progress, [
+    'levelId', 'completed', 'medals', 'bestTicks', 'bestReplayId', 'attempts', 'defeats', 'robotsDefeated',
+    'bestScore', 'bestAccuracyPermille', 'leastDamageTaken', 'mostSecretsFound', 'highestCombo', 'lastResult',
+  ], `levelProgress[${index}]`);
+  const legacy = levelProgressV6(Object.fromEntries(Object.entries(progress).filter(([key]) => ![
+    'bestScore', 'bestAccuracyPermille', 'leastDamageTaken', 'mostSecretsFound', 'highestCombo', 'lastResult',
+  ].includes(key))), index, 512);
+  const bestAccuracyPermille = progress.bestAccuracyPermille === null ? null
+    : bounded(progress.bestAccuracyPermille, `levelProgress[${index}].bestAccuracyPermille`, 0, 1_000);
+  if (bestAccuracyPermille !== null && !Number.isInteger(bestAccuracyPermille)) {
+    throw new Error(`levelProgress[${index}].bestAccuracyPermille must be an integer`);
+  }
+  const lastResult = progress.lastResult === null ? null
+    : storedLevelResult(progress.lastResult, `levelProgress[${index}].lastResult`);
+  if (lastResult !== null && !lastResult.replayId.startsWith(`${legacy.levelId}:`)) {
+    throw new Error(`levelProgress[${index}].lastResult does not match its level ID`);
+  }
+  return {
+    ...legacy,
+    bestScore: progress.bestScore === null ? null : integer(progress.bestScore, `levelProgress[${index}].bestScore`),
+    bestAccuracyPermille,
+    leastDamageTaken: progress.leastDamageTaken === null ? null
+      : bounded(progress.leastDamageTaken, `levelProgress[${index}].leastDamageTaken`, 0, 1_000_000),
+    mostSecretsFound: integer(progress.mostSecretsFound, `levelProgress[${index}].mostSecretsFound`),
+    highestCombo: integer(progress.highestCombo, `levelProgress[${index}].highestCombo`),
+    lastResult,
   };
 }
 
@@ -208,7 +334,7 @@ function audioDynamicRange(value: unknown): AudioDynamicRange {
   return value;
 }
 
-function validateProfileV6(profile: Record<string, unknown>): ProfileV6 {
+function validateProfileV7(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -242,7 +368,7 @@ function validateProfileV6(profile: Record<string, unknown>): ProfileV6 {
     throw new Error('profile.settings.reducedMotion does not match the three motion scales');
   }
   const result = sealProfile({
-    profileSchemaVersion: 6,
+    profileSchemaVersion: 7,
     migrationHistory: strings(profile.migrationHistory, 'profile.migrationHistory'),
     profileId: text(profile.profileId, 'profile.profileId', 64),
     displayName: text(profile.displayName, 'profile.displayName', 64),
@@ -291,7 +417,41 @@ function validateProfileV6(profile: Record<string, unknown>): ProfileV6 {
   return result;
 }
 
-function migrateProfileV5(profile: Record<string, unknown>): ProfileV6 {
+function migrateProfileV6(profile: Record<string, unknown>): ProfileV7 {
+  exactKeys(profile, [
+    'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
+    'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
+    'inputMappings', 'campaignCheckpoint', 'lastCleanShutdown', 'integrityChecksum',
+  ], 'profile');
+  verifyProfileIntegrity(profile);
+  if (!Array.isArray(profile.levelProgress)) throw new Error('profile.levelProgress must be an array');
+  const settings = object(profile.settings, 'profile.settings');
+  exactKeys(settings, [
+    'language', 'masterVolume', 'musicVolume', 'effectsVolume', 'combatVolume', 'worldVolume',
+    'interfaceVolume', 'dynamicRange', 'mouseSensitivity', 'reducedMotion', 'cameraMotion', 'recoilMotion',
+    'shakeMotion', 'flashIntensity', 'highContrast', 'renderQuality', 'textScale', 'captions',
+    'photosensitivitySafe', 'touchControlScale', 'touchControlOpacity', 'touchVerticalOffset',
+    'touchHandedness', 'touchDeadZone', 'touchFireMode',
+  ], 'profile.settings');
+  const { integrityChecksum: _integrityChecksum, ...legacyBody } = profile;
+  const migratedBody = {
+    ...legacyBody,
+    profileSchemaVersion: 7 as const,
+    migrationHistory: [...strings(profile.migrationHistory, 'profile.migrationHistory'), 'v6->v7:complete-level-results'],
+    levelProgress: profile.levelProgress.map((entry, index) => ({
+      ...levelProgressV6(entry, index),
+      bestScore: null,
+      bestAccuracyPermille: null,
+      leastDamageTaken: null,
+      mostSecretsFound: 0,
+      highestCombo: 0,
+      lastResult: null,
+    })),
+  };
+  return validateProfileV7({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+}
+
+function migrateProfileV5(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -318,10 +478,10 @@ function migrateProfileV5(profile: Record<string, unknown>): ProfileV6 {
       dynamicRange: 'balanced' as const,
     },
   };
-  return validateProfileV6({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
+  return migrateProfileV6({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV4(profile: Record<string, unknown>): ProfileV6 {
+function migrateProfileV4(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -352,7 +512,7 @@ function migrateProfileV4(profile: Record<string, unknown>): ProfileV6 {
   return migrateProfileV5({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV3(profile: Record<string, unknown>): ProfileV6 {
+function migrateProfileV3(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -374,7 +534,7 @@ function migrateProfileV3(profile: Record<string, unknown>): ProfileV6 {
   return migrateProfileV4({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV2(profile: Record<string, unknown>): ProfileV6 {
+function migrateProfileV2(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -396,7 +556,7 @@ function migrateProfileV2(profile: Record<string, unknown>): ProfileV6 {
   return migrateProfileV3({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-function migrateProfileV1(profile: Record<string, unknown>): ProfileV6 {
+function migrateProfileV1(profile: Record<string, unknown>): ProfileV7 {
   exactKeys(profile, [
     'profileSchemaVersion', 'migrationHistory', 'profileId', 'displayName', 'unlockedLevelIds', 'levelProgress',
     'totalCoins', 'spendableCoins', 'weaponUpgrades', 'playerUpgrades', 'cosmetics', 'achievements', 'settings',
@@ -424,7 +584,7 @@ function migrateProfileV1(profile: Record<string, unknown>): ProfileV6 {
   return migrateProfileV2({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });
 }
 
-export function validateProfile(value: unknown): ProfileV6 {
+export function validateProfile(value: unknown): ProfileV7 {
   const profile = object(value, 'profile');
   if (typeof profile.profileSchemaVersion === 'number' && profile.profileSchemaVersion > PROFILE_SCHEMA_VERSION) {
     throw new Error(`Profile schema ${profile.profileSchemaVersion} is newer than supported schema ${PROFILE_SCHEMA_VERSION}`);
@@ -434,17 +594,18 @@ export function validateProfile(value: unknown): ProfileV6 {
   if (profile.profileSchemaVersion === 3) return migrateProfileV3(profile);
   if (profile.profileSchemaVersion === 4) return migrateProfileV4(profile);
   if (profile.profileSchemaVersion === 5) return migrateProfileV5(profile);
-  return validateProfileV6(profile);
+  if (profile.profileSchemaVersion === 6) return migrateProfileV6(profile);
+  return validateProfileV7(profile);
 }
 
-export function serializeProfile(profile: ProfileV6): string {
+export function serializeProfile(profile: ProfileV7): string {
   return canonicalJson(validateProfile(profile));
 }
 
-export function parseProfile(serialized: string): ProfileV6 {
+export function parseProfile(serialized: string): ProfileV7 {
   return validateProfile(JSON.parse(serialized) as unknown);
 }
 
-export function updateProfile(profile: ProfileV6, changes: Partial<ProfileBodyV6>): ProfileV6 {
+export function updateProfile(profile: ProfileV7, changes: Partial<ProfileBodyV7>): ProfileV7 {
   return validateProfile(sealProfile({ ...profileBody(profile), ...changes }));
 }

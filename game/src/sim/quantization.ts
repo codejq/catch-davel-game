@@ -52,4 +52,5 @@ export function quantizeSimulationState(state: GameState): void {
     bomb.velocityZ = quantizeAuthoritativeNumber(bomb.velocityZ);
   }
   state.laserBeamDistance = quantizeAuthoritativeNumber(state.laserBeamDistance);
+  state.metrics.damageTaken = quantizeAuthoritativeNumber(state.metrics.damageTaken);
 }

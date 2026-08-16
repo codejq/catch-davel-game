@@ -129,6 +129,7 @@ function resetRuntime(
   if (!isChapter01LevelId(levelId)) throw new Error('Worker levelId is invalid');
   simulation = new GameSimulation(seed, unlockedWeaponMask, normalizeWeaponUpgradeLevels(weaponUpgrades), encounter, levelId);
   simulation.state.player.coins = initialCoins;
+  simulation.state.metrics.startingCoins = initialCoins;
   generation += 1;
   snapshotPool = new SnapshotProducerPool();
   eventChannel = new EventProducerChannel();
@@ -186,6 +187,14 @@ function pump(): void {
     executeTick(realtimeCommand());
     nextTickDeadline += FIXED_DT_SECONDS * 1_000;
     steps += 1;
+    if (simulation.state.victory || simulation.state.defeat) {
+      mode = 'manual';
+      break;
+    }
+  }
+  if (mode !== 'realtime') {
+    timer = null;
+    return;
   }
   if (now - nextTickDeadline > 250) nextTickDeadline = now + FIXED_DT_SECONDS * 1_000;
   timer = setTimeout(pump, Math.max(0, nextTickDeadline - performance.now()));
@@ -212,6 +221,7 @@ function postComplete(requestId: number): void {
     observation: createObservation(simulation.state),
     commandRuns: replay?.commandRuns.length ?? 0,
     checksumRecords: replay?.checksums.length ?? 0,
+    runMetrics: { ...simulation.state.metrics, defeatedRobotIds: [...simulation.state.metrics.defeatedRobotIds] },
   });
 }
 

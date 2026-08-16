@@ -21,6 +21,9 @@ import {
 } from './weapons';
 import type { Chapter01LevelId } from '../content/levels/chapter-01';
 import { activateKeyAmbush, freezeDanceWindow } from './level-mechanics';
+import {
+  createRunMetrics, recordDamageTaken, recordRangedAttack, recordRobotDefeat, type RunMetrics,
+} from './run-metrics';
 
 export interface GameEvent {
   readonly tick: number;
@@ -57,6 +60,7 @@ export interface GameState {
   laserActive: boolean;
   laserBeamDistance: number;
   readonly level: LevelRuntimeState;
+  readonly metrics: RunMetrics;
 }
 
 export class GameSimulation {
@@ -104,6 +108,7 @@ export class GameSimulation {
       playerBombs: [], nextPlayerBombId: 1, lastSwordTick: -1_000, lastBombTick: -1_000,
       laserFocusTicks: 0, laserTargetRobotId: null, laserActive: false, laserBeamDistance: 0,
       level: createLevelRuntime(levelId, encounter),
+      metrics: createRunMetrics(),
     };
     quantizeSimulationState(state);
     return state;
@@ -117,13 +122,18 @@ export class GameSimulation {
       return;
     }
     stepEncounterWaves(this.state.robots, this.state.level, this.state.levelId);
+    if (this.state.tick > this.state.metrics.comboExpiresTick) this.state.metrics.currentCombo = 0;
     const doorEvent = openNearbyDoor(this.state.player, this.state.level);
     if (doorEvent !== null) this.state.events.push({ tick: this.state.tick, ...doorEvent });
     stepLevelHazardPhases(this.state.level, this.state.tick);
     stepPlayer(this.state.player, command, closedDoorCells(this.state.level, this.state.player), this.state.levelId);
     stepLevelHazards(this.state.player, this.state.level, this.state.tick, this.state.levelId);
+    const secretWasActive = this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active);
     for (const interaction of collectLevelInteractions(this.state.player, this.state.level)) {
       this.state.events.push({ tick: this.state.tick, ...interaction });
+    }
+    if (secretWasActive && !this.state.level.pickups.some((pickup) => pickup.id === 'secret-coin-cache' && pickup.active)) {
+      this.state.metrics.secretsFound += 1;
     }
     if (activateKeyAmbush(this.state.robots, this.state.levelId, this.state.level.keyCollected)) {
       this.state.events.push({ tick: this.state.tick, type: 'ambush-triggered' });
@@ -139,10 +149,12 @@ export class GameSimulation {
     const robotsFrozen = freezeDanceWindow(this.state.levelId, this.state.tick).frozen;
     if (!robotsFrozen) stepRobots(this.state.robots, this.state.seed, this.state.player, this.state.levelId);
     this.coolWeapons();
+    const healthBeforeEnemyCombat = this.state.player.health;
     const enemyCombat = stepEnemyCombat(
       this.state.player, this.state.robots, this.state.projectiles, this.state.nextProjectileId, this.state.levelId,
       robotsFrozen,
     );
+    recordDamageTaken(this.state.metrics, healthBeforeEnemyCombat - this.state.player.health);
     this.state.nextProjectileId = enemyCombat.nextProjectileId;
     for (const robotId of enemyCombat.telegraphRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-telegraph', robotId });
     for (const robotId of enemyCombat.firedRobotIds) this.state.events.push({ tick: this.state.tick, type: 'robot-fired', robotId });
@@ -218,6 +230,7 @@ export class GameSimulation {
     const result = fireLaser(
       player, this.state.robots, LASER_BASE_DAMAGE + LASER_MAX_FOCUS_BONUS * focus, this.state.levelId,
     );
+    recordRangedAttack(this.state.metrics, result.hit !== null);
     this.state.laserActive = true;
     this.state.laserBeamDistance = result.beamDistance;
     this.state.shotSerial += 1;
@@ -236,6 +249,7 @@ export class GameSimulation {
 
   private applyShot(result: ShotResult): void {
     if (!result.fired) return;
+    recordRangedAttack(this.state.metrics, result.hitRobotId !== null);
     this.state.lastShotTick = this.state.tick;
     this.state.shotSerial += 1;
     this.state.events.push({ tick: this.state.tick, type: 'pulse-fired' });
@@ -247,6 +261,7 @@ export class GameSimulation {
   private applyWeaponHit(hit: WeaponHit): void {
     this.state.events.push({ tick: this.state.tick, type: 'robot-hit', robotId: hit.robotId });
     if (!hit.defeated) return;
+    recordRobotDefeat(this.state.metrics, hit.robotId, this.state.tick);
     this.state.events.push({ tick: this.state.tick, type: 'robot-defeated', robotId: hit.robotId, coins: hit.coinsAwarded });
     if (this.state.robots.every((robot) => !robot.active)) {
       if (this.state.level.encounter.pendingTicks > 0) return;

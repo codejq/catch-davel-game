@@ -9,6 +9,7 @@ import { createSimulationSnapshot, stateChecksum } from '../sim/serialization';
 import { isWeaponId, TRAINING_WEAPON_MASK, type WeaponId } from '../sim/weapons';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { isChapter01LevelId, type Chapter01LevelId } from '../content/level-ids';
+import type { RunMetrics } from '../sim/run-metrics';
 
 export type AgentResetOptions = { readonly levelId?: Chapter01LevelId; readonly seed?: string; readonly difficulty?: 'standard'; readonly mode?: 'agent'; readonly loadout?: 'campaign' | 'training'; readonly encounter?: 'campaign' | 'boss-training' };
 
@@ -62,6 +63,7 @@ export interface CatchDavelAgentApi {
     readonly checksumRecords: number;
     readonly controlled: boolean;
     readonly queuedActions: number;
+    readonly runMetrics: RunMetrics;
   };
   releaseControl(): Promise<void>;
   replayLog(): readonly ReplayEntry[];
@@ -135,6 +137,10 @@ export class AgentController {
           checksumRecords: replay.checksums.length,
           controlled: this.controlled,
           queuedActions: this.queue.length,
+          runMetrics: {
+            ...this.simulation.state.metrics,
+            defeatedRobotIds: [...this.simulation.state.metrics.defeatedRobotIds],
+          },
         };
       },
       releaseControl: async () => this.release(),

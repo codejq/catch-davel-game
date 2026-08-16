@@ -4,7 +4,7 @@ import type { RenderGameState, RenderPresentationSettings } from '../render/rend
 import { DEFAULT_LEVEL_SEED, LOOK_SCALE } from '../sim/constants';
 import type { PlayerCommand } from '../sim/player';
 import { createPlatformProfileRepository } from '../storage/platform';
-import { createDefaultProfile, updateProfile, type ProfileV6 } from '../storage/profile';
+import { createDefaultProfile, updateProfile, type ProfileV7 } from '../storage/profile';
 import { exportProfileFile, importProfileFile } from '../storage/profile-transfer';
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
@@ -16,7 +16,7 @@ import { purchaseWeaponUpgrade, weaponUpgradeCost } from '../storage/economy';
 import { chapter01Level } from '../content/levels/chapter-01';
 import { CHAPTER_01_LEVEL_IDS, isChapter01LevelId } from '../content/level-ids';
 import {
-  bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat, recordCampaignRobotDefeat,
+  bankCampaignCoins, completeCampaignLevel, recordCampaignAttempt, recordCampaignDefeat,
 } from '../campaign/progression';
 import { nextUnlockedWeapon, touchFireHeld, virtualStickVector } from './touch-input';
 import { ProceduralAudio, type AudioCue } from '../audio/procedural-audio';
@@ -118,6 +118,15 @@ export async function startBrowserGame(): Promise<void> {
   const resultsBest = requireElement<HTMLElement>('#results-best');
   const resultsPar = requireElement<HTMLElement>('#results-par');
   const resultsCoins = requireElement<HTMLElement>('#results-coins');
+  const resultsScore = requireElement<HTMLElement>('#results-score');
+  const resultsAccuracy = requireElement<HTMLElement>('#results-accuracy');
+  const resultsDamage = requireElement<HTMLElement>('#results-damage');
+  const resultsRobots = requireElement<HTMLElement>('#results-robots');
+  const resultsSecrets = requireElement<HTMLElement>('#results-secrets');
+  const resultsCombo = requireElement<HTMLElement>('#results-combo');
+  const resultsRobotBreakdown = requireElement<HTMLElement>('#results-robot-breakdown');
+  const resultsObjectives = requireElement<HTMLUListElement>('#results-objectives');
+  const resultsReplayProof = requireElement<HTMLElement>('#results-replay-proof');
   const resultsReplay = requireElement<HTMLButtonElement>('#results-replay');
   const resultsNext = requireElement<HTMLButtonElement>('#results-next');
   const resultsMap = requireElement<HTMLButtonElement>('#results-map');
@@ -175,7 +184,7 @@ export async function startBrowserGame(): Promise<void> {
   const profileStorage = createPlatformProfileRepository();
   const profileRepository = profileStorage.repository;
   document.body.dataset.profileStorage = profileStorage.backend;
-  let activeProfile: ProfileV6;
+  let activeProfile: ProfileV7;
   try {
     const loadedProfile = await profileRepository.load('default');
     activeProfile = loadedProfile ?? createDefaultProfile();
@@ -191,7 +200,6 @@ export async function startBrowserGame(): Promise<void> {
     activeLevel = chapter01Level(activeLevelId);
   }
   let activeInputBindings: InputBindings = normalizeInputBindings(activeProfile.inputMappings);
-  let runStartingCoins = activeProfile.spendableCoins;
   let latestCampaignResult: CampaignResultSummary | null = null;
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
@@ -351,7 +359,9 @@ export async function startBrowserGame(): Promise<void> {
       status.textContent = !unlocked ? ui('locked') : progress?.completed
         ? ui('clearedBest', { ticks: progress.bestTicks ?? '—' })
         : levelId === activeLevelId ? ui('currentMission') : ui('ready');
-      if (progress?.medals.includes('par-time')) status.textContent += ' · ★';
+      const tier = (['quantum', 'gold', 'silver', 'bronze'] as const)
+        .find((candidate) => progress?.medals.includes(`tier:${candidate}`));
+      if (tier !== undefined) status.textContent += ` · ${ui(`medal${tier.charAt(0).toUpperCase()}${tier.slice(1)}` as RuntimeUiKey)}`;
       button.append(number, title, status);
       return button;
     }));
@@ -363,11 +373,34 @@ export async function startBrowserGame(): Promise<void> {
     missionFailed.classList.remove('open');
     missionFailed.setAttribute('aria-hidden', 'true');
     resultsLevelName.textContent = localized(activeLevel.nameKey);
-    resultsMedal.textContent = `${ui(summary.parMedal ? 'parMedal' : 'clearMedal')}${summary.newBest ? ` · ${ui('newBest')}` : ''}`;
+    const medalKey = `medal${summary.medalTier.charAt(0).toUpperCase()}${summary.medalTier.slice(1)}` as RuntimeUiKey;
+    resultsMedal.textContent = `${ui(medalKey)}${summary.newBest ? ` · ${ui('newBest')}` : ''}`;
     resultsTime.textContent = formatCampaignTicks(summary.completionTicks);
     resultsBest.textContent = formatCampaignTicks(summary.bestTicks);
     resultsPar.textContent = formatCampaignTicks(summary.parTicks);
     resultsCoins.textContent = `+${summary.coinsEarned}`;
+    resultsScore.textContent = summary.score.toLocaleString(activeProfile.settings.language);
+    resultsAccuracy.textContent = summary.accuracyPermille === null ? '—' : `${summary.accuracyPermille / 10}%`;
+    resultsDamage.textContent = String(Math.round(summary.damageTaken));
+    const robotsDefeated = Object.values(summary.robotsByArchetype).reduce((total, count) => total + count, 0);
+    resultsRobots.textContent = String(robotsDefeated);
+    resultsSecrets.textContent = `${summary.secretsFound} / ${summary.totalSecrets}`;
+    resultsCombo.textContent = `×${summary.highestCombo}`;
+    const archetypeKeys = {
+      'wobble-scout': 'wobbleScout', 'blue-slider': 'blueSlider', 'yellow-spinner': 'yellowSpinner',
+      'red-firemouth': 'redFiremouth', 'cyan-dj': 'cyanDj', 'invoice-overlord': 'invoiceOverlord',
+    } as const satisfies Readonly<Record<keyof CampaignResultSummary['robotsByArchetype'], RuntimeUiKey>>;
+    resultsRobotBreakdown.textContent = Object.entries(summary.robotsByArchetype)
+      .filter(([, count]) => count > 0)
+      .map(([archetype, count]) => `${ui(archetypeKeys[archetype as keyof typeof archetypeKeys])} ×${count}`)
+      .join(' · ');
+    resultsObjectives.replaceChildren(...summary.optionalObjectives.map((objective) => {
+      const item = document.createElement('li');
+      item.classList.toggle('missed', !objective.achieved);
+      item.textContent = `${objective.achieved ? '✓' : '○'} ${ui(objective.id.includes('par-time') ? 'objectivePar' : 'objectiveAccuracy')}`;
+      return item;
+    }));
+    resultsReplayProof.textContent = ui('replayProof', { seed: summary.seed, checksum: summary.replayChecksum });
     resultsNext.textContent = ui(summary.nextLevelId === null ? 'chapterComplete' : 'nextMission');
     missionResults.classList.add('open');
     missionResults.setAttribute('aria-hidden', 'false');
@@ -391,7 +424,7 @@ export async function startBrowserGame(): Promise<void> {
     failureRetry.focus();
   };
 
-  const persistProfile = (profile: ProfileV6): void => {
+  const persistProfile = (profile: ProfileV7): void => {
     activeProfile = profile;
     activeInputBindings = normalizeInputBindings(profile.inputMappings);
     if (trainingMode) return;
@@ -475,7 +508,6 @@ export async function startBrowserGame(): Promise<void> {
   const beginHumanSession = (): void => {
     if (humanSessionStarted || agentController?.isAgentControlled()) return;
     humanSessionStarted = true;
-    runStartingCoins = activeProfile.spendableCoins;
     shop.classList.remove('open');
     persistProfile(recordCampaignAttempt(activeProfile, activeLevelId));
   };
@@ -659,22 +691,22 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-defeated') {
       showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
       sound('robot-defeat', event.robotId);
-      if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
-        persistProfile(recordCampaignRobotDefeat(activeProfile, activeLevelId));
-      }
     }
     if (event.type === 'victory') {
       showMessage(ui('victory'));
       sound('victory');
-      if (humanSessionStarted && !agentController.isAgentControlled() && renderState !== null) {
-        const summary = campaignResultSummary(
-          activeProfile, activeLevelId, renderState.tick, Math.max(0, renderState.player.coins - runStartingCoins),
-        );
-        persistProfile(completeCampaignLevel(
-          bankCampaignCoins(activeProfile, renderState.player.coins), activeLevelId, renderState.tick,
-        ));
-        renderCampaignMap();
-        window.setTimeout(() => showMissionResults(summary), 700);
+      if (humanSessionStarted && !agentController.isAgentControlled()) {
+        void client.getStatus().then((status) => {
+          const terminalState = client.latestState;
+          const summary = campaignResultSummary(
+            activeProfile, activeLevelId, status.tick, terminalState.player.coins, status.runMetrics, status.checksum,
+          );
+          persistProfile(completeCampaignLevel(
+            bankCampaignCoins(activeProfile, terminalState.player.coins), activeLevelId, status.tick, summary,
+          ));
+          renderCampaignMap();
+          window.setTimeout(() => showMissionResults(summary), 700);
+        }).catch((error: unknown) => console.warn('Catch Davel mission results failed', error));
       }
     }
     if (event.type === 'defeat') {
