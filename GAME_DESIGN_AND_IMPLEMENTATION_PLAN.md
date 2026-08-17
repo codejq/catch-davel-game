@@ -603,7 +603,6 @@ The names and scenarios below are working content specifications. Exact room cou
 | 31 | Cold Reception | Ice movement introduced | Chilly Funk Walk |
 | 32 | Slippery Smiles | Mobile ranged squads | Ice-Slide Moonwalk |
 | 33 | Violet Wall | Shielder introduction | Shield-Pose Popping |
-| 34 | Frosted Crossroads | Glass-route reading across cardinal ice lanes | Crystal Locking Dance |
 | 34 | Frosted Crossroads | Glass route visibility | Crystal Locking Dance |
 | 35 | Zero-Degree Duel | Shield elite hunt | Freeze-Frame Face-Off |
 | 36 | Cold Storage | Limited-healing endurance | Refrigerator Robot |
