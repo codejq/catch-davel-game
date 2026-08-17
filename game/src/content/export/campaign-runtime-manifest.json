@@ -21,6 +21,13 @@
       "roomSize": 0.9,
       "wetMix": 0.45
     },
+    "audio-cold-storage-034": {
+      "dampingHz": 6900,
+      "decaySeconds": 0.99,
+      "pitchScale": 1.04,
+      "roomSize": 0.98,
+      "wetMix": 0.49
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -263,6 +270,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "crystal-locking-dance": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "detonator-danzon": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -438,6 +451,7 @@
     "clockwork-charleston": "clockwork-charleston",
     "conveyor-conga": "conveyor-conga",
     "corner-peek-groove": "corner-peek",
+    "crystal-locking-dance": "crystal-locking",
     "detonator-danzon": "detonator-danzon",
     "drainpipe-rumba": "drainpipe-rumba",
     "duelling-tango": "duelling-tango",
@@ -742,6 +756,46 @@
       "kind": "timed-door",
       "phaseOffsetTicks": 45,
       "row": 10
+    },
+    "frosted-crossroads-east-v1": {
+      "column": 10,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.35,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 12
+    },
+    "frosted-crossroads-north-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.35,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "frosted-crossroads-south-v1": {
+      "column": 8,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.35,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 10
+    },
+    "frosted-crossroads-west-v1": {
+      "column": 4,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.35,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 6
     },
     "furnace-jaw-east-v1": {
       "column": 10,
@@ -3112,6 +3166,103 @@
         }
       ]
     },
+    "cold-storage-frosted-crossroads": {
+      "interactions": {
+        "checkpoint": {
+          "column": 9,
+          "row": 11
+        },
+        "coin": {
+          "amount": 36,
+          "column": 11,
+          "row": 9
+        },
+        "door": {
+          "column": 6,
+          "row": 8
+        },
+        "energy": {
+          "amount": 35,
+          "column": 5,
+          "row": 7
+        },
+        "health": {
+          "amount": 27,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 4,
+          "row": 2
+        },
+        {
+          "column": 8,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 4,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 2,
+          "row": 8
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 4,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "cold-storage-reception": {
       "interactions": {
         "checkpoint": {
@@ -4018,6 +4169,34 @@
       ],
       "swing": 0.14
     },
+    "crystal-locking-dance": {
+      "bassPattern": [
+        0,
+        3,
+        1,
+        5
+      ],
+      "leadPattern": [
+        0,
+        5,
+        2,
+        4,
+        1,
+        3,
+        5,
+        2
+      ],
+      "rootMidi": 60,
+      "scale": [
+        0,
+        2,
+        5,
+        6,
+        9,
+        11
+      ],
+      "swing": 0.06
+    },
     "detonator-danzon": {
       "bassPattern": [
         0,
@@ -4885,6 +5064,40 @@
           1,
           0.62,
           0.16
+        ]
+      ]
+    },
+    "cold-storage-34": {
+      "floor": [
+        0.86,
+        0.98,
+        1
+      ],
+      "sky": [
+        0.76,
+        0.94,
+        1
+      ],
+      "walls": [
+        [
+          0.04,
+          0.76,
+          1
+        ],
+        [
+          0.96,
+          0.24,
+          0.86
+        ],
+        [
+          0.28,
+          0.96,
+          0.88
+        ],
+        [
+          0.72,
+          0.34,
+          1
         ]
       ]
     },

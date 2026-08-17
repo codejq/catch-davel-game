@@ -43,6 +43,7 @@ interface OriginalLevelAssetRecipe {
   readonly dance: string;
   readonly sourcePath: string;
   readonly danceParts?: readonly string[];
+  readonly reducedMotionId?: string;
 }
 
 const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
@@ -83,6 +84,15 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
   { level: '031', palette: 'cold-storage-31', mazeTemplate: 'cold-storage-reception', audio: 'audio-cold-storage-031', dance: 'chilly-funk-walk', sourcePath: 'game/src/content/levels/level-031.ts' },
   { level: '032', palette: 'cold-storage-32', mazeTemplate: 'cold-storage-slippery-smiles', audio: 'audio-cold-storage-032', dance: 'ice-slide-moonwalk', sourcePath: 'game/src/content/levels/level-032.ts' },
   { level: '033', palette: 'cold-storage-33', mazeTemplate: 'cold-storage-violet-wall', audio: 'audio-cold-storage-033', dance: 'shield-pose-popping', sourcePath: 'game/src/content/levels/level-033.ts' },
+  {
+    level: '034', palette: 'cold-storage-34', mazeTemplate: 'cold-storage-frosted-crossroads',
+    audio: 'audio-cold-storage-034', dance: 'crystal-locking-dance', sourcePath: 'game/src/content/levels/level-034.ts',
+    danceParts: [
+      'crystal-locking-feet-v1', 'crystal-locking-torso-v1', 'crystal-locking-arms-v1',
+      'crystal-locking-head-v1', 'crystal-locking-path-v1',
+    ],
+    reducedMotionId: 'crystal-locking-reduced-v1',
+  },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {
@@ -92,7 +102,10 @@ function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProven
   ];
   return {
     id: `campaign-level-${recipe.level}-originals`,
-    assetIds: [recipe.palette, recipe.mazeTemplate, recipe.audio, recipe.dance, ...danceParts, `${recipe.dance}-reduced-v1`],
+    assetIds: [
+      recipe.palette, recipe.mazeTemplate, recipe.audio, recipe.dance, ...danceParts,
+      recipe.reducedMotionId ?? `${recipe.dance}-reduced-v1`,
+    ],
     assetKind: 'mixed',
     sourceType: 'project-original',
     creator: 'Quantum Billing Catch Davel contributors',

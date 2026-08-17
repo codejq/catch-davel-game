@@ -358,6 +358,20 @@ function targets(
     leftFootY += Math.max(0, pop) * 0.08; rightFootY += Math.max(0, -pop) * 0.08;
     leftHand = [-1.2 - lock * 0.2, 1.46 + lock * 0.25, 0.48];
     rightHand = [0.66 + release * 0.42, 1.58 + pop * 0.12, 0.62];
+  } else if (performance.motif === 'crystal-locking') {
+    const lock = Math.sign(Math.sin(performanceTime * Math.PI * 4));
+    const prism = Math.sin(performanceTime * Math.PI * 8);
+    const sweep = Math.sin(performanceTime * Math.PI * 2);
+    bounce += (Math.abs(prism) * 0.045 + Math.max(0, sweep) * 0.025) * intensity;
+    hipX = (lock * 0.34 + prism * 0.045) * intensity;
+    chestX = (-lock * 0.42 - prism * 0.055) * intensity;
+    chestZ = -Math.abs(sweep) * 0.2; headX += lock * 0.3; headZ = -prism * 0.07;
+    leftFootX = -0.46 - Math.max(0, -sweep) * 0.26;
+    rightFootX = 0.46 + Math.max(0, sweep) * 0.26;
+    leftFootZ = sweep * 0.42; rightFootZ = -sweep * 0.42;
+    leftFootY += Math.max(0, prism) * 0.09; rightFootY += Math.max(0, -prism) * 0.09;
+    leftHand = [-0.78 - lock * 0.36, 1.72 + prism * 0.12, 0.62];
+    rightHand = [0.78 - lock * 0.36, 1.12 - prism * 0.12, 0.68];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

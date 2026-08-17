@@ -13,7 +13,7 @@ import {
   CHAPTER_03_LEVELS, LEVEL_021, LEVEL_022, LEVEL_023, LEVEL_024, LEVEL_025, LEVEL_026, LEVEL_027, LEVEL_028,
   LEVEL_029, LEVEL_030,
 } from '../src/content/levels/chapter-03';
-import { CHAPTER_04_LEVELS, LEVEL_031, LEVEL_032, LEVEL_033 } from '../src/content/levels/chapter-04';
+import { CHAPTER_04_LEVELS, LEVEL_031, LEVEL_032, LEVEL_033, LEVEL_034 } from '../src/content/levels/chapter-04';
 
 describe('Appendix A level-data contract', () => {
   it('strictly validates and canonically serializes Level 1', () => {
@@ -170,7 +170,7 @@ describe('Appendix A level-data contract', () => {
   });
 
   it('admits Cold Reception as the first Chapter 4 ice-movement level', () => {
-    expect(CHAPTER_04_LEVELS).toEqual([LEVEL_031, LEVEL_032, LEVEL_033]);
+    expect(CHAPTER_04_LEVELS).toEqual([LEVEL_031, LEVEL_032, LEVEL_033, LEVEL_034]);
     expect(validateLevelDefinition(LEVEL_031)).toBe(LEVEL_031);
     expect(campaignLevel('level-031')).toBe(LEVEL_031);
     expect(LEVEL_031.chapterId).toBe('chapter-04');
@@ -198,6 +198,16 @@ describe('Appendix A level-data contract', () => {
     expect(LEVEL_033.tags).toEqual(expect.arrayContaining(['shielder-introduction', 'shield-pose-popping']));
     expect(LEVEL_033.agentValidation.runs[0]?.dependencyHashes)
       .toEqual(currentAgentValidationDependencies('level-033'));
+  });
+
+  it('admits Frosted Crossroads as the Chapter 4 crossing-ice route-reading level', () => {
+    expect(validateLevelDefinition(LEVEL_034)).toBe(LEVEL_034);
+    expect(campaignLevel('level-034')).toBe(LEVEL_034);
+    expect(LEVEL_034.chapterId).toBe('chapter-04');
+    expect(LEVEL_034.maze.hazards).toHaveLength(4);
+    expect(LEVEL_034.tags).toEqual(expect.arrayContaining(['glass-route-visibility', 'crossing-ice', 'crystal-locking-dance']));
+    expect(LEVEL_034.agentValidation.runs[0]?.dependencyHashes)
+      .toEqual(currentAgentValidationDependencies('level-034'));
   });
 
   it('rejects unknown fields, mismatched IDs, stale references, and impossible key ordering', () => {

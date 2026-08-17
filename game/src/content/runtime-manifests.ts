@@ -308,6 +308,22 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'ice', column: 6, row: 10, halfWidth: 3.3, halfDepth: 1.15,
     directionX: 1, directionZ: 0, phaseOffsetTicks: 0,
   },
+  'frosted-crossroads-west-v1': {
+    kind: 'ice', column: 4, row: 6, halfWidth: 3.35, halfDepth: 1.15,
+    directionX: 1, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'frosted-crossroads-north-v1': {
+    kind: 'ice', column: 6, row: 8, halfWidth: 1.15, halfDepth: 3.35,
+    directionX: 0, directionZ: -1, phaseOffsetTicks: 0,
+  },
+  'frosted-crossroads-south-v1': {
+    kind: 'ice', column: 8, row: 10, halfWidth: 1.15, halfDepth: 3.35,
+    directionX: 0, directionZ: 1, phaseOffsetTicks: 0,
+  },
+  'frosted-crossroads-east-v1': {
+    kind: 'ice', column: 10, row: 12, halfWidth: 3.35, halfDepth: 1.15,
+    directionX: -1, directionZ: 0, phaseOffsetTicks: 0,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -793,6 +809,24 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 5, row: 9, amount: 35 },
     },
   },
+  'cold-storage-frosted-crossroads': {
+    openings: [
+      { column: 4, row: 2 }, { column: 8, row: 2 },
+      { column: 2, row: 4 }, { column: 6, row: 4 }, { column: 12, row: 4 },
+      { column: 4, row: 6 }, { column: 10, row: 6 }, { column: 12, row: 6 },
+      { column: 2, row: 8 }, { column: 6, row: 8 }, { column: 12, row: 8 },
+      { column: 4, row: 10 }, { column: 8, row: 10 }, { column: 12, row: 10 },
+      { column: 6, row: 12 }, { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 13, row: 3, amount: 27 },
+      key: { column: 3, row: 5 },
+      energy: { column: 5, row: 7, amount: 35 },
+      door: { column: 6, row: 8 },
+      checkpoint: { column: 9, row: 11 },
+      coin: { column: 11, row: 9, amount: 36 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -807,7 +841,8 @@ export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 
   | 'flame-fandango' | 'tempo-twist' | 'mirror-lindy' | 'jackpot-jitter' | 'reverse-strut'
   | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step'
   | 'duelling-tango' | 'detonator-danzon' | 'drainpipe-rumba' | 'triple-key-cha-cha' | 'feverish-salsa'
-  | 'inferno-flamenco-finale' | 'chilly-funk-walk' | 'ice-slide-moonwalk' | 'shield-pose-popping';
+  | 'inferno-flamenco-finale' | 'chilly-funk-walk' | 'ice-slide-moonwalk' | 'shield-pose-popping'
+  | 'crystal-locking';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -843,6 +878,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'chilly-funk-walk': 'chilly-funk-walk',
   'ice-slide-moonwalk': 'ice-slide-moonwalk',
   'shield-pose-popping': 'shield-pose-popping',
+  'crystal-locking-dance': 'crystal-locking',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -892,6 +928,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'chilly-funk-walk': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'ice-slide-moonwalk': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'shield-pose-popping': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'crystal-locking-dance': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -942,6 +979,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-cold-storage-031': { roomSize: 0.88, decaySeconds: 0.98, dampingHz: 6100, wetMix: 0.46, pitchScale: 1.08 },
   'audio-cold-storage-032': { roomSize: 0.94, decaySeconds: 0.99, dampingHz: 6600, wetMix: 0.48, pitchScale: 1.12 },
   'audio-cold-storage-033': { roomSize: 0.9, decaySeconds: 0.96, dampingHz: 5750, wetMix: 0.45, pitchScale: 0.96 },
+  'audio-cold-storage-034': { roomSize: 0.98, decaySeconds: 0.99, dampingHz: 6900, wetMix: 0.49, pitchScale: 1.04 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -992,6 +1030,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'chilly-funk-walk': { rootMidi: 58, scale: [0, 2, 5, 7, 10], leadPattern: [0, 3, 1, 4, 2, 0, 4, 1], bassPattern: [0, 2, 4, 1], swing: 0.2 },
   'ice-slide-moonwalk': { rootMidi: 61, scale: [0, 2, 3, 7, 10], leadPattern: [4, 2, 0, 3, 1, 4, 2, 0], bassPattern: [0, 4, 1, 3], swing: 0.24 },
   'shield-pose-popping': { rootMidi: 55, scale: [0, 3, 5, 6, 10], leadPattern: [0, 4, 1, 3, 0, 2, 4, 1], bassPattern: [0, 0, 3, 4], swing: 0.08 },
+  'crystal-locking-dance': { rootMidi: 60, scale: [0, 2, 5, 6, 9, 11], leadPattern: [0, 5, 2, 4, 1, 3, 5, 2], bassPattern: [0, 3, 1, 5], swing: 0.06 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -1041,6 +1080,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'cold-storage-31': { sky: [0.62, 0.91, 1], floor: [0.84, 0.96, 1], walls: [[0.08, 0.56, 0.96], [0.22, 0.88, 1], [0.72, 0.28, 1], [1, 0.46, 0.78]] },
   'cold-storage-32': { sky: [0.7, 0.86, 1], floor: [0.9, 0.98, 1], walls: [[0.1, 0.34, 0.94], [0.12, 0.86, 0.96], [0.88, 0.22, 0.94], [0.66, 0.92, 0.18]] },
   'cold-storage-33': { sky: [0.72, 0.74, 1], floor: [0.9, 0.94, 1], walls: [[0.42, 0.08, 0.82], [0.78, 0.22, 1], [0.08, 0.78, 0.96], [1, 0.62, 0.16]] },
+  'cold-storage-34': { sky: [0.76, 0.94, 1], floor: [0.86, 0.98, 1], walls: [[0.04, 0.76, 1], [0.96, 0.24, 0.86], [0.28, 0.96, 0.88], [0.72, 0.34, 1]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {

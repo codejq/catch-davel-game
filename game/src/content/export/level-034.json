@@ -1,0 +1,550 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "c1df429a54459a12",
+          "effectiveLevel": "f46a859e80625dc9",
+          "policyOrReplay": "c00c7c2e50668d3b",
+          "simulationLevel": "c79dda8d80564622",
+          "simulationSchema": "7673b9fb7039c568"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 18000,
+        "mode": "live-agent",
+        "parTicks": 14000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "clear-frosted-crossroads"
+        ],
+        "seed": "campaign-level-034-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "ordinary"
+  },
+  "audio": {
+    "presetId": "audio-cold-storage-034"
+  },
+  "briefingKey": "levels.034.briefing",
+  "chapterId": "chapter-04",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-034"
+    }
+  ],
+  "dance": {
+    "armPatternId": "crystal-locking-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 130,
+    "footPatternId": "crystal-locking-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "crystal-locking-head-v1",
+    "pathPatternId": "crystal-locking-path-v1",
+    "presetId": "crystal-locking-dance",
+    "reducedMotionPresetId": "crystal-locking-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "crystal-locking-torso-v1",
+    "transitionIds": [
+      "crossroads-lock",
+      "crystal-encore",
+      "objective-clear"
+    ],
+    "visualIntensity": 0.99,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-04-034"
+  },
+  "economy": {
+    "presetId": "economy-chapter-04-034"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "crystal-lock-company",
+      "rewardId": "chapter-04-clear-034",
+      "roomNodeId": "frosted-crossroads",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "prism-guard",
+          "interGroupDelayTicks": 7,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-violet-shielder-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "violet-shielder",
+              "count": 1,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "prism-shielder",
+              "modifierIds": [
+                "glass-guard"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-1.shielder",
+              "spawnPointSetId": "level-034-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "prism-sliders",
+              "modifierIds": [
+                "refracted-crossfire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-1.sliders",
+              "spawnPointSetId": "level-034-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "crossroads-lock",
+          "id": "crossroads-lock",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "wobble-scout",
+              "count": 2,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "crossroads-wobblers",
+              "modifierIds": [
+                "glass-mimes"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-2.wobblers",
+              "spawnPointSetId": "level-034-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "yellow-spinner",
+              "count": 2,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "crossroads-spinners",
+              "modifierIds": [
+                "prism-spotters"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-2.spinners",
+              "spawnPointSetId": "level-034-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 16
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "crystal-encore",
+          "id": "crystal-encore",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "encore-firemouth",
+              "modifierIds": [
+                "crystal-flame"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-3.firemouth",
+              "spawnPointSetId": "level-034-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "encore-dj",
+              "modifierIds": [
+                "prism-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-3.dj",
+              "spawnPointSetId": "level-034-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-34",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "crystal-locking-dance",
+              "id": "encore-foreman",
+              "modifierIds": [
+                "glass-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-34",
+              "rngStream": "encounter.level-034.wave-3.foreman",
+              "spawnPointSetId": "level-034-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 14
+        }
+      ]
+    }
+  ],
+  "id": "level-034",
+  "mastery": [
+    {
+      "presetId": "level-034-par-time"
+    },
+    {
+      "presetId": "level-034-clear-route-reader"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "frosted-entry",
+        "id": "entry-locker",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "prism-locker",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "prism-locker",
+        "id": "locker-west",
+        "requiredKeyId": "prism-key",
+        "stateTrigger": "key-collected",
+        "to": "west-refraction",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "west-refraction",
+        "id": "west-crossroads",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "frosted-crossroads",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "frosted-crossroads",
+        "id": "crossroads-east",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "east-refraction",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "east-refraction",
+        "id": "east-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "crystal-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "crystal-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "crystal-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "prism-locker",
+        "id": "locker-cache",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "clear-cache",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "clear-cache",
+        "id": "cache-crossroads",
+        "requiredKeyId": "prism-key",
+        "stateTrigger": "key-collected",
+        "to": "frosted-crossroads",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "frosted-entry",
+    "exitNodeId": "crystal-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "frosted-crossroads-west-v1",
+        "id": "west-glass-ice",
+        "nodeId": "west-refraction",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "frosted-crossroads-north-v1",
+        "id": "crossroads-north-ice",
+        "nodeId": "frosted-crossroads",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "frosted-crossroads-south-v1",
+        "id": "crossroads-south-ice",
+        "nodeId": "frosted-crossroads",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "frosted-crossroads-east-v1",
+        "id": "east-glass-ice",
+        "nodeId": "east-refraction",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "prism-key",
+        "placementNodeId": "prism-locker"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "frosted-entry",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "glass-airlock"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "prism-locker",
+        "pickupIds": [
+          "prism-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "prism-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "west-refraction",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "glass-route-west"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "crystal-lock-company"
+        ],
+        "id": "frosted-crossroads",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "glass-crossroads"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "clear-cache",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "visible-optional-route"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "east-refraction",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "glass-route-east"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-034",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "crystal-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "crystal-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "cold-storage-frosted-crossroads",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.034.name",
+  "number": 34,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "clear-frosted-crossroads",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "prism-guard",
+        "crossroads-lock",
+        "crystal-encore"
+      ],
+      "titleKey": "objectives.level_034",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "cold-storage-34"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-034-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-034-v1",
+  "tags": [
+    "chapter-04",
+    "cold-storage",
+    "glass-route-visibility",
+    "crossing-ice",
+    "crystal-locking-dance"
+  ]
+}
