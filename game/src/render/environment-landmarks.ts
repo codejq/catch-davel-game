@@ -53,7 +53,8 @@ export type LandmarkMotif =
   | 'fever-thermometers'
   | 'furnace-jaws'
   | 'ice-crystals'
-  | 'ice-skate-arches';
+  | 'ice-skate-arches'
+  | 'violet-shield-pylons';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -88,6 +89,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-030': 'furnace-jaws',
   'level-031': 'ice-crystals',
   'level-032': 'ice-skate-arches',
+  'level-033': 'violet-shield-pylons',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -382,6 +384,15 @@ function motifBoxes(
         box(anchorX + shift, y + 1.82, anchorZ, 1.68, 0.24, 0.3, accent, 0.94),
         box(anchorX - 0.36, y + 0.26, anchorZ, 0.72, 0.18, 0.36, accent, 0.88),
         box(anchorX + 0.36, y + 0.38, anchorZ, 0.72, 0.18, 0.36, primary, 0.9),
+      ];
+    case 'violet-shield-pylons':
+      return [
+        box(anchorX - 0.72, y + 0.9, anchorZ, 0.26, 1.8, 0.3, primary, 0.76),
+        box(anchorX + 0.72, y + 0.9, anchorZ, 0.26, 1.8, 0.3, primary, 0.76),
+        box(anchorX, y + 1.64, anchorZ, 1.5, 0.24, 0.28, accent, 0.94),
+        box(anchorX - 0.44, y + 0.86, anchorZ, 0.12, 0.88, 0.34, accent, 0.9),
+        box(anchorX + 0.44 + shift, y + 0.86, anchorZ, 0.12, 0.88, 0.34, accent, 0.9),
+        box(anchorX, y + 0.86, anchorZ, 0.86, 0.12, 0.36, primary, 0.96),
       ];
   }
 }

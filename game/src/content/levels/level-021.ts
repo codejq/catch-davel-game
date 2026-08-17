@@ -81,8 +81,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-pipework-promenade'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_500,
       dependencyHashes: {
-        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'ae7edbfccd2b01e7',
-        balanceData: '1f697b70870c7801', policyOrReplay: '33c482519e627a7b',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'ae7edbfccd2b01e7',
+        balanceData: 'c1df429a54459a12', policyOrReplay: 'c0167c2e506ee1c0',
       },
     }],
   },

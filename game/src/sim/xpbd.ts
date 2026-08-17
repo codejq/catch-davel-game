@@ -345,6 +345,19 @@ function targets(
     leftFootY += Math.max(0, toe) * 0.08; rightFootY += Math.max(0, -toe) * 0.08;
     leftHand = [-1.06 - retreat * 0.2, 1.1 + glide * 0.68, 0.42];
     rightHand = [1.06 + glide * 0.2, 1.72 - retreat * 0.5, 0.18];
+  } else if (performance.motif === 'shield-pose-popping') {
+    const lock = Math.max(0, Math.sin(performanceTime * Math.PI * 2));
+    const release = Math.max(0, -Math.sin(performanceTime * Math.PI * 2));
+    const pop = Math.sin(performanceTime * Math.PI * 8);
+    bounce += (lock * 0.04 + Math.abs(pop) * 0.03) * intensity;
+    hipX = (alternate * 0.28 + pop * 0.035) * intensity;
+    chestX = (-alternate * 0.3 - pop * 0.05) * intensity;
+    chestZ = -lock * 0.24 + release * 0.18; headX += alternate * 0.22; headZ = lock * 0.08;
+    leftFootX = -0.5 - lock * 0.16; rightFootX = 0.5 + lock * 0.16;
+    leftFootZ = release * 0.38; rightFootZ = -release * 0.38;
+    leftFootY += Math.max(0, pop) * 0.08; rightFootY += Math.max(0, -pop) * 0.08;
+    leftHand = [-1.2 - lock * 0.2, 1.46 + lock * 0.25, 0.48];
+    rightHand = [0.66 + release * 0.42, 1.58 + pop * 0.12, 0.62];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

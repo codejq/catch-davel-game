@@ -8,7 +8,7 @@ describe('agent observation contract', () => {
     const second = new GameSimulation('agent-proof');
     expect(createObservation(first.state)).toEqual(createObservation(second.state));
     const observation = createObservation(first.state);
-    expect(observation.schemaVersion).toBe(18);
+    expect(observation.schemaVersion).toBe(19);
     expect(observation.difficulty).toBe('standard');
     expect(observation.run).toEqual({
       elapsedTicks: 0, score: 0, rangedAttacksFired: 0, rangedAttacksHit: 0, accuracyPermille: null,
@@ -37,6 +37,7 @@ describe('agent observation contract', () => {
     expect(observation.robots[0]!.weakPoint).toMatchObject({
       active: false, damageMultiplier: 1.5, coinMultiplier: 2,
     });
+    expect(observation.robots[0]!.shield).toEqual({ active: false, damageMultiplier: 0.25 });
     expect(observation.pickups.map((pickup) => pickup.id)).toEqual(['repair-kit', 'workshop-key', 'pulse-cell']);
     expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
     expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });

@@ -80,8 +80,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['defeat-ringmaster-davel'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 7_200,
       dependencyHashes: {
-        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: '2b66b71ee1b11f7e',
-        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2b66b71ee1b11f7e',
+        balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },

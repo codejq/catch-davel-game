@@ -13,6 +13,7 @@ const SPEAKER_KEYS: Readonly<Record<RobotArchetype, string>> = {
   'yellow-spinner': 'davels.yellow_spinner',
   'red-firemouth': 'davels.red_firemouth',
   'cyan-dj': 'davels.cyan_dj',
+  'violet-shielder': 'davels.violet_shielder',
   'invoice-overlord': 'davels.invoice_overlord',
 };
 
@@ -41,6 +42,11 @@ const BARK_KEYS: Readonly<Record<RobotArchetype, Readonly<Record<DavelBarkOccasi
     telegraph: ['barks.cyan_dj.telegraph_1', 'barks.cyan_dj.telegraph_2'],
     defeated: ['barks.cyan_dj.defeated'],
     'boss-phase': ['barks.cyan_dj.telegraph_1'],
+  },
+  'violet-shielder': {
+    telegraph: ['barks.violet_shielder.telegraph_1', 'barks.violet_shielder.telegraph_2'],
+    defeated: ['barks.violet_shielder.defeated'],
+    'boss-phase': ['barks.violet_shielder.telegraph_1'],
   },
   'invoice-overlord': {
     telegraph: ['barks.invoice_overlord.telegraph_1', 'barks.invoice_overlord.telegraph_2'],

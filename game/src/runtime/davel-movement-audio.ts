@@ -8,7 +8,7 @@ export const DAVEL_MOVEMENT_AUDIO_RANGE = 14;
 
 export type DavelMovementAudioCue = Extract<AudioCue,
   | 'wobble-step' | 'slider-step' | 'spinner-step'
-  | 'firemouth-step' | 'dj-step' | 'overlord-step'>;
+  | 'firemouth-step' | 'dj-step' | 'shielder-step' | 'overlord-step'>;
 
 export const DAVEL_MOVEMENT_AUDIO_CUES: Readonly<Record<RobotArchetype, DavelMovementAudioCue>> = {
   'wobble-scout': 'wobble-step',
@@ -16,6 +16,7 @@ export const DAVEL_MOVEMENT_AUDIO_CUES: Readonly<Record<RobotArchetype, DavelMov
   'yellow-spinner': 'spinner-step',
   'red-firemouth': 'firemouth-step',
   'cyan-dj': 'dj-step',
+  'violet-shielder': 'shielder-step',
   'invoice-overlord': 'overlord-step',
 };
 
@@ -25,6 +26,7 @@ const STEPS_PER_DANCE_UNIT: Readonly<Record<RobotArchetype, number>> = {
   'yellow-spinner': 1.75,
   'red-firemouth': 0.9,
   'cyan-dj': 1.5,
+  'violet-shielder': 1.05,
   'invoice-overlord': 0.72,
 };
 

@@ -1,6 +1,6 @@
 import type { MeshData } from './geometry';
 import { createCapsule, createSphere } from './geometry';
-import { ROBOT_DEFINITIONS, type RobotDefinition } from '../sim/robots';
+import { ROBOT_DEFINITIONS, robotShieldActive, type RobotDefinition } from '../sim/robots';
 import { BODY_POINT } from '../sim/xpbd';
 import { PLAYER_EYE_HEIGHT } from '../sim/constants';
 import { RENDER_QUALITY_PROFILES, type RenderQualityTier } from './quality';
@@ -804,9 +804,31 @@ export class DavelRenderer {
       this.addSphere(point(0, headRadius * 0.8), headRadius * 0.86, [0.06, 0.08, 0.18], 0.22, 0.92);
       this.addSphere(point(0, headRadius * 1.22), headRadius * 0.52, [0.08, 0.1, 0.24], 0.92, 0.82);
       this.addSphere(point(0, headRadius * 1.03), headRadius * 0.55, accentColor, 0.13, 0.84);
+    } else if (accessory === 'violet-shield-plate') {
+      const active = robotShieldActive(robot);
+      const color: Color = active ? [0.72, 0.28, 1] : [0.28, 0.12, 0.42];
+      const emission = active ? 0.95 : 0.12;
+      const left = -1.08 * scale; const right = -0.12 * scale;
+      const bottom = p.chest.y - 0.58 * scale; const top = p.chest.y + 0.58 * scale;
+      const depth = 0.46 * scale;
+      const corners = [
+        localPoint(robot, left, bottom, depth), localPoint(robot, right, bottom, depth),
+        localPoint(robot, right, top, depth), localPoint(robot, left, top, depth),
+      ] as const;
+      for (let index = 0; index < corners.length; index += 1) {
+        this.addCapsule(corners[index]!, corners[(index + 1) % corners.length]!, 0.075 * scale, color, emission);
+      }
+      this.addCapsule(corners[0], corners[2], 0.052 * scale, color, emission);
+      this.addCapsule(corners[1], corners[3], 0.052 * scale, color, emission);
+      if (active) {
+        this.addSphere(localPoint(robot, -0.6 * scale, p.chest.y, depth), 0.52 * scale, [0.52, 0.18, 1], 1.12, 0.12, 0.7);
+      }
+      for (const [x, y] of [[-0.5, 0.48], [0.5, 0.48], [-0.5, -0.48], [0.5, -0.48]] as const) {
+        this.addSphere(point(x * headRadius, y * headRadius), headRadius * 0.13, color, 0.8, 0.8, emission);
+      }
     }
     if (accessory !== 'invoice-crown' && accessory !== 'foreman-hardhat'
-      && accessory !== 'crook-top-hat' && accessory !== 'jester-bells') {
+      && accessory !== 'crook-top-hat' && accessory !== 'jester-bells' && accessory !== 'violet-shield-plate') {
       const antennaBase = point(0, headRadius * 0.8);
       const antennaDirection = robot.id % 2 === 0 ? -1 : 1;
       const antennaTip = point(

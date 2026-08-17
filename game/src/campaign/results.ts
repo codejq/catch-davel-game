@@ -59,7 +59,7 @@ export function campaignResultSummary(
   const accuracyPermille = runAccuracyPermille(metrics);
   const robotsByArchetype: Record<RobotArchetype, number> = {
     'wobble-scout': 0, 'blue-slider': 0, 'yellow-spinner': 0,
-    'red-firemouth': 0, 'cyan-dj': 0, 'invoice-overlord': 0,
+    'red-firemouth': 0, 'cyan-dj': 0, 'violet-shielder': 0, 'invoice-overlord': 0,
   };
   for (const robotId of metrics.defeatedRobotIds) {
     const definition = ROBOT_DEFINITIONS[robotId];

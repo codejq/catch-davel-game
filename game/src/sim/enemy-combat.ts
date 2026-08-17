@@ -58,7 +58,8 @@ function telegraphTicks(archetype: RobotArchetype, profile: DifficultyProfile, b
     : archetype === 'blue-slider' ? 18
       : archetype === 'yellow-spinner' ? 30
         : archetype === 'red-firemouth' ? 38
-          : archetype === 'cyan-dj' ? 34 : 50 - bossPhase * 6;
+          : archetype === 'cyan-dj' ? 34
+            : archetype === 'violet-shielder' ? 36 : 50 - bossPhase * 6;
   return Math.max(10, Math.round(base * profile.telegraphTicksMultiplier));
 }
 

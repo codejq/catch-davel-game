@@ -12,7 +12,7 @@ import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 describe('project-original procedural audio contracts', () => {
   it('keeps every gameplay cue layered and bounded', () => {
     expect(() => validateProceduralAudioDefinitions()).not.toThrow();
-    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(37);
+    expect(Object.keys(AUDIO_CUE_DEFINITIONS)).toHaveLength(38);
     for (const layers of Object.values(AUDIO_CUE_DEFINITIONS)) {
       expect(layers.length).toBeGreaterThanOrEqual(2);
       expect(Math.max(...layers.map((layer) => layer.duration + (layer.delay ?? 0)))).toBeLessThan(0.8);
@@ -30,6 +30,7 @@ describe('project-original procedural audio contracts', () => {
     expect(AUDIO_CUE_BUS['player-step']).toBe('environment');
     expect(AUDIO_CUE_BUS['projectile-near-miss']).toBe('robots');
     expect(AUDIO_CUE_BUS['wobble-step']).toBe('robots');
+    expect(AUDIO_CUE_BUS['shielder-step']).toBe('robots');
     expect(AUDIO_DISTANT_REPORT_CUES).toContain('bomb-detonate');
     expect(AUDIO_DISTANT_REPORT_CUES).toContain('robot-shot');
     expect(new Set(AUDIO_DISTANT_REPORT_CUES).size).toBe(AUDIO_DISTANT_REPORT_CUES.length);

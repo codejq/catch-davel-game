@@ -5,7 +5,8 @@ export type AudioCue = 'pulse' | 'sword' | 'charged-sword' | 'deflect' | 'bomb-t
   | 'robot-melee' | 'dj-buff' | 'boss-phase'
   | 'player-hit' | 'key' | 'health' | 'energy' | 'coin' | 'door' | 'checkpoint' | 'objective'
   | 'robot-defeat' | 'robot-taunt' | 'victory' | 'defeat' | 'ambush' | 'wave-warning'
-  | 'player-step' | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step' | 'overlord-step';
+  | 'player-step' | 'wobble-step' | 'slider-step' | 'spinner-step' | 'firemouth-step' | 'dj-step'
+  | 'shielder-step' | 'overlord-step';
 
 export const AUDIO_BUSES = ['weapons', 'robots', 'environment', 'interface', 'voice'] as const;
 export type AudioBus = typeof AUDIO_BUSES[number];
@@ -47,7 +48,7 @@ export const AUDIO_CUE_BUS: Readonly<Record<AudioCue, AudioBus>> = {
   defeat: 'interface', ambush: 'interface', 'wave-warning': 'interface',
   'player-step': 'environment',
   'wobble-step': 'robots', 'slider-step': 'robots', 'spinner-step': 'robots', 'firemouth-step': 'robots',
-  'dj-step': 'robots', 'overlord-step': 'robots',
+  'dj-step': 'robots', 'shielder-step': 'robots', 'overlord-step': 'robots',
 };
 
 export const AUDIO_DISTANT_REPORT_CUES: readonly AudioCue[] = [
@@ -141,6 +142,7 @@ export const AUDIO_CUE_DEFINITIONS: Readonly<Record<AudioCue, readonly AudioLaye
   'spinner-step': [tone('square', 720, 460, 0.055, 0.027), noise('highpass', 2100, 0.07, 0.024, 0.025)],
   'firemouth-step': [noise('lowpass', 290, 0.14, 0.055), tone('square', 92, 58, 0.16, 0.05)],
   'dj-step': [tone('sine', 104, 52, 0.17, 0.055), tone('square', 208, 104, 0.08, 0.024, 0.025)],
+  'shielder-step': [tone('triangle', 172, 108, 0.18, 0.048), noise('bandpass', 880, 0.13, 0.038, 0.02)],
   'overlord-step': [tone('sine', 66, 38, 0.24, 0.075), noise('lowpass', 230, 0.2, 0.065, 0.018)],
 };
 

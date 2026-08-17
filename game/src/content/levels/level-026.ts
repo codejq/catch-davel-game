@@ -90,8 +90,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-bombs-ballroom'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: 'eac80a3af3d37d9a',
-        balanceData: '1f697b70870c7801', policyOrReplay: '33c482519e627a7b',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'eac80a3af3d37d9a',
+        balanceData: 'c1df429a54459a12', policyOrReplay: 'c0167c2e506ee1c0',
       },
     }],
   },

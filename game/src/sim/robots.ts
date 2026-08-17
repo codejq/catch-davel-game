@@ -10,7 +10,8 @@ import { isKeyAmbushLevel } from './level-mechanics';
 import { difficultyProfile, difficultyRobotHealth, type DifficultyId } from './difficulty';
 
 export type DanceId = 'rubber-chicken' | 'moonwalker' | 'tiny-tyrant' | 'big-bouncer' | 'broken-marionette' | 'disco-menace';
-export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj' | 'invoice-overlord';
+export type RobotArchetype = 'wobble-scout' | 'blue-slider' | 'yellow-spinner' | 'red-firemouth' | 'cyan-dj'
+  | 'violet-shielder' | 'invoice-overlord';
 export type RobotRank = 'ordinary' | 'elite' | 'boss';
 export type RobotCombatState = 'patrol' | 'telegraph' | 'recover';
 export type EncounterId = 'campaign' | 'boss-training';
@@ -138,7 +139,23 @@ export const ROBOT_DEFINITIONS: readonly RobotDefinition[] = [
     speed: 1.3, phaseOffset: 5.24, bodyColor: [0.96, 0.76, 0.05], accentColor: [0.14, 0.3, 0.96], eyeColor: [1, 0.12, 0.34],
     route: cells([9, 13], [10, 13], [11, 13], [12, 13], [13, 13], [13, 12], [13, 11], [13, 10], [13, 9]),
   },
+  {
+    name: 'Violet Vault', dance: 'disco-menace', archetype: 'violet-shielder', rank: 'ordinary', coinReward: 7, maxHealth: 150,
+    scale: 1.24, headScale: 1.12, torsoWidth: 1.22, legScale: 0.9,
+    speed: 0.96, phaseOffset: 3.18, bodyColor: [0.5, 0.12, 0.88], accentColor: [0.82, 0.38, 1], eyeColor: [0.32, 1, 0.92],
+    route: cells([13, 1], [13, 2], [13, 3], [13, 4], [13, 5], [13, 6], [13, 7], [12, 7], [11, 7]),
+  },
 ] as const;
+
+export const SHIELDER_DAMAGE_MULTIPLIER = 0.25;
+
+/** Shield state is derived entirely from snapshotted robot state, so replay, Worker, renderer, and agents share it. */
+export function robotShieldActive(
+  robot: Pick<RobotState, 'id' | 'active' | 'danceTime' | 'combatState'>,
+): boolean {
+  if (!robot.active || ROBOT_DEFINITIONS[robot.id]?.archetype !== 'violet-shielder') return false;
+  return robot.combatState === 'telegraph' || Math.sin(robot.danceTime * 2 + robot.id * 0.37) >= 0;
+}
 
 function materializeCampaignRobotWaves(levelId: PlayableLevelId): readonly (readonly number[])[] {
   const level = campaignLevel(levelId);
@@ -243,6 +260,10 @@ function tryCombatMovement(
     speedScale = 0.88;
   } else if (definition.archetype === 'red-firemouth' && distance < 3.6) {
     directionX = -deltaX / distance; directionZ = -deltaZ / distance; speedScale = 0.55;
+  } else if (definition.archetype === 'violet-shielder' && distance < 7.2) {
+    directionX = -deltaZ / distance * robot.strafeDirection;
+    directionZ = deltaX / distance * robot.strafeDirection;
+    speedScale = 0.52;
   } else return false;
   const amount = definition.speed * speedScale * movementSpeedMultiplier * FIXED_DT_SECONDS;
   const nextX = robot.x + directionX * amount;
@@ -250,7 +271,9 @@ function tryCombatMovement(
   let moved = false;
   if (!isWallAtWorld(nextX, robot.z, levelId)) { robot.x = nextX; moved = true; }
   if (!isWallAtWorld(robot.x, nextZ, levelId)) { robot.z = nextZ; moved = true; }
-  if (!moved && definition.archetype === 'blue-slider') robot.strafeDirection = robot.strafeDirection === 1 ? -1 : 1;
+  if (!moved && (definition.archetype === 'blue-slider' || definition.archetype === 'violet-shielder')) {
+    robot.strafeDirection = robot.strafeDirection === 1 ? -1 : 1;
+  }
   if (moved) robot.heading = Math.atan2(directionX, directionZ);
   return moved;
 }

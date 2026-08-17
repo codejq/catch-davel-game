@@ -1,6 +1,6 @@
 import { FIXED_DT_SECONDS, PLAYER_EYE_HEIGHT } from './constants';
 import { isWallAtWorld } from './level';
-import { ROBOT_DEFINITIONS, type RobotState } from './robots';
+import { ROBOT_DEFINITIONS, SHIELDER_DAMAGE_MULTIPLIER, robotShieldActive, type RobotState } from './robots';
 import type { PlayerState } from './player';
 import { applyRobotBodyImpulse } from './xpbd';
 import type { EnemyProjectile } from './enemy-combat';
@@ -226,7 +226,8 @@ export function damageRobot(
   impulseZ: number,
   weakPoint = false,
 ): WeaponHit {
-  robot.health = Math.max(0, robot.health - damage * (weakPoint ? WEAK_POINT_DAMAGE_MULTIPLIER : 1));
+  const shieldMultiplier = !weakPoint && robotShieldActive(robot) ? SHIELDER_DAMAGE_MULTIPLIER : 1;
+  robot.health = Math.max(0, robot.health - damage * (weakPoint ? WEAK_POINT_DAMAGE_MULTIPLIER : shieldMultiplier));
   robot.hitFlashTicks = 7;
   robot.knockbackX += impulseX;
   robot.knockbackZ += impulseZ;

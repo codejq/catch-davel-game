@@ -553,7 +553,8 @@ export async function startBrowserGame(): Promise<void> {
     resultsCombo.textContent = `×${summary.highestCombo}`;
     const archetypeKeys = {
       'wobble-scout': 'wobbleScout', 'blue-slider': 'blueSlider', 'yellow-spinner': 'yellowSpinner',
-      'red-firemouth': 'redFiremouth', 'cyan-dj': 'cyanDj', 'invoice-overlord': 'invoiceOverlord',
+      'red-firemouth': 'redFiremouth', 'cyan-dj': 'cyanDj', 'violet-shielder': 'violetShielder',
+      'invoice-overlord': 'invoiceOverlord',
     } as const satisfies Readonly<Record<keyof CampaignResultSummary['robotsByArchetype'], RuntimeUiKey>>;
     resultsRobotBreakdown.textContent = Object.entries(summary.robotsByArchetype)
       .filter(([, count]) => count > 0)

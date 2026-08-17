@@ -79,7 +79,7 @@ try {
   if (result.profileStorage !== 'indexeddb') throw new Error('Ordinary web build did not select IndexedDB profile storage');
   if (result.endTick <= result.startTick) throw new Error('Production Simulation Worker clock did not advance');
   if (result.rendererMode !== 'offscreen-worker') throw new Error('Production runtime did not initialize the OffscreenCanvas render Worker');
-  if (result.campaignCards !== 32 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
+  if (result.campaignCards !== 33 || result.campaignUnlockedCards !== 1 || !result.campaignButtonVisible) {
     throw new Error('Production campaign map did not expose the expected fresh-profile progression state');
   }
   await page.click('#pause-button');
@@ -309,18 +309,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v13.json'
-    || exportedProfile.profileSchemaVersion !== 13
+  if (download.suggestedFilename() !== 'catch-davel-profile-v14.json'
+    || exportedProfile.profileSchemaVersion !== 14
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v12 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v14 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v13.json',
+    name: 'catch-davel-profile-v14.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -650,10 +650,10 @@ try {
   const chapterErrors = [];
   chapterPage.on('pageerror', (error) => chapterErrors.push(error.message));
   chapterPage.on('console', (message) => { if (message.type() === 'error') chapterErrors.push(message.text()); });
-  await chapterPage.goto(`${url}?arsenal=training&level=level-032`, { waitUntil: 'load' });
+  await chapterPage.goto(`${url}?arsenal=training&level=level-033`, { waitUntil: 'load' });
   await chapterPage.waitForFunction(() => (
     document.body.dataset.workerStatus === 'ready'
-    && document.body.dataset.levelId === 'level-032'
+    && document.body.dataset.levelId === 'level-033'
     && Number(document.body.dataset.snapshotTick) > 0
   ));
   await chapterPage.keyboard.press('Digit3');
@@ -675,23 +675,23 @@ try {
   }));
   const expectedChapterRemaining = chapterLevel.language === 'ar' ? 'متبقٍ 3 من دافل' : '3 Davels remain';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
-    throw new Error('Production Level 32 did not render its opening Slippery Smiles squad in the active locale');
+    throw new Error('Production Level 33 did not render its opening Violet Wall squad in the active locale');
   }
-  const expectedLevelName = chapterLevel.language === 'ar' ? 'الابتسامات الزلقة' : 'SLIPPERY SMILES';
+  const expectedLevelName = chapterLevel.language === 'ar' ? 'الجدار البنفسجي' : 'VIOLET WALL';
   if (!chapterLevel.levelName.includes(expectedLevelName)) {
-    throw new Error(`Production Level 32 did not expose its localized Chapter 4 identity: ${JSON.stringify(chapterLevel)}`);
+    throw new Error(`Production Level 33 did not expose its localized Chapter 4 identity: ${JSON.stringify(chapterLevel)}`);
   }
   if (chapterLevel.bossHidden !== true) {
-    throw new Error(`Production Level 32 incorrectly inherited a chapter-boss card: ${JSON.stringify(chapterLevel)}`);
+    throw new Error(`Production Level 33 incorrectly inherited a chapter-boss card: ${JSON.stringify(chapterLevel)}`);
   }
   if (chapterLevel.defenseHealth !== '0' || chapterLevel.defenseMaxHealth !== '0') {
-    throw new Error('Production Level 32 inherited the prior level defense target');
+    throw new Error('Production Level 33 inherited the prior level defense target');
   }
   if (chapterLevel.dashUnlocked !== 'true' || chapterLevel.dashHidden !== false) {
-    throw new Error('Production Level 32 did not retain the Chapter 2 dash control');
+    throw new Error('Production Level 33 did not retain the Chapter 2 dash control');
   }
   if (chapterLevel.weapon !== 'bomb' || chapterLevel.weaponStatus.length === 0) {
-    throw new Error('Production Level 32 did not retain the Chapter 3 bomb control');
+    throw new Error('Production Level 33 did not retain the Chapter 3 bomb control');
   }
   if (chapterLevel.agentApiExposed) throw new Error('Chapter production page exposed the mutation-capable agent API');
   if (chapterErrors.length > 0) throw new Error(`Chapter browser errors: ${chapterErrors.join('; ')}`);
@@ -813,11 +813,11 @@ try {
   });
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
-  if (toolingProof.authoredLevels !== 32 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
+  if (toolingProof.authoredLevels !== 33 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
     || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
-    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 32
-    || !toolingProof.balanceSummary.includes('Guaranteed 1386 coins')
+    || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 33
+    || !toolingProof.balanceSummary.includes('Guaranteed 1442 coins')
     || !toolingProof.balanceSummary.includes('full upgrade catalog 222')
     || !toolingProof.submissionSummary.includes('3 keys complete in en / ar')
     || !toolingProof.submissionSummary.includes('10 referenced presentation assets resolved')) {

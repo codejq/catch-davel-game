@@ -21,14 +21,14 @@ function snapshot(
 
 describe('snapshot-derived Davel movement audio', () => {
   it('assigns one distinct project-original cue to every archetype', () => {
-    expect(Object.keys(DAVEL_MOVEMENT_AUDIO_CUES)).toHaveLength(6);
-    expect(new Set(Object.values(DAVEL_MOVEMENT_AUDIO_CUES)).size).toBe(6);
+    expect(Object.keys(DAVEL_MOVEMENT_AUDIO_CUES)).toHaveLength(7);
+    expect(new Set(Object.values(DAVEL_MOVEMENT_AUDIO_CUES)).size).toBe(7);
   });
 
   it('primes silently then deterministically emits each archetype identity', () => {
     for (const [id, cue] of [
       [0, 'wobble-step'], [1, 'slider-step'], [4, 'spinner-step'],
-      [3, 'firemouth-step'], [5, 'dj-step'], [6, 'overlord-step'],
+      [3, 'firemouth-step'], [5, 'dj-step'], [6, 'overlord-step'], [11, 'shielder-step'],
     ] as const) {
       const left = new DavelMovementAudioSequencer();
       const right = new DavelMovementAudioSequencer();

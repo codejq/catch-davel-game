@@ -89,8 +89,8 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-big-top-backtrack'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '6cafd562c735e11d', effectiveLevel: ZERO_HASH, simulationLevel: '05ad08de4cb6dc07',
-        balanceData: '1f697b70870c7801', policyOrReplay: '33ce82519e6acf00',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '05ad08de4cb6dc07',
+        balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },

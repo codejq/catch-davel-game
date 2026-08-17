@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "8ec9c1d860e5c587",
+          "effectiveLevel": "dd07f47959e2dd6b",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "69859c228e2e161c",
+          "simulationLevel": "36460f12387f9356",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -16,116 +16,116 @@
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
-        "maxTicks": 16000,
+        "maxTicks": 18000,
         "mode": "live-agent",
-        "parTicks": 12500,
+        "parTicks": 14000,
         "policyId": "baseline-campaign-agent",
         "policyVersion": 1,
         "referenceReplayId": null,
         "requiredObjectiveIds": [
-          "clear-slippery-smiles"
+          "clear-violet-wall"
         ],
-        "seed": "campaign-level-032-v1",
+        "seed": "campaign-level-033-v1",
         "stuckTimeoutTicks": 2000
       }
     ],
     "tier": "ordinary"
   },
   "audio": {
-    "presetId": "audio-cold-storage-032"
+    "presetId": "audio-cold-storage-033"
   },
-  "briefingKey": "levels.032.briefing",
+  "briefingKey": "levels.033.briefing",
   "chapterId": "chapter-04",
   "checkpoints": [
     {
-      "presetId": "checkpoint-032"
+      "presetId": "checkpoint-033"
     }
   ],
   "dance": {
-    "armPatternId": "ice-slide-moonwalk-arms-v1",
+    "armPatternId": "shield-pose-popping-arms-v1",
     "attackBeats": [
-      2,
-      6,
-      10,
-      14
+      1,
+      5,
+      9,
+      13
     ],
     "barsPerPhrase": 4,
-    "bpm": 122,
-    "footPatternId": "ice-slide-moonwalk-feet-v1",
+    "bpm": 126,
+    "footPatternId": "shield-pose-popping-feet-v1",
     "grammarVersion": 1,
-    "headAccentId": "ice-slide-moonwalk-head-v1",
-    "pathPatternId": "ice-slide-moonwalk-path-v1",
-    "presetId": "ice-slide-moonwalk",
-    "reducedMotionPresetId": "ice-slide-moonwalk-reduced-v1",
+    "headAccentId": "shield-pose-popping-head-v1",
+    "pathPatternId": "shield-pose-popping-path-v1",
+    "presetId": "shield-pose-popping",
+    "reducedMotionPresetId": "shield-pose-popping-reduced-v1",
     "timeSignature": "4/4",
-    "torsoPatternId": "ice-slide-moonwalk-torso-v1",
+    "torsoPatternId": "shield-pose-popping-torso-v1",
     "transitionIds": [
-      "crossfire-grins",
-      "moonwalk-encore",
+      "wall-crossfire",
+      "plate-encore",
       "objective-clear"
     ],
-    "visualIntensity": 0.96,
+    "visualIntensity": 0.98,
     "vulnerableBeats": [
-      0,
-      4,
-      8,
-      12
+      3,
+      7,
+      11,
+      15
     ]
   },
   "difficulty": {
-    "presetId": "standard-chapter-04-032"
+    "presetId": "standard-chapter-04-033"
   },
   "economy": {
-    "presetId": "economy-chapter-04-032"
+    "presetId": "economy-chapter-04-033"
   },
   "encounters": [
     {
       "arenaLock": true,
       "checkpointOnComplete": null,
       "completion": "all-defeated",
-      "id": "slippery-smiles-squad",
-      "rewardId": "chapter-04-clear-032",
-      "roomNodeId": "smile-rink",
+      "id": "violet-wall-company",
+      "rewardId": "chapter-04-clear-033",
+      "roomNodeId": "violet-wall",
       "trigger": "on-enter",
       "triggerRef": null,
       "waves": [
         {
           "completion": "all-defeated",
           "danceTransitionId": null,
-          "id": "slider-salute",
-          "interGroupDelayTicks": 6,
+          "id": "shield-up",
+          "interGroupDelayTicks": 8,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 3,
           "spawnGroups": [
             {
-              "accessibilityVerificationId": "silhouette-blue-slider-v1",
-              "aiProfileId": "chapter-04-stage-32",
-              "archetypeId": "blue-slider",
-              "count": 2,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "salute-sliders",
+              "accessibilityVerificationId": "silhouette-violet-shielder-v1",
+              "aiProfileId": "chapter-04-stage-33",
+              "archetypeId": "violet-shielder",
+              "count": 1,
+              "dancePresetId": "shield-pose-popping",
+              "id": "opening-shielder",
               "modifierIds": [
-                "crossfire-skates"
+                "shield-pose-teacher"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-1.sliders",
-              "spawnPointSetId": "level-032-arena-1"
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-1.shielder",
+              "spawnPointSetId": "level-033-arena-1"
             },
             {
               "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-04-stage-32",
+              "aiProfileId": "chapter-04-stage-33",
               "archetypeId": "wobble-scout",
-              "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "salute-heckler",
+              "count": 2,
+              "dancePresetId": "shield-pose-popping",
+              "id": "opening-wobblers",
               "modifierIds": [
-                "slippery-smile"
+                "wall-mimes"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-1.heckler",
-              "spawnPointSetId": "level-032-arena-1"
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-1.wobblers",
+              "spawnPointSetId": "level-033-arena-1"
             }
           ],
           "startCondition": "encounter-start",
@@ -133,128 +133,113 @@
         },
         {
           "completion": "all-defeated",
-          "danceTransitionId": "crossfire-grins",
-          "id": "crossfire-grins",
-          "interGroupDelayTicks": 5,
+          "danceTransitionId": "wall-crossfire",
+          "id": "wall-crossfire",
+          "interGroupDelayTicks": 6,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 4,
           "spawnGroups": [
             {
-              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-04-stage-32",
-              "archetypeId": "red-firemouth",
-              "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "crossfire-firemouth",
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-04-stage-33",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "shield-pose-popping",
+              "id": "wall-sliders",
               "modifierIds": [
-                "ricochet-grin"
+                "violet-flank"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-2.firemouth",
-              "spawnPointSetId": "level-032-arena-2"
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-2.sliders",
+              "spawnPointSetId": "level-033-arena-2"
             },
             {
               "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
-              "aiProfileId": "chapter-04-stage-32",
+              "aiProfileId": "chapter-04-stage-33",
               "archetypeId": "yellow-spinner",
               "count": 2,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "crossfire-spinners",
+              "dancePresetId": "shield-pose-popping",
+              "id": "wall-spinners",
               "modifierIds": [
-                "range-spotter"
+                "shield-spotters"
               ],
               "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-2.spinners",
-              "spawnPointSetId": "level-032-arena-2"
-            },
-            {
-              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-04-stage-32",
-              "archetypeId": "wobble-scout",
-              "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "crossfire-heckler",
-              "modifierIds": [
-                "slippery-smile"
-              ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-2.heckler",
-              "spawnPointSetId": "level-032-arena-2"
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-2.spinners",
+              "spawnPointSetId": "level-033-arena-2"
             }
           ],
           "startCondition": "previous-wave-complete",
-          "startDelayTicks": 16
+          "startDelayTicks": 18
         },
         {
           "completion": "all-defeated",
-          "danceTransitionId": "moonwalk-encore",
-          "id": "moonwalk-encore",
+          "danceTransitionId": "plate-encore",
+          "id": "plate-encore",
           "interGroupDelayTicks": 5,
           "invalidSpawnPolicy": "fail-level",
           "maxConcurrentRobots": 3,
           "spawnGroups": [
             {
-              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
-              "aiProfileId": "chapter-04-stage-32",
-              "archetypeId": "cyan-dj",
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-33",
+              "archetypeId": "red-firemouth",
               "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "encore-dj",
+              "dancePresetId": "shield-pose-popping",
+              "id": "encore-firemouth",
               "modifierIds": [
-                "moonwalk-conductor"
+                "violet-flame"
               ],
-              "rank": "elite",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-3.dj",
-              "spawnPointSetId": "level-032-arena-3"
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-3.firemouth",
+              "spawnPointSetId": "level-033-arena-3"
             },
             {
               "accessibilityVerificationId": "silhouette-red-firemouth-v1",
-              "aiProfileId": "chapter-04-stage-32",
+              "aiProfileId": "chapter-04-stage-33",
               "archetypeId": "red-firemouth",
               "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
+              "dancePresetId": "shield-pose-popping",
               "id": "encore-foreman",
               "modifierIds": [
-                "cold-crossfire-foreman"
+                "wall-foreman"
               ],
               "rank": "elite",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-3.foreman",
-              "spawnPointSetId": "level-032-arena-3"
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-3.foreman",
+              "spawnPointSetId": "level-033-arena-3"
             },
             {
-              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
-              "aiProfileId": "chapter-04-stage-32",
-              "archetypeId": "wobble-scout",
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-04-stage-33",
+              "archetypeId": "cyan-dj",
               "count": 1,
-              "dancePresetId": "ice-slide-moonwalk",
-              "id": "encore-heckler",
+              "dancePresetId": "shield-pose-popping",
+              "id": "encore-dj",
               "modifierIds": [
-                "moonwalk-mime"
+                "shield-pulse-conductor"
               ],
-              "rank": "normal",
-              "rewardProfileId": "chapter-04-coins-32",
-              "rngStream": "encounter.level-032.wave-3.heckler",
-              "spawnPointSetId": "level-032-arena-3"
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-33",
+              "rngStream": "encounter.level-033.wave-3.dj",
+              "spawnPointSetId": "level-033-arena-3"
             }
           ],
           "startCondition": "previous-wave-complete",
-          "startDelayTicks": 14
+          "startDelayTicks": 16
         }
       ]
     }
   ],
-  "id": "level-032",
+  "id": "level-033",
   "mastery": [
     {
-      "presetId": "level-032-par-time"
+      "presetId": "level-033-par-time"
     },
     {
-      "presetId": "level-032-no-crossfire-hit"
+      "presetId": "level-033-break-on-open-pose"
     }
   ],
   "maze": {
@@ -266,122 +251,115 @@
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "loading-entry",
-        "id": "entry-rack",
+        "from": "violet-entry",
+        "id": "entry-locker",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "skate-rack",
+        "to": "plate-locker",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "workshop-lock",
-        "from": "skate-rack",
-        "id": "rack-chute",
-        "requiredKeyId": "skate-key",
+        "from": "plate-locker",
+        "id": "locker-lesson",
+        "requiredKeyId": "violet-key",
         "stateTrigger": "key-collected",
-        "to": "crossfire-chute",
+        "to": "guard-lesson",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "crossfire-chute",
-        "id": "chute-rink",
+        "from": "guard-lesson",
+        "id": "lesson-wall",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "smile-rink",
+        "to": "violet-wall",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "arena-lock",
-        "from": "smile-rink",
-        "id": "rink-moonwalk",
+        "from": "violet-wall",
+        "id": "wall-popping",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "moonwalk-lane",
+        "to": "popping-lane",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "moonwalk-lane",
-        "id": "moonwalk-checkpoint",
+        "from": "popping-lane",
+        "id": "popping-checkpoint",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "rink-checkpoint",
+        "to": "wall-checkpoint",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "rink-checkpoint",
+        "from": "wall-checkpoint",
         "id": "checkpoint-exit",
         "requiredKeyId": null,
         "stateTrigger": "primary-objective",
-        "to": "smile-exit",
+        "to": "wall-exit",
         "traversalCost": 1
       },
       {
         "bidirectional": true,
         "doorType": "open",
-        "from": "skate-rack",
-        "id": "rack-booth",
+        "from": "plate-locker",
+        "id": "locker-cache",
         "requiredKeyId": null,
         "stateTrigger": null,
-        "to": "warming-booth",
+        "to": "unshielded-cache",
         "traversalCost": 2
       },
       {
         "bidirectional": true,
         "doorType": "workshop-lock",
-        "from": "warming-booth",
-        "id": "booth-rink",
-        "requiredKeyId": "skate-key",
+        "from": "unshielded-cache",
+        "id": "cache-wall",
+        "requiredKeyId": "violet-key",
         "stateTrigger": "key-collected",
-        "to": "smile-rink",
+        "to": "violet-wall",
         "traversalCost": 2
       }
     ],
-    "entranceNodeId": "loading-entry",
-    "exitNodeId": "smile-exit",
+    "entranceNodeId": "violet-entry",
+    "exitNodeId": "wall-exit",
     "generationAttempts": 1,
     "generatorVersion": 1,
     "hazards": [
       {
         "activeTicks": 240,
-        "collisionProfileId": "slippery-smiles-ice-south-v1",
-        "id": "chute-ice-south",
-        "nodeId": "crossfire-chute",
+        "collisionProfileId": "violet-wall-ice-west-v1",
+        "id": "lesson-ice-west",
+        "nodeId": "guard-lesson",
         "periodTicks": 240
       },
       {
         "activeTicks": 240,
-        "collisionProfileId": "slippery-smiles-ice-east-v1",
-        "id": "rink-ice-east",
-        "nodeId": "smile-rink",
+        "collisionProfileId": "violet-wall-ice-south-v1",
+        "id": "arena-ice-south",
+        "nodeId": "violet-wall",
         "periodTicks": 240
       },
       {
         "activeTicks": 240,
-        "collisionProfileId": "slippery-smiles-ice-west-v1",
-        "id": "rink-ice-west",
-        "nodeId": "smile-rink",
-        "periodTicks": 240
-      },
-      {
-        "activeTicks": 240,
-        "collisionProfileId": "slippery-smiles-ice-north-v1",
-        "id": "moonwalk-ice-north",
-        "nodeId": "moonwalk-lane",
+        "collisionProfileId": "violet-wall-ice-east-v1",
+        "id": "popping-ice-east",
+        "nodeId": "popping-lane",
         "periodTicks": 240
       }
     ],
     "keys": [
       {
-        "id": "skate-key",
-        "placementNodeId": "skate-rack"
+        "id": "violet-key",
+        "placementNodeId": "plate-locker"
       }
     ],
     "maxBranchDepth": 1,
@@ -390,7 +368,7 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "loading-entry",
+        "id": "violet-entry",
         "pickupIds": [
           "repair-kit"
         ],
@@ -399,30 +377,30 @@
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "loading-airlock"
+          "violet-airlock"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "skate-rack",
+        "id": "plate-locker",
         "pickupIds": [
-          "skate-key"
+          "violet-key"
         ],
         "role": "corridor",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "slider-key"
+          "shield-key"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "crossfire-chute",
+        "id": "guard-lesson",
         "pickupIds": [
           "pulse-cell"
         ],
@@ -431,30 +409,30 @@
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "crossfire-ice"
+          "shield-readability"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [
-          "slippery-smiles-squad"
+          "violet-wall-company"
         ],
-        "id": "smile-rink",
+        "id": "violet-wall",
         "pickupIds": [],
         "role": "arena",
         "sizeClass": "large",
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "mobile-ranged-arena"
+          "shielder-arena"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": false,
         "encounterIds": [],
-        "id": "warming-booth",
+        "id": "unshielded-cache",
         "pickupIds": [
           "coin-cache"
         ],
@@ -463,28 +441,28 @@
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "optional-warmth"
+          "optional-flank"
         ]
       },
       {
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "moonwalk-lane",
+        "id": "popping-lane",
         "pickupIds": [],
         "role": "corridor",
         "sizeClass": "large",
         "storyIds": [],
         "templateTags": [
           "cold-storage",
-          "moonwalk-ice"
+          "shield-pose-route"
         ]
       },
       {
-        "checkpointId": "checkpoint-032",
+        "checkpointId": "checkpoint-033",
         "criticalPath": true,
         "encounterIds": [],
-        "id": "rink-checkpoint",
+        "id": "wall-checkpoint",
         "pickupIds": [],
         "role": "checkpoint",
         "sizeClass": "small",
@@ -498,7 +476,7 @@
         "checkpointId": null,
         "criticalPath": true,
         "encounterIds": [],
-        "id": "smile-exit",
+        "id": "wall-exit",
         "pickupIds": [],
         "role": "exit",
         "sizeClass": "small",
@@ -514,52 +492,52 @@
       "minimum": 1
     },
     "secretCount": 0,
-    "templateSetId": "cold-storage-slippery-smiles",
+    "templateSetId": "cold-storage-violet-wall",
     "validationProfile": "authored-grid-v1"
   },
-  "nameKey": "levels.032.name",
-  "number": 32,
+  "nameKey": "levels.033.name",
+  "number": 33,
   "objectives": [
     {
       "completionMode": "count",
       "dependsOn": [],
       "durationTicks": null,
-      "id": "clear-slippery-smiles",
+      "id": "clear-violet-wall",
       "markerPolicy": "always",
       "required": true,
       "targetCount": 10,
       "targetIds": [
-        "slider-salute",
-        "crossfire-grins",
-        "moonwalk-encore"
+        "shield-up",
+        "wall-crossfire",
+        "plate-encore"
       ],
-      "titleKey": "objectives.level_032",
+      "titleKey": "objectives.level_033",
       "type": "deactivate"
     }
   ],
   "palette": {
-    "presetId": "cold-storage-32"
+    "presetId": "cold-storage-33"
   },
   "performance": {
     "benchmarkScenarioIds": [
-      "level-032-standard-live"
+      "level-033-standard-live"
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
     "maxActivePickups": 4,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
-    "maxHazards": 4,
+    "maxHazards": 3,
     "maxMazeNodes": 10,
     "maxRenderInstances": 1024
   },
   "schemaVersion": 1,
-  "seed": "campaign-level-032-v1",
+  "seed": "campaign-level-033-v1",
   "tags": [
     "chapter-04",
     "cold-storage",
-    "mobile-ranged-squads",
-    "crossfire-ice",
-    "ice-slide-moonwalk"
+    "shielder-introduction",
+    "derived-shield-pulse",
+    "shield-pose-popping"
   ]
 }

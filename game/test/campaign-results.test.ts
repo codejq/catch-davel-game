@@ -21,7 +21,7 @@ describe('campaign result summary', () => {
     });
     expect(summary.robotsByArchetype).toEqual({
       'wobble-scout': 2, 'blue-slider': 1, 'yellow-spinner': 1,
-      'red-firemouth': 1, 'cyan-dj': 1, 'invoice-overlord': 0,
+      'red-firemouth': 1, 'cyan-dj': 1, 'violet-shielder': 0, 'invoice-overlord': 0,
     });
     const completed = completeCampaignLevel(profile, 'level-001', 4_800, summary);
     expect(completed.levelProgress[0]?.medals).toContain('par-time');

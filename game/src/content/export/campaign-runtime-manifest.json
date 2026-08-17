@@ -14,6 +14,13 @@
       "roomSize": 0.94,
       "wetMix": 0.48
     },
+    "audio-cold-storage-033": {
+      "dampingHz": 5750,
+      "decaySeconds": 0.96,
+      "pitchScale": 0.96,
+      "roomSize": 0.9,
+      "wetMix": 0.45
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -370,6 +377,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "shield-pose-popping": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "side-to-side-shuffle": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -444,6 +457,7 @@
     "pocket-robot-pop": "robot-pop",
     "pressure-step-paso": "pressure-step",
     "reverse-circus-strut": "reverse-strut",
+    "shield-pose-popping": "shield-pose-popping",
     "side-to-side-shuffle": "side-shuffle",
     "sideways-soft-shoe": "soft-shoe",
     "tempo-tent-twist": "tempo-twist",
@@ -1172,6 +1186,36 @@
       "halfDepth": 1.25,
       "halfWidth": 1.25,
       "kind": "timed-door",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "violet-wall-ice-east-v1": {
+      "column": 6,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.3,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 10
+    },
+    "violet-wall-ice-south-v1": {
+      "column": 10,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.3,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "violet-wall-ice-west-v1": {
+      "column": 6,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 4,
+      "kind": "ice",
       "phaseOffsetTicks": 0,
       "row": 6
     }
@@ -3266,6 +3310,107 @@
         }
       ]
     },
+    "cold-storage-violet-wall": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 35,
+          "column": 5,
+          "row": 9
+        },
+        "door": {
+          "column": 10,
+          "row": 8
+        },
+        "energy": {
+          "amount": 34,
+          "column": 1,
+          "row": 11
+        },
+        "health": {
+          "amount": 26,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 5
+        }
+      },
+      "openings": [
+        {
+          "column": 3,
+          "row": 2
+        },
+        {
+          "column": 9,
+          "row": 2
+        },
+        {
+          "column": 2,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 6,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 10
+        },
+        {
+          "column": 10,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 8,
+          "row": 12
+        },
+        {
+          "column": 12,
+          "row": 12
+        }
+      ]
+    },
     "workshop-basic": {
       "interactions": {
         "checkpoint": {
@@ -4395,6 +4540,33 @@
       ],
       "swing": 0.2
     },
+    "shield-pose-popping": {
+      "bassPattern": [
+        0,
+        0,
+        3,
+        4
+      ],
+      "leadPattern": [
+        0,
+        4,
+        1,
+        3,
+        0,
+        2,
+        4,
+        1
+      ],
+      "rootMidi": 55,
+      "scale": [
+        0,
+        3,
+        5,
+        6,
+        10
+      ],
+      "swing": 0.08
+    },
     "side-to-side-shuffle": {
       "bassPattern": [
         0,
@@ -4679,6 +4851,40 @@
           0.66,
           0.92,
           0.18
+        ]
+      ]
+    },
+    "cold-storage-33": {
+      "floor": [
+        0.9,
+        0.94,
+        1
+      ],
+      "sky": [
+        0.72,
+        0.74,
+        1
+      ],
+      "walls": [
+        [
+          0.42,
+          0.08,
+          0.82
+        ],
+        [
+          0.78,
+          0.22,
+          1
+        ],
+        [
+          0.08,
+          0.78,
+          0.96
+        ],
+        [
+          1,
+          0.62,
+          0.16
         ]
       ]
     },

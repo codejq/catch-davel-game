@@ -4,7 +4,7 @@ import {
 import type { GameState } from '../sim/game';
 import { isWallAtWorld, LEVEL_ORIGIN_X, LEVEL_ORIGIN_Z, levelRows, worldCell } from '../sim/level';
 import { CELL_SIZE } from '../sim/constants';
-import { ROBOT_DEFINITIONS } from '../sim/robots';
+import { ROBOT_DEFINITIONS, SHIELDER_DAMAGE_MULTIPLIER, robotShieldActive } from '../sim/robots';
 import { WEAPON_IDS, weaponUnlocked, type WeaponId } from '../sim/weapons';
 import type { PlayableLevelId } from '../content/level-ids';
 import { levelDancePerformance } from '../sim/dance-performance';
@@ -19,7 +19,7 @@ import {
 import { effectivePulseBurstShots, pulseSpreadRadians } from '../sim/combat';
 import { campaignLevel } from '../content/levels/catalog';
 
-export const AGENT_OBSERVATION_SCHEMA_VERSION = 18;
+export const AGENT_OBSERVATION_SCHEMA_VERSION = 19;
 
 export interface RobotObservation {
   readonly id: number;
@@ -39,6 +39,10 @@ export interface RobotObservation {
   readonly combatTicks: number;
   readonly tempoBuffed: boolean;
   readonly bossPhase: 0 | 1 | 2 | 3;
+  readonly shield: {
+    readonly active: boolean;
+    readonly damageMultiplier: number;
+  };
   readonly weakPoint: {
     readonly active: boolean;
     readonly relativeX: number;
@@ -53,7 +57,7 @@ export interface RobotObservation {
 }
 
 export interface AgentObservation {
-  readonly schemaVersion: 18;
+  readonly schemaVersion: 19;
   readonly tick: number;
   readonly seed: string;
   readonly levelId: PlayableLevelId;
@@ -277,6 +281,10 @@ export function createObservation(state: GameState): AgentObservation {
       combatTicks: robot.combatTicks,
       tempoBuffed: robot.tempoBuffTicks > 0,
       bossPhase: robot.bossPhase,
+      shield: {
+        active: robotShieldActive(robot),
+        damageMultiplier: SHIELDER_DAMAGE_MULTIPLIER,
+      },
       weakPoint: {
         active: danceTiming.phase === 'vulnerable',
         relativeX: round(weakDeltaX), relativeY: round(weakDeltaY), relativeZ: round(weakDeltaZ),
