@@ -1,0 +1,550 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "c1df429a54459a12",
+          "effectiveLevel": "1e98c3db26bcd24e",
+          "policyOrReplay": "c00c7c2e50668d3b",
+          "simulationLevel": "95b529fe964fa73a",
+          "simulationSchema": "7673b9fb7039c568"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 18000,
+        "mode": "live-agent",
+        "parTicks": 14500,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "win-zero-degree-duel"
+        ],
+        "seed": "campaign-level-035-v1",
+        "stuckTimeoutTicks": 2000
+      }
+    ],
+    "tier": "named-elite"
+  },
+  "audio": {
+    "presetId": "audio-cold-storage-035"
+  },
+  "briefingKey": "levels.035.briefing",
+  "chapterId": "chapter-04",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-035"
+    }
+  ],
+  "dance": {
+    "armPatternId": "freeze-frame-arms-v1",
+    "attackBeats": [
+      1,
+      5,
+      9,
+      13
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 134,
+    "footPatternId": "freeze-frame-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "freeze-frame-head-v1",
+    "pathPatternId": "freeze-frame-path-v1",
+    "presetId": "freeze-frame-face-off",
+    "reducedMotionPresetId": "freeze-frame-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "freeze-frame-torso-v1",
+    "transitionIds": [
+      "semifinal-freeze",
+      "elite-face-off",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      3,
+      7,
+      11,
+      15
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-04-035"
+  },
+  "economy": {
+    "presetId": "economy-chapter-04-035"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "zero-degree-challengers",
+      "rewardId": "chapter-04-clear-035",
+      "roomNodeId": "zero-degree-ring",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "opening-challenge",
+          "interGroupDelayTicks": 6,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "wobble-scout",
+              "count": 3,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "challenge-wobblers",
+              "modifierIds": [
+                "freeze-frame-mimes"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-1.wobblers",
+              "spawnPointSetId": "level-035-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "challenge-spinner",
+              "modifierIds": [
+                "countdown-spin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-1.spinner",
+              "spawnPointSetId": "level-035-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "semifinal-freeze",
+          "id": "semifinal-freeze",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "semifinal-sliders",
+              "modifierIds": [
+                "duel-crossfire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-2.sliders",
+              "spawnPointSetId": "level-035-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "semifinal-spinner",
+              "modifierIds": [
+                "zero-spotter"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-2.spinner",
+              "spawnPointSetId": "level-035-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 15
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "elite-face-off",
+          "id": "elite-face-off",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-violet-shielder-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "violet-shielder",
+              "count": 1,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "duel-shielder",
+              "modifierIds": [
+                "zero-degree-champion"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-3.shielder",
+              "spawnPointSetId": "level-035-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "duel-dj",
+              "modifierIds": [
+                "face-off-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-3.dj",
+              "spawnPointSetId": "level-035-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-35",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "freeze-frame-face-off",
+              "id": "duel-foreman",
+              "modifierIds": [
+                "subzero-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-35",
+              "rngStream": "encounter.level-035.wave-3.foreman",
+              "spawnPointSetId": "level-035-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 18
+        }
+      ]
+    }
+  ],
+  "id": "level-035",
+  "mastery": [
+    {
+      "presetId": "level-035-par-time"
+    },
+    {
+      "presetId": "level-035-break-the-champion"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "duel-airlock",
+        "id": "airlock-locker",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "challenge-locker",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "challenge-locker",
+        "id": "locker-west",
+        "requiredKeyId": "challenge-key",
+        "stateTrigger": "key-collected",
+        "to": "west-second",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "west-second",
+        "id": "west-ring",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "zero-degree-ring",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "zero-degree-ring",
+        "id": "ring-east",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "east-second",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "east-second",
+        "id": "east-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "duel-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "duel-checkpoint",
+        "id": "checkpoint-exit",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "zero-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "challenge-locker",
+        "id": "locker-gallery",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "spectator-freezer",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "spectator-freezer",
+        "id": "gallery-ring",
+        "requiredKeyId": "challenge-key",
+        "stateTrigger": "key-collected",
+        "to": "zero-degree-ring",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "duel-airlock",
+    "exitNodeId": "zero-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "zero-duel-west-v1",
+        "id": "duel-west-ice",
+        "nodeId": "west-second",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "zero-duel-north-v1",
+        "id": "duel-north-ice",
+        "nodeId": "zero-degree-ring",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "zero-duel-south-v1",
+        "id": "duel-south-ice",
+        "nodeId": "zero-degree-ring",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "zero-duel-east-v1",
+        "id": "duel-east-ice",
+        "nodeId": "east-second",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "challenge-key",
+        "placementNodeId": "challenge-locker"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "duel-airlock",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "duel-airlock"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "challenge-locker",
+        "pickupIds": [
+          "challenge-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "challenge-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "west-second",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "countdown-west"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "zero-degree-challengers"
+        ],
+        "id": "zero-degree-ring",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "elite-duel-ring"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "spectator-freezer",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "optional-gallery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "east-second",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "countdown-east"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-035",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "duel-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "zero-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "objective-exit"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "cold-storage-zero-degree-duel",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.035.name",
+  "number": 35,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "win-zero-degree-duel",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 10,
+      "targetIds": [
+        "opening-challenge",
+        "semifinal-freeze",
+        "elite-face-off"
+      ],
+      "titleKey": "objectives.level_035",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "cold-storage-35"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-035-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-035-v1",
+  "tags": [
+    "chapter-04",
+    "cold-storage",
+    "shield-elite-hunt",
+    "zero-degree-duel",
+    "freeze-frame-face-off"
+  ]
+}

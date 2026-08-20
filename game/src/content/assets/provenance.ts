@@ -93,6 +93,15 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
     ],
     reducedMotionId: 'crystal-locking-reduced-v1',
   },
+  {
+    level: '035', palette: 'cold-storage-35', mazeTemplate: 'cold-storage-zero-degree-duel',
+    audio: 'audio-cold-storage-035', dance: 'freeze-frame-face-off', sourcePath: 'game/src/content/levels/level-035.ts',
+    danceParts: [
+      'freeze-frame-feet-v1', 'freeze-frame-torso-v1', 'freeze-frame-arms-v1',
+      'freeze-frame-head-v1', 'freeze-frame-path-v1',
+    ],
+    reducedMotionId: 'freeze-frame-reduced-v1',
+  },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {

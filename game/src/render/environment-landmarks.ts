@@ -55,7 +55,8 @@ export type LandmarkMotif =
   | 'ice-crystals'
   | 'ice-skate-arches'
   | 'violet-shield-pylons'
-  | 'crystal-glass-crossroads';
+  | 'crystal-glass-crossroads'
+  | 'zero-degree-scoreboards';
 
 const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-001': 'signal-prongs',
@@ -92,6 +93,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-032': 'ice-skate-arches',
   'level-033': 'violet-shield-pylons',
   'level-034': 'crystal-glass-crossroads',
+  'level-035': 'zero-degree-scoreboards',
 };
 
 const LANDMARKS_PER_LEVEL = 3;
@@ -404,6 +406,15 @@ function motifBoxes(
         box(anchorX + shift, y + 0.92, anchorZ, 0.82, 0.08, 0.76, accent, 0.72),
         box(anchorX, y + 0.44, anchorZ, 1.46, 0.08, 0.18, primary, 0.94),
         box(anchorX, y + 1.38, anchorZ, 1.46, 0.08, 0.18, accent, 0.94),
+      ];
+    case 'zero-degree-scoreboards':
+      return [
+        box(anchorX, y + 0.82, anchorZ, 1.68, 1.5, 0.24, primary, 0.72),
+        box(anchorX, y + 0.88, anchorZ - 0.16, 1.18, 0.86, 0.1, accent, 0.94),
+        box(anchorX - 0.34, y + 0.88, anchorZ - 0.24, 0.16, 0.62, 0.08, primary, 0.98),
+        box(anchorX + 0.34 + shift, y + 0.88, anchorZ - 0.24, 0.16, 0.62, 0.08, primary, 0.98),
+        box(anchorX, y + 1.74, anchorZ, 1.82, 0.18, 0.28, accent, 0.9),
+        box(anchorX, y + 0.18, anchorZ, 1.32, 0.2, 0.42, primary, 0.84),
       ];
   }
 }

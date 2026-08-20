@@ -28,6 +28,13 @@
       "roomSize": 0.98,
       "wetMix": 0.49
     },
+    "audio-cold-storage-035": {
+      "dampingHz": 6400,
+      "decaySeconds": 0.97,
+      "pitchScale": 0.99,
+      "roomSize": 0.92,
+      "wetMix": 0.47
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -324,6 +331,12 @@
       "periodTicks": 180,
       "phaseOffsetTicks": 0
     },
+    "freeze-frame-face-off": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "giant-wobble-breakdown": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -460,6 +473,7 @@
     "flame-fan-fandango": "flame-fandango",
     "flame-lick-flamenco": "flame-lick",
     "flashlight-freeze-dance": "freeze-dance",
+    "freeze-frame-face-off": "freeze-frame-face-off",
     "giant-wobble-breakdown": "giant-breakdown",
     "heavy-boot-two-step": "heavy-two-step",
     "ice-slide-moonwalk": "ice-slide-moonwalk",
@@ -1269,6 +1283,46 @@
       "directionZ": 0,
       "halfDepth": 1.15,
       "halfWidth": 4,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 6
+    },
+    "zero-duel-east-v1": {
+      "column": 12,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.3,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 12
+    },
+    "zero-duel-north-v1": {
+      "column": 4,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.3,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "zero-duel-south-v1": {
+      "column": 12,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.3,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "zero-duel-west-v1": {
+      "column": 2,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.3,
       "kind": "ice",
       "phaseOffsetTicks": 0,
       "row": 6
@@ -3562,6 +3616,107 @@
         }
       ]
     },
+    "cold-storage-zero-degree-duel": {
+      "interactions": {
+        "checkpoint": {
+          "column": 11,
+          "row": 11
+        },
+        "coin": {
+          "amount": 37,
+          "column": 9,
+          "row": 9
+        },
+        "door": {
+          "column": 8,
+          "row": 8
+        },
+        "energy": {
+          "amount": 36,
+          "column": 7,
+          "row": 5
+        },
+        "health": {
+          "amount": 28,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 2,
+          "row": 2
+        },
+        {
+          "column": 10,
+          "row": 2
+        },
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 8,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 6
+        },
+        {
+          "column": 10,
+          "row": 6
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 8,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 6,
+          "row": 10
+        },
+        {
+          "column": 10,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 8,
+          "row": 12
+        },
+        {
+          "column": 12,
+          "row": 12
+        }
+      ]
+    },
     "workshop-basic": {
       "interactions": {
         "checkpoint": {
@@ -4419,6 +4574,34 @@
       ],
       "swing": 0
     },
+    "freeze-frame-face-off": {
+      "bassPattern": [
+        0,
+        4,
+        1,
+        5
+      ],
+      "leadPattern": [
+        0,
+        5,
+        1,
+        4,
+        2,
+        5,
+        3,
+        1
+      ],
+      "rootMidi": 57,
+      "scale": [
+        0,
+        1,
+        5,
+        6,
+        8,
+        11
+      ],
+      "swing": 0.04
+    },
     "giant-wobble-breakdown": {
       "bassPattern": [
         0,
@@ -5098,6 +5281,40 @@
           0.72,
           0.34,
           1
+        ]
+      ]
+    },
+    "cold-storage-35": {
+      "floor": [
+        0.94,
+        0.98,
+        1
+      ],
+      "sky": [
+        0.68,
+        0.88,
+        1
+      ],
+      "walls": [
+        [
+          0.3,
+          0.08,
+          0.88
+        ],
+        [
+          0.08,
+          0.84,
+          1
+        ],
+        [
+          1,
+          0.34,
+          0.68
+        ],
+        [
+          0.92,
+          0.78,
+          0.12
         ]
       ]
     },

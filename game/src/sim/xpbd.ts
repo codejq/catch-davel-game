@@ -372,6 +372,20 @@ function targets(
     leftFootY += Math.max(0, prism) * 0.09; rightFootY += Math.max(0, -prism) * 0.09;
     leftHand = [-0.78 - lock * 0.36, 1.72 + prism * 0.12, 0.62];
     rightHand = [0.78 - lock * 0.36, 1.12 - prism * 0.12, 0.68];
+  } else if (performance.motif === 'freeze-frame-face-off') {
+    const face = Math.sign(Math.sin(performanceTime * Math.PI * 2));
+    const snap = Math.sign(Math.sin(performanceTime * Math.PI * 8));
+    const challenge = Math.max(0, Math.sin(performanceTime * Math.PI * 4));
+    const recoil = Math.max(0, -Math.sin(performanceTime * Math.PI * 4));
+    bounce += (challenge * 0.04 + Math.abs(snap) * 0.018) * intensity;
+    hipX = (face * 0.4 + snap * 0.045) * intensity;
+    chestX = (-face * 0.48 - snap * 0.06) * intensity;
+    chestZ = challenge * 0.24 - recoil * 0.22; headX += face * 0.38; headZ = -snap * 0.09;
+    leftFootX = -0.5 - challenge * 0.24; rightFootX = 0.5 + recoil * 0.24;
+    leftFootZ = recoil * 0.58 - challenge * 0.18; rightFootZ = challenge * 0.58 - recoil * 0.18;
+    leftFootY += recoil * 0.1; rightFootY += challenge * 0.1;
+    leftHand = [-1.2 - challenge * 0.2, 1.72 + snap * 0.1, 0.58];
+    rightHand = [1.2 + recoil * 0.2, 1.18 - snap * 0.1, 0.7];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);

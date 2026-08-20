@@ -35,6 +35,7 @@ export const CAMPAIGN_LEVEL_TITLES: Readonly<Record<PlayableLevelId, string>> = 
   'level-032': 'Slippery Smiles',
   'level-033': 'Violet Wall',
   'level-034': 'Frosted Crossroads',
+  'level-035': 'Zero-Degree Duel',
 };
 
 export function campaignLevelTitle(levelId: PlayableLevelId): string {

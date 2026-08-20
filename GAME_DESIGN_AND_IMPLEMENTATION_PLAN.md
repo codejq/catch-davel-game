@@ -4,9 +4,11 @@ Status: **Implementation active; physical-device evidence waived for this implem
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **50 — complete campaign scope reduced to 36 levels by owner decision**
+Revision: **51 — playable Level 35 Zero-Degree Duel implemented**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 51 records playable Level 35, **Zero-Degree Duel**, as the named-elite test of the shortened Frozen Funk Lab finale. Two qualifying rounds lead into a final three-way face-off with stable Violet Shielder ID 11, Cyan DJ ID 5, and Foreman Stomp ID 7; all ten Davels retain their distinct proportions, silhouettes, routes, attacks, and rewards. Four always-active ice lanes create opposing pulls around a distinct authored ring without adding simulation state. A bright violet/cyan/pink/gold palette, emissive zero-degree scoreboards, project-original procedural audio/music, and the 134 BPM `freeze-frame-face-off` XPBD motif give the duel its own identity. Human play, snapshots, replays, Workers, raw WebGL2, tests, and public LLM observation v19 share the existing schema-v21 authority. The baseline LLM clears Standard twice at tick 3,037 with checksum `3f60415af956c8cd`; its effective and simulation-level dependency hashes are `1e98c3db26bcd24e` and `95b529fe964fa73a`. The campaign now contains thirty-five playable levels, 105 localized strings per release locale, 350 provenance-resolved assets, and a first-clear economy of 1,551 guaranteed plus 731 optional coins. Only Level 36 remains reserved.
 
 Revision 50 records the owner-approved scope lock of 20 August 2026: the complete campaign contains 36 levels, not 100. Levels 1–30 remain the three complete ten-level chapters already defined, and Levels 31–36 form the six-level Frozen Funk Lab finale. Levels 37–100, Chapters 5–10, and staged post-release chapter promises are removed from the product scope. Stable content, profile, transport, tooling, and test envelopes now end at `level-036`. The implementation goal therefore completes after Levels 35–36 and the final repository-wide gates; physical-device certification remains optional.
 
