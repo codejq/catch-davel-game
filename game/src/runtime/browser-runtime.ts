@@ -211,6 +211,7 @@ export async function startBrowserGame(): Promise<void> {
   const resultsRobotBreakdown = requireElement<HTMLElement>('#results-robot-breakdown');
   const resultsObjectives = requireElement<HTMLUListElement>('#results-objectives');
   const resultsReplayProof = requireElement<HTMLElement>('#results-replay-proof');
+  const campaignEnding = requireElement<HTMLElement>('#campaign-ending');
   const resultsReplay = requireElement<HTMLButtonElement>('#results-replay');
   const resultsNext = requireElement<HTMLButtonElement>('#results-next');
   const resultsMap = requireElement<HTMLButtonElement>('#results-map');
@@ -567,6 +568,7 @@ export async function startBrowserGame(): Promise<void> {
       return item;
     }));
     resultsReplayProof.textContent = ui('replayProof', { seed: summary.seed, checksum: summary.replayChecksum });
+    campaignEnding.hidden = activeLevelId !== 'level-036';
     resultsNext.textContent = ui(summary.nextLevelId === null ? 'chapterComplete' : 'nextMission');
     missionResults.classList.add('open');
     missionResults.setAttribute('aria-hidden', 'false');

@@ -15,4 +15,4 @@ The application is offline after build. Development builds expose the versioned 
 
 ## Contributing and license
 
-Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before changing simulation, rendering, content, saves, transport, or agent contracts. Catch Davel is licensed under the [MIT License](LICENSE). Third-party assets require the evidence described in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md); the current production slice uses project-original procedural visuals and audio.
+Read [`CONTRIBUTING.md`](CONTRIBUTING.md) before changing simulation, rendering, content, saves, transport, or agent contracts. Catch Davel is licensed under the [MIT License](LICENSE). Third-party assets require the evidence described in [`THIRD_PARTY_ASSETS.md`](THIRD_PARTY_ASSETS.md); the current campaign uses project-original procedural visuals and audio. Public distributions must also retain the [credits](CREDITS.md), [privacy notice](PRIVACY.md), and [trademark policy](TRADEMARKS.md). Security reports follow [SECURITY.md](SECURITY.md), and release owners use the explicit [release checklist](docs/release/RELEASE_CHECKLIST.md).

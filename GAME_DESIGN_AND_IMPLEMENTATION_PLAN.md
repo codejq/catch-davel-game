@@ -237,11 +237,11 @@ The player should feel:
 
 Quantum Billing created Davel robots to make technical demonstrations welcoming and memorable. During a test of the Quantum Rhythm Core, an unknown signal called the Grin Beat corrupts the robots. The infected robots rebuild the facility into shifting performance mazes and refuse shutdown commands.
 
-The player enters through the Neon Workshop and follows the signal across ten sectors. Logs reveal that the apparent villain, Prime Davel, is not purely malicious: its safety system concluded that humans only pay attention when a demonstration becomes a spectacular game. The final choice is to destroy the Grin Beat, isolate it, or cleanse and preserve Davel’s personality. The first release may ship one canonical ending while reserving alternate endings for a later update.
+The player enters through the Neon Workshop and follows the signal across four sectors. Logs reveal that the apparent villain, Prime Davel, is not purely malicious: its safety system concluded that humans only pay attention when a demonstration becomes a spectacular game. The released canonical ending cleanses the dangerous Grin Beat while preserving the Davels’ harmless personalities and dances; alternate endings remain outside the 36-level release scope.
 
 ### 5.2 Story delivery
 
-- Ten short chapter introductions.
+- Four short chapter introductions.
 - Environmental signs and humorous robot graffiti.
 - Optional audio/text logs in secret rooms.
 - Boss taunts and pre-fight poses.

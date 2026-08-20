@@ -1,6 +1,6 @@
 # First playable implementation status
 
-Date: 2026-08-17
+Date: 2026-08-20
 
 Implementation is active. By owner direction, missing physical devices are outside the active implementation goal and may supply optional platform evidence later; they do not block progress or completion.
 
@@ -156,10 +156,14 @@ Implementation is active. By owner direction, missing physical devices are outsi
 - WebGL recovery check: the production verifier used `WEBGL_lose_context` against the forced main-thread renderer, observed explicit lost/restored states, rebuilt resources without page/console errors, and confirmed the independent Simulation Worker advanced from tick 2 to tick 14 while rendering was unavailable.
 - Visual inspection confirmed a bright continuous floor, bounded colorful corridors, readable HUD/gun, rounded connected robot parts, visible size/proportion differences, and a Yellow Spinner telegraph with readable tracking pupils, angled attack brows, toothy open grin, forward hand reach, asymmetrical marionette pose, and correct corner occlusion. A separate close-combat capture confirmed Tiny Tyrant's new horned silhouette remains readable while dancing and peeking around the maze's correct occlusion boundary. The raw-WebGL2 laser capture confirmed a weapon-muzzle beam and readable six-ray cyan/gold contact burst in front of the collision plane rather than depth-hidden inside the wall. A pulse-wall capture likewise confirmed the new gold/cyan contact cue lands directly under the crosshair on the collision face rather than disappearing inside the wall. The sword capture confirmed its cyan edge arc sweeps across the crosshair above the animated first-person blade without the earlier per-segment bead artifacts. Bomb-preview captures caught and removed both the initially invisible naive full-radius circle and a corner-spanning chord artifact; the accepted cyan sector shape remains visible on the floor and contracts locally at corridor walls.
 - Tauri packaging check: five Rust persistence/native-transfer tests and six TypeScript bridge/transfer tests passed; the current optimized Windows executable, MSI, and NSIS bundles built; the live packaged window responded with its app-data profile; ARM64 and x86_64 Android debug APKs assembled with the native dialog/filesystem plugins after both Rust libraries compiled. These are host build/smoke results, not signed or physical-device certification.
+- Campaign-ending check: Level 36 victory alone reveals the localized canonical conclusion in the production mission-results flow. The dangerous Grin Beat is cleansed while the Davels' harmless personalities survive; English and Arabic strings are type-checked and unit-tested, and the presentation adds no simulation, replay, save, transport, or LLM state.
+- Public-release documentation now includes credits, privacy, security-reporting, trademark, and explicit release-checklist artifacts. The checklist deliberately leaves owner approval, trained-human acceptance, signing, selected-target smoke tests, and publication unchecked until their named evidence exists.
 
 These are development/CI results. Physical-device certification is outside the current implementation gate and may be performed later if a platform release requires it.
 
 ## Remaining release activities
 
-1. Schedule the separate trained-human one-working-day authoring acceptance session when participants are available; it does not block implementation.
-2. Perform optional physical-device certification, signing, and store-distribution checks for any platform that Quantum Billing chooses to release.
+1. Complete the owner, human-review, localization-review, audio-review, and security/privacy sign-offs listed in `docs/release/RELEASE_CHECKLIST.md`.
+2. Schedule the separate trained-human one-working-day authoring acceptance session when participants are available.
+3. Select official release targets, rebuild from the release commit, sign with owner-controlled credentials, smoke-test the packages, and publish the matching source/tag.
+4. Perform optional physical-device certification for any platform where Quantum Billing wants that additional claim.

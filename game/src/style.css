@@ -54,6 +54,12 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #failure-recovery { margin: 0 auto 15px; max-width: 430px; color: #ffe8e2; line-height: 1.45; }
 #results-medal { min-height: 34px; color: #ffe56c; font-size: calc(18px * var(--ui-font-scale)); font-weight: 950; }
 #results-robot-breakdown, #results-replay-proof { margin: 8px auto; color: #c8f7ff; font-size: calc(10px * var(--ui-font-scale)); overflow-wrap: anywhere; }
+#campaign-ending { margin: 18px 0; padding: 18px; border: 2px solid #83f7ff; border-radius: 14px; background: linear-gradient(135deg, #132d63e8, #167b70dc); box-shadow: inset 0 0 34px #75fff12b; }
+#campaign-ending[hidden] { display: none; }
+#campaign-ending small { color: #ffe56c; font-weight: 950; letter-spacing: .14em; }
+#campaign-ending h3 { margin: 8px 0 10px; color: #fff; font-size: calc(18px * var(--ui-font-scale)); letter-spacing: .06em; }
+#campaign-ending p { margin: 8px auto; max-width: 58ch; color: #d9ffff; line-height: 1.5; }
+#campaign-ending strong { display: block; margin-top: 13px; color: #ffe56c; letter-spacing: .08em; }
 #results-objectives { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin: 8px 0 14px; padding: 0; list-style: none; }
 #results-objectives li { padding: 5px 9px; border: 1px solid #77ebf4; border-radius: 999px; color: #fff; background: #15365e; font-size: calc(10px * var(--ui-font-scale)); font-weight: 850; }
 #results-objectives li.missed { opacity: .55; text-decoration: line-through; }

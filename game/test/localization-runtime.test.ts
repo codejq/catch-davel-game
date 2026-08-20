@@ -28,6 +28,8 @@ describe('runtime localization selection', () => {
     expect(runtimeUiText('ar', 'compassDistance', { distance: 22 })).toBe('على بعد 22 م');
     expect(runtimeUiText('ar', 'waveIncoming', { wave: 2, waves: 2 })).toBe('الموجة 2 / 2 قادمة');
     expect(runtimeUiText('ar', 'bossHp', { health: 270, max: 420 })).toBe('270 / 420 صحة');
+    expect(runtimeUiText('en', 'endingTitle')).toContain('DAVELS CHOOSE');
+    expect(runtimeUiText('ar', 'endingThanks')).toContain('كاتش دافل');
     expect(runtimeUiText('unsupported', 'campaignButton')).toBe('M · LEVELS');
   });
 });
