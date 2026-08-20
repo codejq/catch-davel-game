@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **53 — one authored secret in every released level**
+Revision: **54 — reproducible release evidence and bundled notices**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 54 closes two release-engineering gaps without claiming owner approval or publication. Every Vite production build—and therefore the Tauri frontend bundle—now emits byte-identical license, credits, privacy, security, corresponding-source, trademark, and asset notices under `legal/`. A fail-closed release-evidence command requires an explicit semantic version, HTTPS source location, clean tracked worktree, unique target names, regular artifact files, and exact notice equality, then records the Git commit plus SHA-256 and byte length for every notice and selected package. Its rehearsal suite proves strict argument handling and tamper rejection. Target selection, signing, final-package smoke tests, and publishing remain owner-controlled release gates.
 
 Revision 53 closes the released campaign's per-level secret promise. Every Level 1–36 definition now contains exactly one reachable, noncritical secret room and one authoritative one-shot `secret-coin-cache`, with chapter-band rewards of 12/16/20/24 coins. Content submission validates the room count, runtime binding, collision-safe placement, reachability, and interaction uniqueness; deterministic tests additionally prove all 36 manifests obey that contract. Because pickup amount and collection state are authoritative, simulation-level dependency hashes, the Level 1/9/10 difficulty references, all generated exports, and frozen replay suite v16 were deliberately migrated. The first-clear economy is now 1,660 guaranteed plus 1,348 optional coins, or 3,008 maximum.
 

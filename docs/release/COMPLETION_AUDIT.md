@@ -22,7 +22,7 @@ Scope: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, including every phase exit gate
 | 9 — packaging | Minimum-capability Tauri v2 shell, atomic Rust profile bridge, suspend/resume, Windows executable/MSI/NSIS development builds, and ARM64/x86_64 Android debug builds exist. | Engineering implemented on available host; selected official targets, release signing, target smoke tests, and Decision 11 remain open. |
 | 10 — campaign | All 36 levels, four weapons, major archetypes, three chapter bosses plus Level 36 endurance boss, unique palettes/dances, English/Arabic, and accessibility settings pass the repeatable content pipeline and deterministic campaign QA. | Content implemented; “fun” and final balance require human review. |
 | 11 — integration/balance | Progression, economy, pacing, difficulty harnesses, procedural music/dance, exactly one reachable authoritative secret cache per released level, and all-level automated review exist. Level 36 presents a localized canonical ending after final victory. | Implemented technically; human final-balance review remains open. |
-| 12 — polish/release | Original procedural audio, asset audit, accessibility, CSP/minimum capabilities, offline behavior, privacy/security/credits/trademark documents, package build paths, and an explicit release checklist exist. | Open: final mix/review, company approvals, selected-target artifact rebuild/smoke, signing, store media, and publication are not evidenced. |
+| 12 — polish/release | Original procedural audio, asset audit, accessibility, CSP/minimum capabilities, offline behavior, privacy/security/credits/trademark/source documents, package build paths, embedded byte-identical notices, a fail-closed artifact-evidence generator, and an explicit release checklist exist. | Open: final mix/review, company approvals, selected-target artifact rebuild/smoke, signing, store media, and publication are not evidenced. |
 
 ## Section 25.2 definition of done
 
@@ -42,6 +42,6 @@ The following definition-of-done evidence is still open:
 - Phase -1 evidence: `spike/phase-minus-one/artifacts/DEVELOPMENT_REPORT.md`.
 - Content-tooling evidence: `docs/content/CONTENT_WORKBENCH.md` and `docs/content/AUTHORING_GATE_DRY_RUN.md`.
 - Packaging evidence: `docs/packaging/TAURI_V2.md`.
-- Release actions and sign-offs: `docs/release/RELEASE_CHECKLIST.md`.
+- Release actions and sign-offs: `docs/release/RELEASE_CHECKLIST.md`; deterministic artifact hashing and bundled-notice procedure: `docs/release/RELEASE_EVIDENCE.md`.
 
 This audit must be updated when an open item is closed. The project must not be described as fully released or the end-to-end goal marked complete while any required item remains open.

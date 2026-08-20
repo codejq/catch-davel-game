@@ -110,7 +110,7 @@ Difficulty QA statically checks reachability, objective resources, health/reward
 - authoritative fixed-step Verlet/XPBD articulated bodies with two substeps and eight link/motor iterations per substep;
 - four authoritative weapons: pulse hitscan with exact recovered shots, deterministic bounded rapid-fire spread, and a tick-correlated 3D ejected energy cell; fast/charged sword with projectile deflection; arcing, bouncing, wall-occluded pulse bombs with an event-positioned 3D pressure ring and radial sparks; and a continuous heat/focus laser. Campaign Level 1 remains pulse-only while the full set is available in isolated training;
 - a pre-run Quantum Coin workbench with three levels each of pulse damage/efficiency, sword cooling, bomb capacity, and laser cooling; costs and effects are deterministic, purchases clear incompatible checkpoints, and all state is replayed;
-- deterministic gold branch caches on Levels 2–9 plus larger secret caches on Levels 4, 7, and 9, all visible to humans/agents and banked into the Quantum Coin economy only at deterministic checkpoints or victory;
+- exactly one reachable authoritative secret cache on every Level 1–36, plus deterministic branch caches where authored; all are visible to humans/agents and banked into the Quantum Coin economy only at deterministic checkpoints or victory;
 - deterministic Davel fire-spit projectiles with maze collision, player damage/defeat feedback, agent-visible trajectories, two-segment emissive 3D travel wakes, and bounded spatial near-miss whooshes derived only from presented snapshots;
 - explicit Wobble Scout melee, Blue Slider flanking bolts, Yellow Spinner beat bolts, Red Firemouth telegraphed fireballs, and elite Cyan DJ tempo buffs, with anticipation/recovery states visible to humans and agents;
 - The Final Invoice boss training encounter: 420 health, oversized crown/silhouette, stable ID, three health-gated phases, readable telegraphs, deterministic one/two/three-fireball spreads, and a localized snapshot-derived phase/health card;
@@ -122,3 +122,7 @@ Difficulty QA statically checks reachability, objective resources, health/reward
 - OffscreenCanvas render Worker with one frame in flight and latest-frame coalescing; unsupported browsers retain the same renderer through the main-thread WebGL2 fallback.
 
 Physical-device evidence is outside the active implementation goal. It may be collected later as optional platform certification evidence.
+
+## Release evidence
+
+Production builds embed the repository's seven required legal, privacy, security, source, trademark, and asset notices under `dist/legal/`. `npm run game:release:evidence:test` verifies the strict manifest contract and tamper rejection. After Quantum Billing selects a version and target set, `npm run game:release:evidence -- ...` records the exact clean commit, HTTPS corresponding-source URL, and SHA-256/size of every selected artifact; see `docs/release/RELEASE_EVIDENCE.md` for the reviewed procedure.

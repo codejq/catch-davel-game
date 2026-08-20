@@ -22,6 +22,8 @@
     "game:qa:balance": "npm run qa:balance --workspace @quantum-billing/catch-davel-game",
     "game:test:worker": "npm run test:worker --workspace @quantum-billing/catch-davel-game",
     "game:test:runtime": "npm run test:runtime --workspace @quantum-billing/catch-davel-game",
+    "game:release:evidence": "npm run release:evidence --workspace @quantum-billing/catch-davel-game --",
+    "game:release:evidence:test": "npm run release:evidence:test --workspace @quantum-billing/catch-davel-game",
     "game:tauri:dev": "npm run tauri:dev --workspace @quantum-billing/catch-davel-game",
     "game:tauri:check": "npm run tauri:check --workspace @quantum-billing/catch-davel-game",
     "game:tauri:test": "npm run tauri:test --workspace @quantum-billing/catch-davel-game",

@@ -14,6 +14,8 @@ This checklist separates reproducible engineering evidence from owner approvals,
 - [x] English and Arabic/RTL presentation and the accessibility settings baseline are covered by automated browser checks.
 - [x] Asset provenance is complete and the current build distributes no third-party media.
 - [x] The canonical Level 36 conclusion is localized and appears only after the final authoritative victory result.
+- [x] Web and Tauri frontend builds embed byte-identical license, credits, privacy, security, source-offer, trademark, and asset notices; the release-evidence tool rejects missing or altered copies.
+- [x] A fail-closed release-evidence command records the exact commit, HTTPS source location, and SHA-256/size of every uniquely named selected artifact.
 
 Run the current local gate from the repository root:
 
@@ -28,6 +30,7 @@ npm run game:qa:campaign
 npm run game:qa:balance
 npm run game:test:worker
 npm run game:test:runtime
+npm run game:release:evidence:test
 npm run game:tauri:test
 ```
 
@@ -49,8 +52,7 @@ npm run game:tauri:test
 - [ ] Smoke-test every selected package, restart persistence, import/export pickers, suspend/resume, fullscreen, and offline launch.
 - [ ] When desired, record optional physical-device certification without retroactively changing development evidence.
 - [ ] Capture final screenshots, icons, descriptions, accessibility disclosures, and store metadata for each selected distributor.
-- [ ] Confirm [CREDITS.md](../../CREDITS.md), [LICENSE](../../LICENSE), asset notices, source offer/link, privacy notice, and trademark notice ship with the release.
+- [ ] Confirm the built-in [CREDITS.md](../../CREDITS.md), [LICENSE](../../LICENSE), asset notices, [source offer](../../SOURCE.md) and manifest URL, privacy notice, and trademark notice are present in every selected final artifact.
 - [ ] Publish source and packages from the exact reviewed tag, then verify checksums and download/install paths.
 
 The release gate passes only after every applicable unchecked item has a named approver, dated evidence, and no critical unresolved issue.
-

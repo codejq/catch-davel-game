@@ -20,6 +20,8 @@
     "qa:balance": "vitest run test/balance-harness.test.ts --reporter=verbose",
     "test:worker": "node scripts/verify-worker.mjs",
     "test:runtime": "vite build && node scripts/verify-live-runtime.mjs && node scripts/verify-production-runtime.mjs",
+    "release:evidence": "node scripts/create-release-evidence.mjs",
+    "release:evidence:test": "node scripts/test-release-evidence.mjs",
     "tauri:dev": "tauri dev",
     "tauri:check": "cargo check --manifest-path src-tauri/Cargo.toml",
     "tauri:test": "cargo test --manifest-path src-tauri/Cargo.toml",
