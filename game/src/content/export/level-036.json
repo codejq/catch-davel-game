@@ -1,0 +1,600 @@
+{
+  "agentValidation": {
+    "owner": "gameplay-qa",
+    "runs": [
+      {
+        "assistProfileId": null,
+        "dependencyHashes": {
+          "balanceData": "c1df429a54459a12",
+          "effectiveLevel": "429d9c27ab08995b",
+          "policyOrReplay": "c00c7c2e50668d3b",
+          "simulationLevel": "f187873e2832fc55",
+          "simulationSchema": "7673b9fb7039c568"
+        },
+        "difficulty": "Standard",
+        "expectedChecksum": null,
+        "expectedCompletion": true,
+        "id": "standard-live",
+        "maxIllegalActions": 0,
+        "maxTicks": 24000,
+        "mode": "live-agent",
+        "parTicks": 19000,
+        "policyId": "baseline-campaign-agent",
+        "policyVersion": 1,
+        "referenceReplayId": null,
+        "requiredObjectiveIds": [
+          "survive-cold-storage"
+        ],
+        "seed": "campaign-level-036-v1",
+        "stuckTimeoutTicks": 2400
+      }
+    ],
+    "tier": "boss"
+  },
+  "audio": {
+    "presetId": "audio-cold-storage-036"
+  },
+  "briefingKey": "levels.036.briefing",
+  "chapterId": "chapter-04",
+  "checkpoints": [
+    {
+      "presetId": "checkpoint-036"
+    }
+  ],
+  "dance": {
+    "armPatternId": "refrigerator-rumble-arms-v1",
+    "attackBeats": [
+      0,
+      3,
+      6,
+      9,
+      12,
+      15
+    ],
+    "barsPerPhrase": 4,
+    "bpm": 140,
+    "footPatternId": "refrigerator-rumble-feet-v1",
+    "grammarVersion": 1,
+    "headAccentId": "refrigerator-rumble-head-v1",
+    "pathPatternId": "refrigerator-rumble-path-v1",
+    "presetId": "refrigerator-robot-rumble",
+    "reducedMotionPresetId": "refrigerator-rumble-reduced-v1",
+    "timeSignature": "4/4",
+    "torsoPatternId": "refrigerator-rumble-torso-v1",
+    "transitionIds": [
+      "compressor-crush",
+      "elite-thaw",
+      "boss-phase",
+      "objective-clear"
+    ],
+    "visualIntensity": 1,
+    "vulnerableBeats": [
+      2,
+      5,
+      8,
+      11,
+      14
+    ]
+  },
+  "difficulty": {
+    "presetId": "standard-chapter-04-036"
+  },
+  "economy": {
+    "presetId": "economy-chapter-04-036"
+  },
+  "encounters": [
+    {
+      "arenaLock": true,
+      "checkpointOnComplete": null,
+      "completion": "all-defeated",
+      "id": "cold-storage-finale",
+      "rewardId": "chapter-04-clear-036",
+      "roomNodeId": "refrigerator-heart",
+      "trigger": "on-enter",
+      "triggerRef": null,
+      "waves": [
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": null,
+          "id": "last-call",
+          "interGroupDelayTicks": 5,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-wobble-scout-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "wobble-scout",
+              "count": 3,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-wobblers",
+              "modifierIds": [
+                "last-call-grins"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-1.wobblers",
+              "spawnPointSetId": "level-036-arena-1"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-spinner-a",
+              "modifierIds": [
+                "cold-snap-spin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-1.spinner",
+              "spawnPointSetId": "level-036-arena-1"
+            }
+          ],
+          "startCondition": "encounter-start",
+          "startDelayTicks": 0
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "compressor-crush",
+          "id": "compressor-crush",
+          "interGroupDelayTicks": 4,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 4,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-blue-slider-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "blue-slider",
+              "count": 2,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-sliders",
+              "modifierIds": [
+                "compressor-crossfire"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-2.sliders",
+              "spawnPointSetId": "level-036-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-yellow-spinner-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "yellow-spinner",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-spinner-b",
+              "modifierIds": [
+                "freezer-spin"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-2.spinner",
+              "spawnPointSetId": "level-036-arena-2"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-firemouth",
+              "modifierIds": [
+                "cold-flame"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-2.firemouth",
+              "spawnPointSetId": "level-036-arena-2"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 12
+        },
+        {
+          "completion": "all-defeated",
+          "danceTransitionId": "elite-thaw",
+          "id": "elite-thaw",
+          "interGroupDelayTicks": 4,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 3,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-violet-shielder-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "violet-shielder",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-shielder",
+              "modifierIds": [
+                "last-shield-standing"
+              ],
+              "rank": "normal",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-3.shielder",
+              "spawnPointSetId": "level-036-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-cyan-dj-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "cyan-dj",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-dj",
+              "modifierIds": [
+                "finale-conductor"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-3.dj",
+              "spawnPointSetId": "level-036-arena-3"
+            },
+            {
+              "accessibilityVerificationId": "silhouette-red-firemouth-v1",
+              "aiProfileId": "chapter-04-stage-36",
+              "archetypeId": "red-firemouth",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "final-foreman",
+              "modifierIds": [
+                "cold-storage-foreman"
+              ],
+              "rank": "elite",
+              "rewardProfileId": "chapter-04-coins-36",
+              "rngStream": "encounter.level-036.wave-3.foreman",
+              "spawnPointSetId": "level-036-arena-3"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 15
+        },
+        {
+          "completion": "target-defeated",
+          "danceTransitionId": "boss-phase",
+          "id": "refrigerator-robot",
+          "interGroupDelayTicks": 0,
+          "invalidSpawnPolicy": "fail-level",
+          "maxConcurrentRobots": 1,
+          "spawnGroups": [
+            {
+              "accessibilityVerificationId": "silhouette-invoice-overlord-v1",
+              "aiProfileId": "chapter-04-boss-36",
+              "archetypeId": "invoice-overlord",
+              "count": 1,
+              "dancePresetId": "refrigerator-robot-rumble",
+              "id": "refrigerator-overlord",
+              "modifierIds": [
+                "refrigerator-crown",
+                "three-stage-deep-freeze"
+              ],
+              "rank": "boss",
+              "rewardProfileId": "chapter-04-boss-coins-36",
+              "rngStream": "encounter.level-036.boss.refrigerator",
+              "spawnPointSetId": "level-036-boss"
+            }
+          ],
+          "startCondition": "previous-wave-complete",
+          "startDelayTicks": 20
+        }
+      ]
+    }
+  ],
+  "id": "level-036",
+  "mastery": [
+    {
+      "presetId": "level-036-par-time"
+    },
+    {
+      "presetId": "level-036-limited-repair-clear"
+    }
+  ],
+  "maze": {
+    "criticalPathRooms": {
+      "maximum": 7,
+      "minimum": 7
+    },
+    "edges": [
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "final-airlock",
+        "id": "airlock-vault",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "master-key-vault",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "master-key-vault",
+        "id": "vault-compressor",
+        "requiredKeyId": "master-key",
+        "stateTrigger": "key-collected",
+        "to": "compressor-run",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "compressor-run",
+        "id": "compressor-heart",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "refrigerator-heart",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "arena-lock",
+        "from": "refrigerator-heart",
+        "id": "heart-gallery",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "thawing-gallery",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "thawing-gallery",
+        "id": "gallery-checkpoint",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "final-checkpoint",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "final-checkpoint",
+        "id": "checkpoint-sunrise",
+        "requiredKeyId": null,
+        "stateTrigger": "primary-objective",
+        "to": "sunrise-exit",
+        "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "master-key-vault",
+        "id": "vault-cache",
+        "requiredKeyId": null,
+        "stateTrigger": null,
+        "to": "last-cache",
+        "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "workshop-lock",
+        "from": "last-cache",
+        "id": "cache-heart",
+        "requiredKeyId": "master-key",
+        "stateTrigger": "key-collected",
+        "to": "refrigerator-heart",
+        "traversalCost": 2
+      }
+    ],
+    "entranceNodeId": "final-airlock",
+    "exitNodeId": "sunrise-exit",
+    "generationAttempts": 1,
+    "generatorVersion": 1,
+    "hazards": [
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "refrigerator-west-v1",
+        "id": "final-west-ice",
+        "nodeId": "compressor-run",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "refrigerator-north-v1",
+        "id": "final-north-ice",
+        "nodeId": "refrigerator-heart",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "refrigerator-south-v1",
+        "id": "final-south-ice",
+        "nodeId": "refrigerator-heart",
+        "periodTicks": 240
+      },
+      {
+        "activeTicks": 240,
+        "collisionProfileId": "refrigerator-east-v1",
+        "id": "final-east-ice",
+        "nodeId": "thawing-gallery",
+        "periodTicks": 240
+      }
+    ],
+    "keys": [
+      {
+        "id": "master-key",
+        "placementNodeId": "master-key-vault"
+      }
+    ],
+    "maxBranchDepth": 1,
+    "nodes": [
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "final-airlock",
+        "pickupIds": [
+          "repair-kit"
+        ],
+        "role": "entrance",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "limited-repair"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "master-key-vault",
+        "pickupIds": [
+          "master-key"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "master-key"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "compressor-run",
+        "pickupIds": [
+          "pulse-cell"
+        ],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "compressor-run"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [
+          "cold-storage-finale"
+        ],
+        "id": "refrigerator-heart",
+        "pickupIds": [],
+        "role": "arena",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "final-endurance",
+          "refrigerator-robot"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "last-cache",
+        "pickupIds": [
+          "coin-cache"
+        ],
+        "role": "corridor",
+        "sizeClass": "medium",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "optional-final-cache"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "thawing-gallery",
+        "pickupIds": [],
+        "role": "corridor",
+        "sizeClass": "large",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "thawing-gallery"
+        ]
+      },
+      {
+        "checkpointId": "checkpoint-036",
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "final-checkpoint",
+        "pickupIds": [],
+        "role": "checkpoint",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "final-recovery"
+        ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": true,
+        "encounterIds": [],
+        "id": "sunrise-exit",
+        "pickupIds": [],
+        "role": "exit",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "cold-storage",
+          "campaign-ending"
+        ]
+      }
+    ],
+    "optionalRooms": {
+      "maximum": 1,
+      "minimum": 1
+    },
+    "secretCount": 0,
+    "templateSetId": "cold-storage-refrigerator-finale",
+    "validationProfile": "authored-grid-v1"
+  },
+  "nameKey": "levels.036.name",
+  "number": 36,
+  "objectives": [
+    {
+      "completionMode": "count",
+      "dependsOn": [],
+      "durationTicks": null,
+      "id": "survive-cold-storage",
+      "markerPolicy": "always",
+      "required": true,
+      "targetCount": 12,
+      "targetIds": [
+        "last-call",
+        "compressor-crush",
+        "elite-thaw",
+        "refrigerator-robot"
+      ],
+      "titleKey": "objectives.level_036",
+      "type": "deactivate"
+    }
+  ],
+  "palette": {
+    "presetId": "cold-storage-36"
+  },
+  "performance": {
+    "benchmarkScenarioIds": [
+      "level-036-standard-live"
+    ],
+    "expectedPeakDrawCalls": 8,
+    "expectedPeakMemoryMb": 192,
+    "maxActivePickups": 4,
+    "maxActiveProjectiles": 64,
+    "maxActiveRobots": 4,
+    "maxHazards": 4,
+    "maxMazeNodes": 10,
+    "maxRenderInstances": 1024
+  },
+  "schemaVersion": 1,
+  "seed": "campaign-level-036-v1",
+  "tags": [
+    "chapter-04",
+    "cold-storage",
+    "final-endurance",
+    "limited-healing",
+    "refrigerator-robot",
+    "campaign-finale"
+  ]
+}

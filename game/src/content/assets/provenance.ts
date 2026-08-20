@@ -102,6 +102,15 @@ const ORIGINAL_LEVEL_ASSET_RECIPES: readonly OriginalLevelAssetRecipe[] = [
     ],
     reducedMotionId: 'freeze-frame-reduced-v1',
   },
+  {
+    level: '036', palette: 'cold-storage-36', mazeTemplate: 'cold-storage-refrigerator-finale',
+    audio: 'audio-cold-storage-036', dance: 'refrigerator-robot-rumble', sourcePath: 'game/src/content/levels/level-036.ts',
+    danceParts: [
+      'refrigerator-rumble-feet-v1', 'refrigerator-rumble-torso-v1', 'refrigerator-rumble-arms-v1',
+      'refrigerator-rumble-head-v1', 'refrigerator-rumble-path-v1',
+    ],
+    reducedMotionId: 'refrigerator-rumble-reduced-v1',
+  },
 ];
 
 function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProvenanceRecord {

@@ -340,6 +340,22 @@ export const HAZARD_RUNTIME_PROFILES: Readonly<Record<string, HazardRuntimeProfi
     kind: 'ice', column: 12, row: 12, halfWidth: 3.3, halfDepth: 1.15,
     directionX: -1, directionZ: 0, phaseOffsetTicks: 0,
   },
+  'refrigerator-west-v1': {
+    kind: 'ice', column: 2, row: 6, halfWidth: 3.4, halfDepth: 1.15,
+    directionX: 1, directionZ: 0, phaseOffsetTicks: 0,
+  },
+  'refrigerator-north-v1': {
+    kind: 'ice', column: 6, row: 8, halfWidth: 1.15, halfDepth: 3.4,
+    directionX: 0, directionZ: -1, phaseOffsetTicks: 0,
+  },
+  'refrigerator-south-v1': {
+    kind: 'ice', column: 12, row: 8, halfWidth: 1.15, halfDepth: 3.4,
+    directionX: 0, directionZ: 1, phaseOffsetTicks: 0,
+  },
+  'refrigerator-east-v1': {
+    kind: 'ice', column: 10, row: 12, halfWidth: 3.4, halfDepth: 1.15,
+    directionX: -1, directionZ: 0, phaseOffsetTicks: 0,
+  },
 };
 
 export function hazardRuntimeProfile(profileId: string): HazardRuntimeProfile {
@@ -861,6 +877,24 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       coin: { column: 9, row: 9, amount: 37 },
     },
   },
+  'cold-storage-refrigerator-finale': {
+    openings: [
+      { column: 2, row: 2 }, { column: 8, row: 2 },
+      { column: 4, row: 4 }, { column: 10, row: 4 }, { column: 12, row: 4 },
+      { column: 2, row: 6 }, { column: 6, row: 6 }, { column: 12, row: 6 },
+      { column: 4, row: 8 }, { column: 6, row: 8 }, { column: 10, row: 8 }, { column: 12, row: 8 },
+      { column: 2, row: 10 }, { column: 8, row: 10 }, { column: 12, row: 10 },
+      { column: 4, row: 12 }, { column: 10, row: 12 },
+    ],
+    interactions: {
+      health: { column: 13, row: 3, amount: 12 },
+      key: { column: 3, row: 7 },
+      energy: { column: 1, row: 11, amount: 38 },
+      door: { column: 6, row: 8 },
+      checkpoint: { column: 13, row: 11 },
+      coin: { column: 7, row: 9, amount: 38 },
+    },
+  },
 };
 
 export function mazeRuntimeProfile(templateSetId: string): MazeRuntimeProfile {
@@ -876,7 +910,7 @@ export type DanceRuntimeMotif = 'wobble-march' | 'side-shuffle' | 'robot-pop' | 
   | 'moonlit-swing' | 'ringmaster-revue' | 'pipe-tap' | 'toxic-toe' | 'flame-lick' | 'pressure-step'
   | 'duelling-tango' | 'detonator-danzon' | 'drainpipe-rumba' | 'triple-key-cha-cha' | 'feverish-salsa'
   | 'inferno-flamenco-finale' | 'chilly-funk-walk' | 'ice-slide-moonwalk' | 'shield-pose-popping'
-  | 'crystal-locking' | 'freeze-frame-face-off';
+  | 'crystal-locking' | 'freeze-frame-face-off' | 'refrigerator-robot-rumble';
 
 export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> = {
   'wobble-march': 'wobble-march',
@@ -914,6 +948,7 @@ export const DANCE_RUNTIME_MOTIFS: Readonly<Record<string, DanceRuntimeMotif>> =
   'shield-pose-popping': 'shield-pose-popping',
   'crystal-locking-dance': 'crystal-locking',
   'freeze-frame-face-off': 'freeze-frame-face-off',
+  'refrigerator-robot-rumble': 'refrigerator-robot-rumble',
 };
 
 export function danceRuntimeMotif(presetId: string): DanceRuntimeMotif {
@@ -965,6 +1000,7 @@ export const DANCE_GAMEPLAY_RUNTIME_PROFILES: Readonly<Record<string, DanceGamep
   'shield-pose-popping': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'crystal-locking-dance': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
   'freeze-frame-face-off': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
+  'refrigerator-robot-rumble': { kind: 'ambient', periodTicks: 0, freezeTicks: 0, phaseOffsetTicks: 0 },
 };
 
 export function danceGameplayRuntimeProfile(presetId: string): DanceGameplayRuntimeProfile {
@@ -1017,6 +1053,7 @@ export const AUDIO_RUNTIME_PROFILES: Readonly<Record<string, AudioRuntimeProfile
   'audio-cold-storage-033': { roomSize: 0.9, decaySeconds: 0.96, dampingHz: 5750, wetMix: 0.45, pitchScale: 0.96 },
   'audio-cold-storage-034': { roomSize: 0.98, decaySeconds: 0.99, dampingHz: 6900, wetMix: 0.49, pitchScale: 1.04 },
   'audio-cold-storage-035': { roomSize: 0.92, decaySeconds: 0.97, dampingHz: 6400, wetMix: 0.47, pitchScale: 0.99 },
+  'audio-cold-storage-036': { roomSize: 1, decaySeconds: 1, dampingHz: 7200, wetMix: 0.5, pitchScale: 0.92 },
 };
 
 export function audioRuntimeProfile(presetId: string): AudioRuntimeProfile {
@@ -1069,6 +1106,7 @@ export const MUSIC_RUNTIME_PROFILES: Readonly<Record<string, MusicRuntimeProfile
   'shield-pose-popping': { rootMidi: 55, scale: [0, 3, 5, 6, 10], leadPattern: [0, 4, 1, 3, 0, 2, 4, 1], bassPattern: [0, 0, 3, 4], swing: 0.08 },
   'crystal-locking-dance': { rootMidi: 60, scale: [0, 2, 5, 6, 9, 11], leadPattern: [0, 5, 2, 4, 1, 3, 5, 2], bassPattern: [0, 3, 1, 5], swing: 0.06 },
   'freeze-frame-face-off': { rootMidi: 57, scale: [0, 1, 5, 6, 8, 11], leadPattern: [0, 5, 1, 4, 2, 5, 3, 1], bassPattern: [0, 4, 1, 5], swing: 0.04 },
+  'refrigerator-robot-rumble': { rootMidi: 39, scale: [0, 1, 3, 6, 7, 10], leadPattern: [0, 5, 1, 4, 2, 5, 3, 0], bassPattern: [0, 0, 4, 5], swing: 0.1 },
 };
 
 export function musicRuntimeProfile(presetId: string): MusicRuntimeProfile {
@@ -1120,6 +1158,7 @@ export const PALETTE_RUNTIME_PROFILES: Readonly<Record<string, PaletteRuntimePro
   'cold-storage-33': { sky: [0.72, 0.74, 1], floor: [0.9, 0.94, 1], walls: [[0.42, 0.08, 0.82], [0.78, 0.22, 1], [0.08, 0.78, 0.96], [1, 0.62, 0.16]] },
   'cold-storage-34': { sky: [0.76, 0.94, 1], floor: [0.86, 0.98, 1], walls: [[0.04, 0.76, 1], [0.96, 0.24, 0.86], [0.28, 0.96, 0.88], [0.72, 0.34, 1]] },
   'cold-storage-35': { sky: [0.68, 0.88, 1], floor: [0.94, 0.98, 1], walls: [[0.3, 0.08, 0.88], [0.08, 0.84, 1], [1, 0.34, 0.68], [0.92, 0.78, 0.12]] },
+  'cold-storage-36': { sky: [0.82, 0.96, 1], floor: [0.9, 0.98, 0.96], walls: [[0.04, 0.44, 0.92], [0.1, 0.94, 0.82], [0.94, 0.18, 0.54], [1, 0.76, 0.08]] },
 };
 
 export function paletteRuntimeProfile(presetId: string): PaletteRuntimeProfile {

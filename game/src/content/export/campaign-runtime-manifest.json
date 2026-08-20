@@ -35,6 +35,13 @@
       "roomSize": 0.92,
       "wetMix": 0.47
     },
+    "audio-cold-storage-036": {
+      "dampingHz": 7200,
+      "decaySeconds": 1,
+      "pitchScale": 0.92,
+      "roomSize": 1,
+      "wetMix": 0.5
+    },
     "audio-copper-carnival-011": {
       "dampingHz": 3600,
       "decaySeconds": 0.58,
@@ -397,6 +404,12 @@
       "periodTicks": 0,
       "phaseOffsetTicks": 0
     },
+    "refrigerator-robot-rumble": {
+      "freezeTicks": 0,
+      "kind": "ambient",
+      "periodTicks": 0,
+      "phaseOffsetTicks": 0
+    },
     "reverse-circus-strut": {
       "freezeTicks": 0,
       "kind": "ambient",
@@ -484,6 +497,7 @@
     "pipe-tap-tango": "pipe-tap",
     "pocket-robot-pop": "robot-pop",
     "pressure-step-paso": "pressure-step",
+    "refrigerator-robot-rumble": "refrigerator-robot-rumble",
     "reverse-circus-strut": "reverse-strut",
     "shield-pose-popping": "shield-pose-popping",
     "side-to-side-shuffle": "side-shuffle",
@@ -1014,6 +1028,46 @@
       "kind": "conveyor",
       "phaseOffsetTicks": 0,
       "row": 7
+    },
+    "refrigerator-east-v1": {
+      "column": 10,
+      "directionX": -1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.4,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 12
+    },
+    "refrigerator-north-v1": {
+      "column": 6,
+      "directionX": 0,
+      "directionZ": -1,
+      "halfDepth": 3.4,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "refrigerator-south-v1": {
+      "column": 12,
+      "directionX": 0,
+      "directionZ": 1,
+      "halfDepth": 3.4,
+      "halfWidth": 1.15,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 8
+    },
+    "refrigerator-west-v1": {
+      "column": 2,
+      "directionX": 1,
+      "directionZ": 0,
+      "halfDepth": 1.15,
+      "halfWidth": 3.4,
+      "kind": "ice",
+      "phaseOffsetTicks": 0,
+      "row": 6
     },
     "ringmaster-curtain-east-v1": {
       "column": 10,
@@ -3414,6 +3468,107 @@
         }
       ]
     },
+    "cold-storage-refrigerator-finale": {
+      "interactions": {
+        "checkpoint": {
+          "column": 13,
+          "row": 11
+        },
+        "coin": {
+          "amount": 38,
+          "column": 7,
+          "row": 9
+        },
+        "door": {
+          "column": 6,
+          "row": 8
+        },
+        "energy": {
+          "amount": 38,
+          "column": 1,
+          "row": 11
+        },
+        "health": {
+          "amount": 12,
+          "column": 13,
+          "row": 3
+        },
+        "key": {
+          "column": 3,
+          "row": 7
+        }
+      },
+      "openings": [
+        {
+          "column": 2,
+          "row": 2
+        },
+        {
+          "column": 8,
+          "row": 2
+        },
+        {
+          "column": 4,
+          "row": 4
+        },
+        {
+          "column": 10,
+          "row": 4
+        },
+        {
+          "column": 12,
+          "row": 4
+        },
+        {
+          "column": 2,
+          "row": 6
+        },
+        {
+          "column": 6,
+          "row": 6
+        },
+        {
+          "column": 12,
+          "row": 6
+        },
+        {
+          "column": 4,
+          "row": 8
+        },
+        {
+          "column": 6,
+          "row": 8
+        },
+        {
+          "column": 10,
+          "row": 8
+        },
+        {
+          "column": 12,
+          "row": 8
+        },
+        {
+          "column": 2,
+          "row": 10
+        },
+        {
+          "column": 8,
+          "row": 10
+        },
+        {
+          "column": 12,
+          "row": 10
+        },
+        {
+          "column": 4,
+          "row": 12
+        },
+        {
+          "column": 10,
+          "row": 12
+        }
+      ]
+    },
     "cold-storage-slippery-smiles": {
       "interactions": {
         "checkpoint": {
@@ -4875,6 +5030,34 @@
       ],
       "swing": 0.16
     },
+    "refrigerator-robot-rumble": {
+      "bassPattern": [
+        0,
+        0,
+        4,
+        5
+      ],
+      "leadPattern": [
+        0,
+        5,
+        1,
+        4,
+        2,
+        5,
+        3,
+        0
+      ],
+      "rootMidi": 39,
+      "scale": [
+        0,
+        1,
+        3,
+        6,
+        7,
+        10
+      ],
+      "swing": 0.1
+    },
     "reverse-circus-strut": {
       "bassPattern": [
         4,
@@ -5315,6 +5498,40 @@
           0.92,
           0.78,
           0.12
+        ]
+      ]
+    },
+    "cold-storage-36": {
+      "floor": [
+        0.9,
+        0.98,
+        0.96
+      ],
+      "sky": [
+        0.82,
+        0.96,
+        1
+      ],
+      "walls": [
+        [
+          0.04,
+          0.44,
+          0.92
+        ],
+        [
+          0.1,
+          0.94,
+          0.82
+        ],
+        [
+          0.94,
+          0.18,
+          0.54
+        ],
+        [
+          1,
+          0.76,
+          0.08
         ]
       ]
     },

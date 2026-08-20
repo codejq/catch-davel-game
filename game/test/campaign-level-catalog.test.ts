@@ -5,11 +5,11 @@ import { GameSimulation } from '../src/sim/game';
 import { campaignWeaponMask, WEAPON_MASK } from '../src/sim/weapons';
 
 describe('scalable campaign level registry', () => {
-  it('keeps the 36-ID numbering envelope separate from implemented content', () => {
+  it('keeps the complete 36-level campaign inside its closed numbering envelope', () => {
     expect(CAMPAIGN_LEVEL_IDS).toHaveLength(36);
-    expect(PLAYABLE_LEVEL_IDS).toHaveLength(35);
+    expect(PLAYABLE_LEVEL_IDS).toHaveLength(36);
     expect(isCampaignLevelId('level-036')).toBe(true);
-    expect(isPlayableLevelId('level-036')).toBe(false);
+    expect(isPlayableLevelId('level-036')).toBe(true);
     expect(isCampaignLevelId('level-037')).toBe(false);
   });
 
@@ -31,6 +31,7 @@ describe('scalable campaign level registry', () => {
     expect(campaignWeaponMask('level-033')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
     expect(campaignWeaponMask('level-034')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
     expect(campaignWeaponMask('level-035')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
+    expect(campaignWeaponMask('level-036')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
   });
 
   it('maps every playable ID to exactly one ordered authored definition', () => {
@@ -39,7 +40,8 @@ describe('scalable campaign level registry', () => {
     for (const levelId of PLAYABLE_LEVEL_IDS) expect(campaignLevel(levelId).id).toBe(levelId);
   });
 
-  it('rejects reserved but unauthored IDs at the playable type guard', () => {
+  it('has no reserved-but-unauthored IDs after completing the campaign', () => {
+    expect(CAMPAIGN_LEVEL_IDS.slice(PLAYABLE_LEVEL_IDS.length)).toEqual([]);
     for (const levelId of CAMPAIGN_LEVEL_IDS.slice(PLAYABLE_LEVEL_IDS.length)) {
       expect(isPlayableLevelId(levelId)).toBe(false);
     }

@@ -977,15 +977,18 @@ export async function startBrowserGame(): Promise<void> {
     const boss = bossPresentation(state.robots, state.difficulty);
     bossStatus.hidden = boss === null;
     document.body.dataset.bossPhase = String(boss?.phase ?? 0);
+    const ringmaster = state.levelId === 'level-020';
+    const furnace = state.levelId === 'level-030';
+    const refrigerator = state.levelId === 'level-036';
+    const bossTitleKey = refrigerator ? 'refrigeratorBossTitle'
+      : furnace ? 'furnaceBossTitle' : ringmaster ? 'ringmasterBossTitle' : 'bossTitle';
+    const bossAriaKey = refrigerator ? 'refrigeratorBossAria'
+      : furnace ? 'furnaceBossAria' : ringmaster ? 'ringmasterBossAria' : 'bossAria';
+    bossStatusTitle.textContent = ui(bossTitleKey);
     if (boss !== null) {
       const health = Math.ceil(boss.health);
-      const ringmaster = state.levelId === 'level-020';
-      const furnace = state.levelId === 'level-030';
-      const bossTitleKey = furnace ? 'furnaceBossTitle' : ringmaster ? 'ringmasterBossTitle' : 'bossTitle';
-      const bossAriaKey = furnace ? 'furnaceBossAria' : ringmaster ? 'ringmasterBossAria' : 'bossAria';
       bossStatus.dataset.phase = String(boss.phase);
       bossStatus.style.setProperty('--boss-health', `${boss.healthRatio * 100}%`);
-      bossStatusTitle.textContent = ui(bossTitleKey);
       bossStatusPhase.textContent = ui('bossPhaseLabel', { phase: boss.phase });
       bossStatusHp.textContent = ui('bossHp', { health, max: boss.maxHealth });
       bossStatus.setAttribute('aria-label', ui(bossAriaKey, {
@@ -1125,8 +1128,9 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'robot-melee') eventSound('robot-melee', event.robotId);
     if (event.type === 'robot-buff') { showMessage(ui('djBeat')); eventSound('dj-buff', event.robotId); }
     if (event.type === 'boss-phase') {
-      const bossPhaseKey = activeLevelId === 'level-030' ? 'furnaceBossPhase'
-        : activeLevelId === 'level-020' ? 'ringmasterBossPhase' : 'bossPhase';
+      const bossPhaseKey = activeLevelId === 'level-036' ? 'refrigeratorBossPhase'
+        : activeLevelId === 'level-030' ? 'furnaceBossPhase'
+          : activeLevelId === 'level-020' ? 'ringmasterBossPhase' : 'bossPhase';
       showMessage(ui(bossPhaseKey, { phase: event.value ?? 1 }));
       eventSound('boss-phase', event.robotId);
       showDavelBark(event, 'boss-phase', 0);

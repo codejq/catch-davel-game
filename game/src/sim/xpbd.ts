@@ -386,6 +386,21 @@ function targets(
     leftFootY += recoil * 0.1; rightFootY += challenge * 0.1;
     leftHand = [-1.2 - challenge * 0.2, 1.72 + snap * 0.1, 0.58];
     rightHand = [1.2 + recoil * 0.2, 1.18 - snap * 0.1, 0.7];
+  } else if (performance.motif === 'refrigerator-robot-rumble') {
+    const stomp = Math.max(0, Math.sin(performanceTime * Math.PI * 4));
+    const shiver = Math.sin(performanceTime * Math.PI * 12);
+    const doorSwing = Math.sin(performanceTime * Math.PI * 2);
+    const compressor = Math.sign(Math.sin(performanceTime * Math.PI * 8));
+    bounce += (stomp * 0.055 + Math.abs(shiver) * 0.024) * intensity;
+    hipX = (doorSwing * 0.3 + shiver * 0.045) * intensity;
+    chestX = (-doorSwing * 0.38 - compressor * 0.06) * intensity;
+    chestZ = -stomp * 0.3; headX += compressor * 0.26; headZ = shiver * 0.08;
+    leftFootX = -0.5 - Math.max(0, -doorSwing) * 0.28;
+    rightFootX = 0.5 + Math.max(0, doorSwing) * 0.28;
+    leftFootZ = doorSwing * 0.5; rightFootZ = -doorSwing * 0.5;
+    leftFootY += Math.max(0, -shiver) * 0.1; rightFootY += Math.max(0, shiver) * 0.1;
+    leftHand = [-1.08 - stomp * 0.28, 1.22 + compressor * 0.14, 0.72];
+    rightHand = [1.08 + stomp * 0.28, 1.68 - compressor * 0.14, 0.56];
   }
   setLocal(result, BODY_POINT.hip, rootX, rootZ, heading, hipX * scale, (0.76 + bounce) * scale, 0);
   setLocal(result, BODY_POINT.chest, rootX, rootZ, heading, chestX * scale, (1.36 + bounce) * scale, chestZ * scale);
