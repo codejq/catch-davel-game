@@ -5,11 +5,12 @@ import { GameSimulation } from '../src/sim/game';
 import { campaignWeaponMask, WEAPON_MASK } from '../src/sim/weapons';
 
 describe('scalable campaign level registry', () => {
-  it('keeps the 100-ID numbering envelope separate from implemented content', () => {
-    expect(CAMPAIGN_LEVEL_IDS).toHaveLength(100);
+  it('keeps the 36-ID numbering envelope separate from implemented content', () => {
+    expect(CAMPAIGN_LEVEL_IDS).toHaveLength(36);
     expect(PLAYABLE_LEVEL_IDS).toHaveLength(34);
-    expect(isCampaignLevelId('level-100')).toBe(true);
-    expect(isPlayableLevelId('level-100')).toBe(false);
+    expect(isCampaignLevelId('level-036')).toBe(true);
+    expect(isPlayableLevelId('level-036')).toBe(false);
+    expect(isCampaignLevelId('level-037')).toBe(false);
   });
 
   it('unlocks the sword at the Chapter 2 boundary in the shared simulation path', () => {

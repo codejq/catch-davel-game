@@ -27,4 +27,4 @@ All variation is derived from named deterministic RNG streams. Presentation shou
 
 ## Review boundary
 
-This slice proves feel, readability, architecture, and the core combat loop. It does not attempt all 100 levels, final assets, complete audio, mobile packaging, or campaign balance.
+This slice proves feel, readability, architecture, and the core combat loop. It does not attempt all 36 levels, final assets, complete audio, mobile packaging, or campaign balance.

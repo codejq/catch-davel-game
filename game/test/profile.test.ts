@@ -118,11 +118,11 @@ describe('versioned profile persistence', () => {
     expect(() => bankCampaignCoins(banked, 1.5)).toThrow(/safe-integer/);
   });
 
-  it('reserves stable save identifiers through Level 100 and rejects IDs outside the campaign envelope', () => {
+  it('reserves stable save identifiers through Level 36 and rejects IDs outside the campaign envelope', () => {
     const profile = createDefaultProfile('reservation-proof');
-    const future = updateProfile(profile, { unlockedLevelIds: ['level-001', 'level-100'] });
-    expect(parseProfile(serializeProfile(future)).unlockedLevelIds).toContain('level-100');
-    expect(() => updateProfile(profile, { unlockedLevelIds: ['level-001', 'level-101'] })).toThrow(/unreserved/);
+    const future = updateProfile(profile, { unlockedLevelIds: ['level-001', 'level-036'] });
+    expect(parseProfile(serializeProfile(future)).unlockedLevelIds).toContain('level-036');
+    expect(() => updateProfile(profile, { unlockedLevelIds: ['level-001', 'level-037'] })).toThrow(/unreserved/);
     expect(() => updateProfile(profile, {
       levelProgress: [{ ...profile.levelProgress[0]!, levelId: 'level-000' }],
     })).toThrow(/reserved campaign/);

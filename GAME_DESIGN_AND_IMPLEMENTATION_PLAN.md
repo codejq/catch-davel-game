@@ -4,9 +4,11 @@ Status: **Implementation active; physical-device evidence waived for this implem
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **49 — playable Level 34 Frosted Crossroads implemented**
+Revision: **50 — complete campaign scope reduced to 36 levels by owner decision**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 50 records the owner-approved scope lock of 20 August 2026: the complete campaign contains 36 levels, not 100. Levels 1–30 remain the three complete ten-level chapters already defined, and Levels 31–36 form the six-level Frozen Funk Lab finale. Levels 37–100, Chapters 5–10, and staged post-release chapter promises are removed from the product scope. Stable content, profile, transport, tooling, and test envelopes now end at `level-036`. The implementation goal therefore completes after Levels 35–36 and the final repository-wide gates; physical-device certification remains optional.
 
 Revision 2 fixes deterministic-simulation contradictions, separates simulation and rendering workers, reconciles the robot budget, selects hitscan for the pulse gun, adds content tooling and agent-driven campaign QA, defines a provisional device matrix, makes packaged saves file-backed, protects production progress from agent automation, and adds the level-data contract in Appendix A.
 
@@ -170,7 +172,7 @@ All Davel robot designs, maze themes, UI, story, shaders, physics behavior, and 
 
 ### 3.5 Explicitly out of scope
 
-Unless a later design revision explicitly adds them, the initial 100-level campaign excludes:
+Unless a later design revision explicitly adds them, the complete 36-level campaign excludes:
 
 - online or local multiplayer;
 - competitive leaderboards or authoritative anti-cheat;
@@ -545,9 +547,9 @@ Each level records:
 - replay seed and deterministic checksum;
 - bronze, silver, gold, or quantum medal.
 
-## 11. Campaign structure: 100 levels
+## 11. Campaign structure: 36 levels
 
-The campaign contains ten chapters of ten levels. Every chapter introduces a palette, maze mechanic, base dance family, enemy escalation, and boss. Each individual level applies a unique accent hue, named dance preset, objective mix, seed, and encounter configuration.
+The campaign contains three ten-level chapters and a six-level Frozen Funk Lab finale. Every chapter introduces a palette, maze mechanic, base dance family, and enemy escalation; Levels 10, 20, and 30 are chapter bosses, while Level 36 is the final endurance mission and ending. Each individual level applies a unique accent hue, named dance preset, objective mix, seed, and encounter configuration.
 
 ### 11.1 Chapter overview
 
@@ -556,13 +558,7 @@ The campaign contains ten chapters of ten levels. Every chapter introduces a pal
 | 1–10 | Neon Workshop | Lime/cyan | Training labs and simple loops | Robot, march, shuffle | Core movement and gun |
 | 11–20 | Copper Carnival | Orange/teal | Booths, gates, rotating halls | Swing and carnival | Sword and Blue Sliders |
 | 21–30 | Toxic Tango Tunnels | Green/magenta | Pipes, vents, hazard lanes | Tango and Latin steps | Bombs and Firemouths |
-| 31–40 | Frozen Funk Lab | Ice blue/violet | Sliding floors and glass routes | Funk and moonwalk | Armor and Shielders |
-| 41–50 | Ember Samba Foundry | Red/gold | Furnaces, lifts, hot zones | Samba and stomps | Laser and Bombers |
-| 51–60 | Electric Disco Grid | Cyan/pink | Powered doors and light bridges | Disco and breakdance | DJs and tempo fields |
-| 61–70 | Shadow Waltz Vault | Indigo/silver | Darkness, mirrors, stealth routes | Waltz and ballet parody | Tricksters and decoys |
-| 71–80 | Quantum Chaos Reactor | Rainbow/black | Phase doors and shifting cells | Glitch and polyrhythm | Mirror and Glitch elites |
-| 81–90 | Corrupted Celebration | White/red/black | Mixed festival arenas | Hybrid remixes | Coordinated elite squads |
-| 91–100 | Davel Core Citadel | Gold/violet | Final fortress and reality bends | All styles, boss motifs | Prime Davel finale |
+| 31–36 | Frozen Funk Lab | Ice blue/violet | Sliding floors and glass routes | Funk and moonwalk | Shielders and final endurance |
 
 ### 11.2 Full level catalog
 
@@ -605,75 +601,11 @@ The names and scenarios below are working content specifications. Exact room cou
 | 33 | Violet Wall | Shielder introduction | Shield-Pose Popping |
 | 34 | Frosted Crossroads | Glass route visibility | Crystal Locking Dance |
 | 35 | Zero-Degree Duel | Shield elite hunt | Freeze-Frame Face-Off |
-| 36 | Cold Storage | Limited-healing endurance | Refrigerator Robot |
-| 37 | Skating Circuit | Circular pursuit | Figure-Eight Funk |
-| 38 | Shatter Route | Break shield nodes to progress | Glass-Break Groove |
-| 39 | Absolute Boogie | High-speed mixed gauntlet | Absolute-Zero Boogie |
-| 40 | Professor Permafrost | Shield/freeze chapter boss | Frozen Funk Symphony |
-| 41 | Foundry Entrance | Heat zones and laser preview | Hammer-Time Samba |
-| 42 | Orange Warning | Bomber introduction | Fuse-Lit Footwork |
-| 43 | Molten Rhythm | Safe zones move to the beat | Lava-Lane Lambada |
-| 44 | Lift and Drop | Vertical lift encounters | Elevator Samba |
-| 45 | Foreman Blast | Armored bomber elite | Steel-Toe Stomp |
-| 46 | Laser Temper | Laser unlock and shield cutting | Beam-Line Bossa |
-| 47 | Crucible Chase | Pursuing hazard | Crucible Quickstep |
-| 48 | Assembly Meltdown | Disable four cooling nodes | Four-Furnace Frevo |
-| 49 | Redline Foundry | Continuous combat route | Redline Rhythm Run |
-| 50 | King Kiln | Foundry chapter boss | Royal Ember Samba |
-| 51 | Power On | Electric doors and grid routing | Switch-On Disco |
-| 52 | Speaker Stack | Cyan DJ introduction | Bassline Box-Step |
-| 53 | BPM Lock | Doors open on beat phases | Tempo-Code Hustle |
-| 54 | Light Bridge Fever | Timed bridge crossings | Neon Night Fever |
-| 55 | DJ Doublecross | Two-controller elite fight | Crossfade Breakdance |
-| 56 | Voltage Vogue | Pose-telegraphed lightning | Electric Vogue |
-| 57 | Breaker Room | Disable tempo amplifiers | Circuit-Breaker Break |
-| 58 | Dance Floor Defense | Defend central stabilizer | Last-Dance Locking |
-| 59 | Maximum BPM | Fast but regular gauntlet | Hyperbeat Headspin |
-| 60 | The Grand DJ | Tempo-changing chapter boss | Infinite Disco Drop |
-| 61 | Quiet Entrance | Sound and shadow tutorial | Whisper Waltz |
-| 62 | Pink Disappearance | Trickster introduction | Vanishing Viennese |
-| 63 | Candlelit Corridors | Limited visibility and silhouettes | Candle-Step Minuet |
-| 64 | False Applause | Audio decoys | Phantom Foxtrot |
-| 65 | Masked Duel | Teleporting elite hunt | Mask-and-Mirror Mazurka |
-| 66 | Shadow Partners | Decoy squad combinations | Partner-Swap Waltz |
-| 67 | Silver Key Sonata | Long-form exploration | Keyhole Ballet Parody |
-| 68 | Curtain Call Trap | Exit becomes an arena | Encore Elegance |
-| 69 | Midnight Vault | Stealth-route mastery | Nocturne Glide |
-| 70 | Duchess of Shadows | Illusion chapter boss | Dark Waltz of Ten Faces |
-| 71 | Reactor One | Phase-door introduction | Quantum Quake |
-| 72 | White Reflection | Mirror robot introduction | Copycat Crank |
-| 73 | Broken Measure | Irregular attack timing | Seven-Beat Stumble |
-| 74 | Phase and Pursue | Rooms alternate solidity | Phase-Shift Shuffle |
-| 75 | Mirror Match | Movement-copying elite | Mimic Motion Battle |
-| 76 | Black Signal | Glitch robot introduction | Corrupted Krump |
-| 77 | Split Reality | Two maze states share switches | Parallel Polka |
-| 78 | Unstable Chorus | Mixed tempo fields | Polyrhythm Panic |
-| 79 | Critical Beat | Reactor shutdown gauntlet | Critical-Core Cadence |
-| 80 | Reactor Aberration | Glitching chapter boss | Impossible Meter Medley |
-| 81 | Welcome Back Party | Remixed early archetypes | Nostalgia Mash-Up |
-| 82 | Confetti Crossfire | Visual clutter readability test | Confetti Combat Can-Can |
-| 83 | Golden Escape | Hunt a high-value fleeing robot | Gold-Rush Gallop |
-| 84 | Banquet of Bombs | Bomber and shield formations | Explosive Etiquette |
-| 85 | The Evil Smile Club | Named elite squad | Synchronized Smirk-Step |
-| 86 | Parade Route | Moving multi-room battle | Villain Victory Parade |
-| 87 | Cake Is a Trap | Comic bait-and-ambush level | Treacherous Twist |
-| 88 | Hundred Hats | Accessory armor challenge | Hatstorm Hoedown |
-| 89 | Final Celebration | Long mixed-archetype endurance | Celebration Corruption Mix |
-| 90 | Mayor of Mischief | Squad-command chapter boss | Mayor’s Maniacal March |
-| 91 | Golden Gate | Citadel entry and mastery check | Royal Robot Procession |
-| 92 | Hall of Every Color | Color/archetype memory challenge | Spectrum Shuffle |
-| 93 | Weapon Trial | Four weapon-specific wings | Arsenal Alternation |
-| 94 | Gravity of the Beat | Directional knockback and moving gravity-field rooms; no jump is required | Low-Gravity Groove |
-| 95 | Four Conductors | Coordinated elite encounter | Quartet of Chaos |
-| 96 | The Long Maze | Exploration and resource mastery | Marathon Moonwalk |
-| 97 | Prime’s Guards | Boss archetype remixes | Guarded Gavotte |
-| 98 | Rhythm Core | Disable the central signal | Heartbeat Hijack |
-| 99 | Last Rehearsal | Campaign-wide combat exam | Hundred-Step Megamix |
-| 100 | Prime Davel | Multi-phase final boss and ending | Prime Rhythm Rebellion |
+| 36 | Cold Storage | Limited-healing final endurance and ending | Refrigerator Robot |
 
 ### 11.3 Difficulty curve
 
-For level `L` from 1 to 100, data generation begins from curves but is hand-reviewed:
+For level `L` from 1 to 36, data generation begins from curves but is hand-reviewed:
 
 - chapter `C = ceil(L / 10)`;
 - stage `S = ((L - 1) mod 10) + 1`;
@@ -683,15 +615,13 @@ For level `L` from 1 to 100, data generation begins from curves but is hand-revi
 - attack BPM rises within safe ranges but later levels also use pauses and syncopation;
 - maze size grows through meaningful branches, not empty corridors;
 - resource generosity decreases modestly but never creates unwinnable seeds;
-- bosses occur at every level ending in 10; named elite tests occur at levels ending in 5.
+- bosses occur at Levels 10, 20, and 30; named elite tests occur at Levels 5, 15, 25, and 35; Level 36 is the final endurance mission.
 
 Initial balancing targets, subject to playtesting:
 
 - Levels 1–10: 4–10 active robots, one mechanic at a time.
 - Levels 11–30: 8–16 active robots, two-archetype combinations.
-- Levels 31–60: 10–22 active robots, support units, hazards, and weapon checks.
-- Levels 61–90: 12–24 concurrently active robots, deception and coordinated formations.
-- Levels 91–100: curated encounters with no more than 24 concurrently active robots; additional enemies enter through deterministic staged waves.
+- Levels 31–36: 10–22 active robots, support units, shield pressure, hazards, and final endurance checks.
 - All concurrently active robots receive the same full authoritative physics rules. The 24-robot cap is a simulation contract, not merely a rendering target.
 - Robots assigned to later waves do not exist as active physics entities until a deterministic encounter trigger spawns them.
 
@@ -1465,7 +1395,7 @@ No quality tier changes simulation tick rate, substeps, solver iterations, activ
 
 ## 21. Implementation phases and gates
 
-No phase should begin by building all 100 levels. Prove the engine and a representative vertical slice first.
+No phase should begin by building all 36 levels. Prove the engine and a representative vertical slice first.
 
 ### Phase -1: 24-robot feasibility spike
 
@@ -1635,7 +1565,7 @@ Deliverables:
 - medals/statistics/upgrades;
 - atomic recovery and export/import;
 - save migration fixtures;
-- unconditional save-schema, chapter, and stable level-ID reservations through Level 100 so either monolithic or staged release scope remains possible when Decision 22 is made in Phase 10.
+- unconditional save-schema, chapter, and stable level-ID reservations through Level 36.
 
 Exit gate:
 
@@ -1656,30 +1586,30 @@ Exit gate:
 
 - same offline web assets run correctly in selected packaged targets, and progress survives restart and WebView-storage clearing because the packaged save file is authoritative.
 
-### Phase 10: Chapters 2–5
+### Phase 10: complete campaign content
 
 Deliverables:
 
-- Levels 11–50;
+- Levels 11–36;
 - remaining core weapons and major archetypes;
 - chapter bosses and palette/effect families;
 - expanded accessibility and localization.
 
 Exit gate:
 
-- midpoint campaign progression is fun, balanced, and content production is repeatable.
+- all 36 campaign levels are complete, fun, balanced, and produced through the repeatable content pipeline.
 
-### Phase 11: Chapters 6–10
+### Phase 11: campaign integration and final balance
 
 Deliverables:
 
-- Levels 51–100;
-- advanced archetypes, hybrid dances, story conclusion, final boss;
-- complete music/dance system and secrets.
+- full-campaign progression, economy, pacing, and difficulty review;
+- story conclusion and Level 36 ending;
+- complete music/dance system and secrets for the 36 released levels.
 
 Exit gate:
 
-- all levels pass automated solvability, performance, completion, and content review.
+- all 36 levels pass automated solvability, performance, completion, and content review.
 
 ### Phase 12: polish and release
 
@@ -1700,20 +1630,20 @@ Exit gate:
 Very rough planning range after design approval. The estimates assume a small focused team, not one person doing every discipline sequentially:
 
 - Vertical slice through Level 10: approximately 10–16 person-months depending on developer graphics/audio experience and target-device requirements.
-- Full polished 100-level release: approximately 24–40 person-months, including content, testing, audio, localization, and packaging.
+- Full polished 36-level release: approximately 14–24 person-months, including content, testing, audio, localization, and packaging.
 - Planning team assumption: 3–5 contributors covering gameplay/graphics, tools/content design, choreography/music/audio, and QA/release, with roles combined only where experience supports it.
-- A solo full-time developer should interpret 24–40 person-months literally as roughly 2–3.5 years before contingency, platform certification, and part-time specialist help.
-- Choreography/procedural music is an explicitly staffed content discipline. Ownership includes the dance grammar, 100 presets, beat/attack timelines, procedural sequencer, mix review, and accessibility equivalents.
+- A solo full-time developer should interpret 14–24 person-months literally as roughly 1.2–2 years before contingency, platform certification, and part-time specialist help.
+- Choreography/procedural music is an explicitly staffed content discipline. Ownership includes the dance grammar, 36 presets, beat/attack timelines, procedural sequencer, mix review, and accessibility equivalents.
 
-The 100-level goal is primarily a content-production challenge. Data-driven room templates, dance grammar, robot modifiers, and automated validation are required to keep it feasible.
+The 36-level goal remains a substantial content-production challenge. Data-driven room templates, dance grammar, robot modifiers, and automated validation are required to keep it feasible.
 
 ## 23. Risks and mitigations
 
 | Risk | Impact | Mitigation |
 |---|---|---|
 | Raw WebGL2 engine scope expands | Schedule and stability | Implement only game-required features; enforce phase gates |
-| 100 levels become repetitive | Player retention | Ten distinct chapters, objective variety, modifiers, secrets, bosses, unique dance presets |
-| 100 levels take too long to author | Release delay | Data schemas, reusable encounter grammar, automated validation, ship chapters only when polished |
+| 36 levels become repetitive | Player retention | Four distinct chapter identities, objective variety, modifiers, secrets, bosses, unique dance presets |
+| 36 levels take too long to author | Release delay | Data schemas, reusable encounter grammar, automated validation, ship only when polished |
 | XPBD robots become unreadable | Combat fairness | Pose constraints, silhouette tests, capped impulses, recovery states |
 | Physics cost is high on mobile | Frame drops | Phase -1 spike, hard 24-active-robot cap, staged waves, fixed solver budget, render-only LOD, instancing |
 | Worker/WebView behavior differs | Platform bugs | Capability detection, main-thread renderer fallback, real-device gates |
@@ -1742,20 +1672,15 @@ If telemetry is considered later:
 
 ### 25.1 Release-scope decision
 
-The final game remains a 100-level campaign. Two release strategies are possible:
+The owner selected one complete 36-level campaign on 20 August 2026. There are no planned post-Level-36 chapters in the scope of this product or implementation goal. No release may be marketed as complete until all 36 levels pass the same automated, agent, performance, accessibility, asset, and human-playtest gates.
 
-- **Option A — monolithic 1.0:** version 1.0 waits for all 100 levels. This preserves the original promise but carries the greatest schedule and quality risk.
-- **Option B — staged public release (recommended):** version 1.0 contains polished Chapters 1–3 (30 levels) and all foundational systems; Chapters 4–10 arrive as free, open-source campaign updates on a published schedule. “Campaign Complete” is declared only when all 100 levels ship.
+Phase 8 implements save continuity and stable ID reservations through Level 36. Content beyond that envelope requires a future product decision and a reviewed schema migration rather than an implied roadmap promise.
 
-No chapter may be marketed as complete until it passes the same automated, agent, performance, accessibility, asset, and human-playtest gates. The selected option must be approved in Section 26 before external release promises are made.
+### 25.2 Definition of done for the complete 36-level campaign
 
-Phase 8 implements save continuity and stable ID reservations through Level 100 regardless of which option is later selected. Decision 22 may therefore remain a Phase 10 content/release lock without forcing a persistence redesign.
-
-### 25.2 Definition of done for the complete 100-level campaign
-
-- 100 completable, reviewed campaign levels.
+- 36 completable, reviewed campaign levels.
 - Four polished weapons with distinct roles.
-- Ten core robot archetypes, rare modifiers, elites, and ten chapter bosses.
+- The implemented core robot archetypes, rare modifiers, named elites, three chapter bosses, and the Level 36 final endurance encounter.
 - Unique data-defined dance preset and palette treatment for every level.
 - Deterministic fixed-step simulation shared by human play, replay, tests, and LLM agents.
 - Raw WebGL2 renderer with no Three.js.
@@ -1771,16 +1696,6 @@ Phase 8 implements save continuity and stable ID reservations through Level 100 
 - Open-source license, contribution documentation, credits, and trademark policy approved.
 - No copied commercial-game assets or runtime network dependencies.
 
-### 25.3 Additional definition of done for a staged 30-level version 1.0
-
-If Option B is approved:
-
-- Levels 1–30 and Chapters 1–3 are complete and polished.
-- All architectural systems needed by later chapters are production-ready; future chapters add data/content rather than parallel engines.
-- The pulse gun, sword, and bombs are campaign-unlocked; the laser is playable in a versioned challenge/training arena and remains campaign-unlocked in Chapter 5.
-- The public roadmap clearly labels Chapters 4–10 as planned free updates without promising unverified dates.
-- Save schema and level IDs reserve seamless continuation through Level 100.
-
 ## 26. Review decisions and blocking phases
 
 Not every product decision blocks the feasibility spike. A decision must be resolved before the phase shown; later decisions may be discussed earlier without delaying unrelated engineering.
@@ -1794,7 +1709,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
 | 5 | Decide whether jumping is present or movement uses sprint plus dash only. | Phase 4 player controller |
 | 6 | Confirm initial languages; recommendation is English and Arabic first. | Phase 10 localization completion |
 | 7 | Decide whether gamepad support is required for the first public release. | Phase 10 release scope |
-| 8 | Approve the ten chapter themes and 100-level catalog. | Phase 6.5 content-production tooling |
+| 8 | Approve the four chapter identities and 36-level catalog. | Phase 6.5 content-production tooling |
 | 9 | Approve the four-weapon scope and upgrade philosophy. | Phase 6 combat vertical slice |
 | 10 | Approve the no-microtransaction coin economy. | Phase 6 combat/economy slice |
 | 11 | Decide the first supported desktop/mobile release platforms. | Phase 9 packaging |
@@ -1808,7 +1723,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
 | 19 | Approve the hard cap of 24 concurrently active full-physics robots and deterministic staged waves for larger encounters. | Phase -1 feasibility spike |
 | 20 | Approve the provisional minimum device/browser matrix in Section 19 or supply replacement hardware. | Phase -1 measurement run |
 | 21 | Approve Phase 6.5 internal content tooling and its one-working-day authoring gate. | Phase 6.5 tooling implementation |
-| 22 | Choose monolithic 100-level version 1.0 or the recommended 30-level version 1.0 followed by free chapter updates. | Phase 10 release/content lock |
+| 22 | Owner-approved complete 36-level scope; no post-Level-36 chapters are promised. | Resolved 2026-08-20 |
 | 23 | Confirm agent-enabled builds use isolated progress and normal production builds do not expose mutation-capable agent methods. | Phase 7 LLM interface |
 | 24 | Assign named ownership or contracted support for choreography, procedural music, sound design, content tools, replay maintenance, and device QA. | Phase 0 staffing/ownership gate |
 
@@ -1855,7 +1770,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
 
 ## 28. Immediate next step after approval
 
-After this plan is reviewed and the decisions tagged “Phase -1” in Section 26 are resolved, technical work begins with the disposable Phase -1 feasibility spike. Each remaining decision must be resolved by its own listed phase gate. Phase 0 may begin after deterministic, bounded-transport, and development-regression evidence is recorded; unavailable physical devices defer platform certification but do not stop implementation. The first production visual milestone is one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone is a polished ten-level Chapter 1—not a rushed generation of all 100 levels.
+After this plan is reviewed and the decisions tagged “Phase -1” in Section 26 are resolved, technical work begins with the disposable Phase -1 feasibility spike. Each remaining decision must be resolved by its own listed phase gate. Phase 0 may begin after deterministic, bounded-transport, and development-regression evidence is recorded; unavailable physical devices defer platform certification but do not stop implementation. The first production visual milestone is one articulated Davel dancing and reacting to impulses in a simple test room. The first product milestone is a polished ten-level Chapter 1—not a rushed generation of all 36 levels.
 
 ## Appendix A. Level data schema contract
 
@@ -1889,8 +1804,8 @@ PresetBinding<T>:
 | Field | Type | Required | Constraints and meaning |
 |---|---|---:|---|
 | `schemaVersion` | integer | Yes | Starts at `1`; controls validation and migration |
-| `id` | string | Yes | Stable pattern `level-001` through `level-100`; never reused |
-| `number` | integer | Yes | `1..100`; must agree with `id` |
+| `id` | string | Yes | Stable pattern `level-001` through `level-036`; never reused |
+| `number` | integer | Yes | `1..36`; must agree with `id` |
 | `chapterId` | string | Yes | Stable chapter reference such as `chapter-01` |
 | `nameKey` | string | Yes | Localization key for the level name |
 | `briefingKey` | string | Yes | Localization key for the short briefing |
@@ -2102,7 +2017,7 @@ Each `AgentValidationRunSpec` declares:
 
 Every ordinary released level requires at least one `live-agent` Standard run. Boss and named-elite levels should use that mode when practical but may substitute a reviewed `reference-replay` run for bespoke mechanics. Every difficulty and supported assist combination receives static graph, objective, lock/key, resource, and timing validation; selected named benchmark levels also receive Story/Hard/assist execution spot checks.
 
-Only the canonical run for a frozen six-level set—initially `level-001` (tutorial), `level-023` (ordinary archetype introduction), `level-046` (weapon unlock), `level-065` (teleporting elite), `level-085` (named elite squad), and `level-100` (final boss)—pins `expectedChecksum` as those chapters enter the released set. This keeps five non-boss, agent-robustness-oriented coverage points and only one boss while spanning early, middle, and late systems; selection alone does not grant a reference-replay exception. All other campaign runs set the checksum to null and gate on completion, objective set, legality, stuck timeout, and tick budget, avoiding routine checksum churn across 100 levels. The IDs, selection rationale, canonical run IDs, and approved checksums live in a versioned benchmark manifest; changing the set is a reviewed benchmark change.
+Only the canonical runs in the versioned frozen benchmark manifest pin `expectedChecksum`. The current six-level set is `level-001`, `level-003`, `level-005`, `level-006`, `level-008`, and `level-010`; the complete 36-level live-agent suite separately gates every campaign level on completion, objective set, legality, stuck timeout, tick budget, and repeated deterministic checksum. Changing the frozen set is a reviewed benchmark change rather than an automatic consequence of adding content.
 
 Dependency hashing occurs after every `PresetBinding` is resolved and canonical effective level data is materialized. The manifest records both full resolved-content provenance and a simulation-affecting effective-data hash; editing a shared difficulty, economy, checkpoint, or other simulation-affecting preset therefore invalidates every dependent replay/checksum, while a proven presentation-only change need not create simulation checksum churn. Any simulation-schema, simulation-affecting balance, effective level-data, policy, or replay-format change that alters a replay dependency requires the named owner to review and re-record the affected reference; the pull request explains the invalidation and provides before/after validation results. A level can still fail human review for being confusing, boring, unfair, or badly paced.
 

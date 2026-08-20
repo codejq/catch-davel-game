@@ -51,7 +51,7 @@ const HEADER_RUN_SCORE = 64;
 const HEADER_CURRENT_COMBO = 72;
 const HEADER_HIGHEST_COMBO = 76;
 
-// The transport reserves the complete 100-level numeric envelope so admitting
+// The transport reserves the complete 36-level numeric envelope so admitting
 // authored content never renumbers an existing level or changes the wire layout.
 function levelCode(levelId: PlayableLevelId): number { return CAMPAIGN_LEVEL_IDS.indexOf(levelId); }
 function decodeLevel(code: number): PlayableLevelId {

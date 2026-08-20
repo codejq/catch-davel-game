@@ -315,7 +315,7 @@ export function validateLevelDefinition(value: unknown): LevelDefinition {
     : ['schemaVersion', 'id', 'number', 'chapterId', 'nameKey', 'briefingKey', 'seed', 'palette', 'maze', 'objectives', 'encounters', 'dance', 'difficulty', 'economy', 'checkpoints', 'audio', 'mastery', 'agentValidation', 'performance', 'story', 'tags'], 'level');
   if (level.schemaVersion !== 1) throw new Error('Unsupported level schema version');
   const id = text(level.id, 'level.id', /^level-\d{3}$/);
-  const number = integer(level.number, 'level.number', 1, 100);
+  const number = integer(level.number, 'level.number', 1, 36);
   if (id !== `level-${String(number).padStart(3, '0')}`) throw new Error('level.id and level.number disagree');
   text(level.chapterId, 'level.chapterId', /^chapter-\d{2}$/);
   text(level.nameKey, 'level.nameKey'); text(level.briefingKey, 'level.briefingKey'); text(level.seed, 'level.seed');

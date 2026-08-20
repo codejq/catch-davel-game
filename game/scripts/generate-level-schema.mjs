@@ -113,7 +113,7 @@ const schema = {
   $id: 'https://quantum-billing.example/schemas/catch-davel/level-definition-v1.json',
   title: 'Catch Davel LevelDefinition v1',
   ...strict({
-    schemaVersion: { const: 1 }, id: { type: 'string', pattern: '^level-\\d{3}$' }, number: integer(1, 100),
+    schemaVersion: { const: 1 }, id: { type: 'string', pattern: '^level-\\d{3}$' }, number: integer(1, 36),
     chapterId: { type: 'string', pattern: '^chapter-\\d{2}$' }, nameKey: id, briefingKey: id, seed: id,
     palette: { $ref: '#/$defs/presetBinding' }, maze: { $ref: '#/$defs/maze' },
     objectives: { type: 'array', minItems: 1, maxItems: 100, items: { $ref: '#/$defs/objective' } },

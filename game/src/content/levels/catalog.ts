@@ -9,7 +9,7 @@ export { PLAYABLE_LEVEL_IDS, type PlayableLevelId } from '../level-ids.ts';
 
 /**
  * The only runtime registry of fully authored, validated campaign levels.
- * Reserved 001–100 IDs do not become playable merely by existing in the public
+ * Reserved 001–036 IDs do not become playable merely by existing in the public
  * numbering envelope; a definition must be added here and pass catalog tests.
  */
 export const PLAYABLE_LEVELS: readonly LevelDefinition[] = [
