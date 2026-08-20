@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **54 — reproducible release evidence and bundled notices**
+Revision: **55 — explicit human, owner, authoring, and package acceptance records**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 55 makes every remaining non-automated gate executable without pretending it is already approved. A consolidated human/owner record now covers policy and identity approval, named production ownership, formal ratification of unresolved Decisions 1–15, 21, 23, and 24, required playtest cohorts, human completion/fun/readability coverage across all 36 levels, accessibility, English/Arabic, three-range audio, security, and privacy. Separate templates define the independent eight-active-hour Phase 6.5 trained-designer exercise and one smoke record per exact signed artifact. Each uses named reviewers, ISO dates, reviewed commit/manifest identity, controlled outcomes, issue references, and fail/retest rules. These templates reduce ambiguity but do not close their gates until real qualified people complete them.
 
 Revision 54 closes two release-engineering gaps without claiming owner approval or publication. Every Vite production build—and therefore the Tauri frontend bundle—now emits byte-identical license, credits, privacy, security, corresponding-source, trademark, and asset notices under `legal/`. A fail-closed release-evidence command requires an explicit semantic version, HTTPS source location, clean tracked worktree, unique target names, regular artifact files, and exact notice equality, then records the Git commit plus SHA-256 and byte length for every notice and selected package. Its rehearsal suite proves strict argument handling and tamper rejection. Target selection, signing, final-package smoke tests, and publishing remain owner-controlled release gates.
 

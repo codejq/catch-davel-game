@@ -168,3 +168,5 @@ These are development/CI results. Physical-device certification is outside the c
 2. Schedule the separate trained-human one-working-day authoring acceptance session when participants are available.
 3. Select official release targets, rebuild from the release commit, sign with owner-controlled credentials, smoke-test the packages, and publish the matching source/tag.
 4. Perform optional physical-device certification for any platform where Quantum Billing wants that additional claim.
+
+The handoff package includes signable templates for consolidated human/owner review and decision ratification, the independent trained-designer Phase 6.5 timing exercise, and per-artifact package smoke tests. Templates are process readiness only and remain deliberately unfilled until qualified reviewers evaluate the exact release candidate.

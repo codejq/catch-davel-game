@@ -36,6 +36,8 @@ npm run game:tauri:test
 
 ## Human and owner gates
 
+Use [HUMAN_AND_OWNER_REVIEW_TEMPLATE.md](HUMAN_AND_OWNER_REVIEW_TEMPLATE.md) for the consolidated approval record and [AUTHORING_ACCEPTANCE_TEMPLATE.md](../content/AUTHORING_ACCEPTANCE_TEMPLATE.md) for the independent Phase 6.5 session.
+
 - [ ] Quantum Billing approves the final title, logo/robot permission record, MIT code license, original-asset license, and [trademark policy](../../TRADEMARKS.md).
 - [ ] Named owners accept choreography/music, content tooling, replay maintenance, and release QA responsibilities.
 - [ ] A trained content designer completes the one-working-day Phase 6.5 acceptance session and signs its report.
@@ -45,6 +47,8 @@ npm run game:tauri:test
 - [ ] Security and privacy reviewers approve [SECURITY.md](../../SECURITY.md), [PRIVACY.md](../../PRIVACY.md), CSP, capabilities, and import/export behavior.
 
 ## Packaging and distribution gates
+
+Use [PACKAGE_SMOKE_TEST_TEMPLATE.md](PACKAGE_SMOKE_TEST_TEMPLATE.md) once for every exact selected artifact and attach it to the generated [release evidence](RELEASE_EVIDENCE.md).
 
 - [ ] Select the official release targets and version number.
 - [ ] Rebuild installers/APKs from the release commit and record artifact hashes.

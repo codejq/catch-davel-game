@@ -36,3 +36,5 @@ The final machine record reported `automatedGatePassed: true` and `humanDesigner
 ## Remaining human evidence
 
 A trained content designer must use the workbench workflow to create, validate, agent-test, and submit a normal Chapter 1-quality level using existing art/audio, while recording active authoring time, review/fix time, and total elapsed time. The exit gate passes only if that total is below one working day. This session is an acceptance measurement, not an implementation blocker; other game work continues while it is scheduled.
+
+Use `AUTHORING_ACCEPTANCE_TEMPLATE.md` for the timed session, command evidence, assistance/friction log, and signatures.

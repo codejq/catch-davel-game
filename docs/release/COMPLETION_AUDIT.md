@@ -42,6 +42,6 @@ The following definition-of-done evidence is still open:
 - Phase -1 evidence: `spike/phase-minus-one/artifacts/DEVELOPMENT_REPORT.md`.
 - Content-tooling evidence: `docs/content/CONTENT_WORKBENCH.md` and `docs/content/AUTHORING_GATE_DRY_RUN.md`.
 - Packaging evidence: `docs/packaging/TAURI_V2.md`.
-- Release actions and sign-offs: `docs/release/RELEASE_CHECKLIST.md`; deterministic artifact hashing and bundled-notice procedure: `docs/release/RELEASE_EVIDENCE.md`.
+- Release actions and sign-offs: `docs/release/RELEASE_CHECKLIST.md`; human/owner evidence: `docs/release/HUMAN_AND_OWNER_REVIEW_TEMPLATE.md`; trained-authoring evidence: `docs/content/AUTHORING_ACCEPTANCE_TEMPLATE.md`; per-artifact smoke evidence: `docs/release/PACKAGE_SMOKE_TEST_TEMPLATE.md`; deterministic artifact hashing and bundled-notice procedure: `docs/release/RELEASE_EVIDENCE.md`.
 
 This audit must be updated when an open item is closed. The project must not be described as fully released or the end-to-end goal marked complete while any required item remains open.
