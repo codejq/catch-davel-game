@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-laughing-mirrors', generatorVersion: 1,
     criticalPathRooms: { minimum: 5, maximum: 5 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'mirror-entry', exitNodeId: 'reflection-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'mirror-entry', exitNodeId: 'reflection-exit',
     nodes: [
       { id: 'mirror-entry', role: 'entrance', templateTags: ['carnival', 'mirror-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'silver-token-booth', role: 'corridor', templateTags: ['carnival', 'silver-token'], sizeClass: 'medium', encounterIds: [], pickupIds: ['silver-token'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'laughing-mirror-arena', role: 'arena', templateTags: ['carnival', 'false-corridors', 'mirror-shutters'], sizeClass: 'large', encounterIds: ['mirrorball-company'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'left-reflection', role: 'corridor', templateTags: ['carnival', 'false-corridor', 'left-reflection'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'left-reflection', role: 'secret', templateTags: ['carnival', 'false-corridor', 'left-reflection'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'right-reflection', role: 'corridor', templateTags: ['carnival', 'false-corridor', 'right-reflection'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'mirror-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-016', storyIds: [], criticalPath: true },
       { id: 'reflection-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -94,13 +94,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-laughing-mirrors'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_600,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'b9d98494a998b1f7',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '20f2a6b42949554f',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 52, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 52, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-016-standard-live'],
   },

@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "79ca60a8fccd99b2",
+          "effectiveLevel": "27c8cdfb9e2efda5",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "2ce1fc91cbee4832",
+          "simulationLevel": "9489361ba9414fb3",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -467,9 +467,10 @@
         "encounterIds": [],
         "id": "gearbox-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -510,7 +511,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-three-key-tango",
     "validationProfile": "authored-grid-v1"
   },
@@ -543,7 +544,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 6,
+    "maxActivePickups": 7,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 2,

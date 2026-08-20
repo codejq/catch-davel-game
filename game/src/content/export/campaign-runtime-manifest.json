@@ -1412,6 +1412,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 9,
+          "row": 1
         }
       },
       "openings": [
@@ -1525,6 +1530,11 @@
         "key": {
           "column": 3,
           "row": 3
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -1650,6 +1660,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -1751,6 +1766,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -1860,6 +1880,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -1957,6 +1982,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -2074,6 +2104,11 @@
         "key": {
           "column": 3,
           "row": 3
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -2191,6 +2226,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2298,6 +2338,11 @@
         "key": {
           "column": 3,
           "row": 3
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2343,6 +2388,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 20,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -2456,6 +2506,11 @@
         "key": {
           "column": 11,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2553,6 +2608,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 10,
+          "row": 13
         }
       },
       "openings": [
@@ -2626,6 +2686,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2723,6 +2788,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2828,6 +2898,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -2925,6 +3000,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -3022,6 +3102,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -3091,6 +3176,11 @@
         "key": {
           "column": 11,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -3164,6 +3254,11 @@
         "key": {
           "column": 11,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -3237,6 +3332,11 @@
         "key": {
           "column": 9,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 16,
+          "column": 9,
+          "row": 1
         }
       },
       "openings": [
@@ -3302,6 +3402,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -3399,6 +3504,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 13,
+          "row": 12
         }
       },
       "openings": [
@@ -3496,6 +3606,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -3597,6 +3712,11 @@
         "key": {
           "column": 3,
           "row": 3
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -3698,6 +3818,11 @@
         "key": {
           "column": 3,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 12,
+          "row": 13
         }
       },
       "openings": [
@@ -3799,6 +3924,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 24,
+          "column": 11,
+          "row": 13
         }
       },
       "openings": [
@@ -3895,6 +4025,11 @@
         "key": {
           "column": 7,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": []
@@ -3921,6 +4056,11 @@
         },
         "key": {
           "column": 9,
+          "row": 13
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 10,
           "row": 13
         }
       },
@@ -3979,6 +4119,11 @@
         "key": {
           "column": 11,
           "row": 5
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -4024,6 +4169,11 @@
         "key": {
           "column": 3,
           "row": 11
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 9,
+          "row": 13
         }
       },
       "openings": [
@@ -4073,6 +4223,11 @@
         "key": {
           "column": 9,
           "row": 11
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -4118,6 +4273,11 @@
         "key": {
           "column": 3,
           "row": 7
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 9,
+          "row": 13
         }
       },
       "openings": [
@@ -4161,7 +4321,7 @@
           "row": 7
         },
         "secretCoin": {
-          "amount": 15,
+          "amount": 12,
           "column": 1,
           "row": 11
         }
@@ -4209,6 +4369,11 @@
         "key": {
           "column": 7,
           "row": 11
+        },
+        "secretCoin": {
+          "amount": 12,
+          "column": 7,
+          "row": 1
         }
       },
       "openings": [
@@ -4260,7 +4425,7 @@
           "row": 13
         },
         "secretCoin": {
-          "amount": 18,
+          "amount": 12,
           "column": 13,
           "row": 11
         }

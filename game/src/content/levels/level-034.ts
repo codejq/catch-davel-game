@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'cold-storage-frosted-crossroads', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'frosted-entry', exitNodeId: 'crystal-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'frosted-entry', exitNodeId: 'crystal-exit',
     nodes: [
       { id: 'frosted-entry', role: 'entrance', templateTags: ['cold-storage', 'glass-airlock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'prism-locker', role: 'corridor', templateTags: ['cold-storage', 'prism-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['prism-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'west-refraction', role: 'corridor', templateTags: ['cold-storage', 'glass-route-west'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'frosted-crossroads', role: 'arena', templateTags: ['cold-storage', 'glass-crossroads'], sizeClass: 'large', encounterIds: ['crystal-lock-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'clear-cache', role: 'corridor', templateTags: ['cold-storage', 'visible-optional-route'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'clear-cache', role: 'secret', templateTags: ['cold-storage', 'visible-optional-route'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'east-refraction', role: 'corridor', templateTags: ['cold-storage', 'glass-route-east'], sizeClass: 'large', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'crystal-checkpoint', role: 'checkpoint', templateTags: ['cold-storage', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-034', storyIds: [], criticalPath: true },
       { id: 'crystal-exit', role: 'exit', templateTags: ['cold-storage', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -83,12 +83,12 @@ const draft: LevelDefinition = {
     maxTicks: 18_000, stuckTimeoutTicks: 2_000, maxIllegalActions: 0,
     requiredObjectiveIds: ['clear-frosted-crossroads'], expectedCompletion: true, expectedChecksum: null, parTicks: 14_000,
     dependencyHashes: {
-      simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'c79dda8d80564622',
+      simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '0ca029700705c3a9',
       balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
     },
   }] },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-034-standard-live'],
   },

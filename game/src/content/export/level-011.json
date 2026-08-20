@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "4ca13ea1148b1c92",
+          "effectiveLevel": "cbb2e3348bb48dc7",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "57038c81ca027089",
+          "simulationLevel": "f2c749172c584c67",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -321,9 +321,10 @@
         "encounterIds": [],
         "id": "prize-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -364,7 +365,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-ticket-trouble",
     "validationProfile": "authored-grid-v1"
   },
@@ -395,7 +396,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 36,
     "maxActiveRobots": 8,
     "maxHazards": 2,

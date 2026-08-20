@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "26a082d253f5a773",
+          "effectiveLevel": "337a8e32e5386c62",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "377d5dccaf85be3b",
+          "simulationLevel": "12efc4347c096916",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -372,7 +372,7 @@
     ],
     "optionalRooms": {
       "maximum": 2,
-      "minimum": 1
+      "minimum": 2
     },
     "secretCount": 1,
     "templateSetId": "workshop-lights-out-smiles-on",

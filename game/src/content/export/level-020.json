@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "84639c435577918b",
+          "effectiveLevel": "9ac24ba31ff39546",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "2b66b71ee1b11f7e",
+          "simulationLevel": "2a27fffe80056cc0",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -316,9 +316,10 @@
         "encounterIds": [],
         "id": "west-grandstand",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -387,7 +388,7 @@
       "maximum": 2,
       "minimum": 2
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-ringmaster-davel",
     "validationProfile": "authored-grid-v1"
   },
@@ -418,7 +419,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 48,
     "maxActiveRobots": 1,
     "maxHazards": 4,

@@ -818,7 +818,7 @@ try {
   await toolingPage.click('#validate-level');
   const rejectsUnknownField = await toolingPage.locator('#validation-status').evaluate((node) => node.classList.contains('invalid'));
   if (toolingProof.authoredLevels !== 36 || toolingProof.mazeCells !== 225 || toolingProof.timedGates !== 3
-    || toolingProof.graphNodes !== 6 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
+    || toolingProof.graphNodes !== 7 || toolingProof.danceBeats !== 16 || !toolingProof.status.startsWith('VALID')
     || !toolingProof.replayStatus.startsWith('VERIFIED') || toolingProof.replayDependencies !== 4
     || toolingProof.replayChecksums !== 4 || toolingProof.replayCommandRuns < 1 || toolingProof.balanceRows !== 36
     || !toolingProof.balanceSummary.includes('Guaranteed 1660 coins')

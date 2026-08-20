@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-ringmaster-davel', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'finale-entry', exitNodeId: 'carnival-victory-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'finale-entry', exitNodeId: 'carnival-victory-exit',
     nodes: [
       { id: 'finale-entry', role: 'entrance', templateTags: ['carnival', 'finale-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'ringmaster-ticket-lane', role: 'corridor', templateTags: ['carnival', 'golden-ticket'], sizeClass: 'medium', encounterIds: [], pickupIds: ['ringmaster-ticket'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'evil-big-top', role: 'arena', templateTags: ['carnival', 'chapter-boss', 'rotating-curtains'], sizeClass: 'large', encounterIds: ['ringmaster-finale'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'west-grandstand', role: 'corridor', templateTags: ['carnival', 'grandstand-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'west-grandstand', role: 'secret', templateTags: ['carnival', 'grandstand-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'east-grandstand', role: 'corridor', templateTags: ['carnival', 'grandstand-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'finale-crossing', role: 'corridor', templateTags: ['carnival', 'finale-crossing'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'ringmaster-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-020', storyIds: [], criticalPath: true },
@@ -80,13 +80,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['defeat-ringmaster-davel'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 7_200,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2b66b71ee1b11f7e',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2a27fffe80056cc0',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 1, maxActiveProjectiles: 48, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 1, maxActiveProjectiles: 48, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-020-standard-live'],
   },

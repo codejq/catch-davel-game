@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "b45ee3bfb92ae577",
+          "effectiveLevel": "eda204050793e094",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "1929beb042709d5e",
+          "simulationLevel": "a718da989cec9406",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -388,9 +388,10 @@
         "encounterIds": [],
         "id": "prize-arcade",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -432,7 +433,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-spinners-midway",
     "validationProfile": "authored-grid-v1"
   },
@@ -464,7 +465,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 44,
     "maxActiveRobots": 5,
     "maxHazards": 3,

@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "f46a859e80625dc9",
+          "effectiveLevel": "7f8682cf45170a2e",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "c79dda8d80564622",
+          "simulationLevel": "0ca029700705c3a9",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -441,9 +441,10 @@
         "encounterIds": [],
         "id": "clear-cache",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -498,7 +499,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "cold-storage-frosted-crossroads",
     "validationProfile": "authored-grid-v1"
   },
@@ -531,7 +532,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 4,

@@ -6,13 +6,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "aa3d2286acbac52f",
+          "effectiveLevel": "041632e77ca2fe83",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationLevel": "82b8b67c1a938370",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
-        "expectedChecksum": "059c499d70e741c3",
+        "expectedChecksum": "c72cfd1e58522bfd",
         "expectedCompletion": true,
         "id": "standard-live",
         "maxIllegalActions": 0,
@@ -32,13 +32,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "aa3d2286acbac52f",
+          "effectiveLevel": "041632e77ca2fe83",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationLevel": "82b8b67c1a938370",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Story",
-        "expectedChecksum": "acca402475a06f3c",
+        "expectedChecksum": "fa7bf278fd073d8a",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -58,13 +58,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "aa3d2286acbac52f",
+          "effectiveLevel": "041632e77ca2fe83",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "1cb437a2803b4cd4",
+          "simulationLevel": "82b8b67c1a938370",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "0436705cb627df17",
+        "expectedChecksum": "daccc7d8b3b8e6ed",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,
@@ -271,6 +271,16 @@
         "stateTrigger": "deactivate-davels",
         "to": "room-exit",
         "traversalCost": 1
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-key",
+        "id": "edge-key-secret",
+        "requiredKeyId": null,
+        "stateTrigger": "secret-discovered",
+        "to": "room-secret",
+        "traversalCost": 3
       }
     ],
     "entranceNodeId": "room-entry",
@@ -284,7 +294,7 @@
         "placementNodeId": "room-key"
       }
     ],
-    "maxBranchDepth": 1,
+    "maxBranchDepth": 2,
     "nodes": [
       {
         "checkpointId": null,
@@ -358,13 +368,29 @@
         "templateTags": [
           "objective-exit"
         ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "room-secret",
+        "pickupIds": [
+          "secret-coin-cache"
+        ],
+        "role": "secret",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "tutorial",
+          "secret"
+        ]
       }
     ],
     "optionalRooms": {
       "maximum": 1,
-      "minimum": 0
+      "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "workshop-basic",
     "validationProfile": "authored-grid-v1"
   },
@@ -396,7 +422,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 3,
+    "maxActivePickups": 4,
     "maxActiveProjectiles": 16,
     "maxActiveRobots": 6,
     "maxHazards": 0,

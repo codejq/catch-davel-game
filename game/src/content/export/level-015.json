@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "13dce65c9cff2833",
+          "effectiveLevel": "a6f5efd64f72c510",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "da526b66d52a0785",
+          "simulationLevel": "a6b01eb62d078657",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -424,9 +424,10 @@
         "encounterIds": [],
         "id": "speaker-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -468,7 +469,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-tempo-tent",
     "validationProfile": "authored-grid-v1"
   },
@@ -501,7 +502,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 48,
     "maxActiveRobots": 4,
     "maxHazards": 4,

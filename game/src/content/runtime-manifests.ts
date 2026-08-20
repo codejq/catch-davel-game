@@ -397,15 +397,15 @@ export interface MazeRuntimeProfile {
 export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>> = {
   'workshop-basic': {
     openings: [],
-    interactions: { health: { column: 5, row: 3, amount: 25 }, key: { column: 7, row: 5 }, energy: { column: 9, row: 7, amount: 35 }, door: { column: 7, row: 8 }, checkpoint: { column: 11, row: 9 } },
+    interactions: { health: { column: 5, row: 3, amount: 25 }, key: { column: 7, row: 5 }, energy: { column: 9, row: 7, amount: 35 }, door: { column: 7, row: 8 }, checkpoint: { column: 11, row: 9 }, secretCoin: { column: 7, row: 1, amount: 12 } },
   },
   'workshop-grinning-hall': {
     openings: [{ column: 6, row: 1 }, { column: 6, row: 7 }],
-    interactions: { health: { column: 3, row: 3, amount: 24 }, key: { column: 3, row: 7 }, energy: { column: 11, row: 5, amount: 34 }, door: { column: 5, row: 8 }, checkpoint: { column: 9, row: 9 }, coin: { column: 8, row: 1, amount: 4 } },
+    interactions: { health: { column: 3, row: 3, amount: 24 }, key: { column: 3, row: 7 }, energy: { column: 11, row: 5, amount: 34 }, door: { column: 5, row: 8 }, checkpoint: { column: 9, row: 9 }, coin: { column: 8, row: 1, amount: 4 }, secretCoin: { column: 9, row: 13, amount: 12 } },
   },
   'workshop-coin-circuit': {
     openings: [{ column: 4, row: 2 }, { column: 10, row: 2 }, { column: 8, row: 10 }],
-    interactions: { health: { column: 11, row: 3, amount: 23 }, key: { column: 11, row: 5 }, energy: { column: 7, row: 7, amount: 33 }, door: { column: 3, row: 10 }, checkpoint: { column: 7, row: 11 }, coin: { column: 8, row: 3, amount: 5 } },
+    interactions: { health: { column: 11, row: 3, amount: 23 }, key: { column: 11, row: 5 }, energy: { column: 7, row: 7, amount: 33 }, door: { column: 3, row: 10 }, checkpoint: { column: 7, row: 11 }, coin: { column: 8, row: 3, amount: 5 }, secretCoin: { column: 7, row: 1, amount: 12 } },
   },
   'workshop-wrong-turn-boogie': {
     openings: [{ column: 4, row: 4 }, { column: 12, row: 4 }, { column: 2, row: 8 }, { column: 12, row: 10 }],
@@ -413,27 +413,27 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
   },
   'workshop-foremans-two-step': {
     openings: [{ column: 6, row: 4 }, { column: 10, row: 4 }, { column: 6, row: 12 }],
-    interactions: { health: { column: 9, row: 5, amount: 22 }, key: { column: 9, row: 11 }, energy: { column: 11, row: 7, amount: 31 }, door: { column: 9, row: 12 }, checkpoint: { column: 5, row: 11 }, coin: { column: 7, row: 5, amount: 7 } },
+    interactions: { health: { column: 9, row: 5, amount: 22 }, key: { column: 9, row: 11 }, energy: { column: 11, row: 7, amount: 31 }, door: { column: 9, row: 12 }, checkpoint: { column: 5, row: 11 }, coin: { column: 7, row: 5, amount: 7 }, secretCoin: { column: 7, row: 1, amount: 12 } },
   },
   'workshop-conveyor-conga': {
     openings: [{ column: 2, row: 6 }, { column: 6, row: 6 }, { column: 10, row: 6 }, { column: 12, row: 6 }],
-    interactions: { health: { column: 5, row: 7, amount: 21 }, key: { column: 3, row: 11 }, energy: { column: 3, row: 9, amount: 30 }, door: { column: 1, row: 10 }, checkpoint: { column: 7, row: 13 }, coin: { column: 11, row: 5, amount: 8 } },
+    interactions: { health: { column: 5, row: 7, amount: 21 }, key: { column: 3, row: 11 }, energy: { column: 3, row: 9, amount: 30 }, door: { column: 1, row: 10 }, checkpoint: { column: 7, row: 13 }, coin: { column: 11, row: 5, amount: 8 }, secretCoin: { column: 9, row: 13, amount: 12 } },
   },
   'workshop-lights-out-smiles-on': {
     openings: [{ column: 6, row: 2 }, { column: 4, row: 10 }, { column: 10, row: 12 }],
-    interactions: { health: { column: 13, row: 7, amount: 20 }, key: { column: 11, row: 7 }, energy: { column: 9, row: 9, amount: 29 }, door: { column: 13, row: 10 }, checkpoint: { column: 3, row: 11 }, coin: { column: 13, row: 5, amount: 9 }, secretCoin: { column: 1, row: 11, amount: 15 } },
+    interactions: { health: { column: 13, row: 7, amount: 20 }, key: { column: 11, row: 7 }, energy: { column: 9, row: 9, amount: 29 }, door: { column: 13, row: 10 }, checkpoint: { column: 3, row: 11 }, coin: { column: 13, row: 5, amount: 9 }, secretCoin: { column: 1, row: 11, amount: 12 } },
   },
   'workshop-shift-change': {
     openings: [{ column: 12, row: 2 }, { column: 6, row: 8 }, { column: 10, row: 8 }, { column: 12, row: 8 }],
-    interactions: { health: { column: 3, row: 9, amount: 20 }, key: { column: 7, row: 11 }, energy: { column: 5, row: 11, amount: 28 }, door: { column: 11, row: 10 }, checkpoint: { column: 9, row: 13 }, coin: { column: 13, row: 3, amount: 10 } },
+    interactions: { health: { column: 3, row: 9, amount: 20 }, key: { column: 7, row: 11 }, energy: { column: 5, row: 11, amount: 28 }, door: { column: 11, row: 10 }, checkpoint: { column: 9, row: 13 }, coin: { column: 13, row: 3, amount: 10 }, secretCoin: { column: 7, row: 1, amount: 12 } },
   },
   'workshop-workshop-rush': {
     openings: [{ column: 4, row: 2 }, { column: 10, row: 4 }, { column: 2, row: 6 }, { column: 6, row: 8 }, { column: 12, row: 10 }],
-    interactions: { health: { column: 11, row: 9, amount: 19 }, key: { column: 5, row: 13 }, energy: { column: 11, row: 11, amount: 27 }, door: { column: 1, row: 12 }, checkpoint: { column: 3, row: 13 }, coin: { column: 7, row: 7, amount: 12 }, secretCoin: { column: 13, row: 11, amount: 18 } },
+    interactions: { health: { column: 11, row: 9, amount: 19 }, key: { column: 5, row: 13 }, energy: { column: 11, row: 11, amount: 27 }, door: { column: 1, row: 12 }, checkpoint: { column: 3, row: 13 }, coin: { column: 7, row: 7, amount: 12 }, secretCoin: { column: 13, row: 11, amount: 12 } },
   },
   'workshop-chief-wobble': {
     openings: [{ column: 6, row: 1 }, { column: 4, row: 4 }, { column: 10, row: 4 }, { column: 2, row: 8 }, { column: 8, row: 10 }, { column: 10, row: 12 }],
-    interactions: { health: { column: 7, row: 9, amount: 30 }, key: { column: 9, row: 13 }, energy: { column: 3, row: 13, amount: 40 }, door: { column: 13, row: 12 }, checkpoint: { column: 11, row: 13 } },
+    interactions: { health: { column: 7, row: 9, amount: 30 }, key: { column: 9, row: 13 }, energy: { column: 3, row: 13, amount: 40 }, door: { column: 13, row: 12 }, checkpoint: { column: 11, row: 13 }, secretCoin: { column: 10, row: 13, amount: 12 } },
   },
   'carnival-ticket-trouble': {
     openings: [
@@ -448,6 +448,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 5, row: 8 },
       checkpoint: { column: 11, row: 9 },
       coin: { column: 13, row: 5, amount: 13 },
+      secretCoin: { column: 9, row: 1, amount: 16 },
     },
   },
   'carnival-sliding-sideshow': {
@@ -463,6 +464,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 6, row: 8 },
       checkpoint: { column: 9, row: 11 },
       coin: { column: 9, row: 5, amount: 14 },
+      secretCoin: { column: 11, row: 13, amount: 16 },
     },
   },
   'carnival-spinners-midway': {
@@ -479,6 +481,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 5, amount: 15 },
+      secretCoin: { column: 11, row: 13, amount: 16 },
     },
   },
   'carnival-firebreather-funhouse': {
@@ -495,6 +498,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 6, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 16 },
+      secretCoin: { column: 10, row: 13, amount: 16 },
     },
   },
   'carnival-tempo-tent': {
@@ -511,6 +515,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 12, row: 8 },
       checkpoint: { column: 9, row: 11 },
       coin: { column: 5, row: 5, amount: 17 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
     },
   },
   'carnival-laughing-mirrors': {
@@ -529,6 +534,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 18 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
     },
   },
   'carnival-prize-booth-panic': {
@@ -547,6 +553,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 19 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
       defense: {
         column: 8, row: 9, maxHealth: 360, attackRadius: 1.65,
         damagePerStrike: 9, attackIntervalTicks: 54,
@@ -569,6 +576,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 8, row: 10 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 5, row: 5, amount: 20 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
     },
   },
   'carnival-midnight-matinee': {
@@ -587,6 +595,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 21 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
     },
   },
   'carnival-ringmaster-davel': {
@@ -605,6 +614,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 5, row: 5, amount: 22 },
+      secretCoin: { column: 7, row: 1, amount: 16 },
     },
   },
   'boiler-pipework-promenade': {
@@ -623,6 +633,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 5, row: 5, amount: 23 },
+      secretCoin: { column: 7, row: 1, amount: 20 },
     },
   },
   'boiler-green-steam': {
@@ -642,6 +653,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 3, amount: 24 },
+      secretCoin: { column: 11, row: 13, amount: 20 },
     },
   },
   'boiler-firemouth-fiesta': {
@@ -661,6 +673,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 25 },
+      secretCoin: { column: 12, row: 13, amount: 20 },
     },
   },
   'boiler-valve-velocity': {
@@ -680,6 +693,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 12, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 9, amount: 26 },
+      secretCoin: { column: 12, row: 13, amount: 20 },
     },
   },
   'boiler-crimson-pair': {
@@ -699,6 +713,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 5, amount: 27 },
+      secretCoin: { column: 12, row: 13, amount: 20 },
     },
   },
   'boiler-bombs-ballroom': {
@@ -718,6 +733,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 5, amount: 28 },
+      secretCoin: { column: 9, row: 1, amount: 20 },
     },
   },
   'boiler-magenta-drain': {
@@ -737,6 +753,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 7, row: 5, amount: 29 },
+      secretCoin: { column: 12, row: 13, amount: 20 },
     },
   },
   'boiler-three-key-tango': {
@@ -749,6 +766,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 9, row: 12 },
       checkpoint: { column: 11, row: 13 },
       coin: { column: 13, row: 7, amount: 30 },
+      secretCoin: { column: 7, row: 1, amount: 20 },
     },
   },
   'boiler-fever-tunnels': {
@@ -767,6 +785,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 11, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 31 },
+      secretCoin: { column: 7, row: 1, amount: 20 },
     },
   },
   'boiler-furnace-mouth': {
@@ -785,6 +804,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 8, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 3, amount: 32 },
+      secretCoin: { column: 11, row: 13, amount: 20 },
     },
   },
   'cold-storage-reception': {
@@ -803,6 +823,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 9, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 5, amount: 33 },
+      secretCoin: { column: 13, row: 12, amount: 24 },
     },
   },
   'cold-storage-slippery-smiles': {
@@ -821,6 +842,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 8, row: 6 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 13, row: 5, amount: 34 },
+      secretCoin: { column: 12, row: 13, amount: 24 },
     },
   },
   'cold-storage-violet-wall': {
@@ -839,6 +861,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 10, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 5, row: 9, amount: 35 },
+      secretCoin: { column: 12, row: 13, amount: 24 },
     },
   },
   'cold-storage-frosted-crossroads': {
@@ -857,6 +880,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 6, row: 8 },
       checkpoint: { column: 9, row: 11 },
       coin: { column: 11, row: 9, amount: 36 },
+      secretCoin: { column: 11, row: 13, amount: 24 },
     },
   },
   'cold-storage-zero-degree-duel': {
@@ -875,6 +899,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 8, row: 8 },
       checkpoint: { column: 11, row: 11 },
       coin: { column: 9, row: 9, amount: 37 },
+      secretCoin: { column: 11, row: 13, amount: 24 },
     },
   },
   'cold-storage-refrigerator-finale': {
@@ -893,6 +918,7 @@ export const MAZE_RUNTIME_PROFILES: Readonly<Record<string, MazeRuntimeProfile>>
       door: { column: 6, row: 8 },
       checkpoint: { column: 13, row: 11 },
       coin: { column: 7, row: 9, amount: 38 },
+      secretCoin: { column: 7, row: 1, amount: 24 },
     },
   },
 };

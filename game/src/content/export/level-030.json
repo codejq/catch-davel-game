@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "846df8227f5b4b8f",
+          "effectiveLevel": "3f6378941bb70046",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "e2789398020900b3",
+          "simulationLevel": "61f7578feaa2f95e",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -317,9 +317,10 @@
         "encounterIds": [],
         "id": "coolant-west",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -388,7 +389,7 @@
       "maximum": 2,
       "minimum": 2
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-furnace-mouth",
     "validationProfile": "authored-grid-v1"
   },
@@ -419,7 +420,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 1,
     "maxHazards": 4,

@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-prize-booth-panic', generatorVersion: 1,
     criticalPathRooms: { minimum: 5, maximum: 5 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'cashier-entry', exitNodeId: 'jackpot-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'cashier-entry', exitNodeId: 'jackpot-exit',
     nodes: [
       { id: 'cashier-entry', role: 'entrance', templateTags: ['carnival', 'cashier-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'vault-key-lane', role: 'corridor', templateTags: ['carnival', 'vault-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['vault-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'prize-bank-arena', role: 'arena', templateTags: ['carnival', 'defense', 'prize-bank'], sizeClass: 'large', encounterIds: ['jackpot-raiders'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'golden-side-booth', role: 'corridor', templateTags: ['carnival', 'prize-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'golden-side-booth', role: 'secret', templateTags: ['carnival', 'prize-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'crooked-side-booth', role: 'corridor', templateTags: ['carnival', 'decoy-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'bank-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-017', storyIds: [], criticalPath: true },
       { id: 'jackpot-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -84,13 +84,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['defend-prize-bank'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 10_200,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'f98fa3929a78c786',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '550e2a1088dd5e0c',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 52, maxActivePickups: 4, maxHazards: 0,
+    maxActiveRobots: 4, maxActiveProjectiles: 52, maxActivePickups: 5, maxHazards: 0,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-017-standard-live'],
   },

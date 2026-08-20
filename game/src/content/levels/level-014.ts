@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-firebreather-funhouse', generatorVersion: 1,
     criticalPathRooms: { minimum: 5, maximum: 5 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'funhouse-entry', exitNodeId: 'firework-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'funhouse-entry', exitNodeId: 'firework-exit',
     nodes: [
       { id: 'funhouse-entry', role: 'entrance', templateTags: ['carnival', 'funhouse-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'match-booth', role: 'corridor', templateTags: ['carnival', 'brass-match'], sizeClass: 'medium', encounterIds: [], pickupIds: ['brass-match'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'fire-ring-arena', role: 'arena', templateTags: ['carnival', 'red-firemouth', 'crossing-belts', 'timed-gate'], sizeClass: 'large', encounterIds: ['firebreather-funhouse-crew'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'smoke-mirror-loop', role: 'corridor', templateTags: ['carnival', 'smoke-mirrors', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'smoke-mirror-loop', role: 'secret', templateTags: ['carnival', 'smoke-mirrors', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'funhouse-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-014', storyIds: [], criticalPath: true },
       { id: 'firework-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -89,13 +89,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-firebreather-funhouse'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'b05834f0d9e4201d',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '7a392561de7a4fe3',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 8, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-014-standard-live'],
   },

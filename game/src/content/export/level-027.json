@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "73e8e1a5c751cbae",
+          "effectiveLevel": "70f5cee501eec473",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "9c349a3c30a13c05",
+          "simulationLevel": "6b222ed13b0973cf",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -454,9 +454,10 @@
         "encounterIds": [],
         "id": "overflow-balcony",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -497,7 +498,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-magenta-drain",
     "validationProfile": "authored-grid-v1"
   },
@@ -530,7 +531,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 3,

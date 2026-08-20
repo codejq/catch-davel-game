@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-midnight-matinee', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'moon-gate-entry', exitNodeId: 'curtain-call-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'moon-gate-entry', exitNodeId: 'curtain-call-exit',
     nodes: [
       { id: 'moon-gate-entry', role: 'entrance', templateTags: ['carnival', 'moon-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'silver-ticket-lane', role: 'corridor', templateTags: ['carnival', 'silver-ticket'], sizeClass: 'medium', encounterIds: [], pickupIds: ['moon-ticket'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'moonlit-gauntlet', role: 'arena', templateTags: ['carnival', 'moonlit', 'moving-lanes', 'curtain-gates'], sizeClass: 'large', encounterIds: ['midnight-company'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'west-balcony', role: 'corridor', templateTags: ['carnival', 'balcony-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'west-balcony', role: 'secret', templateTags: ['carnival', 'balcony-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'east-balcony', role: 'corridor', templateTags: ['carnival', 'balcony-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'matinee-crossing', role: 'corridor', templateTags: ['carnival', 'curtain-crossing'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'midnight-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-019', storyIds: [], criticalPath: true },
@@ -91,13 +91,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-midnight-matinee'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_800,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2a11ddf526e2aca1',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'f76dced32bcb5cb9',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-019-standard-live'],
   },

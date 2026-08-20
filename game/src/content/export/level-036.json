@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "429d9c27ab08995b",
+          "effectiveLevel": "93e5497ae12e14fa",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "f187873e2832fc55",
+          "simulationLevel": "2ed5df0199e4deb8",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -489,9 +489,10 @@
         "encounterIds": [],
         "id": "last-cache",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -546,7 +547,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "cold-storage-refrigerator-finale",
     "validationProfile": "authored-grid-v1"
   },
@@ -580,7 +581,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 4,

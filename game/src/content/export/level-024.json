@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "9500b679f2efff2a",
+          "effectiveLevel": "0cf667405c96ff43",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "6af9106095909e44",
+          "simulationLevel": "23c730a58be62980",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -454,9 +454,10 @@
         "encounterIds": [],
         "id": "gauge-gallery",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -497,7 +498,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-valve-velocity",
     "validationProfile": "authored-grid-v1"
   },
@@ -530,7 +531,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 60,
     "maxActiveRobots": 4,
     "maxHazards": 3,

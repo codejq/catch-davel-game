@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "4090a861d0b69a58",
+          "effectiveLevel": "6692f929f81eb9b3",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "1c7b106c08f767cd",
+          "simulationLevel": "0f265537abc9be47",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -461,9 +461,10 @@
         "encounterIds": [],
         "id": "balcony-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -504,7 +505,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-crimson-pair",
     "validationProfile": "authored-grid-v1"
   },
@@ -537,7 +538,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 4,

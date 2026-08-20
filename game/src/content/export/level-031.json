@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "4ee330897e80670e",
+          "effectiveLevel": "aa828e01b2ae4d2b",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "af693b5ee94f0d79",
+          "simulationLevel": "abd48a3628ca3be1",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -449,9 +449,10 @@
         "encounterIds": [],
         "id": "heated-office",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -506,7 +507,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "cold-storage-reception",
     "validationProfile": "authored-grid-v1"
   },
@@ -539,7 +540,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 3,

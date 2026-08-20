@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'cold-storage-reception', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'thaw-entry', exitNodeId: 'freezer-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'thaw-entry', exitNodeId: 'freezer-exit',
     nodes: [
       { id: 'thaw-entry', role: 'entrance', templateTags: ['cold-storage', 'warm-airlock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'coat-check', role: 'corridor', templateTags: ['cold-storage', 'reception-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['frost-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'welcome-ice', role: 'corridor', templateTags: ['cold-storage', 'ice-tutorial'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'cold-reception', role: 'arena', templateTags: ['cold-storage', 'icy-arena'], sizeClass: 'large', encounterIds: ['cold-reception-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'heated-office', role: 'corridor', templateTags: ['cold-storage', 'optional-warmth'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'heated-office', role: 'secret', templateTags: ['cold-storage', 'optional-warmth'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'packing-lane', role: 'corridor', templateTags: ['cold-storage', 'cross-ice'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'cold-checkpoint', role: 'checkpoint', templateTags: ['cold-storage', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-031', storyIds: [], criticalPath: true },
       { id: 'freezer-exit', role: 'exit', templateTags: ['cold-storage', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -90,13 +90,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-cold-reception'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 12_500,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'af693b5ee94f0d79',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'abd48a3628ca3be1',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-031-standard-live'],
   },

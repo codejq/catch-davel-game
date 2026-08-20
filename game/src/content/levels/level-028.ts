@@ -10,14 +10,14 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-three-key-tango', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'tango-entry', exitNodeId: 'triple-lock-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'tango-entry', exitNodeId: 'triple-lock-exit',
     nodes: [
       { id: 'tango-entry', role: 'entrance', templateTags: ['toxic-boiler', 'key-sequence'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'brass-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'brass-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['brass-tango-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'cyan-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'cyan-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['cyan-tango-key', 'pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'magenta-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'magenta-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['magenta-tango-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'three-key-floor', role: 'arena', templateTags: ['toxic-boiler', 'triple-lock-arena'], sizeClass: 'large', encounterIds: ['triple-key-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'gearbox-loop', role: 'corridor', templateTags: ['toxic-boiler', 'optional-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'gearbox-loop', role: 'secret', templateTags: ['toxic-boiler', 'optional-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'tango-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'three-key-console'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-028', storyIds: [], criticalPath: true },
       { id: 'triple-lock-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -93,13 +93,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-three-key-tango'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 12_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2ce1fc91cbee4832',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '9489361ba9414fb3',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 6, maxHazards: 2,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 7, maxHazards: 2,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-028-standard-live'],
   },

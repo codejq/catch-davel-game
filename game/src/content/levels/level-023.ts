@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-firemouth-fiesta', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'furnace-entry', exitNodeId: 'coolant-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'furnace-entry', exitNodeId: 'coolant-exit',
     nodes: [
       { id: 'furnace-entry', role: 'entrance', templateTags: ['toxic-boiler', 'furnace-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'ignition-control', role: 'corridor', templateTags: ['toxic-boiler', 'furnace-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['furnace-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'flame-shutter-crossing', role: 'corridor', templateTags: ['toxic-boiler', 'alternating-flames'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'firemouth-fiesta-floor', role: 'arena', templateTags: ['toxic-boiler', 'red-firemouth', 'hot-draft'], sizeClass: 'large', encounterIds: ['firemouth-fiesta-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'coolant-gallery', role: 'corridor', templateTags: ['toxic-boiler', 'optional-coolant'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'coolant-gallery', role: 'secret', templateTags: ['toxic-boiler', 'optional-coolant'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'fiesta-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-023', storyIds: [], criticalPath: true },
       { id: 'coolant-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -88,13 +88,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-firemouth-fiesta'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 10_500,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'dff52cc3fa613256',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '9dac5701781a946c',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-023-standard-live'],
   },

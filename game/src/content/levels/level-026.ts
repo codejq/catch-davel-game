@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-bombs-ballroom', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'ballroom-entry', exitNodeId: 'blast-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'ballroom-entry', exitNodeId: 'blast-exit',
     nodes: [
       { id: 'ballroom-entry', role: 'entrance', templateTags: ['toxic-boiler', 'bomb-ballroom'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'detonator-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'detonator-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['detonator-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'three-seal-gallery', role: 'corridor', templateTags: ['toxic-boiler', 'destructible-routes'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'blast-ballroom', role: 'arena', templateTags: ['toxic-boiler', 'blast-draft'], sizeClass: 'large', encounterIds: ['ballroom-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'shortcut-balcony', role: 'corridor', templateTags: ['toxic-boiler', 'optional-shortcut'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'shortcut-balcony', role: 'secret', templateTags: ['toxic-boiler', 'optional-shortcut'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'ballroom-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-026', storyIds: [], criticalPath: true },
       { id: 'blast-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -90,13 +90,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-bombs-ballroom'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'eac80a3af3d37d9a',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '2a0798d632867155',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c0167c2e506ee1c0',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-026-standard-live'],
   },

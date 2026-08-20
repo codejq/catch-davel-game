@@ -6,7 +6,7 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "b8d5ba6afbd87b4d",
+          "effectiveLevel": "b5a892ec4f81ff44",
           "policyOrReplay": "c00c7c2e50668d3b",
           "simulationLevel": "84031a61f510283d",
           "simulationSchema": "7673b9fb7039c568"
@@ -373,7 +373,7 @@
     ],
     "optionalRooms": {
       "maximum": 2,
-      "minimum": 1
+      "minimum": 2
     },
     "secretCount": 1,
     "templateSetId": "workshop-wrong-turn-boogie",

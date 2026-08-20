@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "765ae93d723e3c09",
+          "effectiveLevel": "1b4505ff8ad5dfa0",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "2a11ddf526e2aca1",
+          "simulationLevel": "f76dced32bcb5cb9",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -444,9 +444,10 @@
         "encounterIds": [],
         "id": "west-balcony",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -515,7 +516,7 @@
       "maximum": 2,
       "minimum": 2
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-midnight-matinee",
     "validationProfile": "authored-grid-v1"
   },
@@ -548,7 +549,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 60,
     "maxActiveRobots": 4,
     "maxHazards": 4,

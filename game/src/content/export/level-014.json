@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "8059336090bffb3e",
+          "effectiveLevel": "b84c73316ac63481",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "b05834f0d9e4201d",
+          "simulationLevel": "7a392561de7a4fe3",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -402,9 +402,10 @@
         "encounterIds": [],
         "id": "smoke-mirror-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -446,7 +447,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-firebreather-funhouse",
     "validationProfile": "authored-grid-v1"
   },
@@ -479,7 +480,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 48,
     "maxActiveRobots": 4,
     "maxHazards": 3,

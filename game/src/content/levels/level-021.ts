@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-pipework-promenade', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'boiler-entry', exitNodeId: 'steamworks-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'boiler-entry', exitNodeId: 'steamworks-exit',
     nodes: [
       { id: 'boiler-entry', role: 'entrance', templateTags: ['toxic-boiler', 'bomb-locker'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'service-wrench-room', role: 'corridor', templateTags: ['toxic-boiler', 'service-wrench'], sizeClass: 'medium', encounterIds: [], pickupIds: ['service-wrench'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'demolition-lock', role: 'corridor', templateTags: ['toxic-boiler', 'bomb-tutorial', 'pressure-seal'], sizeClass: 'medium', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'pipework-promenade', role: 'arena', templateTags: ['toxic-boiler', 'vent-routes', 'steam-lanes'], sizeClass: 'large', encounterIds: ['pipe-tap-crews'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'maintenance-vent', role: 'corridor', templateTags: ['toxic-boiler', 'optional-vent'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'maintenance-vent', role: 'secret', templateTags: ['toxic-boiler', 'optional-vent'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'boiler-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-021', storyIds: [], criticalPath: true },
       { id: 'steamworks-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -81,13 +81,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-pipework-promenade'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_500,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'ae7edbfccd2b01e7',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '26ff2f61b5e0a41c',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c0167c2e506ee1c0',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-021-standard-live'],
   },

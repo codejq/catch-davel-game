@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-spinners-midway', generatorVersion: 1,
     criticalPathRooms: { minimum: 5, maximum: 5 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'midway-entry', exitNodeId: 'roundabout-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'midway-entry', exitNodeId: 'roundabout-exit',
     nodes: [
       { id: 'midway-entry', role: 'entrance', templateTags: ['carnival', 'midway-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'token-booth', role: 'corridor', templateTags: ['carnival', 'spinner-token'], sizeClass: 'medium', encounterIds: [], pickupIds: ['spinner-token'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'carousel-arena', role: 'arena', templateTags: ['carnival', 'yellow-spinner', 'rotating-gates'], sizeClass: 'large', encounterIds: ['spinners-midway-crew'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'prize-arcade', role: 'corridor', templateTags: ['carnival', 'prize-arcade', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'prize-arcade', role: 'secret', templateTags: ['carnival', 'prize-arcade', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'midway-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-013', storyIds: [], criticalPath: true },
       { id: 'roundabout-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -83,13 +83,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-spinners-midway'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 8_200,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '1929beb042709d5e',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'a718da989cec9406',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 5, maxActiveProjectiles: 44, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 5, maxActiveProjectiles: 44, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 8, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-013-standard-live'],
   },

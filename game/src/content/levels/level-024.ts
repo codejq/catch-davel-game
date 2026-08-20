@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-valve-velocity', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'pressure-entry', exitNodeId: 'stabilized-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'pressure-entry', exitNodeId: 'stabilized-exit',
     nodes: [
       { id: 'pressure-entry', role: 'entrance', templateTags: ['toxic-boiler', 'pressure-lock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'valve-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'pressure-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['pressure-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'velocity-manifold', role: 'corridor', templateTags: ['toxic-boiler', 'timed-valves'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'pressure-floor', role: 'arena', templateTags: ['toxic-boiler', 'pressure-holdout'], sizeClass: 'large', encounterIds: ['valve-velocity-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'gauge-gallery', role: 'corridor', templateTags: ['toxic-boiler', 'optional-gauges'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'gauge-gallery', role: 'secret', templateTags: ['toxic-boiler', 'optional-gauges'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'pressure-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-024', storyIds: [], criticalPath: true },
       { id: 'stabilized-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -89,13 +89,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['stabilize-velocity-valves'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 10_800,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '6af9106095909e44',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '23c730a58be62980',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 60, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-024-standard-live'],
   },

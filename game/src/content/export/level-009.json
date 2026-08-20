@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "e5b83a5839fb527d",
+          "effectiveLevel": "3ec77cb731a4a16d",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationLevel": "c1526afbdf56e0b8",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -32,13 +32,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "e5b83a5839fb527d",
+          "effectiveLevel": "3ec77cb731a4a16d",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationLevel": "c1526afbdf56e0b8",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Story",
-        "expectedChecksum": "41decdc9fa82823d",
+        "expectedChecksum": "d88d8c3a9b82a322",
         "expectedCompletion": true,
         "id": "story-live",
         "maxIllegalActions": 0,
@@ -58,13 +58,13 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "e5b83a5839fb527d",
+          "effectiveLevel": "3ec77cb731a4a16d",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "5ec0f74d672b7b9a",
+          "simulationLevel": "c1526afbdf56e0b8",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Hard",
-        "expectedChecksum": "0cf7d371d621b0c8",
+        "expectedChecksum": "4bf3b4795aeade6e",
         "expectedCompletion": true,
         "id": "hard-live",
         "maxIllegalActions": 0,
@@ -484,7 +484,7 @@
     ],
     "optionalRooms": {
       "maximum": 2,
-      "minimum": 1
+      "minimum": 2
     },
     "secretCount": 1,
     "templateSetId": "workshop-workshop-rush",

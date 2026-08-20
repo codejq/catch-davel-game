@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "c487c4a492ec3c4b",
+          "effectiveLevel": "90da1e688f0a90cf",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "05ad08de4cb6dc07",
+          "simulationLevel": "648ceed92458423f",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -439,13 +439,16 @@
         "criticalPath": false,
         "encounterIds": [],
         "id": "short-way-booth",
-        "pickupIds": [],
-        "role": "corridor",
+        "pickupIds": [
+          "secret-coin-cache"
+        ],
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
           "carnival",
-          "closed-after-key"
+          "closed-after-key",
+          "secret-cache"
         ]
       },
       {
@@ -495,7 +498,7 @@
       "maximum": 2,
       "minimum": 2
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-big-top-backtrack",
     "validationProfile": "authored-grid-v1"
   },
@@ -528,7 +531,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 56,
     "maxActiveRobots": 4,
     "maxHazards": 2,

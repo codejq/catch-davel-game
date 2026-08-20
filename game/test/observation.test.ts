@@ -38,7 +38,9 @@ describe('agent observation contract', () => {
       active: false, damageMultiplier: 1.5, coinMultiplier: 2,
     });
     expect(observation.robots[0]!.shield).toEqual({ active: false, damageMultiplier: 0.25 });
-    expect(observation.pickups.map((pickup) => pickup.id)).toEqual(['repair-kit', 'workshop-key', 'pulse-cell']);
+    expect(observation.pickups.map((pickup) => pickup.id)).toEqual([
+      'repair-kit', 'workshop-key', 'pulse-cell', 'secret-coin-cache',
+    ]);
     expect(observation.objective).toEqual({ id: 'deactivate-davels', complete: false, exitUnlocked: false });
     expect(observation.door).toMatchObject({ id: 'workshop-lock', open: false, requiresKey: true });
     expect(levelObservation().rows.every((row) => row.length === 15)).toBe(true);

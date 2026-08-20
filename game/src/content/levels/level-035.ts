@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'cold-storage-zero-degree-duel', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'duel-airlock', exitNodeId: 'zero-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'duel-airlock', exitNodeId: 'zero-exit',
     nodes: [
       { id: 'duel-airlock', role: 'entrance', templateTags: ['cold-storage', 'duel-airlock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'challenge-locker', role: 'corridor', templateTags: ['cold-storage', 'challenge-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['challenge-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'west-second', role: 'corridor', templateTags: ['cold-storage', 'countdown-west'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'zero-degree-ring', role: 'arena', templateTags: ['cold-storage', 'elite-duel-ring'], sizeClass: 'large', encounterIds: ['zero-degree-challengers'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'spectator-freezer', role: 'corridor', templateTags: ['cold-storage', 'optional-gallery'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'spectator-freezer', role: 'secret', templateTags: ['cold-storage', 'optional-gallery'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'east-second', role: 'corridor', templateTags: ['cold-storage', 'countdown-east'], sizeClass: 'large', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'duel-checkpoint', role: 'checkpoint', templateTags: ['cold-storage', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-035', storyIds: [], criticalPath: true },
       { id: 'zero-exit', role: 'exit', templateTags: ['cold-storage', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -83,12 +83,12 @@ const draft: LevelDefinition = {
     maxTicks: 18_000, stuckTimeoutTicks: 2_000, maxIllegalActions: 0,
     requiredObjectiveIds: ['win-zero-degree-duel'], expectedCompletion: true, expectedChecksum: null, parTicks: 14_500,
     dependencyHashes: {
-      simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '95b529fe964fa73a',
+      simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'b1cc6b454cbfe6b5',
       balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
     },
   }] },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-035-standard-live'],
   },

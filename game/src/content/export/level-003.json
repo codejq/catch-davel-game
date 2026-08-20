@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "54a0088fa5b73f07",
+          "effectiveLevel": "5a83dae5bad31091",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "c37af5a68eb0346e",
+          "simulationLevel": "c1c5087eb411b66a",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -219,6 +219,16 @@
         "stateTrigger": "key-collected",
         "to": "room-checkpoint",
         "traversalCost": 2
+      },
+      {
+        "bidirectional": true,
+        "doorType": "open",
+        "from": "room-key",
+        "id": "edge-key-secret",
+        "requiredKeyId": null,
+        "stateTrigger": "secret-discovered",
+        "to": "room-secret",
+        "traversalCost": 3
       }
     ],
     "entranceNodeId": "room-entry",
@@ -232,7 +242,7 @@
         "placementNodeId": "room-key"
       }
     ],
-    "maxBranchDepth": 1,
+    "maxBranchDepth": 2,
     "nodes": [
       {
         "checkpointId": null,
@@ -327,13 +337,29 @@
           "workshop",
           "branch"
         ]
+      },
+      {
+        "checkpointId": null,
+        "criticalPath": false,
+        "encounterIds": [],
+        "id": "room-secret",
+        "pickupIds": [
+          "secret-coin-cache"
+        ],
+        "role": "secret",
+        "sizeClass": "small",
+        "storyIds": [],
+        "templateTags": [
+          "workshop",
+          "secret"
+        ]
       }
     ],
     "optionalRooms": {
-      "maximum": 1,
-      "minimum": 1
+      "maximum": 2,
+      "minimum": 2
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "workshop-coin-circuit",
     "validationProfile": "authored-grid-v1"
   },
@@ -345,7 +371,7 @@
       "dependsOn": [],
       "durationTicks": null,
       "id": "deactivate-davels-003",
-      "markerPolicy": "always",
+      "markerPolicy": "discovered",
       "required": true,
       "targetCount": 6,
       "targetIds": [

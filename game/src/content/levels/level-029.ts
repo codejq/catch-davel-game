@@ -10,14 +10,14 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-fever-tunnels', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'fever-entry', exitNodeId: 'antidote-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'fever-entry', exitNodeId: 'antidote-exit',
     nodes: [
       { id: 'fever-entry', role: 'entrance', templateTags: ['toxic-boiler', 'fever-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'filter-locker', role: 'corridor', templateTags: ['toxic-boiler', 'filter-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['fever-filter-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'west-flame-throat', role: 'corridor', templateTags: ['toxic-boiler', 'flame-shutter'], sizeClass: 'medium', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'poison-crossflow', role: 'corridor', templateTags: ['toxic-boiler', 'poison-conveyor'], sizeClass: 'large', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'fever-floor', role: 'arena', templateTags: ['toxic-boiler', 'fire-poison-mix'], sizeClass: 'large', encounterIds: ['fever-tunnel-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'antidote-cache', role: 'corridor', templateTags: ['toxic-boiler', 'optional-antidote'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'antidote-cache', role: 'secret', templateTags: ['toxic-boiler', 'optional-antidote'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'fever-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-029', storyIds: [], criticalPath: true },
       { id: 'antidote-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -91,13 +91,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-fever-tunnels'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 12_500,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '042561dfffe467b1',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '7165b756d3a97e1a',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-029-standard-live'],
   },

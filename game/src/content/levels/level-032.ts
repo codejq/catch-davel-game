@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'cold-storage-slippery-smiles', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'loading-entry', exitNodeId: 'smile-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'loading-entry', exitNodeId: 'smile-exit',
     nodes: [
       { id: 'loading-entry', role: 'entrance', templateTags: ['cold-storage', 'loading-airlock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'skate-rack', role: 'corridor', templateTags: ['cold-storage', 'slider-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['skate-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'crossfire-chute', role: 'corridor', templateTags: ['cold-storage', 'crossfire-ice'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'smile-rink', role: 'arena', templateTags: ['cold-storage', 'mobile-ranged-arena'], sizeClass: 'large', encounterIds: ['slippery-smiles-squad'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'warming-booth', role: 'corridor', templateTags: ['cold-storage', 'optional-warmth'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'warming-booth', role: 'secret', templateTags: ['cold-storage', 'optional-warmth'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'moonwalk-lane', role: 'corridor', templateTags: ['cold-storage', 'moonwalk-ice'], sizeClass: 'large', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'rink-checkpoint', role: 'checkpoint', templateTags: ['cold-storage', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-032', storyIds: [], criticalPath: true },
       { id: 'smile-exit', role: 'exit', templateTags: ['cold-storage', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -91,13 +91,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-slippery-smiles'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 12_500,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '69859c228e2e161c',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '6f607a6383d7ae5e',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-032-standard-live'],
   },

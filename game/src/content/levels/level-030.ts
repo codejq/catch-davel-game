@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-furnace-mouth', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'furnace-entry', exitNodeId: 'boiler-victory-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'furnace-entry', exitNodeId: 'boiler-victory-exit',
     nodes: [
       { id: 'furnace-entry', role: 'entrance', templateTags: ['toxic-boiler', 'boss-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'ignition-key-lane', role: 'corridor', templateTags: ['toxic-boiler', 'ignition-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['ignition-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'furnace-mouth-arena', role: 'arena', templateTags: ['toxic-boiler', 'chapter-boss', 'flame-jaws'], sizeClass: 'large', encounterIds: ['furnace-mouth-finale'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'coolant-west', role: 'corridor', templateTags: ['toxic-boiler', 'coolant-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'coolant-west', role: 'secret', templateTags: ['toxic-boiler', 'coolant-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'coolant-east', role: 'corridor', templateTags: ['toxic-boiler', 'coolant-loop'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'slag-crossing', role: 'corridor', templateTags: ['toxic-boiler', 'slag-crossing'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'furnace-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-030', storyIds: [], criticalPath: true },
@@ -80,13 +80,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['defeat-furnace-mouth'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 7_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'e2789398020900b3',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '61f7578feaa2f95e',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 1, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 1, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-030-standard-live'],
   },

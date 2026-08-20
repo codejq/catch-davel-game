@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "dd07f47959e2dd6b",
+          "effectiveLevel": "7becdac84cf99dda",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "36460f12387f9356",
+          "simulationLevel": "bc05f5198a99907c",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -434,9 +434,10 @@
         "encounterIds": [],
         "id": "unshielded-cache",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -491,7 +492,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "cold-storage-violet-wall",
     "validationProfile": "authored-grid-v1"
   },
@@ -524,7 +525,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 3,

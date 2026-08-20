@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "0e6e03aed4a86a16",
+          "effectiveLevel": "dd6aad19056d98f7",
           "policyOrReplay": "c00c7c2e50668d3b",
-          "simulationLevel": "542d63184f1def41",
+          "simulationLevel": "fab112d0aebb4441",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -367,9 +367,10 @@
         "encounterIds": [],
         "id": "mirror-loop",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -411,7 +412,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "carnival-sliding-sideshow",
     "validationProfile": "authored-grid-v1"
   },
@@ -443,7 +444,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 40,
     "maxActiveRobots": 5,
     "maxHazards": 2,

@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-magenta-drain', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'drain-entry', exitNodeId: 'upper-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'drain-entry', exitNodeId: 'upper-exit',
     nodes: [
       { id: 'drain-entry', role: 'entrance', templateTags: ['toxic-boiler', 'lower-drain'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'sluice-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'sluice-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['sluice-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'rising-switchbacks', role: 'corridor', templateTags: ['toxic-boiler', 'rising-hazard'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'magenta-drain-floor', role: 'arena', templateTags: ['toxic-boiler', 'escape-arena'], sizeClass: 'large', encounterIds: ['drainpipe-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'overflow-balcony', role: 'corridor', templateTags: ['toxic-boiler', 'optional-overflow'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'overflow-balcony', role: 'secret', templateTags: ['toxic-boiler', 'optional-overflow'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'upper-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'high-ground'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-027', storyIds: [], criticalPath: true },
       { id: 'upper-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -89,13 +89,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['escape-magenta-drain'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '9c349a3c30a13c05',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '6b222ed13b0973cf',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-027-standard-live'],
   },

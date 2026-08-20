@@ -21,7 +21,7 @@ Scope: `GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`, including every phase exit gate
 | 8 — persistence | Profile v14, migrations from v1, alternating recovery, checkpoints, results/medals/upgrades, replay proof, import/export, stable IDs through 36, and packaged-file persistence exist. | Implemented. |
 | 9 — packaging | Minimum-capability Tauri v2 shell, atomic Rust profile bridge, suspend/resume, Windows executable/MSI/NSIS development builds, and ARM64/x86_64 Android debug builds exist. | Engineering implemented on available host; selected official targets, release signing, target smoke tests, and Decision 11 remain open. |
 | 10 — campaign | All 36 levels, four weapons, major archetypes, three chapter bosses plus Level 36 endurance boss, unique palettes/dances, English/Arabic, and accessibility settings pass the repeatable content pipeline and deterministic campaign QA. | Content implemented; “fun” and final balance require human review. |
-| 11 — integration/balance | Progression, economy, pacing, difficulty harnesses, procedural music/dance, optional-secret mechanics, and all-level automated review exist. Level 36 now presents a localized canonical ending after final victory. | Partially implemented: most post-Chapter-1 level definitions declare zero secrets, contradicting the plan's per-level secret promise; human final-balance review is also open. |
+| 11 — integration/balance | Progression, economy, pacing, difficulty harnesses, procedural music/dance, exactly one reachable authoritative secret cache per released level, and all-level automated review exist. Level 36 presents a localized canonical ending after final victory. | Implemented technically; human final-balance review remains open. |
 | 12 — polish/release | Original procedural audio, asset audit, accessibility, CSP/minimum capabilities, offline behavior, privacy/security/credits/trademark documents, package build paths, and an explicit release checklist exist. | Open: final mix/review, company approvals, selected-target artifact rebuild/smoke, signing, store media, and publication are not evidenced. |
 
 ## Section 25.2 definition of done
@@ -33,7 +33,6 @@ The following definition-of-done evidence is still open:
 - official Tauri release targets and signed, smoke-tested artifacts selected by the owner;
 - formal approval of code/asset licensing, credits, logo/robot permission, and trademark policy;
 - trained-human authoring acceptance and human playtest/fun/readability/balance gates;
-- completion of the per-level secret promise or an owner-approved plan revision that changes that promise;
 - final release audio/security/privacy/localization review, store media, exact-tag publication, and checksum verification.
 
 ## Commands and authoritative records
@@ -46,4 +45,3 @@ The following definition-of-done evidence is still open:
 - Release actions and sign-offs: `docs/release/RELEASE_CHECKLIST.md`.
 
 This audit must be updated when an open item is closed. The project must not be described as fully released or the end-to-end goal marked complete while any required item remains open.
-

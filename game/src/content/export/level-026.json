@@ -6,9 +6,9 @@
         "assistProfileId": null,
         "dependencyHashes": {
           "balanceData": "c1df429a54459a12",
-          "effectiveLevel": "042cb7bf2ec6524f",
+          "effectiveLevel": "78a14fb9d2a867c8",
           "policyOrReplay": "c0167c2e506ee1c0",
-          "simulationLevel": "eac80a3af3d37d9a",
+          "simulationLevel": "2a0798d632867155",
           "simulationSchema": "7673b9fb7039c568"
         },
         "difficulty": "Standard",
@@ -461,9 +461,10 @@
         "encounterIds": [],
         "id": "shortcut-balcony",
         "pickupIds": [
-          "coin-cache"
+          "coin-cache",
+          "secret-coin-cache"
         ],
-        "role": "corridor",
+        "role": "secret",
         "sizeClass": "medium",
         "storyIds": [],
         "templateTags": [
@@ -504,7 +505,7 @@
       "maximum": 1,
       "minimum": 1
     },
-    "secretCount": 0,
+    "secretCount": 1,
     "templateSetId": "boiler-bombs-ballroom",
     "validationProfile": "authored-grid-v1"
   },
@@ -537,7 +538,7 @@
     ],
     "expectedPeakDrawCalls": 8,
     "expectedPeakMemoryMb": 192,
-    "maxActivePickups": 4,
+    "maxActivePickups": 5,
     "maxActiveProjectiles": 64,
     "maxActiveRobots": 4,
     "maxHazards": 4,

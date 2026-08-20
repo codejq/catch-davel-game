@@ -10,12 +10,12 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-tempo-tent', generatorVersion: 1,
     criticalPathRooms: { minimum: 5, maximum: 5 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'tempo-entry', exitNodeId: 'encore-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'tempo-entry', exitNodeId: 'encore-exit',
     nodes: [
       { id: 'tempo-entry', role: 'entrance', templateTags: ['carnival', 'tempo-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'backstage-booth', role: 'corridor', templateTags: ['carnival', 'backstage-pass'], sizeClass: 'medium', encounterIds: [], pickupIds: ['backstage-pass'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'tempo-tent-arena', role: 'arena', templateTags: ['carnival', 'cyan-dj', 'freeze-window', 'staggered-gates'], sizeClass: 'large', encounterIds: ['tempo-tent-crew'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'speaker-loop', role: 'corridor', templateTags: ['carnival', 'speaker-maze', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'speaker-loop', role: 'secret', templateTags: ['carnival', 'speaker-maze', 'coin-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'tempo-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-015', storyIds: [], criticalPath: true },
       { id: 'encore-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -91,13 +91,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-tempo-tent'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 9_200,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'da526b66d52a0785',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'a6b01eb62d078657',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 48, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 8, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-015-standard-live'],
   },

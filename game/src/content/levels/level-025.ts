@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'boiler-crimson-pair', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'duet-entry', exitNodeId: 'crimson-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'duet-entry', exitNodeId: 'crimson-exit',
     nodes: [
       { id: 'duet-entry', role: 'entrance', templateTags: ['toxic-boiler', 'duet-gate'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'duet-key-bay', role: 'corridor', templateTags: ['toxic-boiler', 'duet-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['duet-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'split-steam-lanes', role: 'corridor', templateTags: ['toxic-boiler', 'opposed-steam'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'crimson-duel-floor', role: 'arena', templateTags: ['toxic-boiler', 'synchronized-duo'], sizeClass: 'large', encounterIds: ['crimson-pair-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'balcony-loop', role: 'corridor', templateTags: ['toxic-boiler', 'optional-balcony'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'balcony-loop', role: 'secret', templateTags: ['toxic-boiler', 'optional-balcony'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'duet-checkpoint', role: 'checkpoint', templateTags: ['toxic-boiler', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-025', storyIds: [], criticalPath: true },
       { id: 'crimson-exit', role: 'exit', templateTags: ['toxic-boiler', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
     ],
@@ -90,13 +90,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['break-crimson-pair'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '1c7b106c08f767cd',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '0f265537abc9be47',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 4,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 4,
     maxMazeNodes: 9, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-025-standard-live'],
   },

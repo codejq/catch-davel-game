@@ -88,7 +88,7 @@ The version-19 observation includes the authoritative playable campaign level/di
 
 Difficulty QA statically checks reachability, objective resources, health/reward budgets, telegraph floors, wave delays, attack tokens, and default assists for all 108 playable level/mode pairs. Declared Story and Hard live-agent spot checks on Levels 1, 9, and 10 also freeze exact deterministic checksums and enforce their individual tick/stuck/action budgets.
 
-`npm run game:qa:balance` reconciles every authored wave archetype/rank with the stable runtime robot IDs, objective target count, and peak budget. It reports per-wave health, pressure, guaranteed kill rewards, optional cache rewards, cumulative purchasing power, and upgrade affordability. The complete thirty-six-level first-clear totals are 1,660 guaranteed combat coins plus 769 optional cache coins against a 222-coin complete weapon/player upgrade catalog, affordable from guaranteed income by Level 9.
+`npm run game:qa:balance` reconciles every authored wave archetype/rank with the stable runtime robot IDs, objective target count, and peak budget. It reports per-wave health, pressure, guaranteed kill rewards, optional cache rewards, cumulative purchasing power, and upgrade affordability. The complete thirty-six-level first-clear totals are 1,660 guaranteed combat coins plus 1,348 optional cache coins against a 222-coin complete weapon/player upgrade catalog, affordable from guaranteed income by Level 9.
 
 ## Persistence and replay guarantees
 

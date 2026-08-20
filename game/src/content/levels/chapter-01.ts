@@ -36,16 +36,16 @@ const GLOBAL_DEPENDENCIES = {
 } as const;
 
 const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
-  'level-001': '1cb437a2803b4cd4',
-  'level-002': '8845b58efc000926',
-  'level-003': 'c37af5a68eb0346e',
+  'level-001': '82b8b67c1a938370',
+  'level-002': '5764b803d9394edf',
+  'level-003': 'c1c5087eb411b66a',
   'level-004': '84031a61f510283d',
-  'level-005': 'c6433b941d4d5b93',
-  'level-006': '44c81df1671fe2cb',
-  'level-007': '377d5dccaf85be3b',
-  'level-008': '0f8997387e91d233',
-  'level-009': '5ec0f74d672b7b9a',
-  'level-010': 'f3591d9b0ef0a949',
+  'level-005': 'ea7fabb4b1f89815',
+  'level-006': '9748273c5aeaea82',
+  'level-007': '12efc4347c096916',
+  'level-008': '05e423c924504877',
+  'level-009': 'c1526afbdf56e0b8',
+  'level-010': '2cb9d234a493bd9b',
 };
 
 function pad(number: number): string {
@@ -121,7 +121,7 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       { id: 'edge-loop-checkpoint', from: 'room-loop', to: 'room-checkpoint', bidirectional: true, requiredKeyId: 'workshop-key', doorType: 'workshop-lock', traversalCost: 2, stateTrigger: 'key-collected' },
     );
   }
-  if (recipe.secret) {
+  {
     nodes.push({ id: 'room-secret', role: 'secret', templateTags: ['workshop', 'secret'], sizeClass: 'small', encounterIds: [], pickupIds: ['secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false });
     edges.push({ id: 'edge-key-secret', from: 'room-key', to: 'room-secret', bidirectional: true, requiredKeyId: null, doorType: 'open', traversalCost: 3, stateTrigger: 'secret-discovered' });
   }
@@ -139,9 +139,9 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       templateSetId: `workshop-${recipe.nameSlug}`,
       generatorVersion: 1,
       criticalPathRooms: { minimum: 5, maximum: 5 },
-      optionalRooms: { minimum: Number(recipe.branch ?? false), maximum: Number(recipe.branch ?? false) + Number(recipe.secret ?? false) },
-      maxBranchDepth: recipe.secret ? 2 : recipe.branch ? 1 : 0,
-      secretCount: recipe.secret ? 1 : 0,
+      optionalRooms: { minimum: Number(recipe.branch ?? false) + 1, maximum: Number(recipe.branch ?? false) + 1 },
+      maxBranchDepth: 2,
+      secretCount: 1,
       entranceNodeId: 'room-entry',
       exitNodeId: 'room-exit',
       nodes,
@@ -165,7 +165,7 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
       durationTicks: null,
       dependsOn: [],
       completionMode: 'count',
-      markerPolicy: recipe.secret ? 'discovered' : 'always',
+      markerPolicy: 'discovered',
     }],
     encounters: [{
       id: encounterId,
@@ -238,8 +238,8 @@ function createChapter01Level(recipe: Chapter01Recipe): LevelDefinition {
         requiredObjectiveIds: [requiredObjectiveId],
         expectedCompletion: true,
         expectedChecksum: difficulty === 'Story'
-          ? (recipe.number === 9 ? '41decdc9fa82823d' : '39d4ac5caaf71117')
-          : (recipe.number === 9 ? '0cf7d371d621b0c8' : 'efd8bcdb3f21dce4'),
+          ? (recipe.number === 9 ? 'd88d8c3a9b82a322' : '7db92ebb5cf8c6d9')
+          : (recipe.number === 9 ? '4bf3b4795aeade6e' : 'e17814c54a839a5e'),
         parTicks: 7_000 + recipe.number * 350,
         dependencyHashes: {
           ...GLOBAL_DEPENDENCIES, effectiveLevel: '0000000000000000',

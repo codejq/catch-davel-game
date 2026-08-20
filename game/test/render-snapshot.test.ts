@@ -32,7 +32,7 @@ describe('self-contained RenderSnapshot v16', () => {
     expect(decoded.state.playerBombs).toEqual([]);
     expect(decoded.state.robots).toHaveLength(6);
     expect(decoded.state.projectiles).toHaveLength(simulation.state.projectiles.length);
-    expect(decoded.state.level.pickups).toHaveLength(3);
+    expect(decoded.state.level.pickups).toHaveLength(4);
     expect(decoded.state.level.door.open).toBe(false);
     expect(decoded.state.level.objectiveComplete).toBe(false);
     expect(decoded.state.level.encounter).toEqual({ waveIndex: 0, waveCount: 1, pendingTicks: 0 });

@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'carnival-big-top-backtrack', generatorVersion: 1,
     criticalPathRooms: { minimum: 6, maximum: 6 }, optionalRooms: { minimum: 2, maximum: 2 },
-    maxBranchDepth: 2, secretCount: 0, entranceNodeId: 'big-top-entry', exitNodeId: 'reverse-exit',
+    maxBranchDepth: 2, secretCount: 1, entranceNodeId: 'big-top-entry', exitNodeId: 'reverse-exit',
     nodes: [
       { id: 'big-top-entry', role: 'entrance', templateTags: ['carnival', 'big-top-entry'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'outbound-ring', role: 'corridor', templateTags: ['carnival', 'outbound-route'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'reverse-key-booth', role: 'corridor', templateTags: ['carnival', 'route-switch'], sizeClass: 'medium', encounterIds: [], pickupIds: ['reverse-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'backtrack-arena', role: 'arena', templateTags: ['carnival', 'maze-reversal', 'backtrack-gates'], sizeClass: 'large', encounterIds: ['reverse-circus-company'], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'short-way-booth', role: 'corridor', templateTags: ['carnival', 'closed-after-key'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'short-way-booth', role: 'secret', templateTags: ['carnival', 'closed-after-key', 'secret-cache'], sizeClass: 'medium', encounterIds: [], pickupIds: ['secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'long-way-booth', role: 'corridor', templateTags: ['carnival', 'opened-after-key'], sizeClass: 'medium', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'reverse-checkpoint', role: 'checkpoint', templateTags: ['carnival', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-018', storyIds: [], criticalPath: true },
       { id: 'reverse-exit', role: 'exit', templateTags: ['carnival', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -89,13 +89,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-big-top-backtrack'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 11_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '05ad08de4cb6dc07',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '648ceed92458423f',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 56, maxActivePickups: 4, maxHazards: 2,
+    maxActiveRobots: 4, maxActiveProjectiles: 56, maxActivePickups: 5, maxHazards: 2,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-018-standard-live'],
   },

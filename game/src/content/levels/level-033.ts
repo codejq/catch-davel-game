@@ -10,13 +10,13 @@ const draft: LevelDefinition = {
   maze: {
     templateSetId: 'cold-storage-violet-wall', generatorVersion: 1,
     criticalPathRooms: { minimum: 7, maximum: 7 }, optionalRooms: { minimum: 1, maximum: 1 },
-    maxBranchDepth: 1, secretCount: 0, entranceNodeId: 'violet-entry', exitNodeId: 'wall-exit',
+    maxBranchDepth: 1, secretCount: 1, entranceNodeId: 'violet-entry', exitNodeId: 'wall-exit',
     nodes: [
       { id: 'violet-entry', role: 'entrance', templateTags: ['cold-storage', 'violet-airlock'], sizeClass: 'small', encounterIds: [], pickupIds: ['repair-kit'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'plate-locker', role: 'corridor', templateTags: ['cold-storage', 'shield-key'], sizeClass: 'medium', encounterIds: [], pickupIds: ['violet-key'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'guard-lesson', role: 'corridor', templateTags: ['cold-storage', 'shield-readability'], sizeClass: 'large', encounterIds: [], pickupIds: ['pulse-cell'], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'violet-wall', role: 'arena', templateTags: ['cold-storage', 'shielder-arena'], sizeClass: 'large', encounterIds: ['violet-wall-company'], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
-      { id: 'unshielded-cache', role: 'corridor', templateTags: ['cold-storage', 'optional-flank'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
+      { id: 'unshielded-cache', role: 'secret', templateTags: ['cold-storage', 'optional-flank'], sizeClass: 'medium', encounterIds: [], pickupIds: ['coin-cache', 'secret-coin-cache'], checkpointId: null, storyIds: [], criticalPath: false },
       { id: 'popping-lane', role: 'corridor', templateTags: ['cold-storage', 'shield-pose-route'], sizeClass: 'large', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
       { id: 'wall-checkpoint', role: 'checkpoint', templateTags: ['cold-storage', 'recovery'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: 'checkpoint-033', storyIds: [], criticalPath: true },
       { id: 'wall-exit', role: 'exit', templateTags: ['cold-storage', 'objective-exit'], sizeClass: 'small', encounterIds: [], pickupIds: [], checkpointId: null, storyIds: [], criticalPath: true },
@@ -89,13 +89,13 @@ const draft: LevelDefinition = {
       requiredObjectiveIds: ['clear-violet-wall'], expectedCompletion: true, expectedChecksum: null,
       parTicks: 14_000,
       dependencyHashes: {
-        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: '36460f12387f9356',
+        simulationSchema: '7673b9fb7039c568', effectiveLevel: ZERO_HASH, simulationLevel: 'bc05f5198a99907c',
         balanceData: 'c1df429a54459a12', policyOrReplay: 'c00c7c2e50668d3b',
       },
     }],
   },
   performance: {
-    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 4, maxHazards: 3,
+    maxActiveRobots: 4, maxActiveProjectiles: 64, maxActivePickups: 5, maxHazards: 3,
     maxMazeNodes: 10, maxRenderInstances: 1_024, expectedPeakDrawCalls: 8,
     expectedPeakMemoryMb: 192, benchmarkScenarioIds: ['level-033-standard-live'],
   },
