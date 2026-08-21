@@ -16,7 +16,7 @@ describe('profile schema migrations', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v1.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       profileId: 'migration-v1',
       totalCoins: 12,
       spendableCoins: 7,
@@ -35,7 +35,7 @@ describe('profile schema migrations', () => {
       'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
       'v8->v9:sprint-controls', 'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses',
-      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
@@ -57,17 +57,17 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v2 fixture without altering prior settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v2.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(14);
+    expect(migrated.profileSchemaVersion).toBe(15);
     expect(migrated.settings).toMatchObject({
       language: 'ar', reducedMotion: true, cameraMotion: 0, flashIntensity: 0, renderQuality: 'auto', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-12)).toEqual([
+    expect(migrated.migrationHistory.slice(-13)).toEqual([
       'v2->v3:render-quality-preference', 'v3->v4:first-release-accessibility',
       'v4->v5:touch-control-accessibility', 'v5->v6:audio-mix-accessibility',
       'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
       'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses', 'v11->v12:dash-command',
-      'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     corrupted.spendableCoins = 6;
@@ -77,16 +77,16 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v3 fixture into first-release accessibility settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v3.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(14);
+    expect(migrated.profileSchemaVersion).toBe(15);
     expect(migrated.settings).toMatchObject({
       renderQuality: 'auto', textScale: 1, captions: true, photosensitivitySafe: false, difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-11)).toEqual([
+    expect(migrated.migrationHistory.slice(-12)).toEqual([
       'v3->v4:first-release-accessibility', 'v4->v5:touch-control-accessibility',
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
       'v8->v9:sprint-controls', 'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses',
-      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).renderQuality = 'high';
@@ -96,18 +96,18 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v4 fixture into touch-control accessibility settings', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v4.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(14);
+    expect(migrated.profileSchemaVersion).toBe(15);
     expect(migrated.settings).toMatchObject({
       language: 'ar', textScale: 1.2, captions: false, photosensitivitySafe: true,
       touchControlScale: 1, touchControlOpacity: 0.82, touchVerticalOffset: 0,
       touchHandedness: 'right', touchDeadZone: 0.12, touchFireMode: 'hold', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-10)).toEqual([
+    expect(migrated.migrationHistory.slice(-11)).toEqual([
       'v4->v5:touch-control-accessibility', 'v5->v6:audio-mix-accessibility',
       'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
       'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses', 'v11->v12:dash-command',
-      'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).touchControlScale = 1.5;
@@ -117,7 +117,7 @@ describe('profile schema migrations', () => {
   it('verifies and migrates the frozen v5 fixture into independent audio buses', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v5.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
-    expect(migrated.profileSchemaVersion).toBe(14);
+    expect(migrated.profileSchemaVersion).toBe(15);
     expect(migrated.settings).toMatchObject({
       language: 'ar', touchControlScale: 1.25, touchControlOpacity: 0.7, touchVerticalOffset: 48,
       touchHandedness: 'left', touchDeadZone: 0.2, touchFireMode: 'toggle',
@@ -125,10 +125,10 @@ describe('profile schema migrations', () => {
       dynamicRange: 'balanced', difficulty: 'standard',
     });
     expect(migrated.settings.sprintMode).toBe('hold');
-    expect(migrated.migrationHistory.slice(-9)).toEqual([
+    expect(migrated.migrationHistory.slice(-10)).toEqual([
       'v5->v6:audio-mix-accessibility', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection',
       'v8->v9:sprint-controls', 'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses',
-      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     const corrupted = JSON.parse(fixture) as Record<string, unknown>;
     (corrupted.settings as Record<string, unknown>).effectsVolume = 0.2;
@@ -139,7 +139,7 @@ describe('profile schema migrations', () => {
     const fixture = readFileSync(new URL('./fixtures/profile-v6.json', import.meta.url), 'utf8');
     const migrated = parseProfile(fixture);
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       profileId: 'migration-v6',
       settings: {
         language: 'ar', weaponsVolume: 0.6, robotsVolume: 0.6, environmentVolume: 0.7,
@@ -153,7 +153,7 @@ describe('profile schema migrations', () => {
     expect(migrated.migrationHistory).toEqual([
       'created:v6', 'v6->v7:complete-level-results', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls',
       'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses', 'v11->v12:dash-command',
-      'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+      'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
     ]);
     expect(parseProfile(serializeProfile(migrated))).toEqual(migrated);
   });
@@ -174,12 +174,12 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       settings: { difficulty: 'standard', sprintMode: 'hold' },
       campaignCheckpoint: null,
       migrationHistory: [
         'created:v7', 'v7->v8:difficulty-selection', 'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
-        'v10->v11:granular-audio-buses', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+        'v10->v11:granular-audio-buses', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
       ],
     });
   });
@@ -200,13 +200,13 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       settings: { sprintMode: 'hold' },
       inputMappings: { sprint: 'ShiftLeft' },
       campaignCheckpoint: null,
       migrationHistory: [
         'created:v8', 'v8->v9:sprint-controls', 'v9->v10:player-upgrades',
-        'v10->v11:granular-audio-buses', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+        'v10->v11:granular-audio-buses', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
       ],
     });
   });
@@ -226,12 +226,12 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       playerUpgrades: { maxHealth: 2, maxEnergy: 1 },
       campaignCheckpoint: null,
       migrationHistory: [
         'created:v9', 'v9->v10:player-upgrades', 'v10->v11:granular-audio-buses', 'v11->v12:dash-command',
-        'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+        'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
       ],
     });
   });
@@ -257,7 +257,7 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
+      profileSchemaVersion: 15,
       settings: {
         weaponsVolume: 0.35,
         robotsVolume: 0.35,
@@ -268,7 +268,7 @@ describe('profile schema migrations', () => {
       campaignCheckpoint: null,
       migrationHistory: [
         'created:v10', 'v10->v11:granular-audio-buses', 'v11->v12:dash-command',
-        'v12->v13:defense-objective', 'v13->v14:violet-shielder',
+        'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults',
       ],
     });
     expect(migrated.campaignCheckpoint).toBeNull();
@@ -299,8 +299,8 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
-      migrationHistory: ['created:v11', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder'],
+      profileSchemaVersion: 15,
+      migrationHistory: ['created:v11', 'v11->v12:dash-command', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults'],
       inputMappings: { dash: 'Space' },
       campaignCheckpoint: null,
     });
@@ -319,13 +319,13 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
-      migrationHistory: ['created:v12', 'v12->v13:defense-objective', 'v13->v14:violet-shielder'],
+      profileSchemaVersion: 15,
+      migrationHistory: ['created:v12', 'v12->v13:defense-objective', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults'],
       campaignCheckpoint: null,
     });
   });
 
-  it('migrates v13 to v14 and clears its schema-20 checkpoint for shielder state', () => {
+  it('migrates v13 through v15 and clears its schema-20 checkpoint for shielder state', () => {
     const current = createDefaultProfile('migration-v13');
     const { integrityChecksum: _checksum, ...currentBody } = current;
     const legacyBody = {
@@ -338,9 +338,45 @@ describe('profile schema migrations', () => {
       ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
     }));
     expect(migrated).toMatchObject({
-      profileSchemaVersion: 14,
-      migrationHistory: ['created:v13', 'v13->v14:violet-shielder'],
+      profileSchemaVersion: 15,
+      migrationHistory: ['created:v13', 'v13->v14:violet-shielder', 'v14->v15:arrow-key-defaults'],
       campaignCheckpoint: null,
+    });
+  });
+
+  it('migrates only the old default WASD movement quartet to arrow keys in v15', () => {
+    const current = createDefaultProfile('migration-v14');
+    const { integrityChecksum: _checksum, ...currentBody } = current;
+    const oldDefaults = {
+      ...currentBody.inputMappings,
+      forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD',
+    };
+    const legacyBody = {
+      ...currentBody,
+      profileSchemaVersion: 14,
+      migrationHistory: ['created:v14'],
+      inputMappings: oldDefaults,
+    };
+    const migrated = parseProfile(JSON.stringify({
+      ...legacyBody, integrityChecksum: checksumCanonical(legacyBody),
+    }));
+    expect(migrated).toMatchObject({
+      profileSchemaVersion: 15,
+      migrationHistory: ['created:v14', 'v14->v15:arrow-key-defaults'],
+      inputMappings: {
+        forward: 'ArrowUp', back: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight',
+      },
+    });
+
+    const customizedBody = {
+      ...legacyBody,
+      inputMappings: { ...oldDefaults, forward: 'KeyI' },
+    };
+    const customized = parseProfile(JSON.stringify({
+      ...customizedBody, integrityChecksum: checksumCanonical(customizedBody),
+    }));
+    expect(customized.inputMappings).toMatchObject({
+      forward: 'KeyI', back: 'KeyS', left: 'KeyA', right: 'KeyD',
     });
   });
 

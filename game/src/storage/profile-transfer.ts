@@ -2,7 +2,7 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 import { parseProfile, validateProfile, type ProfileV12 } from './profile';
 
 export const PROFILE_TRANSFER_MAX_BYTES = 4 * 1024 * 1024;
-export const PROFILE_EXPORT_FILENAME = 'catch-davel-profile-v14.json';
+export const PROFILE_EXPORT_FILENAME = 'catch-davel-profile-v15.json';
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;

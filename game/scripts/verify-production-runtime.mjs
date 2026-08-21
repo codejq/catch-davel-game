@@ -309,18 +309,18 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v14.json'
-    || exportedProfile.profileSchemaVersion !== 14
+  if (download.suggestedFilename() !== 'catch-davel-profile-v15.json'
+    || exportedProfile.profileSchemaVersion !== 15
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
-    throw new Error('Browser profile export did not produce the validated v14 JSON transfer');
+    throw new Error('Browser profile export did not produce the validated v15 JSON transfer');
   }
   const chooserPromise = page.waitForEvent('filechooser');
   await page.click('#profile-import');
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v14.json',
+    name: 'catch-davel-profile-v15.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });

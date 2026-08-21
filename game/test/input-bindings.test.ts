@@ -12,7 +12,7 @@ describe('profile input bindings', () => {
     expect(legacy.dash).toBe('Space');
     const rebound = rebindInput(legacy, 'back', 'ArrowUp');
     expect(rebound.back).toBe('ArrowUp');
-    expect(rebound.forward).toBe('KeyS');
+    expect(rebound.forward).toBe('ArrowDown');
     expect(inputCodeLabel('Mouse2')).toBe('MOUSE 2');
     expect(inputCodeLabel('Digit4')).toBe('4');
   });

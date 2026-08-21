@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **55 — explicit human, owner, authoring, and package acceptance records**
+Revision: **56 — arrow-key movement defaults with safe profile migration**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 56 adopts the owner-requested arrow-key movement layout. Fresh profiles bind forward/back/left/right to Up/Down/Left/Right, and English/Arabic control help identifies arrow keys rather than WASD. Profile v15 performs a checksum-first migration: it converts only the exact former WASD movement quartet, so existing default users receive the new layout while any profile with a customized movement key preserves its complete custom quartet. Other controls, remapping, checkpoints, authoritative commands, replays, simulation state, and LLM actions are unchanged.
 
 Revision 55 makes every remaining non-automated gate executable without pretending it is already approved. A consolidated human/owner record now covers policy and identity approval, named production ownership, formal ratification of unresolved Decisions 1–15, 21, 23, and 24, required playtest cohorts, human completion/fun/readability coverage across all 36 levels, accessibility, English/Arabic, three-range audio, security, and privacy. Separate templates define the independent eight-active-hour Phase 6.5 trained-designer exercise and one smoke record per exact signed artifact. Each uses named reviewers, ISO dates, reviewed commit/manifest identity, controlled outcomes, issue references, and fail/retest rules. These templates reduce ambiguity but do not close their gates until real qualified people complete them.
 

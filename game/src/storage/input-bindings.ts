@@ -7,7 +7,7 @@ export type InputAction = typeof INPUT_ACTIONS[number];
 export type InputBindings = Readonly<Record<InputAction, string>>;
 
 export const DEFAULT_INPUT_BINDINGS: InputBindings = Object.freeze({
-  forward: 'KeyW', back: 'KeyS', left: 'KeyA', right: 'KeyD',
+  forward: 'ArrowUp', back: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight',
   sprint: 'ShiftLeft',
   dash: 'Space',
   fire: 'Mouse0', altFire: 'Mouse2', campaign: 'KeyM', shop: 'KeyU',
