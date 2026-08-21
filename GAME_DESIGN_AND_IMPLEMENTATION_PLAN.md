@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **58 — detailed first-person Quantum weapon presentation**
+Revision: **59 — asymmetric first-person rifle silhouette**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 59 corrects the pulse and laser silhouette from a compact front-facing device into an unmistakable first-person rifle. The presentation now has an asymmetric rear stock, long horizontal receiver, raised sight and rail, forward barrel and muzzle, lower magazine/support grip, pistol grip, armored firing hand, and slight perspective angle toward the crosshair. Pulse and laser retain separate materials and emissive colors; bomb and sword retain their specialized silhouettes. This remains presentation-only and changes no authoritative state or contracts.
 
 Revision 58 replaces the experimental soldier overlay with a centered, detailed first-person Quantum weapon. Layered body panels, barrel, rail, grip, armored hand, illuminated energy core, and Quantum mark give the pulse gun greater depth; sword, bomb, and laser selections retain distinct shapes, materials, and glow colors. Existing snapshot-derived locomotion, recoil, sword swing, muzzle flash, reduced-motion, photosensitivity, touch, replay, deterministic simulation, and LLM contracts remain unchanged.
 
