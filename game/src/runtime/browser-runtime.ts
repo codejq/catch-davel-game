@@ -9,7 +9,7 @@ import { exportProfileFile, importProfileFile } from '../storage/profile-transfe
 import type { DecodedGameEvent } from '../transport/event-channel';
 import { SimulationWorkerClient } from './simulation-worker-client';
 import {
-  campaignWeaponMask, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK,
+  campaignWeaponMask, normalizeWeaponUpgradeLevels, TRAINING_WEAPON_MASK, weaponUnlocked,
   MAX_WEAPON_UPGRADE_LEVEL, type WeaponId, type WeaponUpgradeId,
 } from '../sim/weapons';
 import {
@@ -72,6 +72,9 @@ import { CombatPacingTracker } from './combat-pacing';
 import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
+import {
+  isSecondaryKeyboardCode, keyboardActionPressed, weaponForKeyboardCode,
+} from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
   pulse: 'pulse', sword: 'sword', bomb: 'bomb', laser: 'laser',
@@ -1751,22 +1754,34 @@ export async function startBrowserGame(): Promise<void> {
       return;
     }
     if (shop.classList.contains('open')) return;
-    if (event.code === activeInputBindings.sprint && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
+    if (isSecondaryKeyboardCode(event.code) || weaponForKeyboardCode(event.code, activeInputBindings) !== null) {
+      event.preventDefault();
+    }
+    const sprintKey = event.code === activeInputBindings.sprint || event.code === 'Insert';
+    if (sprintKey && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
       sprintHeld = !sprintHeld;
       touchSprint.classList.toggle('active', sprintHeld);
       document.body.classList.toggle('sprinting', sprintHeld);
     }
-    if (event.code === activeInputBindings.dash && !event.repeat) dashQueued = true;
+    if ((event.code === activeInputBindings.dash || event.code === 'Delete') && !event.repeat) dashQueued = true;
     pressed.add(event.code);
     if (event.code === activeInputBindings.altFire && !event.repeat) { fireQueued = true; altFireQueued = true; }
-    const weaponByCode: Partial<Record<string, WeaponId>> = {
-      [activeInputBindings.weaponPulse]: 'pulse', [activeInputBindings.weaponSword]: 'sword',
-      [activeInputBindings.weaponBomb]: 'bomb', [activeInputBindings.weaponLaser]: 'laser',
-    };
-    queuedWeapon = weaponByCode[event.code] ?? queuedWeapon;
+    const requestedWeapon = weaponForKeyboardCode(event.code, activeInputBindings);
+    if (requestedWeapon !== null) {
+      if (renderState !== null && weaponUnlocked(renderState.player.unlockedWeaponMask, requestedWeapon)) {
+        queuedWeapon = requestedWeapon;
+        showMessage(ui('weaponSelected', { weapon: ui(WEAPON_UI_KEYS[requestedWeapon]) }));
+      } else {
+        showMessage(ui('weaponLocked', { weapon: ui(WEAPON_UI_KEYS[requestedWeapon]) }));
+      }
+    }
+    if (event.code === 'ControlLeft' || event.code === 'ControlRight') document.body.classList.add('firing');
     beginHumanSession();
   });
-  window.addEventListener('keyup', (event: KeyboardEvent) => pressed.delete(event.code));
+  window.addEventListener('keyup', (event: KeyboardEvent) => {
+    pressed.delete(event.code);
+    if (event.code === 'ControlLeft' || event.code === 'ControlRight') document.body.classList.remove('firing');
+  });
   window.addEventListener('mousedown', (event: MouseEvent) => {
     if (bindingCaptureAction === null || (event.target as Element).closest('#input-settings button') !== null) return;
     event.preventDefault();
@@ -1859,21 +1874,24 @@ export async function startBrowserGame(): Promise<void> {
       }
       const sprintActive = gameInputAllowed && (sprintHeld
         || (activeProfile.settings.sprintMode === 'hold'
-          && (pressed.has(activeInputBindings.sprint) || gamepad.sprint)));
+          && (keyboardActionPressed(pressed, 'sprint', activeInputBindings) || gamepad.sprint)));
       touchSprint.classList.toggle('active', sprintActive);
       document.body.classList.toggle('sprinting', sprintActive);
       const rawCommand: PlayerCommand = {
         forward: Math.max(-1, Math.min(1,
-          Number(pressed.has(activeInputBindings.forward)) - Number(pressed.has(activeInputBindings.back))
+          Number(keyboardActionPressed(pressed, 'forward', activeInputBindings))
+          - Number(keyboardActionPressed(pressed, 'back', activeInputBindings))
           + touchForward + (gameInputAllowed ? gamepad.forward : 0))),
         strafe: Math.max(-1, Math.min(1,
-          Number(pressed.has(activeInputBindings.right)) - Number(pressed.has(activeInputBindings.left))
+          Number(keyboardActionPressed(pressed, 'right', activeInputBindings))
+          - Number(keyboardActionPressed(pressed, 'left', activeInputBindings))
           + touchStrafe + (gameInputAllowed ? gamepad.strafe : 0))),
         yawDelta: yawDelta + (gameInputAllowed ? gamepad.yawDelta : 0),
         pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
         sprint: sprintActive,
         dash: dashQueued,
-        fire: fireQueued || fireHeld || pressed.has(activeInputBindings.fire) || (gameInputAllowed && gamepad.fire),
+        fire: fireQueued || fireHeld || keyboardActionPressed(pressed, 'fire', activeInputBindings)
+          || (gameInputAllowed && gamepad.fire),
         altFire: altFireQueued,
         weapon: queuedWeapon,
       };

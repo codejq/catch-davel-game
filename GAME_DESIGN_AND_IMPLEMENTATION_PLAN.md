@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **61 — centered narrow-receiver rifle refinement**
+Revision: **62 — supplemental navigation controls and reliable weapon keys**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 62 adds an owner-requested secondary keyboard layout without changing mouse aim or the existing arrow controls. Page Up/Page Down move forward/back, Home/End strafe left/right, Insert sprints, Delete dashes after its normal unlock, and either Ctrl key fires alongside left mouse. Weapon selection now recognizes both top-row and numpad 1–4 in addition to remapped profile bindings, and gives visible selected/locked feedback. The laser's obsolete Level 41 unlock—left behind when scope ended at Level 36—is corrected to the Chapter 4 boundary at Level 31. Input aliases converge into the same human `PlayerCommand` path; the campaign-mask correction is authoritative and covered by deterministic campaign QA.
 
 Revision 61 refines the forward-facing rifle after rendered-frame review. Muzzle bore, barrel light, sight rail, receiver core, and crosshair now share one exact horizontal centerline with no decorative roll. The receiver is narrower and less cone-like, with distinct armored side panels, tighter stock geometry, smaller grips, a cleaner firing hand, and stronger mechanical separation between barrel, rail, receiver, and lower controls. Pulse and laser share the corrected geometry with weapon-specific materials; authoritative aim remains unchanged.
 

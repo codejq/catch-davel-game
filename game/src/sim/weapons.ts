@@ -18,7 +18,7 @@ export function campaignWeaponMask(levelId: PlayableLevelId): number {
   let mask = WEAPON_MASK.pulse;
   if (levelNumber >= 11) mask |= WEAPON_MASK.sword;
   if (levelNumber >= 21) mask |= WEAPON_MASK.bomb;
-  if (levelNumber >= 41) mask |= WEAPON_MASK.laser;
+  if (levelNumber >= 31) mask |= WEAPON_MASK.laser;
   return mask;
 }
 

@@ -30,12 +30,13 @@ describe('scalable campaign level registry', () => {
     );
     expect(chapterThree.state.player.unlockedWeaponMask)
       .toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-031')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-032')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-033')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-034')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-035')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
-    expect(campaignWeaponMask('level-036')).toBe(WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb);
+    const fullArsenal = WEAPON_MASK.pulse | WEAPON_MASK.sword | WEAPON_MASK.bomb | WEAPON_MASK.laser;
+    expect(campaignWeaponMask('level-031')).toBe(fullArsenal);
+    expect(campaignWeaponMask('level-032')).toBe(fullArsenal);
+    expect(campaignWeaponMask('level-033')).toBe(fullArsenal);
+    expect(campaignWeaponMask('level-034')).toBe(fullArsenal);
+    expect(campaignWeaponMask('level-035')).toBe(fullArsenal);
+    expect(campaignWeaponMask('level-036')).toBe(fullArsenal);
   });
 
   it('maps every playable ID to exactly one ordered authored definition', () => {
