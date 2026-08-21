@@ -2,12 +2,16 @@ import type { InputAction, InputBindings } from '../storage/input-bindings';
 import type { WeaponId } from '../sim/weapons';
 
 export const SECONDARY_KEYBOARD_CODES = Object.freeze({
-  left: ['Home'],
-  right: ['End'],
   sprint: ['Insert'],
   dash: ['Delete'],
   fire: ['ControlLeft', 'ControlRight'],
 } as const satisfies Readonly<Partial<Record<InputAction, readonly string[]>>>);
+
+export const KEYBOARD_ROTATION_RADIANS = 0.035;
+
+export function keyboardRotationDelta(pressed: ReadonlySet<string>): number {
+  return (Number(pressed.has('End')) - Number(pressed.has('Home'))) * KEYBOARD_ROTATION_RADIANS;
+}
 
 export const FIELD_OF_VIEW_SCALE_MIN = 0.65;
 export const FIELD_OF_VIEW_SCALE_MAX = 1.25;
@@ -34,7 +38,8 @@ export function keyboardActionPressed(
 }
 
 export function isSecondaryKeyboardCode(code: string): boolean {
-  return Object.values(SECONDARY_KEYBOARD_CODES).some((codes) => (codes as readonly string[]).includes(code));
+  return code === 'Home' || code === 'End'
+    || Object.values(SECONDARY_KEYBOARD_CODES).some((codes) => (codes as readonly string[]).includes(code));
 }
 
 export function weaponForKeyboardCode(code: string, bindings: InputBindings): WeaponId | null {

@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **63 — Page Up/Down presentation-only camera zoom**
+Revision: **64 — Home/End keyboard rotation**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 64 changes Home/End from secondary strafing to continuous keyboard rotation. Holding Home contributes a bounded negative yaw command and holding End contributes the matching positive yaw command; holding both cancels to zero. Arrow left/right remain movement controls, mouse aim remains unchanged, and the keyboard turn enters the same human yaw field used by mouse/gamepad input, replay recording, simulation, and tests rather than creating a separate camera truth.
 
 Revision 63 corrects Page Up/Page Down from secondary forward/back movement to presentation-only camera zoom. Page Up narrows field of view toward a bounded 65% scale and Page Down widens it toward 125%, in stable 8% steps. The value crosses both main-thread and OffscreenCanvas render paths, forces a frame when only zoom changes, and is exposed for browser verification. Arrow movement, Home/End strafing, Insert sprint, Delete dash, Ctrl fire, mouse aim, weapon controls, simulation commands, replays, and LLM actions are unchanged.
 

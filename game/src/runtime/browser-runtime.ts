@@ -73,7 +73,8 @@ import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
-  isSecondaryKeyboardCode, keyboardActionPressed, nextFieldOfViewScale, weaponForKeyboardCode,
+  isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta, nextFieldOfViewScale,
+  weaponForKeyboardCode,
 } from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
@@ -1898,7 +1899,7 @@ export async function startBrowserGame(): Promise<void> {
           Number(keyboardActionPressed(pressed, 'right', activeInputBindings))
           - Number(keyboardActionPressed(pressed, 'left', activeInputBindings))
           + touchStrafe + (gameInputAllowed ? gamepad.strafe : 0))),
-        yawDelta: yawDelta + (gameInputAllowed ? gamepad.yawDelta : 0),
+        yawDelta: yawDelta + keyboardRotationDelta(pressed) + (gameInputAllowed ? gamepad.yawDelta : 0),
         pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
         sprint: sprintActive,
         dash: dashQueued,
