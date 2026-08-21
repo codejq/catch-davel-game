@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **56 — arrow-key movement defaults with safe profile migration**
+Revision: **57 — visible Quantum soldier and carried-weapon presentation**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 57 replaces the detached first-person weapon silhouette with a visible over-the-shoulder Quantum Response Ranger. The presentation-only avatar has a helmet and visor, armored body, backpack, badge, articulated limbs, ground shadow, and a carried weapon that changes shape for pulse, sword, bomb, and laser selection. Existing snapshot-derived locomotion, recoil, sword swing, muzzle flash, reduced-motion, photosensitivity, touch, replay, deterministic simulation, and LLM contracts remain unchanged.
 
 Revision 56 adopts the owner-requested arrow-key movement layout. Fresh profiles bind forward/back/left/right to Up/Down/Left/Right, and English/Arabic control help identifies arrow keys rather than WASD. Profile v15 performs a checksum-first migration: it converts only the exact former WASD movement quartet, so existing default users receive the new layout while any profile with a customized movement key preserves its complete custom quartet. Other controls, remapping, checkpoints, authoritative commands, replays, simulation state, and LLM actions are unchanged.
 
@@ -119,7 +121,7 @@ Humans, automated tests, replay playback, and LLM agents will all use the same a
 ## 2. Confirmed product decisions
 
 - First-person 3D maze-combat game.
-- A visible weapon presentation inspired by classic fast first-person games.
+- A visible over-the-shoulder Quantum Response Ranger carrying the selected weapon, while preserving fast first-person aiming and combat response.
 - No Three.js.
 - Strict TypeScript is preferred over untyped JavaScript for production source.
 - Raw WebGL2 custom renderer.

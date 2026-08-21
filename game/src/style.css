@@ -169,21 +169,39 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #prompt p { max-width: 560px; margin: 0 auto 10px; color: #fff; font-size: calc(12px * var(--ui-font-scale)); font-weight: 650; letter-spacing: 0; line-height: 1.35; }
 #prompt small { font-weight: 650; letter-spacing: 0; color: #aeeeff; }
 .touch-prompt { display: none; }
-#weapon { --weapon-locomotion-x: 0px; --weapon-locomotion-y: 0px; --weapon-locomotion-roll: 0deg; position: absolute; left: 50%; bottom: -28px; width: 170px; height: 180px; translate: calc(-50% + var(--weapon-locomotion-x)) var(--weapon-locomotion-y); rotate: var(--weapon-locomotion-roll); border-radius: 48% 48% 10px 10px; background: linear-gradient(90deg, #253561, #91ecff 46%, #386b94 55%, #16264d); transform: perspective(250px) rotateX(12deg); box-shadow: inset 0 0 0 7px #152347, 0 0 30px #53edff88; }
-#weapon::before { content: ''; position: absolute; top: -25px; left: 51px; width: 68px; height: 75px; border: 7px solid #152347; border-radius: 22px 22px 8px 8px; background: #ffed73; box-shadow: inset 0 0 0 8px #ff8a47; }
-#weapon i { position: absolute; top: 8px; left: 73px; width: 24px; height: 55px; border-radius: 10px; background: #17294d; }
-#weapon b { position: absolute; left: 22px; right: 22px; top: 80px; height: 20px; border-radius: 10px; background: #63f2ff; box-shadow: 0 0 14px #63f2ff; }
+#weapon { --weapon-locomotion-x: 0px; --weapon-locomotion-y: 0px; --weapon-locomotion-roll: 0deg; position: absolute; left: 60%; bottom: -34px; width: 250px; height: 270px; translate: calc(-50% + var(--weapon-locomotion-x)) var(--weapon-locomotion-y); rotate: var(--weapon-locomotion-roll); filter: drop-shadow(0 12px 14px #07132680); transform-origin: 50% 100%; }
+.soldier-shadow { position: absolute; left: 45px; bottom: 25px; width: 155px; height: 34px; border-radius: 50%; background: #07132670; filter: blur(5px); }
+.soldier-body { position: absolute; left: 78px; bottom: 64px; width: 92px; height: 112px; border: 5px solid #10203e; border-radius: 28px 28px 18px 18px; background: linear-gradient(90deg, #172b4f, #2e7190 44%, #214d70 68%, #112343); box-shadow: inset 12px 0 #1c385d, inset -10px 0 #0c1a34, 0 0 18px #54eaff40; }
+.soldier-pack { position: absolute; left: 19px; top: 30px; width: 48px; height: 56px; border: 4px solid #0a1931; border-radius: 10px; background: linear-gradient(#304d69, #152c4c); box-shadow: inset 0 0 0 3px #4f8191; }
+.soldier-badge { position: absolute; left: 35px; top: 42px; width: 21px; height: 21px; border-radius: 50%; background: #63f2ff; color: #10203e; font: 900 14px/21px sans-serif; text-align: center; box-shadow: 0 0 10px #63f2ff; }
+.soldier-head { position: absolute; left: 91px; bottom: 169px; width: 66px; height: 63px; border: 5px solid #0d1d39; border-radius: 42% 42% 34% 34%; background: linear-gradient(90deg, #152849, #386683 48%, #193653); box-shadow: inset 0 9px #527d91; }
+.soldier-head::before { content: ''; position: absolute; left: -9px; top: -9px; width: 76px; height: 28px; border: 4px solid #0b1a34; border-radius: 50% 50% 8px 8px; background: #264b68; }
+.soldier-visor { position: absolute; left: 8px; top: 23px; width: 40px; height: 16px; border: 3px solid #09162d; border-radius: 12px; background: linear-gradient(90deg, #45dff1, #bafcff 55%, #3682b0); box-shadow: 0 0 9px #5ceeff; }
+.soldier-leg { position: absolute; bottom: 23px; width: 39px; height: 67px; border: 5px solid #0c1b36; border-radius: 12px 12px 17px 17px; background: linear-gradient(90deg, #152c50, #315b76 52%, #10223f); }
+.soldier-leg::after { content: ''; position: absolute; left: -7px; bottom: -8px; width: 48px; height: 20px; border-radius: 8px 13px 5px 5px; background: #0a172d; box-shadow: inset 0 -5px #050d1c; }
+.soldier-leg-left { left: 81px; rotate: 3deg; }
+.soldier-leg-right { left: 128px; rotate: -3deg; }
+.soldier-arm { position: absolute; bottom: 91px; width: 37px; height: 90px; border: 5px solid #0d1c37; border-radius: 18px; background: linear-gradient(90deg, #193456, #3a6680 54%, #112440); transform-origin: 50% 18%; }
+.soldier-arm-left { left: 58px; rotate: -27deg; }
+.soldier-arm-right { left: 157px; rotate: 38deg; }
+.soldier-weapon { position: absolute; left: 93px; bottom: 89px; width: 126px; height: 42px; border: 5px solid #0a1730; border-radius: 12px 5px 5px 12px; background: linear-gradient(#436986, #172b4c 55%, #0b1931); rotate: -8deg; box-shadow: inset 0 0 0 3px #5b93a4, 0 0 16px #53edff70; transform-origin: 32% 50%; }
+.soldier-weapon::before { content: ''; position: absolute; right: -42px; top: 7px; width: 46px; height: 19px; border: 4px solid #08152b; border-radius: 3px 11px 11px 3px; background: #274f6d; }
+.soldier-weapon i { position: absolute; left: 27px; bottom: -31px; width: 24px; height: 38px; border: 4px solid #09162c; border-radius: 4px 4px 10px 10px; background: #173252; rotate: 14deg; }
+.soldier-weapon b { position: absolute; left: 61px; top: 8px; width: 37px; height: 13px; border-radius: 7px; background: #63f2ff; box-shadow: 0 0 11px #63f2ff; }
 body.locked #prompt { display: none; }
-body.feedback-muzzle-flash[data-weapon='pulse'] #weapon::after { content: ''; position: absolute; left: 62px; top: -56px; width: 46px; height: 46px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; animation: muzzle-flash .13s ease-out forwards; }
-body[data-weapon='sword'] #weapon { width: 76px; height: 245px; bottom: -66px; border-radius: 18px; background: linear-gradient(90deg, #20304d, #f8fbff 46%, #5df5ff 54%, #20304d); transform: perspective(250px) rotateX(5deg) rotate(-18deg); }
-body[data-weapon='sword'] #weapon::before { top: -104px; left: 25px; width: 25px; height: 170px; border: 0; border-radius: 14px; background: #eaffff; box-shadow: 0 0 20px 8px #54efff; }
-body[data-weapon='bomb'] #weapon { width: 142px; height: 142px; bottom: -18px; border-radius: 50%; background: radial-gradient(circle at 40% 28%, #657089, #171d2d 62%); box-shadow: inset 0 0 0 9px #090d18, 0 0 28px #ff5f3888; }
-body[data-weapon='bomb'] #weapon::before { top: -19px; left: 54px; width: 34px; height: 38px; border: 5px solid #101526; border-radius: 8px; background: #ff6b27; box-shadow: 0 0 12px #ffb02e; }
-body[data-weapon='laser'] #weapon { background: linear-gradient(90deg, #1e2347, #ff4d8f 45%, #4df9f2 54%, #171c3a); box-shadow: inset 0 0 0 7px #152347, 0 0 35px #ff3e9588; }
-body[data-weapon='laser'] #weapon::before { background: #66fff3; box-shadow: inset 0 0 0 8px #ff4c93, 0 0 20px #60fff8; }
+body.feedback-muzzle-flash[data-weapon='pulse'] .soldier-weapon::after { content: ''; position: absolute; right: -68px; top: -5px; width: 38px; height: 38px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; animation: muzzle-flash .13s ease-out forwards; }
+body[data-weapon='sword'] .soldier-weapon { left: 150px; bottom: 105px; width: 28px; height: 143px; border-radius: 10px; background: linear-gradient(90deg, #20304d, #f8fbff 45%, #5df5ff 56%, #20304d); rotate: 28deg; box-shadow: 0 0 20px 7px #54efff; }
+body[data-weapon='sword'] .soldier-weapon::before { right: -14px; top: 116px; width: 47px; height: 13px; border-radius: 7px; background: #17294d; }
+body[data-weapon='sword'] .soldier-weapon i, body[data-weapon='sword'] .soldier-weapon b { display: none; }
+body[data-weapon='bomb'] .soldier-weapon { left: 145px; bottom: 103px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 40% 28%, #657089, #171d2d 62%); box-shadow: inset 0 0 0 7px #090d18, 0 0 24px #ff5f3888; }
+body[data-weapon='bomb'] .soldier-weapon::before { right: 16px; top: -20px; width: 24px; height: 25px; border: 4px solid #101526; border-radius: 7px; background: #ff6b27; box-shadow: 0 0 10px #ffb02e; }
+body[data-weapon='bomb'] .soldier-weapon i, body[data-weapon='bomb'] .soldier-weapon b { display: none; }
+body[data-weapon='laser'] .soldier-weapon { background: linear-gradient(#4d406d, #201b45 55%, #101833); box-shadow: inset 0 0 0 3px #ff4d8f, 0 0 22px #ff3e95a0; }
+body[data-weapon='laser'] .soldier-weapon::before { background: #62fff5; box-shadow: 0 0 14px #60fff8; }
+body[data-weapon='laser'] .soldier-weapon b { background: #ff4d9b; box-shadow: 0 0 12px #ff4d9b; }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }
 body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
-body.photosensitivity-safe.feedback-muzzle-flash #weapon::after { display: none; }
+body.photosensitivity-safe.feedback-muzzle-flash .soldier-weapon::after { display: none; }
 body.photosensitivity-safe #crosshair.hit::before, body.photosensitivity-safe #crosshair.hit::after { background: #ffe762; box-shadow: none; transform: none; }
 body.photosensitivity-safe #crosshair.weak-hit::before, body.photosensitivity-safe #crosshair.weak-hit::after { background: #7ffff4; box-shadow: none; transform: none; }
 body.photosensitivity-safe #damage-direction { transition: none; }

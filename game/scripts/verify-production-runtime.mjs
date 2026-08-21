@@ -418,7 +418,7 @@ try {
     || !pulseImpactProof.position.every(Number.isFinite)) {
     throw new Error(`Offscreen pulse contact lost its event anchor: ${JSON.stringify(pulseImpactProof)}`);
   }
-  const safeMuzzleFlashDisplay = await page.locator('#weapon').evaluate((element) => (
+  const safeMuzzleFlashDisplay = await page.locator('.soldier-weapon').evaluate((element) => (
     getComputedStyle(element, '::after').display
   ));
   if (safeMuzzleFlashDisplay !== 'none') {
