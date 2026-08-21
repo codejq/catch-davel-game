@@ -199,9 +199,36 @@ body[data-weapon='bomb'] .soldier-weapon i, body[data-weapon='bomb'] .soldier-we
 body[data-weapon='laser'] .soldier-weapon { background: linear-gradient(#4d406d, #201b45 55%, #101833); box-shadow: inset 0 0 0 3px #ff4d8f, 0 0 22px #ff3e95a0; }
 body[data-weapon='laser'] .soldier-weapon::before { background: #62fff5; box-shadow: 0 0 14px #60fff8; }
 body[data-weapon='laser'] .soldier-weapon b { background: #ff4d9b; box-shadow: 0 0 12px #ff4d9b; }
+#weapon { left: 50%; bottom: -40px; width: 300px; height: 245px; filter: drop-shadow(0 16px 16px #07132699); transform: perspective(420px) rotateX(8deg); }
+.gun-body { position: absolute; left: 55px; bottom: 68px; width: 190px; height: 104px; border: 7px solid #09162f; border-radius: 42px 42px 22px 22px; background: linear-gradient(105deg, #14284c 5%, #3c6f8e 38%, #7fc7d1 49%, #284e70 61%, #0d1b38 93%); box-shadow: inset 0 0 0 5px #1a3558, inset 0 -22px #0c1934, 0 0 25px #53edff55; clip-path: polygon(8% 0, 90% 0, 100% 34%, 91% 100%, 9% 100%, 0 60%); }
+.gun-body::before { content: ''; position: absolute; left: 28px; right: 28px; top: 17px; height: 10px; border: 3px solid #08142b; border-radius: 8px; background: repeating-linear-gradient(90deg, #5f92a7 0 12px, #152e50 12px 21px); }
+.gun-core { position: absolute; left: 71px; top: 38px; width: 55px; height: 27px; border: 4px solid #07152e; border-radius: 15px; background: linear-gradient(90deg, #27a9c8, #c8ffff 52%, #46dff4); box-shadow: inset 0 0 8px #fff, 0 0 17px #63f2ff; }
+.gun-mark { position: absolute; left: 19px; bottom: 14px; width: 25px; height: 25px; border: 3px solid #70f5ff; border-radius: 50%; color: #caffff; font: 900 16px/25px sans-serif; text-align: center; text-shadow: 0 0 7px #63f2ff; }
+.gun-barrel { position: absolute; left: 111px; bottom: 157px; width: 79px; height: 66px; border: 7px solid #08152d; border-radius: 22px 22px 9px 9px; background: linear-gradient(90deg, #132747, #548aa0 48%, #1b3b5d 54%, #0b1832); box-shadow: inset 0 0 0 5px #254d6b, 0 0 15px #53edff55; z-index: 2; }
+.gun-barrel::before { content: ''; position: absolute; left: 16px; top: -25px; width: 35px; height: 28px; border: 6px solid #07142b; border-radius: 12px 12px 5px 5px; background: radial-gradient(circle, #7ffaff 0 24%, #245675 28% 55%, #071329 58%); box-shadow: 0 0 12px #53edff88; }
+.gun-barrel span { position: absolute; left: 14px; right: 14px; bottom: 10px; height: 9px; border-radius: 6px; background: #68efff; box-shadow: 0 0 10px #63f2ff; }
+.gun-rail { position: absolute; left: 79px; bottom: 163px; width: 142px; height: 18px; border: 5px solid #07142c; border-radius: 6px; background: repeating-linear-gradient(90deg, #496f82 0 14px, #152a49 14px 23px); }
+.gun-grip { position: absolute; left: 117px; bottom: 11px; width: 63px; height: 91px; border: 7px solid #08152d; border-radius: 13px 13px 24px 24px; background: repeating-linear-gradient(0deg, #152b4b 0 10px, #274d68 10px 15px); }
+.gun-hand { position: absolute; left: 89px; bottom: -5px; width: 122px; height: 75px; border: 7px solid #0a1831; border-radius: 50% 50% 18px 18px; background: linear-gradient(90deg, #183356, #4c7690 48%, #1a385b); box-shadow: inset 0 0 0 5px #274d6c; }
+body.feedback-muzzle-flash[data-weapon='pulse'] .gun-barrel::after { content: ''; position: absolute; left: 10px; top: -67px; width: 49px; height: 49px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 12px #58f4ff, 0 0 42px 22px #516dff88; animation: muzzle-flash .13s ease-out forwards; }
+body[data-weapon='sword'] #weapon { width: 160px; height: 315px; bottom: -78px; rotate: calc(var(--weapon-locomotion-roll) - 16deg); }
+body[data-weapon='sword'] .gun-body { left: 38px; bottom: 43px; width: 77px; height: 132px; border-radius: 25px; clip-path: none; }
+body[data-weapon='sword'] .gun-body::before, body[data-weapon='sword'] .gun-core, body[data-weapon='sword'] .gun-mark, body[data-weapon='sword'] .gun-rail { display: none; }
+body[data-weapon='sword'] .gun-barrel { left: 51px; bottom: 153px; width: 47px; height: 184px; border-width: 5px; border-radius: 22px 22px 8px 8px; background: linear-gradient(90deg, #20304d, #f8fbff 43%, #7affff 55%, #20304d); box-shadow: 0 0 22px 8px #54efff; }
+body[data-weapon='sword'] .gun-barrel::before, body[data-weapon='sword'] .gun-barrel span { display: none; }
+body[data-weapon='sword'] .gun-grip { left: 57px; bottom: 11px; width: 38px; height: 79px; }
+body[data-weapon='sword'] .gun-hand { left: 17px; width: 120px; }
+body[data-weapon='bomb'] .gun-barrel { left: 73px; bottom: 142px; width: 142px; height: 89px; border-radius: 50% 50% 20px 20px; background: radial-gradient(circle at 50% 20%, #78849c, #222b3e 58%, #090f1e 61%); box-shadow: inset 0 0 0 8px #11192b, 0 0 27px #ff633f88; }
+body[data-weapon='bomb'] .gun-barrel::before { left: 50px; top: -18px; width: 30px; height: 30px; background: #ff742e; box-shadow: 0 0 15px #ffad31; }
+body[data-weapon='bomb'] .gun-barrel span { background: #ff8b35; box-shadow: 0 0 10px #ff6b27; }
+body[data-weapon='bomb'] .gun-body { background: linear-gradient(105deg, #131c32, #515d72 48%, #151d30 80%); box-shadow: inset 0 0 0 5px #222c43, inset 0 -22px #090f20, 0 0 25px #ff663d55; }
+body[data-weapon='bomb'] .gun-core { background: #ff7433; box-shadow: 0 0 17px #ff742e; }
+body[data-weapon='laser'] .gun-body { background: linear-gradient(105deg, #151834, #543e73 43%, #b96194 49%, #262653 66%, #0d122c); box-shadow: inset 0 0 0 5px #28204c, inset 0 -22px #0d1028, 0 0 30px #ff3e9588; }
+body[data-weapon='laser'] .gun-core { background: linear-gradient(90deg, #ff4d9b, #fff 50%, #65fff5); box-shadow: 0 0 18px #ff4d9b; }
+body[data-weapon='laser'] .gun-barrel::before { background: radial-gradient(circle, #fff 0 18%, #62fff5 22% 53%, #141738 57%); box-shadow: 0 0 18px #60fff8; }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }
 body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
-body.photosensitivity-safe.feedback-muzzle-flash .soldier-weapon::after { display: none; }
+body.photosensitivity-safe.feedback-muzzle-flash .gun-barrel::after { display: none; }
 body.photosensitivity-safe #crosshair.hit::before, body.photosensitivity-safe #crosshair.hit::after { background: #ffe762; box-shadow: none; transform: none; }
 body.photosensitivity-safe #crosshair.weak-hit::before, body.photosensitivity-safe #crosshair.weak-hit::after { background: #7ffff4; box-shadow: none; transform: none; }
 body.photosensitivity-safe #damage-direction { transition: none; }

@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **57 — visible Quantum soldier and carried-weapon presentation**
+Revision: **58 — detailed first-person Quantum weapon presentation**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 58 replaces the experimental soldier overlay with a centered, detailed first-person Quantum weapon. Layered body panels, barrel, rail, grip, armored hand, illuminated energy core, and Quantum mark give the pulse gun greater depth; sword, bomb, and laser selections retain distinct shapes, materials, and glow colors. Existing snapshot-derived locomotion, recoil, sword swing, muzzle flash, reduced-motion, photosensitivity, touch, replay, deterministic simulation, and LLM contracts remain unchanged.
 
 Revision 57 replaces the detached first-person weapon silhouette with a visible over-the-shoulder Quantum Response Ranger. The presentation-only avatar has a helmet and visor, armored body, backpack, badge, articulated limbs, ground shadow, and a carried weapon that changes shape for pulse, sword, bomb, and laser selection. Existing snapshot-derived locomotion, recoil, sword swing, muzzle flash, reduced-motion, photosensitivity, touch, replay, deterministic simulation, and LLM contracts remain unchanged.
 
@@ -121,7 +123,7 @@ Humans, automated tests, replay playback, and LLM agents will all use the same a
 ## 2. Confirmed product decisions
 
 - First-person 3D maze-combat game.
-- A visible over-the-shoulder Quantum Response Ranger carrying the selected weapon, while preserving fast first-person aiming and combat response.
+- A detailed centered first-person Quantum weapon with distinct pulse, sword, bomb, and laser silhouettes.
 - No Three.js.
 - Strict TypeScript is preferred over untyped JavaScript for production source.
 - Raw WebGL2 custom renderer.
