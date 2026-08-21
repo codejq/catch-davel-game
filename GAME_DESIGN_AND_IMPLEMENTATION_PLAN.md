@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **59 — asymmetric first-person rifle silhouette**
+Revision: **60 — forward-aligned first-person rifle perspective**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 60 corrects the rifle's visual firing axis. The prior side profile made its muzzle point across the screen even though authoritative shots correctly travelled through the crosshair. Pulse and laser now use a foreshortened first-person perspective: the muzzle and sight are centered beneath the crosshair, the receiver widens toward the player, and the grip, magazine, stock, and firing hand remain visible at the bottom of the frame. The presentation and authoritative firing direction now agree without changing combat state.
 
 Revision 59 corrects the pulse and laser silhouette from a compact front-facing device into an unmistakable first-person rifle. The presentation now has an asymmetric rear stock, long horizontal receiver, raised sight and rail, forward barrel and muzzle, lower magazine/support grip, pistol grip, armored firing hand, and slight perspective angle toward the crosshair. Pulse and laser retain separate materials and emissive colors; bomb and sword retain their specialized silhouettes. This remains presentation-only and changes no authoritative state or contracts.
 

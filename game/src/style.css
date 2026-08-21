@@ -244,6 +244,22 @@ body.feedback-muzzle-flash[data-weapon='pulse'] .gun-barrel::after { left: auto;
 body[data-weapon='laser'] .gun-body::after { background: linear-gradient(105deg, #10142e, #503d70 56%, #211d49); }
 body[data-weapon='laser'] .gun-rail::after { box-shadow: inset 0 0 0 3px #ff4d9b66, 0 0 10px #ff4d9b88; }
 body[data-weapon='laser'] .gun-barrel { background: linear-gradient(#714c7c, #211d49 48%, #0d1028 54%, #316a74); box-shadow: inset 0 0 0 4px #372451, 0 0 18px #ff3e9588; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) #weapon { left: 50%; bottom: -92px; width: 350px; height: 390px; transform: perspective(560px) rotateX(7deg) rotateZ(-3deg); }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-body { left: 76px; bottom: 55px; width: 242px; height: 236px; border-radius: 34px 34px 24px 24px; clip-path: polygon(36% 0, 64% 0, 94% 67%, 100% 100%, 0 100%, 6% 67%); background: linear-gradient(100deg, #0d1c39 2%, #315d7b 26%, #80cbd3 48%, #234968 66%, #09162f 96%); box-shadow: inset 0 0 0 6px #173657, inset 0 -35px #08152d, 0 0 28px #53edff66; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-body::before { left: 58px; right: 32px; top: 112px; height: 11px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-body::after { left: 5px; top: 167px; width: 80px; height: 60px; border-right-width: 7px; clip-path: polygon(0 18%, 100% 0, 100% 100%, 13% 87%); }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-core { left: 93px; top: 145px; width: 68px; height: 27px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-mark { left: 48px; bottom: 22px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-barrel { left: 134px; bottom: 278px; width: 80px; height: 76px; border-radius: 24px 24px 12px 12px; background: linear-gradient(90deg, #102543, #4f8197 43%, #98dce0 50%, #244d6b 61%, #09162e); box-shadow: inset 0 0 0 6px #1d4361, 0 0 18px #53edff77; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-barrel::before { left: 15px; top: -24px; width: 39px; height: 31px; border-radius: 50%; background: radial-gradient(circle, #071329 0 30%, #7ffaff 34% 48%, #214c69 53% 70%, #071329 73%); }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-barrel span { left: 13px; right: 13px; bottom: 13px; height: 9px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-rail { left: 119px; bottom: 258px; width: 110px; height: 16px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-rail::after { left: 30px; bottom: 13px; width: 45px; height: 25px; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-grip { left: 190px; bottom: 3px; width: 58px; height: 104px; rotate: -10deg; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-grip::before { left: -91px; top: 9px; width: 62px; height: 78px; rotate: 8deg; }
+body:is([data-weapon='pulse'], [data-weapon='laser']) .gun-hand { left: 155px; bottom: -23px; width: 169px; height: 84px; rotate: -4deg; }
+body.feedback-muzzle-flash[data-weapon='pulse'] .gun-barrel::after { left: 8px; right: auto; top: -72px; }
+body[data-weapon='laser'] .gun-body { background: linear-gradient(100deg, #10142f 2%, #503c70 27%, #b85e93 48%, #29264f 68%, #0a1029 96%); }
 body.hurt #hud { box-shadow: inset 0 0 90px 28px #ff2039cc; }
 body.high-contrast #game { filter: contrast(1.22) saturate(.82); }
 body.photosensitivity-safe.feedback-muzzle-flash .gun-barrel::after { display: none; }
