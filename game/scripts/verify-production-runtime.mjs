@@ -338,6 +338,10 @@ try {
     importedAndReloaded: true,
   };
   const beforeLifecycle = await readBrowserProfile(page);
+  await page.keyboard.press('PageUp');
+  await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '0.92');
+  await page.keyboard.press('PageDown');
+  await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '1');
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
   await page.click('#game');

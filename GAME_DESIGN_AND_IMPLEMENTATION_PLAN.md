@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **62 — supplemental navigation controls and reliable weapon keys**
+Revision: **63 — Page Up/Down presentation-only camera zoom**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 63 corrects Page Up/Page Down from secondary forward/back movement to presentation-only camera zoom. Page Up narrows field of view toward a bounded 65% scale and Page Down widens it toward 125%, in stable 8% steps. The value crosses both main-thread and OffscreenCanvas render paths, forces a frame when only zoom changes, and is exposed for browser verification. Arrow movement, Home/End strafing, Insert sprint, Delete dash, Ctrl fire, mouse aim, weapon controls, simulation commands, replays, and LLM actions are unchanged.
 
 Revision 62 adds an owner-requested secondary keyboard layout without changing mouse aim or the existing arrow controls. Page Up/Page Down move forward/back, Home/End strafe left/right, Insert sprints, Delete dashes after its normal unlock, and either Ctrl key fires alongside left mouse. Weapon selection now recognizes both top-row and numpad 1–4 in addition to remapped profile bindings, and gives visible selected/locked feedback. The laser's obsolete Level 41 unlock—left behind when scope ended at Level 36—is corrected to the Chapter 4 boundary at Level 31. Input aliases converge into the same human `PlayerCommand` path; the campaign-mask correction is authoritative and covered by deterministic campaign QA.
 

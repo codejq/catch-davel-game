@@ -2,14 +2,22 @@ import type { InputAction, InputBindings } from '../storage/input-bindings';
 import type { WeaponId } from '../sim/weapons';
 
 export const SECONDARY_KEYBOARD_CODES = Object.freeze({
-  forward: ['PageUp'],
-  back: ['PageDown'],
   left: ['Home'],
   right: ['End'],
   sprint: ['Insert'],
   dash: ['Delete'],
   fire: ['ControlLeft', 'ControlRight'],
 } as const satisfies Readonly<Partial<Record<InputAction, readonly string[]>>>);
+
+export const FIELD_OF_VIEW_SCALE_MIN = 0.65;
+export const FIELD_OF_VIEW_SCALE_MAX = 1.25;
+export const FIELD_OF_VIEW_SCALE_STEP = 0.08;
+
+export function nextFieldOfViewScale(current: number, direction: 'in' | 'out'): number {
+  const finite = Number.isFinite(current) ? current : 1;
+  const next = finite + (direction === 'in' ? -FIELD_OF_VIEW_SCALE_STEP : FIELD_OF_VIEW_SCALE_STEP);
+  return Math.max(FIELD_OF_VIEW_SCALE_MIN, Math.min(FIELD_OF_VIEW_SCALE_MAX, Number(next.toFixed(2))));
+}
 
 const FIXED_WEAPON_CODES: Readonly<Record<string, WeaponId>> = Object.freeze({
   Digit1: 'pulse', Digit2: 'sword', Digit3: 'bomb', Digit4: 'laser',
@@ -18,10 +26,11 @@ const FIXED_WEAPON_CODES: Readonly<Record<string, WeaponId>> = Object.freeze({
 
 export function keyboardActionPressed(
   pressed: ReadonlySet<string>,
-  action: keyof typeof SECONDARY_KEYBOARD_CODES,
+  action: 'forward' | 'back' | 'left' | 'right' | 'sprint' | 'dash' | 'fire',
   bindings: InputBindings,
 ): boolean {
-  return pressed.has(bindings[action]) || SECONDARY_KEYBOARD_CODES[action].some((code) => pressed.has(code));
+  const secondary = (SECONDARY_KEYBOARD_CODES as Readonly<Partial<Record<InputAction, readonly string[]>>>)[action] ?? [];
+  return pressed.has(bindings[action]) || secondary.some((code) => pressed.has(code));
 }
 
 export function isSecondaryKeyboardCode(code: string): boolean {

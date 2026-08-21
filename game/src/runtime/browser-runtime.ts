@@ -73,7 +73,7 @@ import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
-  isSecondaryKeyboardCode, keyboardActionPressed, weaponForKeyboardCode,
+  isSecondaryKeyboardCode, keyboardActionPressed, nextFieldOfViewScale, weaponForKeyboardCode,
 } from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
@@ -303,7 +303,7 @@ export async function startBrowserGame(): Promise<void> {
     ? initialRenderQuality(renderCapabilities) : qualityPreference;
   let autoQuality = new AutoQualityController(resolvedQuality);
   let renderPresentationSettings: RenderPresentationSettings = {
-    motionScale: 1, flashScale: 1, qualityTier: resolvedQuality,
+    motionScale: 1, flashScale: 1, fieldOfViewScale: 1, qualityTier: resolvedQuality,
   };
   let messageTimeout = 0;
   let damageDirectionTimeout = 0;
@@ -439,12 +439,14 @@ export async function startBrowserGame(): Promise<void> {
     renderPresentationSettings = {
       motionScale: activeProfile.settings.cameraMotion,
       flashScale: activeProfile.settings.photosensitivitySafe ? 0 : activeProfile.settings.flashIntensity,
+      fieldOfViewScale: renderPresentationSettings.fieldOfViewScale,
       qualityTier: resolvedQuality,
     };
     renderer.setQuality(resolvedQuality);
     document.body.dataset.qualityPreference = qualityPreference;
     document.body.dataset.qualityTier = resolvedQuality;
     document.body.dataset.presentationFlashScale = String(renderPresentationSettings.flashScale);
+    document.body.dataset.fieldOfViewScale = String(renderPresentationSettings.fieldOfViewScale);
     document.body.dataset.touchHandedness = activeProfile.settings.touchHandedness;
     document.body.dataset.touchFireMode = activeProfile.settings.touchFireMode;
     document.body.dataset.sprintMode = activeProfile.settings.sprintMode;
@@ -1754,8 +1756,18 @@ export async function startBrowserGame(): Promise<void> {
       return;
     }
     if (shop.classList.contains('open')) return;
-    if (isSecondaryKeyboardCode(event.code) || weaponForKeyboardCode(event.code, activeInputBindings) !== null) {
+    if (isSecondaryKeyboardCode(event.code) || event.code === 'PageUp' || event.code === 'PageDown'
+      || weaponForKeyboardCode(event.code, activeInputBindings) !== null) {
       event.preventDefault();
+    }
+    if ((event.code === 'PageUp' || event.code === 'PageDown') && !event.repeat) {
+      const direction = event.code === 'PageUp' ? 'in' : 'out';
+      renderPresentationSettings = {
+        ...renderPresentationSettings,
+        fieldOfViewScale: nextFieldOfViewScale(renderPresentationSettings.fieldOfViewScale, direction),
+      };
+      document.body.dataset.fieldOfViewScale = String(renderPresentationSettings.fieldOfViewScale);
+      showMessage(ui(direction === 'in' ? 'zoomIn' : 'zoomOut'));
     }
     const sprintKey = event.code === activeInputBindings.sprint || event.code === 'Insert';
     if (sprintKey && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {

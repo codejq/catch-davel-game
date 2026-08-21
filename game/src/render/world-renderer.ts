@@ -207,7 +207,8 @@ export class WorldRenderer {
     const directionX = Math.sin(player.yaw) * cosPitch;
     const directionY = Math.sin(player.pitch);
     const directionZ = -Math.cos(player.yaw) * cosPitch;
-    perspective(this.projection, Math.PI / 2.8, this.canvas.width / this.canvas.height, 0.06, 70);
+    const fieldOfViewScale = Math.max(0.65, Math.min(1.25, settings.fieldOfViewScale));
+    perspective(this.projection, Math.PI / 2.8 * fieldOfViewScale, this.canvas.width / this.canvas.height, 0.06, 70);
     lookAt(this.view, player.x, eyeY, player.z, player.x + directionX, eyeY + directionY, player.z + directionZ);
     multiplyMatrix4(this.viewProjection, this.projection, this.view);
     gl.viewport(0, 0, this.canvas.width, this.canvas.height);

@@ -94,6 +94,7 @@ class MainThreadRendererHost implements RendererHost {
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     if (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
       && settings.flashScale === this.previousSettings.flashScale
+      && settings.fieldOfViewScale === this.previousSettings.fieldOfViewScale
       && settings.qualityTier === this.previousSettings.qualityTier) return;
     this.previousState = state;
     this.previousSettings = settings;
@@ -199,6 +200,7 @@ class OffscreenRendererHost implements RendererHost {
   present(state: RenderGameState, settings = DEFAULT_RENDER_PRESENTATION_SETTINGS): void {
     if (this.disposed || (state === this.previousState && settings.motionScale === this.previousSettings.motionScale
       && settings.flashScale === this.previousSettings.flashScale
+      && settings.fieldOfViewScale === this.previousSettings.fieldOfViewScale
       && settings.qualityTier === this.previousSettings.qualityTier)) return;
     this.previousState = state;
     this.previousSettings = settings;
