@@ -100,7 +100,7 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
 
 const LANDMARKS_PER_LEVEL = 3;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-export const MAX_CAMPAIGN_LANDMARK_BOXES = 18;
+export const MAX_CAMPAIGN_LANDMARK_BOXES = 42;
 export const MAX_EXIT_BEACON_BOXES = 13;
 
 function box(
@@ -128,6 +128,44 @@ function selectVisibleWallAnchors(levelId: PlayableLevelId): readonly { column: 
     selected.push(candidates[(target + levelNumber * 3) % candidates.length]!);
   }
   return selected;
+}
+
+function pictureFrameBoxes(
+  levelId: PlayableLevelId,
+  anchor: { readonly column: number; readonly row: number },
+  primary: RuntimeRgb,
+  accent: RuntimeRgb,
+  variation: number,
+): readonly EnvironmentBox[] {
+  const center = cellCenter(anchor.column, anchor.row);
+  const openSide = CARDINAL_OFFSETS.find(
+    ([columnOffset, rowOffset]) => cellAt(anchor.column + columnOffset, anchor.row + rowOffset, levelId) !== '#',
+  );
+  if (openSide === undefined) return [];
+  const [columnOffset, rowOffset] = openSide;
+  const faceX = center.x + columnOffset * (CELL_SIZE * 0.5 + 0.07);
+  const faceZ = center.z + rowOffset * (CELL_SIZE * 0.5 + 0.07);
+  const facesX = columnOffset !== 0;
+  const frame: RuntimeRgb = variation % 2 === 0 ? [0.13, 0.08, 0.05] : [0.72, 0.48, 0.16];
+  const width = (value: number): readonly [number, number] => facesX ? [0.12, value] : [value, 0.12];
+  const offset = (across: number, outward = 0): readonly [number, number] => facesX
+    ? [columnOffset * outward, across]
+    : [across, rowOffset * outward];
+  const make = (across: number, y: number, wide: number, high: number, depth: number, color: RuntimeRgb, emission = 0) => {
+    const [offsetX, offsetZ] = offset(across, depth);
+    const [sizeX, sizeZ] = width(wide);
+    return box(faceX + offsetX, y, faceZ + offsetZ, sizeX, high, sizeZ, color, emission);
+  };
+  return [
+    make(0, 1.62, 1.8, 1.42, 0, [0.045, 0.055, 0.075]),
+    make(-0.96, 1.62, 0.14, 1.68, 0.04, frame),
+    make(0.96, 1.62, 0.14, 1.68, 0.04, frame),
+    make(0, 0.74, 2.06, 0.14, 0.04, frame),
+    make(0, 2.5, 2.06, 0.14, 0.04, frame),
+    make(-0.38 + variation * 0.16, 1.72, 0.42, 0.92, 0.08, primary, 0.45),
+    make(0.35 - variation * 0.1, 1.38, 0.64, 0.28, 0.09, accent, 0.62),
+    make(0.42, 1.94 + variation * 0.12, 0.22, 0.42, 0.1, variation === 1 ? primary : accent, 0.72),
+  ];
 }
 
 function motifBoxes(
@@ -436,12 +474,14 @@ export function campaignLandmarkLayout(levelId: PlayableLevelId): CampaignLandma
   const anchorCells = selectVisibleWallAnchors(levelId);
   const boxes = anchorCells.flatMap((anchor, index) => {
     const center = cellCenter(anchor.column, anchor.row);
-    return motifBoxes(
+    const primary = palette.walls[(level.number + index) % palette.walls.length]!;
+    const accent = palette.walls[(level.number + index + 2) % palette.walls.length]!;
+    return [...motifBoxes(
       LANDMARK_MOTIFS[levelId], center.x, center.z,
-      palette.walls[(level.number + index) % palette.walls.length]!,
-      palette.walls[(level.number + index + 2) % palette.walls.length]!,
+      primary,
+      accent,
       index,
-    );
+    ), ...pictureFrameBoxes(levelId, anchor, primary, accent, index)];
   });
   if (boxes.length > MAX_CAMPAIGN_LANDMARK_BOXES) throw new Error(`Level ${levelId} exceeds its landmark box cap`);
   return { motif: LANDMARK_MOTIFS[levelId], anchorCells, boxes };

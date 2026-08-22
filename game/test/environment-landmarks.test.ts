@@ -14,7 +14,7 @@ describe('bounded campaign environmental landmarks', () => {
       motifs.add(layout.motif);
       signatures.add(JSON.stringify(layout.boxes));
       expect(layout.anchorCells).toHaveLength(3);
-      expect(layout.boxes.length).toBeGreaterThanOrEqual(9);
+      expect(layout.boxes.length).toBeGreaterThanOrEqual(33);
       expect(layout.boxes.length).toBeLessThanOrEqual(MAX_CAMPAIGN_LANDMARK_BOXES);
       for (const anchor of layout.anchorCells) expect(cellAt(anchor.column, anchor.row, levelId)).toBe('#');
       for (const box of layout.boxes) {
@@ -22,8 +22,9 @@ describe('bounded campaign environmental landmarks', () => {
         expect(Math.min(box.sizeX, box.sizeY, box.sizeZ)).toBeGreaterThan(0);
         expect(box.emission).toBeGreaterThanOrEqual(0);
         expect(box.emission).toBeLessThanOrEqual(1);
-        expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(3.1);
+        expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(0.65);
       }
+      expect(layout.boxes.filter((box) => box.y < 3.1)).toHaveLength(24);
     }
     expect(motifs.size).toBe(PLAYABLE_LEVEL_IDS.length);
     expect(signatures.size).toBe(PLAYABLE_LEVEL_IDS.length);

@@ -30,12 +30,14 @@ layout(location=4) in vec4 aMatrix2;
 layout(location=5) in vec4 aMatrix3;
 layout(location=6) in vec3 aColor;
 layout(location=7) in float aEmission;
+layout(location=8) in float aMaterial;
 uniform mat4 uViewProjection;
 out vec3 vNormal;
 out vec3 vColor;
 out vec3 vWorld;
 out float vDistance;
 out float vEmission;
+flat out float vMaterial;
 void main() {
   mat4 model = mat4(aMatrix0, aMatrix1, aMatrix2, aMatrix3);
   vec4 world = model * vec4(aPosition, 1.0);
@@ -45,6 +47,7 @@ void main() {
   vec4 clip = uViewProjection * world;
   vDistance = clip.w;
   vEmission = aEmission;
+  vMaterial = aMaterial;
   gl_Position = clip;
 }`;
 const FRAGMENT_SHADER = `#version 300 es
@@ -54,6 +57,7 @@ in vec3 vColor;
 in vec3 vWorld;
 in float vDistance;
 in float vEmission;
+flat in float vMaterial;
 uniform vec3 uFogColor;
 uniform vec2 uFogRange;
 out vec4 outColor;
@@ -63,10 +67,28 @@ void main() {
   float diffuse = max(dot(normal, light), 0.0);
   vec3 color = vColor * (0.48 + diffuse * 0.52);
   color = mix(color, vColor, clamp(vEmission, 0.0, 1.0));
-  if (normal.y > 0.8 && vWorld.y < 0.2) {
-    vec2 grid = abs(fract(vWorld.xz / 3.0) - 0.5);
-    float line = 1.0 - smoothstep(0.455, 0.49, max(grid.x, grid.y));
-    color = mix(color, color * 0.72, line * 0.32);
+  if (vMaterial > 0.5 && vMaterial < 1.5) {
+    vec2 tile = fract(vWorld.xz / 1.35);
+    vec2 groutDistance = min(tile, 1.0 - tile);
+    float grout = 1.0 - smoothstep(0.025, 0.055, min(groutDistance.x, groutDistance.y));
+    float stone = sin(vWorld.x * 5.7 + sin(vWorld.z * 2.1)) * sin(vWorld.z * 4.9) * 0.035;
+    float tileVariation = mod(floor(vWorld.x / 1.35) + floor(vWorld.z / 1.35), 2.0) * 0.045;
+    color *= 0.84 + stone + tileVariation;
+    color = mix(color, vec3(0.24, 0.25, 0.27), grout * 0.72);
+    float polish = pow(max(dot(normalize(vec3(0.0, 1.0, 0.35)), normal), 0.0), 18.0);
+    color += vec3(0.08) * polish;
+  } else if (vMaterial > 1.5) {
+    vec2 wallUv = normal.z != 0.0 ? vWorld.xy : vWorld.zy;
+    float row = floor(wallUv.y / 0.52);
+    float stagger = mod(row, 2.0) * 0.5;
+    vec2 panel = fract(vec2(wallUv.x / 1.05 + stagger, wallUv.y / 0.52));
+    vec2 seamDistance = min(panel, 1.0 - panel);
+    float seam = 1.0 - smoothstep(0.035, 0.075, min(seamDistance.x, seamDistance.y));
+    float brushed = sin(wallUv.x * 13.0 + wallUv.y * 3.0) * 0.035;
+    color *= 0.9 + brushed;
+    color = mix(color, color * 0.42, seam * 0.68);
+    float trim = 1.0 - smoothstep(0.035, 0.07, abs(fract(wallUv.y / 1.55) - 0.5));
+    color += vColor * trim * 0.12;
   }
   float fog = smoothstep(uFogRange.x, uFogRange.y, vDistance) * (1.0 - clamp(vEmission, 0.0, 1.0) * 0.7);
   outColor = vec4(mix(color, uFogColor, fog), 1.0);
@@ -101,12 +123,14 @@ export class WorldRenderer {
   private readonly matrixBuffer: WebGLBuffer;
   private readonly colorBuffer: WebGLBuffer;
   private readonly emissionBuffer: WebGLBuffer;
+  private readonly materialBuffer: WebGLBuffer;
   private readonly viewProjectionLocation: WebGLUniformLocation;
   private readonly fogColorLocation: WebGLUniformLocation;
   private readonly fogRangeLocation: WebGLUniformLocation;
   private readonly matrices = new Float32Array(MAX_INSTANCES * 16);
   private readonly colors = new Float32Array(MAX_INSTANCES * 3);
   private readonly emissions = new Float32Array(MAX_INSTANCES);
+  private readonly materials = new Float32Array(MAX_INSTANCES);
   private readonly projection = new Float32Array(16);
   private readonly view = new Float32Array(16);
   private readonly viewProjection = new Float32Array(16);
@@ -126,14 +150,16 @@ export class WorldRenderer {
     const matrixBuffer = gl.createBuffer();
     const colorBuffer = gl.createBuffer();
     const emissionBuffer = gl.createBuffer();
+    const materialBuffer = gl.createBuffer();
     if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null
-      || colorBuffer === null || emissionBuffer === null) {
+      || colorBuffer === null || emissionBuffer === null || materialBuffer === null) {
       throw new Error('Unable to allocate world renderer buffers');
     }
     this.vao = vao;
     this.matrixBuffer = matrixBuffer;
     this.colorBuffer = colorBuffer;
     this.emissionBuffer = emissionBuffer;
+    this.materialBuffer = materialBuffer;
     const mesh = createCube();
     this.indexCount = mesh.indices.length;
     gl.bindVertexArray(vao);
@@ -160,6 +186,10 @@ export class WorldRenderer {
     gl.enableVertexAttribArray(7);
     gl.vertexAttribPointer(7, 1, gl.FLOAT, false, 4, 0);
     gl.vertexAttribDivisor(7, 1);
+    gl.bindBuffer(gl.ARRAY_BUFFER, materialBuffer);
+    gl.enableVertexAttribArray(8);
+    gl.vertexAttribPointer(8, 1, gl.FLOAT, false, 4, 0);
+    gl.vertexAttribDivisor(8, 1);
     const viewProjectionUniform = gl.getUniformLocation(this.program, 'uViewProjection');
     const fogColorUniform = gl.getUniformLocation(this.program, 'uFogColor');
     const fogRangeUniform = gl.getUniformLocation(this.program, 'uFogRange');
@@ -241,13 +271,13 @@ export class WorldRenderer {
     this.skyColor = palette.sky;
     instance = this.writeInstance(
       instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE,
-      palette.floor,
+      palette.floor, 0, 1,
     );
     for (const wall of wallCells(levelId)) {
       const center = cellCenter(wall.column, wall.row);
       instance = this.writeInstance(
         instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE,
-        palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!,
+        palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!, 0, 2,
       );
     }
     for (const landmark of campaignLandmarkLayout(levelId).boxes) {
@@ -403,11 +433,13 @@ export class WorldRenderer {
     sx: number, sy: number, sz: number,
     color: readonly [number, number, number],
     emission = 0,
+    material = 0,
   ): number {
     if (instance >= MAX_INSTANCES) throw new Error('World instance capacity exceeded');
     writeTranslationScale(this.matrices, instance * 16, x, y, z, sx, sy, sz);
     this.colors.set(color, instance * 3);
     this.emissions[instance] = emission;
+    this.materials[instance] = material;
     return instance + 1;
   }
 
@@ -419,5 +451,7 @@ export class WorldRenderer {
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.colors.subarray(0, instance * 3), this.gl.DYNAMIC_DRAW);
     this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.emissionBuffer);
     this.gl.bufferData(this.gl.ARRAY_BUFFER, this.emissions.subarray(0, instance), this.gl.DYNAMIC_DRAW);
+    this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.materialBuffer);
+    this.gl.bufferData(this.gl.ARRAY_BUFFER, this.materials.subarray(0, instance), this.gl.DYNAMIC_DRAW);
   }
 }
