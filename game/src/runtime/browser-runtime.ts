@@ -575,13 +575,14 @@ export async function startBrowserGame(): Promise<void> {
     }));
     resultsReplayProof.textContent = ui('replayProof', { seed: summary.seed, checksum: summary.replayChecksum });
     campaignEnding.hidden = activeLevelId !== 'level-036';
+    missionResults.dataset.continuing = String(summary.nextLevelId !== null);
     resultsNext.textContent = ui(summary.nextLevelId === null ? 'chapterComplete' : 'nextMission');
     missionResults.classList.add('open');
     missionResults.setAttribute('aria-hidden', 'false');
     document.exitPointerLock();
     resultsNext.focus();
     if (summary.nextLevelId !== null) {
-      let secondsRemaining = 4;
+      let secondsRemaining = 3;
       resultsNext.textContent = `${ui('nextMission')} · ${secondsRemaining}`;
       const countdown = window.setInterval(() => {
         secondsRemaining -= 1;
@@ -592,7 +593,7 @@ export async function startBrowserGame(): Promise<void> {
         const nextParameters = new URLSearchParams(location.search);
         nextParameters.set('level', summary.nextLevelId!);
         void profileWrite.then(() => { location.search = nextParameters.toString(); });
-      }, 4_000);
+      }, 3_000);
     }
   };
 
@@ -1861,6 +1862,7 @@ export async function startBrowserGame(): Promise<void> {
     client.terminate();
   });
 
+  let lastVisibleHudActivity = -Infinity;
   const frame = (timestamp: number): void => {
     const adaptiveTier = qualityPreference === 'auto' ? autoQuality.sample(
       timestamp,
@@ -1927,6 +1929,11 @@ export async function startBrowserGame(): Promise<void> {
         renderState,
         difficultyProfile(renderState?.difficulty ?? activeProfile.settings.difficulty).aimAssistRadians,
       );
+      const playerIsActive = Math.abs(rawCommand.forward) > 0.01 || Math.abs(rawCommand.strafe) > 0.01
+        || Math.abs(rawCommand.yawDelta) > 0.0001 || Math.abs(rawCommand.pitchDelta) > 0.0001
+        || rawCommand.sprint || rawCommand.dash || rawCommand.fire || rawCommand.altFire || rawCommand.weapon !== null;
+      if (playerIsActive) lastVisibleHudActivity = timestamp;
+      document.body.classList.toggle('game-active', timestamp - lastVisibleHudActivity < 1_100);
       client.sendInput(command);
       yawDelta = 0;
       pitchDelta = 0;
