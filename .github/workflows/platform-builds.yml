@@ -81,7 +81,8 @@ jobs:
         run: npm run game:tauri:build
       - name: Build Windows frontend
         if: runner.os == 'Windows'
-        run: npm run game:build
+        working-directory: game
+        run: npx vite build
       - name: Build Windows executable
         if: runner.os == 'Windows'
         run: cargo build --release --manifest-path game/src-tauri/Cargo.toml
