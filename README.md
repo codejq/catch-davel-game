@@ -6,6 +6,12 @@ The game uses TypeScript, raw WebGL2, a custom sphere/capsule renderer, fixed-st
 
 The production workspace is in [`game`](game/README.md). The approved design and implementation contract is [`GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`](GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md); current implementation evidence is recorded in [`docs/vertical-slice/IMPLEMENTATION_STATUS.md`](docs/vertical-slice/IMPLEMENTATION_STATUS.md).
 
+## Play and download
+
+- [Play Catch Davel in your browser](https://codejq.github.io/catch-davel-game/)
+- [Download Windows, Linux, macOS, or offline web builds](https://github.com/codejq/catch-davel-game/releases)
+- [View cross-platform build runs](https://github.com/codejq/catch-davel-game/actions/workflows/platform-builds.yml)
+
 ## Quick start
 
 ```powershell
