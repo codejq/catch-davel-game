@@ -21,6 +21,15 @@ export interface CampaignLandmarkLayout {
   readonly boxes: readonly EnvironmentBox[];
 }
 
+export interface WallArtPlacement {
+  readonly x: number;
+  readonly y: number;
+  readonly z: number;
+  readonly facesX: boolean;
+  readonly outwardSign: number;
+  readonly imageIndex: number;
+}
+
 export type LandmarkMotif =
   | 'signal-prongs'
   | 'grinning-marquee'
@@ -102,6 +111,7 @@ const LANDMARKS_PER_LEVEL = 5;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
 export const MAX_CAMPAIGN_LANDMARK_BOXES = 72;
 export const MAX_EXIT_BEACON_BOXES = 13;
+export const WALL_ART_IMAGE_COUNT = 57;
 
 function box(
   x: number, y: number, z: number,
@@ -157,15 +167,30 @@ function pictureFrameBoxes(
     return box(faceX + offsetX, y, faceZ + offsetZ, sizeX, high, sizeZ, color, emission);
   };
   return [
-    make(0, 1.62, 1.8, 1.42, 0, [0.045, 0.055, 0.075]),
-    make(-0.96, 1.62, 0.14, 1.68, 0.04, frame),
-    make(0.96, 1.62, 0.14, 1.68, 0.04, frame),
-    make(0, 0.74, 2.06, 0.14, 0.04, frame),
-    make(0, 2.5, 2.06, 0.14, 0.04, frame),
-    make(-0.38 + variation * 0.16, 1.72, 0.42, 0.92, 0.08, primary, 0.45),
-    make(0.35 - variation * 0.1, 1.38, 0.64, 0.28, 0.09, accent, 0.62),
-    make(0.42, 1.94 + variation * 0.12, 0.22, 0.42, 0.1, variation === 1 ? primary : accent, 0.72),
+    make(0, 1.55, 1.3, 2.12, 0, [0.025, 0.025, 0.03]),
+    make(-0.74, 1.55, 0.16, 2.4, 0.04, frame),
+    make(0.74, 1.55, 0.16, 2.4, 0.04, frame),
+    make(0, 0.28, 1.64, 0.16, 0.04, frame),
+    make(0, 2.82, 1.64, 0.16, 0.04, frame),
   ];
+}
+
+export function wallArtPlacements(levelId: PlayableLevelId): readonly WallArtPlacement[] {
+  const levelNumber = campaignLevel(levelId).number;
+  return selectVisibleWallAnchors(levelId).map((anchor, index) => {
+    const center = cellCenter(anchor.column, anchor.row);
+    const [columnOffset, rowOffset] = CARDINAL_OFFSETS.find(
+      ([columnStep, rowStep]) => cellAt(anchor.column + columnStep, anchor.row + rowStep, levelId) !== '#',
+    )!;
+    return {
+      x: center.x + columnOffset * (CELL_SIZE * 0.5 + 0.145),
+      y: 1.55,
+      z: center.z + rowOffset * (CELL_SIZE * 0.5 + 0.145),
+      facesX: columnOffset !== 0,
+      outwardSign: columnOffset || rowOffset,
+      imageIndex: (((levelNumber - 1) * LANDMARKS_PER_LEVEL + index) * 23) % WALL_ART_IMAGE_COUNT,
+    };
+  });
 }
 
 function motifBoxes(

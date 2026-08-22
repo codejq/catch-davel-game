@@ -18,6 +18,7 @@ import type { SwordArcEffect } from './sword-arc';
 import type { PulseImpactEffect } from './pulse-impact';
 import { campaignLandmarkLayout, exitBeaconBoxes, type EnvironmentBox } from './environment-landmarks';
 import { visibilityPulseFog } from './visibility-pulse';
+import { WallArtRenderer } from './wall-art-renderer';
 
 const MAX_INSTANCES = 512;
 const VERTEX_SHADER = `#version 300 es
@@ -140,6 +141,7 @@ export class WorldRenderer {
   private readonly viewProjection = new Float32Array(16);
   private readonly indexCount: number;
   private readonly davels: DavelRenderer;
+  private readonly wallArt: WallArtRenderer;
   private instanceCount = 0;
   private staticInstanceCount = 0;
   private worldLevelId: PlayableLevelId = 'level-001';
@@ -148,6 +150,7 @@ export class WorldRenderer {
   constructor(private readonly gl: WebGL2RenderingContext, private readonly canvas: HTMLCanvasElement | OffscreenCanvas) {
     this.program = program(gl);
     this.davels = new DavelRenderer(gl);
+    this.wallArt = new WallArtRenderer(gl);
     const vao = gl.createVertexArray();
     const vertexBuffer = gl.createBuffer();
     const indexBuffer = gl.createBuffer();
@@ -265,6 +268,7 @@ export class WorldRenderer {
     gl.uniform2f(this.fogRangeLocation, visibilityPulse.near, visibilityPulse.far);
     gl.bindVertexArray(this.vao);
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
+    this.wallArt.render(this.viewProjection);
     this.davels.render(state, this.viewProjection, settings.motionScale, settings.flashScale, settings.qualityTier);
   }
 
@@ -272,6 +276,7 @@ export class WorldRenderer {
     let instance = 0;
     const level = campaignLevel(levelId);
     const palette = paletteRuntimeProfile(level.palette.presetId);
+    this.wallArt.setLevel(levelId);
     this.skyColor = palette.sky;
     instance = this.writeInstance(
       instance, 0, -0.14, 0, LEVEL_WIDTH * CELL_SIZE, 0.28, LEVEL_HEIGHT * CELL_SIZE,

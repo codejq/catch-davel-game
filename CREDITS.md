@@ -14,9 +14,11 @@ The game is built with TypeScript, Vite, WebGL2, Web Workers, Web Audio, Playwri
 
 ## Assets and music
 
-The release currently contains project-original procedural/vector presentation assets and project-original synthesized audio and music. It contains no copied commercial-game assets and no third-party art, models, textures, fonts, music, or sound samples. The auditable inventory and admission policy are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
+The game contains project-original procedural/vector presentation assets and synthesized audio and
+music. Its development build also contains a product-owner-supplied wall-art collection whose
+public redistribution rights must be cleared before release. The auditable inventory and admission
+policy are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
 ## Inspiration boundary
 
 FacePrintLab's Catch Davel interactive demonstration inspired the goal of expressive articulated dancing robots. Its implementation and presentation are reference material only and are not copied into this game. Classic first-person maze games inform the genre, but their code, maps, characters, artwork, sounds, music, names, and trade dress are not used.
-

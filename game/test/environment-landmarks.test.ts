@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 import {
   campaignLandmarkLayout, exitBeaconBoxes, MAX_CAMPAIGN_LANDMARK_BOXES, MAX_EXIT_BEACON_BOXES,
+  wallArtPlacements, WALL_ART_IMAGE_COUNT,
 } from '../src/render/environment-landmarks';
+import { WALL_ART_FILES } from '../src/render/wall-art-renderer';
 import { cellAt, cellCenter, findCell, wallCells } from '../src/sim/level';
 
 describe('bounded campaign environmental landmarks', () => {
@@ -14,7 +16,7 @@ describe('bounded campaign environmental landmarks', () => {
       motifs.add(layout.motif);
       signatures.add(JSON.stringify(layout.boxes));
       expect(layout.anchorCells).toHaveLength(5);
-      expect(layout.boxes.length).toBeGreaterThanOrEqual(55);
+      expect(layout.boxes.length).toBeGreaterThanOrEqual(40);
       expect(layout.boxes.length).toBeLessThanOrEqual(MAX_CAMPAIGN_LANDMARK_BOXES);
       for (const anchor of layout.anchorCells) expect(cellAt(anchor.column, anchor.row, levelId)).toBe('#');
       for (const box of layout.boxes) {
@@ -22,9 +24,9 @@ describe('bounded campaign environmental landmarks', () => {
         expect(Math.min(box.sizeX, box.sizeY, box.sizeZ)).toBeGreaterThan(0);
         expect(box.emission).toBeGreaterThanOrEqual(0);
         expect(box.emission).toBeLessThanOrEqual(1);
-        expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(0.65);
+        expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(0.19);
       }
-      expect(layout.boxes.filter((box) => box.y < 3.1)).toHaveLength(40);
+      expect(layout.boxes.filter((box) => box.y < 3.1)).toHaveLength(25);
     }
     expect(motifs.size).toBe(PLAYABLE_LEVEL_IDS.length);
     expect(signatures.size).toBe(PLAYABLE_LEVEL_IDS.length);
@@ -36,6 +38,21 @@ describe('bounded campaign environmental landmarks', () => {
       expect(wallCells(levelId).length + campaignLandmarkLayout(levelId).boxes.length + 1 + worstDynamicBoxes)
         .toBeLessThan(512);
     }
+  });
+
+  it('uses the complete wall-art library through deterministic level shuffles', () => {
+    const usedImages = new Set<number>();
+    for (const levelId of PLAYABLE_LEVEL_IDS) {
+      const placements = wallArtPlacements(levelId);
+      expect(placements).toHaveLength(5);
+      for (const placement of placements) {
+        expect(placement.imageIndex).toBeGreaterThanOrEqual(0);
+        expect(placement.imageIndex).toBeLessThan(WALL_ART_IMAGE_COUNT);
+        usedImages.add(placement.imageIndex);
+      }
+    }
+    expect(WALL_ART_FILES).toHaveLength(WALL_ART_IMAGE_COUNT);
+    expect(usedImages.size).toBe(WALL_ART_IMAGE_COUNT);
   });
 });
 
