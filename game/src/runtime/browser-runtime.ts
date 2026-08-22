@@ -25,9 +25,8 @@ import {
 } from '../campaign/progression';
 import { nextUnlockedWeapon, touchFireHeld, virtualStickVector } from './touch-input';
 import { ProceduralAudio, proceduralCueVariation, type AudioCue } from '../audio/procedural-audio';
-import { audioRuntimeProfile, musicRuntimeProfile } from '../content/runtime-manifests';
+import { audioRuntimeProfile } from '../content/runtime-manifests';
 import { presentationFeedback } from './presentation-feedback';
-import { ProceduralMusicSequencer } from '../audio/music-sequencer';
 import { freezeDanceWindow } from '../sim/level-mechanics';
 import { localizedContentString, releaseLocalizationCatalog } from '../content/localization/catalogs';
 import { runtimeUiText, type RuntimeUiKey } from '../content/localization/runtime-ui';
@@ -242,7 +241,6 @@ export async function startBrowserGame(): Promise<void> {
   const settingShakeMotion = requireElement<HTMLInputElement>('#setting-shake-motion');
   const settingFlashIntensity = requireElement<HTMLInputElement>('#setting-flash-intensity');
   const settingMaster = requireElement<HTMLInputElement>('#setting-master');
-  const settingMusic = requireElement<HTMLInputElement>('#setting-music');
   const settingEffects = requireElement<HTMLInputElement>('#setting-effects');
   const settingWeaponsVolume = requireElement<HTMLInputElement>('#setting-weapons-volume');
   const settingRobotsVolume = requireElement<HTMLInputElement>('#setting-robots-volume');
@@ -312,7 +310,6 @@ export async function startBrowserGame(): Promise<void> {
   let lastBarkTick = -10_000;
   let lastWaveTransitionKey: string | null = null;
   let audio: ProceduralAudio | null = null;
-  let music: ProceduralMusicSequencer | null = null;
   const davelMovementAudio = new DavelMovementAudioSequencer();
   const playerMovementAudio = new PlayerMovementAudioSequencer();
   const laserAudio = new LaserAudioSequencer();
@@ -479,7 +476,6 @@ export async function startBrowserGame(): Promise<void> {
     settingShakeMotion.value = String(activeProfile.settings.shakeMotion);
     settingFlashIntensity.value = String(activeProfile.settings.flashIntensity);
     settingMaster.value = String(activeProfile.settings.masterVolume);
-    settingMusic.value = String(activeProfile.settings.musicVolume);
     settingEffects.value = String(activeProfile.settings.effectsVolume);
     settingWeaponsVolume.value = String(activeProfile.settings.weaponsVolume);
     settingRobotsVolume.value = String(activeProfile.settings.robotsVolume);
@@ -508,7 +504,6 @@ export async function startBrowserGame(): Promise<void> {
       voice: activeProfile.settings.voiceVolume,
       dynamicRange: activeProfile.settings.dynamicRange,
     });
-    music?.setOutputGain(activeProfile.settings.masterVolume * activeProfile.settings.musicVolume);
     if (renderState !== null) renderer.present(renderState, renderPresentationSettings);
   };
   applyProfileSettings();
@@ -652,7 +647,8 @@ export async function startBrowserGame(): Promise<void> {
       shakeMotion,
       flashIntensity: Number(settingFlashIntensity.value),
       masterVolume: Number(settingMaster.value),
-      musicVolume: Number(settingMusic.value),
+      // Retained in the profile schema for backward-compatible save imports; music playback is disabled.
+      musicVolume: 0,
       effectsVolume: Number(settingEffects.value),
       weaponsVolume: Number(settingWeaponsVolume.value),
       robotsVolume: Number(settingRobotsVolume.value),
@@ -729,10 +725,6 @@ export async function startBrowserGame(): Promise<void> {
           voice: activeProfile.settings.voiceVolume,
           dynamicRange: activeProfile.settings.dynamicRange,
         },
-      );
-      music = new ProceduralMusicSequencer(
-        context, activeLevel.dance.bpm, musicRuntimeProfile(activeLevel.dance.presetId),
-        activeProfile.settings.masterVolume * activeProfile.settings.musicVolume,
       );
       audio.setAmbience(true, 0.22, false);
       document.body.dataset.ambienceSources = String(audio.ambienceSourceCount);
@@ -1315,10 +1307,6 @@ export async function startBrowserGame(): Promise<void> {
         }
         audio?.setAmbience(ambienceActive, combatIntensity, frozen);
         document.body.dataset.ambienceActive = String(ambienceActive);
-        music?.update(
-          state.tick, combatIntensity, frozen, bossPhase,
-          presentationVisible && !state.victory && !state.defeat,
-        );
         document.body.dataset.snapshotTick = String(state.tick);
       },
       onEvent: processEvent,

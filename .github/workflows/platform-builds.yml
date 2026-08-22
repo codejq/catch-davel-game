@@ -1,0 +1,69 @@
+name: Cross-platform builds
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: catch-davel-platforms-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Offline web
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run game:build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catch-davel-web
+          path: game/dist
+          if-no-files-found: error
+
+  desktop:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Windows x64
+            os: windows-latest
+          - name: Linux x64
+            os: ubuntu-24.04
+          - name: macOS native
+            os: macos-14
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Linux WebView dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libwebkit2gtk-4.1-dev build-essential curl wget file libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+      - run: npm ci
+      - uses: tauri-apps/tauri-action@v1.0.0
+        with:
+          projectPath: game
+      - uses: actions/upload-artifact@v4
+        with:
+          name: catch-davel-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            game/src-tauri/target/**/release/bundle/**
+            game/src-tauri/target/release/bundle/**
+          if-no-files-found: error

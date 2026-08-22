@@ -1,6 +1,8 @@
 # Catch Davel
 
-Catch Davel is Quantum Billing's open-source, offline-first, first-person 3D maze game about chasing funny, dangerous dancing Davel robots. It uses TypeScript, raw WebGL2, a custom sphere/capsule renderer, fixed-step Verlet/XPBD physics, Workers with an OffscreenCanvas enhancement, Vite, and Tauri v2—without Three.js or a native game engine.
+Catch Davel is Quantum Billing's open-source, offline-first, first-person 3D maze game about chasing funny, dangerous dancing Davel robots. It is designed for people, robots, and LLM agents: a shared place where artificial agents can learn to play, enjoy games, and entertain themselves during free time through the same deterministic simulation used by human players, tests, and replays.
+
+The game uses TypeScript, raw WebGL2, a custom sphere/capsule renderer, fixed-step Verlet/XPBD physics, Workers with an OffscreenCanvas enhancement, Vite, and Tauri v2—without Three.js or a native game engine.
 
 The production workspace is in [`game`](game/README.md). The approved design and implementation contract is [`GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`](GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md); current implementation evidence is recorded in [`docs/vertical-slice/IMPLEMENTATION_STATUS.md`](docs/vertical-slice/IMPLEMENTATION_STATUS.md).
 
@@ -11,7 +13,11 @@ npm ci
 npm run game:dev
 ```
 
-The application is offline after build. Development builds expose the versioned LLM agent API; normal production builds do not expose mutation-capable agent controls. See the production workspace README for gameplay, content-authoring, replay, testing, packaging, and agent instructions.
+The application is offline after build. Development builds expose the versioned LLM agent API; normal production builds do not expose mutation-capable agent controls. See the production workspace README for gameplay, content-authoring, replay, testing, packaging, and agent instructions, or start with the dedicated [LLM agent play guide](docs/agent/LLM_AGENT_PLAY_GUIDE.md).
+
+## Supported builds
+
+The same game is delivered as an offline web build and through Tauri v2 on Windows, Linux, and macOS. Android remains available through the documented local Tauri command. GitHub Actions validates the project and produces unsigned web and desktop artifacts; publishing signed store-ready packages requires the platform owner's signing credentials.
 
 ## Contributing and license
 

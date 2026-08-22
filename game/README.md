@@ -24,7 +24,7 @@ In close combat, a three-point amber body chevron marks an attack telegraph and 
 
 After a nearby non-boss Davel is damaged, a compact depth-tested 3D bar shows its exact remaining-health width; full-health and distant robots stay uncluttered. The bar faces the player but remains below maze-wall height, so it cannot expose a robot through occlusion.
 
-Audio is project-original procedural Web Audio. The same settings panel controls master, music, and effects gain plus independent weapons, robots, environment, interface, and voice buses; setting any bus to zero persists its mute. Positioned cues pan and attenuate from the listener, walls and closed gates apply bounded low-pass obstruction, eligible remote impacts gain a distance-faded report layer, and transported events use small event-ID-derived gain/pitch variation instead of runtime randomness. Procedural music intensity follows snapshot-derived exploration, combat, wave, objective-clear, and terminal pacing. Wide, Balanced, and Night dynamic-range presets retune the protected output compressor without changing gameplay events.
+Audio is project-original procedural Web Audio. There is no background music. The settings panel controls master and effects gain plus independent weapons, robots, environment, interface, and voice buses; setting any bus to zero persists its mute. Positioned cues pan and attenuate from the listener, walls and closed gates apply bounded low-pass obstruction, eligible remote impacts gain a distance-faded report layer, and transported events use small event-ID-derived gain/pitch variation instead of runtime randomness. Wide, Balanced, and Night dynamic-range presets retune the protected output compressor without changing gameplay events.
 
 Open `/tooling.html` on the same Vite origin for the internal content workbench. It validates editable level JSON with the production schema, previews the committed runtime maze/interactions, visualizes the encounter graph and dance beats, summarizes waves/budgets, and produces canonical review JSON without writing source files. Its replay inspector accepts pasted/uploaded replay JSON, strictly parses and fully re-simulates it, compares all dependency hashes, and renders checksum and compressed-command timelines.
 
@@ -58,6 +58,8 @@ Tauri v2 packages the same offline Vite output for desktop/mobile. Packaged sess
 Open the campaign map and use **EXPORT SAVE** or **IMPORT SAVE** to move a human-readable, integrity-checked profile between browser and packaged builds. Import is bounded to 4 MiB, strictly rejects corrupt/newer/unknown-field profiles, asks before replacing local progress, writes through the same recovery repository, and verifies the result before reloading.
 
 ## LLM/browser-agent control
+
+The complete current operating instructions are in [`docs/agent/LLM_AGENT_PLAY_GUIDE.md`](../docs/agent/LLM_AGENT_PLAY_GUIDE.md). They describe the current 36-level campaign, action meanings, weapon unlocks, observation-driven navigation, deterministic stepping, replay handling, and the rule that agents must use observations instead of desktop key presses.
 
 Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.
 
