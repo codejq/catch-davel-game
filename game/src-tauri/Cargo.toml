@@ -1,6 +1,6 @@
 [package]
 name = "quantum-catch-davel"
-version = "0.1.0"
+version = "0.1.1"
 description = "Quantum Billing Catch Davel desktop and mobile shell"
 authors = ["Quantum Billing Catch Davel contributors"]
 edition = "2024"

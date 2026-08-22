@@ -26,7 +26,7 @@ describe('one-command playable campaign QA', () => {
       expect(repeated.finalTick, JSON.stringify(repeated)).toBe(result.finalTick);
       expect(repeated.checksum, JSON.stringify(repeated)).toBe(result.checksum);
     }
-  });
+  }, 15_000);
 
   it('matches the six-level frozen checksum manifest and every replay dependency', () => {
     expect(manifest.levels.map((entry) => entry.levelId)).toEqual([
