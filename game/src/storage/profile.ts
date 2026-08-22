@@ -467,7 +467,8 @@ function migrateProfileV14(profile: Record<string, unknown>): ProfileV15 {
     inputMappings: usesOldMovementDefaults ? {
       ...inputMappings,
       forward: DEFAULT_INPUT_BINDINGS.forward, back: DEFAULT_INPUT_BINDINGS.back,
-      left: DEFAULT_INPUT_BINDINGS.left, right: DEFAULT_INPUT_BINDINGS.right,
+      // Preserve the historical v15 migration payload; runtime applies the later owner-requested control swap.
+      left: 'ArrowLeft', right: 'ArrowRight',
     } : inputMappings,
   };
   return validateProfileV15({ ...migratedBody, integrityChecksum: checksumCanonical(migratedBody) });

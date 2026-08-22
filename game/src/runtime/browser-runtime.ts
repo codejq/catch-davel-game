@@ -73,8 +73,8 @@ import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
-  isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta, nextFieldOfViewScale,
-  weaponForKeyboardCode,
+  applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta,
+  nextFieldOfViewScale, weaponForKeyboardCode,
 } from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
@@ -294,7 +294,7 @@ export async function startBrowserGame(): Promise<void> {
     activeLevelId = 'level-001';
     activeLevel = campaignLevel(activeLevelId);
   }
-  let activeInputBindings: InputBindings = normalizeInputBindings(activeProfile.inputMappings);
+  let activeInputBindings: InputBindings = applyDirectionalControlSwap(normalizeInputBindings(activeProfile.inputMappings));
   let latestCampaignResult: CampaignResultSummary | null = null;
   document.body.dataset.levelId = activeLevelId;
   let renderState: RenderGameState | null = null;
@@ -601,7 +601,7 @@ export async function startBrowserGame(): Promise<void> {
 
   const persistProfile = (profile: ProfileV12): void => {
     activeProfile = profile;
-    activeInputBindings = normalizeInputBindings(profile.inputMappings);
+    activeInputBindings = applyDirectionalControlSwap(normalizeInputBindings(profile.inputMappings));
     if (trainingMode) return;
     profileWrite = profileWrite.then(() => profileRepository.save(profile)).catch((error: unknown) => {
       console.warn('Catch Davel profile save failed', error);

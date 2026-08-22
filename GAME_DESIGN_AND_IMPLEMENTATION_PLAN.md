@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **64 — Home/End keyboard rotation**
+Revision: **65 — swapped horizontal arrow and Home/End controls**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 65 swaps only the horizontal arrow and Home/End functions by owner request. Physical Left/Right arrows now rotate left/right through the shared yaw command; Home/End now strafe left/right through the shared movement command. Up/Down retain forward/back movement. Fresh bindings expose Home/End for lateral actions, while the runtime safely projects the exact former ArrowLeft/ArrowRight saved pair to Home/End so existing profiles receive the swap without rewriting their integrity-checked file or disturbing unrelated remaps.
 
 Revision 64 changes Home/End from secondary strafing to continuous keyboard rotation. Holding Home contributes a bounded negative yaw command and holding End contributes the matching positive yaw command; holding both cancels to zero. Arrow left/right remain movement controls, mouse aim remains unchanged, and the keyboard turn enters the same human yaw field used by mouse/gamepad input, replay recording, simulation, and tests rather than creating a separate camera truth.
 

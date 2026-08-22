@@ -2,6 +2,8 @@ import type { InputAction, InputBindings } from '../storage/input-bindings';
 import type { WeaponId } from '../sim/weapons';
 
 export const SECONDARY_KEYBOARD_CODES = Object.freeze({
+  left: ['Home'],
+  right: ['End'],
   sprint: ['Insert'],
   dash: ['Delete'],
   fire: ['ControlLeft', 'ControlRight'],
@@ -10,7 +12,12 @@ export const SECONDARY_KEYBOARD_CODES = Object.freeze({
 export const KEYBOARD_ROTATION_RADIANS = 0.035;
 
 export function keyboardRotationDelta(pressed: ReadonlySet<string>): number {
-  return (Number(pressed.has('End')) - Number(pressed.has('Home'))) * KEYBOARD_ROTATION_RADIANS;
+  return (Number(pressed.has('ArrowRight')) - Number(pressed.has('ArrowLeft'))) * KEYBOARD_ROTATION_RADIANS;
+}
+
+export function applyDirectionalControlSwap(bindings: InputBindings): InputBindings {
+  if (bindings.left !== 'ArrowLeft' || bindings.right !== 'ArrowRight') return bindings;
+  return { ...bindings, left: 'Home', right: 'End' };
 }
 
 export const FIELD_OF_VIEW_SCALE_MIN = 0.65;
@@ -38,7 +45,7 @@ export function keyboardActionPressed(
 }
 
 export function isSecondaryKeyboardCode(code: string): boolean {
-  return code === 'Home' || code === 'End'
+  return code === 'Home' || code === 'End' || code === 'ArrowLeft' || code === 'ArrowRight'
     || Object.values(SECONDARY_KEYBOARD_CODES).some((codes) => (codes as readonly string[]).includes(code));
 }
 
