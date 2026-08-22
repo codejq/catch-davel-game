@@ -580,6 +580,20 @@ export async function startBrowserGame(): Promise<void> {
     missionResults.setAttribute('aria-hidden', 'false');
     document.exitPointerLock();
     resultsNext.focus();
+    if (summary.nextLevelId !== null) {
+      let secondsRemaining = 4;
+      resultsNext.textContent = `${ui('nextMission')} · ${secondsRemaining}`;
+      const countdown = window.setInterval(() => {
+        secondsRemaining -= 1;
+        resultsNext.textContent = `${ui('nextMission')} · ${Math.max(0, secondsRemaining)}`;
+      }, 1_000);
+      window.setTimeout(() => {
+        window.clearInterval(countdown);
+        const nextParameters = new URLSearchParams(location.search);
+        nextParameters.set('level', summary.nextLevelId!);
+        void profileWrite.then(() => { location.search = nextParameters.toString(); });
+      }, 4_000);
+    }
   };
 
   const showMissionFailure = (state: RenderGameState): void => {

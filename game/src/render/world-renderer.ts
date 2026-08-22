@@ -79,12 +79,16 @@ void main() {
     color += vec3(0.08) * polish;
   } else if (vMaterial > 1.5) {
     vec2 wallUv = normal.z != 0.0 ? vWorld.xy : vWorld.zy;
-    float row = floor(wallUv.y / 0.52);
+    float style = floor(vMaterial - 2.0 + 0.5);
+    float brickWidth = 0.72 + mod(style, 3.0) * 0.24;
+    float brickHeight = 0.34 + mod(floor(style / 2.0), 3.0) * 0.11;
+    float row = floor(wallUv.y / brickHeight);
     float stagger = mod(row, 2.0) * 0.5;
-    vec2 panel = fract(vec2(wallUv.x / 1.05 + stagger, wallUv.y / 0.52));
+    if (mod(style, 2.0) > 0.5) stagger = mod(row, 3.0) / 3.0;
+    vec2 panel = fract(vec2(wallUv.x / brickWidth + stagger, wallUv.y / brickHeight));
     vec2 seamDistance = min(panel, 1.0 - panel);
     float seam = 1.0 - smoothstep(0.035, 0.075, min(seamDistance.x, seamDistance.y));
-    float brushed = sin(wallUv.x * 13.0 + wallUv.y * 3.0) * 0.035;
+    float brushed = sin(wallUv.x * (9.0 + style * 1.7) + wallUv.y * 3.0) * 0.035;
     color *= 0.9 + brushed;
     color = mix(color, color * 0.42, seam * 0.68);
     float trim = 1.0 - smoothstep(0.035, 0.07, abs(fract(wallUv.y / 1.55) - 0.5));
@@ -277,7 +281,8 @@ export class WorldRenderer {
       const center = cellCenter(wall.column, wall.row);
       instance = this.writeInstance(
         instance, center.x, 1.55, center.z, CELL_SIZE, 3.1, CELL_SIZE,
-        palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!, 0, 2,
+        palette.walls[(wall.column + wall.row * 3 + level.number - 1) % palette.walls.length]!,
+        0, 2 + (level.number - 1) % 6,
       );
     }
     for (const landmark of campaignLandmarkLayout(levelId).boxes) {
@@ -311,7 +316,19 @@ export class WorldRenderer {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.22, 0.9, 0.22, [0.3, 1, 0.36]);
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.82, 0.22, 0.22, [0.3, 1, 0.36]);
       } else if (pickup.kind === 'coin') {
-        instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.68, 0.16, 0.68, [1, 0.78, 0.08]);
+        const cacheSpin = state.tick * 0.045 * settings.motionScale;
+        for (let coin = 0; coin < 3; coin += 1) {
+          const angle = cacheSpin + coin * Math.PI * 2 / 3;
+          instance = this.writeInstance(
+            instance,
+            pickup.x + Math.cos(angle) * 0.38,
+            0.5 + bob + coin * 0.13,
+            pickup.z + Math.sin(angle) * 0.38,
+            0.34, 0.11, 0.34,
+            coin === 1 ? [1, 0.92, 0.2] : [1, 0.68, 0.04],
+            0.34,
+          );
+        }
       } else {
         instance = this.writeInstance(instance, pickup.x, 0.55 + bob, pickup.z, 0.52, 0.9, 0.52, [0.12, 0.94, 1]);
       }

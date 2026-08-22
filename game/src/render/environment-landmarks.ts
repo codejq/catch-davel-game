@@ -98,9 +98,9 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
   'level-036': 'refrigerator-crown',
 };
 
-const LANDMARKS_PER_LEVEL = 3;
+const LANDMARKS_PER_LEVEL = 5;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-export const MAX_CAMPAIGN_LANDMARK_BOXES = 42;
+export const MAX_CAMPAIGN_LANDMARK_BOXES = 72;
 export const MAX_EXIT_BEACON_BOXES = 13;
 
 function box(
