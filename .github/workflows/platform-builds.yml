@@ -145,7 +145,16 @@ jobs:
       - run: npm ci
       - name: Build ARM64 debug APK
         working-directory: game
-        run: npx tauri android build --debug --apk --target aarch64 --ci
+        shell: bash
+        run: |
+          set +e
+          npx tauri android build --debug --apk --target aarch64 --ci 2>&1 | tee android-build.log
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            details=$(tail -n 80 android-build.log | sed ':a;N;$!ba;s/%/%25/g;s/\r/%0D/g;s/\n/%0A/g')
+            echo "::error title=Android packaging failed::$details"
+          fi
+          exit "$status"
       - uses: actions/upload-artifact@v4
         with:
           name: catch-davel-Android-ARM64
