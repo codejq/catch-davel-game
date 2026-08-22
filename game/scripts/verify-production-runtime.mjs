@@ -342,6 +342,10 @@ try {
   await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '0.92');
   await page.keyboard.press('PageDown');
   await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '1');
+  await page.keyboard.press('Insert');
+  await page.waitForFunction(() => document.body.dataset.weaponVerticalOffset === '-8');
+  await page.keyboard.press('Delete');
+  await page.waitForFunction(() => document.body.dataset.weaponVerticalOffset === '0');
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
   await page.click('#game');

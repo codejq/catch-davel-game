@@ -74,7 +74,7 @@ import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
   applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta,
-  nextFieldOfViewScale, weaponForKeyboardCode,
+  nextFieldOfViewScale, nextWeaponVerticalOffset, weaponForKeyboardCode,
 } from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
@@ -306,6 +306,7 @@ export async function startBrowserGame(): Promise<void> {
   let renderPresentationSettings: RenderPresentationSettings = {
     motionScale: 1, flashScale: 1, fieldOfViewScale: 1, qualityTier: resolvedQuality,
   };
+  let weaponVerticalOffset = 0;
   let messageTimeout = 0;
   let damageDirectionTimeout = 0;
   let barkTimeout = 0;
@@ -1035,9 +1036,10 @@ export async function startBrowserGame(): Promise<void> {
     document.body.dataset.weapon = state.player.selectedWeapon;
     const weaponPose = weaponLocomotion.sample(state, renderPresentationSettings.motionScale);
     weapon.style.setProperty('--weapon-locomotion-x', `${weaponPose.xPixels}px`);
-    weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels}px`);
+    weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels + weaponVerticalOffset}px`);
     weapon.style.setProperty('--weapon-locomotion-roll', `${weaponPose.rollDegrees}deg`);
     document.body.dataset.weaponLocomotionIntensity = String(weaponPose.intensity);
+    document.body.dataset.weaponVerticalOffset = String(weaponVerticalOffset);
     const pulseBloom = state.player.selectedWeapon === 'pulse'
       ? state.pulseSpreadRadians / PULSE_MAX_SPREAD_RADIANS : 0;
     crosshair.style.setProperty('--pulse-spread-scale', String(1 + Math.max(0, Math.min(1, pulseBloom)) * 1.6));
@@ -1770,13 +1772,18 @@ export async function startBrowserGame(): Promise<void> {
       document.body.dataset.fieldOfViewScale = String(renderPresentationSettings.fieldOfViewScale);
       showMessage(ui(direction === 'in' ? 'zoomIn' : 'zoomOut'));
     }
-    const sprintKey = event.code === activeInputBindings.sprint || event.code === 'Insert';
-    if (sprintKey && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
+    if (event.code === 'Insert' || event.code === 'Delete') {
+      const direction = event.code === 'Insert' ? 'up' : 'down';
+      weaponVerticalOffset = nextWeaponVerticalOffset(weaponVerticalOffset, direction);
+      document.body.dataset.weaponVerticalOffset = String(weaponVerticalOffset);
+      showMessage(ui(direction === 'up' ? 'gunUp' : 'gunDown'));
+    }
+    if (event.code === activeInputBindings.sprint && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
       sprintHeld = !sprintHeld;
       touchSprint.classList.toggle('active', sprintHeld);
       document.body.classList.toggle('sprinting', sprintHeld);
     }
-    if ((event.code === activeInputBindings.dash || event.code === 'Delete') && !event.repeat) dashQueued = true;
+    if (event.code === activeInputBindings.dash && !event.repeat) dashQueued = true;
     pressed.add(event.code);
     if (event.code === activeInputBindings.altFire && !event.repeat) { fireQueued = true; altFireQueued = true; }
     const requestedWeapon = weaponForKeyboardCode(event.code, activeInputBindings);

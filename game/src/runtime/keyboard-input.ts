@@ -4,12 +4,12 @@ import type { WeaponId } from '../sim/weapons';
 export const SECONDARY_KEYBOARD_CODES = Object.freeze({
   left: ['Home'],
   right: ['End'],
-  sprint: ['Insert'],
-  dash: ['Delete'],
   fire: ['ControlLeft', 'ControlRight'],
 } as const satisfies Readonly<Partial<Record<InputAction, readonly string[]>>>);
 
 export const KEYBOARD_ROTATION_RADIANS = 0.035;
+export const WEAPON_VERTICAL_OFFSET_LIMIT = 80;
+export const WEAPON_VERTICAL_OFFSET_STEP = 8;
 
 export function keyboardRotationDelta(pressed: ReadonlySet<string>): number {
   return (Number(pressed.has('ArrowRight')) - Number(pressed.has('ArrowLeft'))) * KEYBOARD_ROTATION_RADIANS;
@@ -18,6 +18,12 @@ export function keyboardRotationDelta(pressed: ReadonlySet<string>): number {
 export function applyDirectionalControlSwap(bindings: InputBindings): InputBindings {
   if (bindings.left !== 'ArrowLeft' || bindings.right !== 'ArrowRight') return bindings;
   return { ...bindings, left: 'Home', right: 'End' };
+}
+
+export function nextWeaponVerticalOffset(current: number, direction: 'up' | 'down'): number {
+  const finite = Number.isFinite(current) ? current : 0;
+  const next = finite + (direction === 'up' ? -WEAPON_VERTICAL_OFFSET_STEP : WEAPON_VERTICAL_OFFSET_STEP);
+  return Math.max(-WEAPON_VERTICAL_OFFSET_LIMIT, Math.min(WEAPON_VERTICAL_OFFSET_LIMIT, next));
 }
 
 export const FIELD_OF_VIEW_SCALE_MIN = 0.65;
@@ -46,6 +52,7 @@ export function keyboardActionPressed(
 
 export function isSecondaryKeyboardCode(code: string): boolean {
   return code === 'Home' || code === 'End' || code === 'ArrowLeft' || code === 'ArrowRight'
+    || code === 'Insert' || code === 'Delete'
     || Object.values(SECONDARY_KEYBOARD_CODES).some((codes) => (codes as readonly string[]).includes(code));
 }
 
