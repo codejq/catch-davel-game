@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GameSimulation } from '../src/sim/game';
-import { isPlayerPositionValidWithBlockers } from '../src/sim/level';
+import { isPlayerPositionValidWithBlockers, worldCell } from '../src/sim/level';
 import {
   closedDoorCells, completePrimaryObjective, hazardTicksUntilToggle, queueNextEncounterWave, stepEncounterWaves, stepLevelHazards,
   stepDefenseTarget, stepLevelHazardPhases,
@@ -88,28 +88,17 @@ describe('authoritative Level 1 interactions', () => {
     expect(caches.every((pickup) => !pickup.active)).toBe(true);
   });
 
-  it('turns the Level 4 key pickup into a one-shot authoritative ambush', () => {
-    const game = new GameSimulation('ambush-proof', undefined, undefined, 'campaign', 'level-004');
-    expect(game.state.robots.every((robot) => !robot.spawned && !robot.active)).toBe(true);
-    const beforeTrigger = parseSimulationSnapshot(JSON.stringify(createSimulationSnapshot(game.state)));
+  it('starts Level 4 with visible enemies and an early reachable key', () => {
+    const game = new GameSimulation('level-four-visibility', undefined, undefined, 'campaign', 'level-004');
+    expect(game.state.robots).toHaveLength(7);
+    expect(game.state.robots.every((robot) => robot.spawned && robot.active)).toBe(true);
     const key = game.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
+    expect(worldCell(key.x, key.z)).toEqual({ column: 3, row: 1 });
     game.state.player.x = key.x;
     game.state.player.z = key.z;
     game.step(idle);
-    expect(game.state.events.map((event) => event.type)).toEqual(expect.arrayContaining([
-      'key-collected', 'ambush-triggered',
-    ]));
+    expect(game.state.events).toContainEqual(expect.objectContaining({ type: 'key-collected' }));
     expect(game.state.robots.every((robot) => robot.spawned && robot.active)).toBe(true);
-    game.step(idle);
-    expect(game.state.events.some((event) => event.type === 'ambush-triggered')).toBe(false);
-
-    const restored = GameSimulation.fromSnapshot(beforeTrigger);
-    restored.state.player.x = key.x;
-    restored.state.player.z = key.z;
-    restored.step(idle);
-    expect(restored.state.robots.map((robot) => [robot.spawned, robot.active])).toEqual(
-      game.state.robots.map((robot) => [robot.spawned, robot.active]),
-    );
   });
 
   it('freezes Level 7 Davel motion and attacks on deterministic flashlight beats', () => {

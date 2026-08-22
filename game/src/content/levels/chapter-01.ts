@@ -39,7 +39,7 @@ const SIMULATION_LEVEL_HASHES: Readonly<Record<Chapter01LevelId, string>> = {
   'level-001': '82b8b67c1a938370',
   'level-002': '5764b803d9394edf',
   'level-003': 'c1c5087eb411b66a',
-  'level-004': '84031a61f510283d',
+  'level-004': '4b862d5fa389ba9d',
   'level-005': 'ea7fabb4b1f89815',
   'level-006': '9748273c5aeaea82',
   'level-007': '12efc4347c096916',
@@ -304,12 +304,12 @@ export const LEVEL_003 = createChapter01Level({
 
 export const LEVEL_004 = createChapter01Level({
   number: 4, nameSlug: 'wrong-turn-boogie', paletteId: 'neon-workshop-04', danceId: 'corner-peek-groove',
-  bpm: 102, visualIntensity: 0.72, mechanicTags: ['ambush', 'secret'], branch: true, secret: true,
+  bpm: 102, visualIntensity: 0.72, mechanicTags: ['branching', 'secret'], branch: true, secret: true,
   groups: [
-    { archetypeId: 'wobble-scout', count: 3, modifiers: ['ambusher'] },
-    { archetypeId: 'blue-slider', count: 2, modifiers: ['ambusher'] },
-    { archetypeId: 'yellow-spinner', count: 1, modifiers: ['ambusher'] },
-    { archetypeId: 'red-firemouth', count: 1, modifiers: ['ambusher'] },
+    { archetypeId: 'wobble-scout', count: 3 },
+    { archetypeId: 'blue-slider', count: 2 },
+    { archetypeId: 'yellow-spinner', count: 1 },
+    { archetypeId: 'red-firemouth', count: 1 },
   ],
 });
 

@@ -65,19 +65,11 @@ describe('agent observation contract', () => {
     });
   });
 
-  it('exposes ambush and freeze-dance phases without hidden agent state', () => {
-    const ambush = new GameSimulation('agent-ambush', undefined, undefined, 'campaign', 'level-004');
-    expect(createObservation(ambush.state)).toMatchObject({
-      remainingRobots: 0,
-      levelMechanic: { kind: 'key-ambush', phase: 'armed', robotsFrozen: false, ticksUntilPhaseChange: null },
-    });
-    const key = ambush.state.level.pickups.find((pickup) => pickup.kind === 'key')!;
-    ambush.state.player.x = key.x;
-    ambush.state.player.z = key.z;
-    ambush.step({ forward: 0, strafe: 0, yawDelta: 0, pitchDelta: 0, fire: false });
-    expect(createObservation(ambush.state)).toMatchObject({
+  it('exposes Level 4 enemies immediately and freeze-dance phases without hidden agent state', () => {
+    const levelFour = new GameSimulation('agent-level-four', undefined, undefined, 'campaign', 'level-004');
+    expect(createObservation(levelFour.state)).toMatchObject({
       remainingRobots: 7,
-      levelMechanic: { kind: 'key-ambush', phase: 'ambush', robotsFrozen: false, ticksUntilPhaseChange: null },
+      levelMechanic: { kind: 'branch-route', phase: 'explore', robotsFrozen: false, ticksUntilPhaseChange: null },
     });
 
     const freeze = new GameSimulation('agent-freeze', undefined, undefined, 'campaign', 'level-007');
