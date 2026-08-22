@@ -8,22 +8,19 @@ export const SECONDARY_KEYBOARD_CODES = Object.freeze({
 } as const satisfies Readonly<Partial<Record<InputAction, readonly string[]>>>);
 
 export const KEYBOARD_ROTATION_RADIANS = 0.035;
-export const WEAPON_VERTICAL_OFFSET_LIMIT = 80;
-export const WEAPON_VERTICAL_OFFSET_STEP = 8;
+export const KEYBOARD_PITCH_RADIANS = 0.025;
 
 export function keyboardRotationDelta(pressed: ReadonlySet<string>): number {
   return (Number(pressed.has('ArrowRight')) - Number(pressed.has('ArrowLeft'))) * KEYBOARD_ROTATION_RADIANS;
 }
 
+export function keyboardPitchDelta(pressed: ReadonlySet<string>): number {
+  return (Number(pressed.has('Insert')) - Number(pressed.has('Delete'))) * KEYBOARD_PITCH_RADIANS;
+}
+
 export function applyDirectionalControlSwap(bindings: InputBindings): InputBindings {
   if (bindings.left !== 'ArrowLeft' || bindings.right !== 'ArrowRight') return bindings;
   return { ...bindings, left: 'Home', right: 'End' };
-}
-
-export function nextWeaponVerticalOffset(current: number, direction: 'up' | 'down'): number {
-  const finite = Number.isFinite(current) ? current : 0;
-  const next = finite + (direction === 'up' ? -WEAPON_VERTICAL_OFFSET_STEP : WEAPON_VERTICAL_OFFSET_STEP);
-  return Math.max(-WEAPON_VERTICAL_OFFSET_LIMIT, Math.min(WEAPON_VERTICAL_OFFSET_LIMIT, next));
 }
 
 export const FIELD_OF_VIEW_SCALE_MIN = 0.65;

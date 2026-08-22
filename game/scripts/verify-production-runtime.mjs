@@ -342,10 +342,6 @@ try {
   await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '0.92');
   await page.keyboard.press('PageDown');
   await page.waitForFunction(() => document.body.dataset.fieldOfViewScale === '1');
-  await page.keyboard.press('Insert');
-  await page.waitForFunction(() => document.body.dataset.weaponVerticalOffset === '-8');
-  await page.keyboard.press('Delete');
-  await page.waitForFunction(() => document.body.dataset.weaponVerticalOffset === '0');
   await page.keyboard.down('ArrowUp');
   await page.waitForTimeout(100);
   await page.click('#game');
@@ -358,6 +354,10 @@ try {
   await page.waitForFunction((count) => Number(document.body.dataset.playerStepCount) > count
     && document.body.dataset.playerStepSprint === 'true', walkingStepCount);
   await page.keyboard.up('ShiftLeft');
+  const pitchBeforeInsert = await page.evaluate(() => Number(document.body.dataset.playerPitch));
+  await page.keyboard.down('Insert');
+  await page.waitForFunction((before) => Number(document.body.dataset.playerPitch) > before, pitchBeforeInsert);
+  await page.keyboard.up('Insert');
   const playerMovementAudioProof = await page.evaluate(() => ({
     count: Number(document.body.dataset.playerStepCount),
     pitchScale: Number(document.body.dataset.playerStepPitch),

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_INPUT_BINDINGS } from '../src/storage/input-bindings';
 import {
-  applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta,
-  nextFieldOfViewScale, nextWeaponVerticalOffset, weaponForKeyboardCode,
+  applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardPitchDelta,
+  keyboardRotationDelta, nextFieldOfViewScale, weaponForKeyboardCode,
 } from '../src/runtime/keyboard-input';
 
 describe('secondary keyboard controls', () => {
@@ -26,10 +26,9 @@ describe('secondary keyboard controls', () => {
     expect(nextFieldOfViewScale(1, 'out')).toBe(1.08);
     expect(nextFieldOfViewScale(0.65, 'in')).toBe(0.65);
     expect(nextFieldOfViewScale(1.25, 'out')).toBe(1.25);
-    expect(nextWeaponVerticalOffset(0, 'up')).toBe(-8);
-    expect(nextWeaponVerticalOffset(0, 'down')).toBe(8);
-    expect(nextWeaponVerticalOffset(-80, 'up')).toBe(-80);
-    expect(nextWeaponVerticalOffset(80, 'down')).toBe(80);
+    expect(keyboardPitchDelta(new Set(['Insert']))).toBeGreaterThan(0);
+    expect(keyboardPitchDelta(new Set(['Delete']))).toBeLessThan(0);
+    expect(keyboardPitchDelta(new Set(['Insert', 'Delete']))).toBe(0);
   });
 
   it('selects every weapon from the top row, numpad, or a remapped binding', () => {

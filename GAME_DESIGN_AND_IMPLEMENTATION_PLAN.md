@@ -4,9 +4,11 @@ Status: **Implementation complete; physical-device evidence waived for this impl
 Prepared for: **Quantum Billing LLC**  
 Planned license: **Open source; MIT for original source code, subject to company approval**  
 Document date: **2026-08-17**
-Revision: **66 — Insert/Delete gun-height controls**
+Revision: **67 — Insert/Delete vertical aiming controls**
 
 > This document defines the product, gameplay, architecture, content plan, licensing approach, quality targets, implementation phases, and acceptance gates. Implementation evidence is tracked in `docs/vertical-slice/IMPLEMENTATION_STATUS.md`; decisions still marked **Review required** remain gated at their named phase.
+
+Revision 67 corrects the meaning of Insert/Delete: they aim the shooting cross upward/downward rather than moving the gun model. Holding Insert contributes positive pitch and holding Delete contributes matching negative pitch through the same authoritative command field used by mouse and gamepad aim; holding both cancels. The gun returns to its normal snapshot-derived position, and actual view/shot direction follows the keyboard pitch.
 
 Revision 66 changes Insert/Delete from sprint/dash aliases into presentation-only gun-height controls. Insert raises and Delete lowers the visible weapon in bounded 8-pixel steps across an 80-pixel range in each direction; the manual offset composes with snapshot-derived sway, recoil, and sword motion. Shift remains sprint and Space remains dash. Player position, aim direction, hits, simulation, replay, and LLM state are unchanged.
 

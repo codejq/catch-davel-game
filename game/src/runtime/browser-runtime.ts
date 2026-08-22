@@ -73,8 +73,8 @@ import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
-  applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardRotationDelta,
-  nextFieldOfViewScale, nextWeaponVerticalOffset, weaponForKeyboardCode,
+  applyDirectionalControlSwap, isSecondaryKeyboardCode, keyboardActionPressed, keyboardPitchDelta,
+  keyboardRotationDelta, nextFieldOfViewScale, weaponForKeyboardCode,
 } from './keyboard-input';
 
 const WEAPON_UI_KEYS: Readonly<Record<WeaponId, RuntimeUiKey>> = {
@@ -306,7 +306,6 @@ export async function startBrowserGame(): Promise<void> {
   let renderPresentationSettings: RenderPresentationSettings = {
     motionScale: 1, flashScale: 1, fieldOfViewScale: 1, qualityTier: resolvedQuality,
   };
-  let weaponVerticalOffset = 0;
   let messageTimeout = 0;
   let damageDirectionTimeout = 0;
   let barkTimeout = 0;
@@ -1034,12 +1033,12 @@ export async function startBrowserGame(): Promise<void> {
     weaponStatus.textContent = `${ui(WEAPON_UI_KEYS[state.player.selectedWeapon])}${resource}`;
     touchWeapon.textContent = ui(WEAPON_UI_KEYS[state.player.selectedWeapon]);
     document.body.dataset.weapon = state.player.selectedWeapon;
+    document.body.dataset.playerPitch = String(state.player.pitch);
     const weaponPose = weaponLocomotion.sample(state, renderPresentationSettings.motionScale);
     weapon.style.setProperty('--weapon-locomotion-x', `${weaponPose.xPixels}px`);
-    weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels + weaponVerticalOffset}px`);
+    weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels}px`);
     weapon.style.setProperty('--weapon-locomotion-roll', `${weaponPose.rollDegrees}deg`);
     document.body.dataset.weaponLocomotionIntensity = String(weaponPose.intensity);
-    document.body.dataset.weaponVerticalOffset = String(weaponVerticalOffset);
     const pulseBloom = state.player.selectedWeapon === 'pulse'
       ? state.pulseSpreadRadians / PULSE_MAX_SPREAD_RADIANS : 0;
     crosshair.style.setProperty('--pulse-spread-scale', String(1 + Math.max(0, Math.min(1, pulseBloom)) * 1.6));
@@ -1772,12 +1771,6 @@ export async function startBrowserGame(): Promise<void> {
       document.body.dataset.fieldOfViewScale = String(renderPresentationSettings.fieldOfViewScale);
       showMessage(ui(direction === 'in' ? 'zoomIn' : 'zoomOut'));
     }
-    if (event.code === 'Insert' || event.code === 'Delete') {
-      const direction = event.code === 'Insert' ? 'up' : 'down';
-      weaponVerticalOffset = nextWeaponVerticalOffset(weaponVerticalOffset, direction);
-      document.body.dataset.weaponVerticalOffset = String(weaponVerticalOffset);
-      showMessage(ui(direction === 'up' ? 'gunUp' : 'gunDown'));
-    }
     if (event.code === activeInputBindings.sprint && activeProfile.settings.sprintMode === 'toggle' && !event.repeat) {
       sprintHeld = !sprintHeld;
       touchSprint.classList.toggle('active', sprintHeld);
@@ -1907,7 +1900,7 @@ export async function startBrowserGame(): Promise<void> {
           - Number(keyboardActionPressed(pressed, 'left', activeInputBindings))
           + touchStrafe + (gameInputAllowed ? gamepad.strafe : 0))),
         yawDelta: yawDelta + keyboardRotationDelta(pressed) + (gameInputAllowed ? gamepad.yawDelta : 0),
-        pitchDelta: pitchDelta + (gameInputAllowed ? gamepad.pitchDelta : 0),
+        pitchDelta: pitchDelta + keyboardPitchDelta(pressed) + (gameInputAllowed ? gamepad.pitchDelta : 0),
         sprint: sprintActive,
         dash: dashQueued,
         fire: fireQueued || fireHeld || keyboardActionPressed(pressed, 'fire', activeInputBindings)
