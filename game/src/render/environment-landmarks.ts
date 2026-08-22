@@ -108,11 +108,11 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
 };
 
 const LANDMARKS_PER_LEVEL = 5;
-export const WALL_ARTS_PER_LEVEL = 20;
+export const WALL_ARTS_PER_LEVEL = 40;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-export const MAX_CAMPAIGN_LANDMARK_BOXES = 132;
+export const MAX_CAMPAIGN_LANDMARK_BOXES = 232;
 export const MAX_EXIT_BEACON_BOXES = 13;
-export const WALL_ART_IMAGE_COUNT = 57;
+export const WALL_ART_IMAGE_COUNT = 93;
 
 function box(
   x: number, y: number, z: number,

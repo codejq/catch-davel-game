@@ -1,6 +1,6 @@
 # Third-party assets
 
-Catch Davel's development build includes 57 wall-art images supplied by the product owner in
+Catch Davel's development build includes 93 wall-art images supplied by the product owner in
 `game/public/wall-art/`. They are used as decorative, non-authoritative maze textures. Creator,
 source URL, and redistribution-license metadata were not supplied with the files, so these images
 remain subject to an explicit Quantum Billing public-release rights review. They must not be treated
