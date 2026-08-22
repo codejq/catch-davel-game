@@ -108,8 +108,9 @@ const LANDMARK_MOTIFS: Readonly<Record<PlayableLevelId, LandmarkMotif>> = {
 };
 
 const LANDMARKS_PER_LEVEL = 5;
+export const WALL_ARTS_PER_LEVEL = 20;
 const CARDINAL_OFFSETS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
-export const MAX_CAMPAIGN_LANDMARK_BOXES = 72;
+export const MAX_CAMPAIGN_LANDMARK_BOXES = 132;
 export const MAX_EXIT_BEACON_BOXES = 13;
 export const WALL_ART_IMAGE_COUNT = 57;
 
@@ -138,6 +139,21 @@ function selectVisibleWallAnchors(levelId: PlayableLevelId): readonly { column: 
     selected.push(candidates[(target + levelNumber * 3) % candidates.length]!);
   }
   return selected;
+}
+
+function selectWallArtAnchors(levelId: PlayableLevelId): readonly { column: number; row: number }[] {
+  const candidates = wallCells(levelId).filter(({ column, row }) => CARDINAL_OFFSETS.some(
+    ([columnOffset, rowOffset]) => cellAt(column + columnOffset, row + rowOffset, levelId) !== '#',
+  ));
+  if (candidates.length < WALL_ARTS_PER_LEVEL) throw new Error(`Level ${levelId} has too few wall-art anchors`);
+  const levelNumber = campaignLevel(levelId).number;
+  return [...candidates]
+    .sort((left, right) => {
+      const leftKey = (left.column * 97 + left.row * 193 + levelNumber * 389) % 997;
+      const rightKey = (right.column * 97 + right.row * 193 + levelNumber * 389) % 997;
+      return leftKey - rightKey || left.row - right.row || left.column - right.column;
+    })
+    .slice(0, WALL_ARTS_PER_LEVEL);
 }
 
 function pictureFrameBoxes(
@@ -177,7 +193,7 @@ function pictureFrameBoxes(
 
 export function wallArtPlacements(levelId: PlayableLevelId): readonly WallArtPlacement[] {
   const levelNumber = campaignLevel(levelId).number;
-  return selectVisibleWallAnchors(levelId).map((anchor, index) => {
+  return selectWallArtAnchors(levelId).map((anchor, index) => {
     const center = cellCenter(anchor.column, anchor.row);
     const [columnOffset, rowOffset] = CARDINAL_OFFSETS.find(
       ([columnStep, rowStep]) => cellAt(anchor.column + columnStep, anchor.row + rowStep, levelId) !== '#',
@@ -188,7 +204,7 @@ export function wallArtPlacements(levelId: PlayableLevelId): readonly WallArtPla
       z: center.z + rowOffset * (CELL_SIZE * 0.5 + 0.145),
       facesX: columnOffset !== 0,
       outwardSign: columnOffset || rowOffset,
-      imageIndex: (((levelNumber - 1) * LANDMARKS_PER_LEVEL + index) * 23) % WALL_ART_IMAGE_COUNT,
+      imageIndex: (((levelNumber - 1) * WALL_ARTS_PER_LEVEL + index) * 23) % WALL_ART_IMAGE_COUNT,
     };
   });
 }
@@ -497,17 +513,23 @@ export function campaignLandmarkLayout(levelId: PlayableLevelId): CampaignLandma
   const level = campaignLevel(levelId);
   const palette = paletteRuntimeProfile(level.palette.presetId);
   const anchorCells = selectVisibleWallAnchors(levelId);
-  const boxes = anchorCells.flatMap((anchor, index) => {
+  const motifDecorations = anchorCells.flatMap((anchor, index) => {
     const center = cellCenter(anchor.column, anchor.row);
     const primary = palette.walls[(level.number + index) % palette.walls.length]!;
     const accent = palette.walls[(level.number + index + 2) % palette.walls.length]!;
-    return [...motifBoxes(
+    return motifBoxes(
       LANDMARK_MOTIFS[levelId], center.x, center.z,
       primary,
       accent,
       index,
-    ), ...pictureFrameBoxes(levelId, anchor, primary, accent, index)];
+    );
   });
+  const pictureFrames = selectWallArtAnchors(levelId).flatMap((anchor, index) => {
+    const primary = palette.walls[(level.number + index) % palette.walls.length]!;
+    const accent = palette.walls[(level.number + index + 2) % palette.walls.length]!;
+    return pictureFrameBoxes(levelId, anchor, primary, accent, index % LANDMARKS_PER_LEVEL);
+  });
+  const boxes = [...motifDecorations, ...pictureFrames];
   if (boxes.length > MAX_CAMPAIGN_LANDMARK_BOXES) throw new Error(`Level ${levelId} exceeds its landmark box cap`);
   return { motif: LANDMARK_MOTIFS[levelId], anchorCells, boxes };
 }

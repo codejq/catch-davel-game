@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PLAYABLE_LEVEL_IDS } from '../src/content/level-ids';
 import {
   campaignLandmarkLayout, exitBeaconBoxes, MAX_CAMPAIGN_LANDMARK_BOXES, MAX_EXIT_BEACON_BOXES,
-  wallArtPlacements, WALL_ART_IMAGE_COUNT,
+  wallArtPlacements, WALL_ART_IMAGE_COUNT, WALL_ARTS_PER_LEVEL,
 } from '../src/render/environment-landmarks';
 import { WALL_ART_FILES } from '../src/render/wall-art-renderer';
 import { cellAt, cellCenter, findCell, wallCells } from '../src/sim/level';
@@ -16,7 +16,7 @@ describe('bounded campaign environmental landmarks', () => {
       motifs.add(layout.motif);
       signatures.add(JSON.stringify(layout.boxes));
       expect(layout.anchorCells).toHaveLength(5);
-      expect(layout.boxes.length).toBeGreaterThanOrEqual(40);
+      expect(layout.boxes.length).toBeGreaterThanOrEqual(115);
       expect(layout.boxes.length).toBeLessThanOrEqual(MAX_CAMPAIGN_LANDMARK_BOXES);
       for (const anchor of layout.anchorCells) expect(cellAt(anchor.column, anchor.row, levelId)).toBe('#');
       for (const box of layout.boxes) {
@@ -26,7 +26,7 @@ describe('bounded campaign environmental landmarks', () => {
         expect(box.emission).toBeLessThanOrEqual(1);
         expect(box.y - box.sizeY / 2).toBeGreaterThanOrEqual(0.19);
       }
-      expect(layout.boxes.filter((box) => box.y < 3.1)).toHaveLength(25);
+      expect(layout.boxes.filter((box) => box.y < 3.1)).toHaveLength(100);
     }
     expect(motifs.size).toBe(PLAYABLE_LEVEL_IDS.length);
     expect(signatures.size).toBe(PLAYABLE_LEVEL_IDS.length);
@@ -44,7 +44,7 @@ describe('bounded campaign environmental landmarks', () => {
     const usedImages = new Set<number>();
     for (const levelId of PLAYABLE_LEVEL_IDS) {
       const placements = wallArtPlacements(levelId);
-      expect(placements).toHaveLength(5);
+      expect(placements).toHaveLength(WALL_ARTS_PER_LEVEL);
       for (const placement of placements) {
         expect(placement.imageIndex).toBeGreaterThanOrEqual(0);
         expect(placement.imageIndex).toBeLessThan(WALL_ART_IMAGE_COUNT);

@@ -1,8 +1,7 @@
 import type { PlayableLevelId } from '../content/level-ids';
-import { wallArtPlacements, WALL_ART_IMAGE_COUNT } from './environment-landmarks';
+import { wallArtPlacements, WALL_ART_IMAGE_COUNT, WALL_ARTS_PER_LEVEL } from './environment-landmarks';
 
-const IMAGE_SIZE = 512;
-const ARTWORKS_PER_LEVEL = 5;
+const IMAGE_SIZE = 384;
 const ART_WIDTH = 1.3;
 const ART_HEIGHT = 2.12;
 
@@ -96,7 +95,7 @@ export class WallArtRenderer {
     gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 24, 12);
     gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 1, gl.FLOAT, false, 24, 20);
     gl.bindTexture(gl.TEXTURE_2D_ARRAY, texture);
-    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, IMAGE_SIZE, IMAGE_SIZE, ARTWORKS_PER_LEVEL);
+    gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, IMAGE_SIZE, IMAGE_SIZE, WALL_ARTS_PER_LEVEL);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
