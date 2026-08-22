@@ -165,7 +165,8 @@ export class WallArtRenderer {
     for (const { layer, fileIndex } of images) {
       const file = WALL_ART_FILES[fileIndex]!;
       try {
-        const response = await fetch(`${import.meta.env.BASE_URL}wall-art/${encodeURIComponent(file)}`);
+        const imageUrl = new URL(`../wall-art/${encodeURIComponent(file)}`, import.meta.url);
+        const response = await fetch(imageUrl);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         const bitmap = await createImageBitmap(await response.blob());
         context.fillStyle = '#080808'; context.fillRect(0, 0, IMAGE_SIZE, IMAGE_SIZE);
