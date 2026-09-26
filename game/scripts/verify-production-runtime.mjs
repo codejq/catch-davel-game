@@ -612,6 +612,24 @@ try {
     || fallbackAudioObstruction.gain > 0.58 || fallbackAudioObstruction.lowPassHz !== 920) {
     throw new Error(`World audio did not apply bounded wall obstruction: ${JSON.stringify(fallbackAudioObstruction)}`);
   }
+  // Distant reports need a remote cue beyond 6.5 m. Held pulse fire only produces one when a patrolling Davel
+  // happens to cross the aim line at range, which depends on wall-clock input timing. Instead, turn from the
+  // spawn heading (south, yaw pi) to face east down the Level 1 spawn corridor and throw a bomb: its fuse and
+  // flight are tick-based, so it always detonates about 10 m away (see test/bomb-distant-report.test.ts).
+  await fallbackPage.keyboard.press('Digit3');
+  await fallbackPage.waitForFunction(() => document.body.dataset.weapon === 'bomb');
+  const corridorYaw = Math.PI / 2;
+  await fallbackPage.keyboard.down('ArrowLeft');
+  await fallbackPage.waitForFunction((target) => Number(document.body.dataset.playerYaw) <= target + 0.08, corridorYaw);
+  await fallbackPage.keyboard.up('ArrowLeft');
+  const bombThrowYaw = await fallbackPage.evaluate(() => Number(document.body.dataset.playerYaw));
+  if (Math.abs(bombThrowYaw - corridorYaw) > 0.25) {
+    throw new Error(`Fallback player did not face the spawn corridor before the distant-report bomb: ${bombThrowYaw}`);
+  }
+  await fallbackPage.mouse.down();
+  await fallbackPage.waitForTimeout(100);
+  await fallbackPage.mouse.up();
+  await fallbackPage.waitForFunction(() => Number(document.body.dataset.bombDetonationId) >= 2, null, { timeout: 5_000 });
   await fallbackPage.waitForFunction(() => Number(document.body.dataset.spatialAudioDistantReportCount) > 0, null, { timeout: 3_000 });
   const fallbackDistantReport = await fallbackPage.evaluate(() => ({
     count: Number(document.body.dataset.spatialAudioDistantReportCount),

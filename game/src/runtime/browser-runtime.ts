@@ -1082,6 +1082,7 @@ export async function startBrowserGame(): Promise<void> {
     touchWeapon.textContent = ui(WEAPON_UI_KEYS[state.player.selectedWeapon]);
     document.body.dataset.weapon = state.player.selectedWeapon;
     document.body.dataset.playerPitch = String(state.player.pitch);
+    document.body.dataset.playerYaw = String(state.player.yaw);
     const weaponPose = weaponLocomotion.sample(state, renderPresentationSettings.motionScale);
     weapon.style.setProperty('--weapon-locomotion-x', `${weaponPose.xPixels}px`);
     weapon.style.setProperty('--weapon-locomotion-y', `${weaponPose.yPixels}px`);
