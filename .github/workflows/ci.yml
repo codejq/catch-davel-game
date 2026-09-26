@@ -36,6 +36,22 @@ jobs:
       - name: Generated files remain canonical
         run: git diff --exit-code
 
+  world:
+    name: Open-world game gates
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run world:lint
+      - run: npm run world:test
+      - run: npm run world:build
+      - run: npm run world:smoke
+
   tauri:
     name: Tauri native contract
     runs-on: ubuntu-latest

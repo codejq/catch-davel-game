@@ -6,6 +6,7 @@
   "type": "module",
   "workspaces": [
     "game",
+    "world",
     "spike/phase-minus-one"
   ],
   "scripts": {
@@ -38,6 +39,11 @@
     "spike:perf:bomb-squad": "npm run perf:bomb-squad --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:perf:browser": "npm run perf:browser --workspace @quantum-billing/catch-davel-phase-minus-one",
     "spike:report": "npm run report --workspace @quantum-billing/catch-davel-phase-minus-one",
-    "spike:verify": "npm run verify --workspace @quantum-billing/catch-davel-phase-minus-one"
+    "spike:verify": "npm run verify --workspace @quantum-billing/catch-davel-phase-minus-one",
+    "world:dev": "npm run dev --workspace @quantum-billing/catch-davel-world",
+    "world:build": "npm run build --workspace @quantum-billing/catch-davel-world",
+    "world:test": "npm run test --workspace @quantum-billing/catch-davel-world",
+    "world:lint": "npm run lint --workspace @quantum-billing/catch-davel-world",
+    "world:smoke": "npm run smoke --workspace @quantum-billing/catch-davel-world"
   }
 }
