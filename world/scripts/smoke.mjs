@@ -75,11 +75,14 @@ try {
   const start = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
   await page.keyboard.down('ArrowUp');
   await page.evaluate(() => window.catchDavelWorld.step(1));
+  const clearWhileMoving = await page.evaluate(() => document.querySelector('#hud').classList.contains('clear-view'));
   await page.keyboard.up('ArrowUp');
   await page.keyboard.down('ArrowLeft');
   await page.evaluate(() => window.catchDavelWorld.step(0.5));
   await page.keyboard.up('ArrowLeft');
   const moved = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
+  await page.evaluate(() => window.catchDavelWorld.step(1));
+  const infoWhenStill = !(await page.evaluate(() => document.querySelector('#hud').classList.contains('clear-view')));
   await page.keyboard.press('ShiftRight');
   await page.evaluate(() => window.catchDavelWorld.step(0.6));
   const scoped = await page.evaluate(() => document.querySelector('#scope').style.opacity === '1');
@@ -89,9 +92,9 @@ try {
   await page.keyboard.up('ControlRight');
   const shotsAfter = await page.evaluate(() => window.catchDavelWorld.stats().shots);
   const keyboard = {
-    walked: Math.hypot(moved.x - start.x, moved.z - start.z), turned: start.yaw - moved.yaw, scoped, fired: shotsAfter - shotsBefore,
+    walked: Math.hypot(moved.x - start.x, moved.z - start.z), turned: start.yaw - moved.yaw, scoped, fired: shotsAfter - shotsBefore, clearWhileMoving, infoWhenStill,
   };
-  if (keyboard.walked < 2 || keyboard.turned < 0.5 || !keyboard.scoped || keyboard.fired !== 1) {
+  if (keyboard.walked < 2 || keyboard.turned < 0.5 || !keyboard.scoped || keyboard.fired !== 1 || !keyboard.clearWhileMoving || !keyboard.infoWhenStill) {
     throw new Error(`Keyboard controls failed: ${JSON.stringify(keyboard)}`);
   }
 

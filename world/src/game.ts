@@ -26,6 +26,9 @@ const BASE_FOV = 72;
 const LOOK_SENSITIVITY = 0.0022;
 const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ridge': 0x9a8466, 'frost-pass': 0xc4c8cc };
 
+/** How long the sniper must stand still before the information panels fade back in. */
+const HUD_RETURN_SECONDS = 0.6;
+
 type Phase = 'menu' | 'playing' | 'paused' | 'dead' | 'victory';
 
 interface Interactable {
@@ -84,6 +87,8 @@ export class Game {
   private body = new PlayerBody(0, 0, 0);
   private readonly loadout: Loadout = { health: 100, armor: 0, lives: 0, money: 0, suppressor: false };
   private pickups: Pickup[] = [];
+  /** Seconds the sniper has been standing still; the HUD clears away while moving. */
+  private stillTime = 99;
   private readonly lootedDoors = new WeakSet<object>();
   private sinceHurt = 99;
   private keycard = false;
@@ -369,6 +374,8 @@ export class Game {
     portal.field.material.uniforms.uUnlocked!.value = this.keycard ? 1 : 0;
     portal.light.color.setHex(this.keycard ? 0x55aaff : 0xff5533);
     this.audio.updateAmbience(this.time);
+    const turning = this.input.held('turnLeft') || this.input.held('turnRight');
+    this.stillTime = this.body.moving || turning ? 0 : this.stillTime + dt;
     this.updateHud();
   }
 
@@ -780,6 +787,11 @@ export class Game {
   }
 
   private updateHud(): void {
+    // While moving, fade the information panels so the view is clear; they come back after a moment standing still.
+    // Anything that warns of danger (threat arrows, shooter boxes, damage flash) stays, and so do the vitals when hurt.
+    const clear = this.stillTime < HUD_RETURN_SECONDS;
+    this.hud.root.classList.toggle('clear-view', clear);
+    this.hud.root.classList.toggle('hurt', this.sinceHurt < 3 || this.loadout.health < 30);
     const hud = this.hud;
     hud.health.style.width = `${Math.max(0, this.loadout.health)}%`;
     hud.armor.style.width = `${this.loadout.armor / MAX_ARMOR * 100}%`;
