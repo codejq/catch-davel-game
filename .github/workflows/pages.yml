@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    name: Build playable web game
+    name: Build playable web games
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -28,12 +28,19 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run game:build
+      - run: npm run world:build
+      # The open world is the main page; the classic maze game lives under /classic/.
+      - name: Assemble site
+        run: |
+          mkdir -p site/classic
+          cp -R world/dist/. site/
+          cp -R game/dist/. site/classic/
       - uses: actions/configure-pages@v5
         with:
           enablement: true
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: game/dist
+          path: site
 
   deploy:
     name: Publish GitHub Page

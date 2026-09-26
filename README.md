@@ -6,9 +6,21 @@ The game uses TypeScript, raw WebGL2, a custom sphere/capsule renderer, fixed-st
 
 The production workspace is in [`game`](game/README.md). The approved design and implementation contract is [`GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md`](GAME_DESIGN_AND_IMPLEMENTATION_PLAN.md); current implementation evidence is recorded in [`docs/vertical-slice/IMPLEMENTATION_STATUS.md`](docs/vertical-slice/IMPLEMENTATION_STATUS.md).
 
+## Catch Davel: Open World
+
+The main browser game is now [Catch Davel: Open World](world/README.md), a realistic first-person sniper game built on Three.js. You cross three worlds (Green Valley, Dust Ridge, Frost Pass) with villages, forests, lakes, desert outposts, and snowy bunkers. You can walk, run, crouch, crawl, jump, climb ladders and ledges, open doors, go from building to building, hide in bushes, and search houses for the keycard that opens each world's portal, while armored robot sentries patrol, hunt, and shoot back.
+
+```powershell
+npm ci
+npm run world:dev
+```
+
+The original raw-WebGL2 maze game described below is still playable at `/classic/` on the published site, and its last standalone version is preserved on the `maze-game` branch.
+
 ## Play and download
 
-- [Play Catch Davel in your browser](https://codejq.github.io/catch-davel-game/)
+- [Play Catch Davel: Open World in your browser](https://codejq.github.io/catch-davel-game/)
+- [Play the classic maze game](https://codejq.github.io/catch-davel-game/classic/)
 - [Download Windows, Linux, macOS, or offline web builds](https://github.com/codejq/catch-davel-game/releases)
 - [View cross-platform build runs](https://github.com/codejq/catch-davel-game/actions/workflows/platform-builds.yml)
 

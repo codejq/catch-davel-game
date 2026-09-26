@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Catch Davel: Open World</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2213%22 fill=%22none%22 stroke=%22%23cfe3a0%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M16 4v24M4 16h24%22 stroke=%22%23cfe3a0%22 stroke-width=%222%22/%3E%3C/svg%3E" />
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <canvas id="view" aria-label="Catch Davel open world"></canvas>
+    <div id="hud" hidden>
+      <div id="scope" aria-hidden="true">
+        <svg viewBox="-100 -100 200 200" preserveAspectRatio="xMidYMid meet">
+          <line x1="-100" y1="0" x2="-6" y2="0" /><line x1="6" y1="0" x2="100" y2="0" />
+          <line x1="0" y1="-100" x2="0" y2="-6" /><line x1="0" y1="6" x2="0" y2="100" />
+          <line class="thick" x1="-100" y1="0" x2="-60" y2="0" /><line class="thick" x1="60" y1="0" x2="100" y2="0" />
+          <line class="thick" x1="0" y1="60" x2="0" y2="100" />
+          <g class="dots">
+            <circle cx="-40" cy="0" r="1.2" /><circle cx="-20" cy="0" r="1.2" /><circle cx="20" cy="0" r="1.2" /><circle cx="40" cy="0" r="1.2" />
+            <circle cx="0" cy="20" r="1.2" /><circle cx="0" cy="40" r="1.2" /><circle cx="0" cy="-20" r="1.2" /><circle cx="0" cy="-40" r="1.2" />
+          </g>
+          <circle class="center" cx="0" cy="0" r="0.8" />
+        </svg>
+        <span id="scope-zoom">4×</span>
+        <span id="scope-range">— m</span>
+      </div>
+      <div id="damage"></div>
+      <div id="crosshair"></div>
+      <div id="hitmarker"></div>
+      <div id="detection"></div>
+      <section id="objective">
+        <small id="world-name">GREEN VALLEY</small>
+        <ul id="objective-list"></ul>
+      </section>
+      <div id="compass"><div id="compass-strip"></div><div id="compass-needle"></div></div>
+      <section id="vitals">
+        <div class="bar"><label>HEALTH</label><span><i id="health-bar"></i></span></div>
+        <div class="bar"><label>STAMINA</label><span><i id="stamina-bar"></i></span></div>
+        <div class="bar breath"><label>BREATH</label><span><i id="breath-bar"></i></span></div>
+        <div id="stance">STANDING</div>
+        <div id="visibility" title="How visible you are">VISIBLE</div>
+      </section>
+      <section id="ammo">
+        <b id="ammo-count">5</b><span id="ammo-reserve">/ 20</span>
+        <small id="weapon-state">BOLT-ACTION · ZEROED 100 m</small>
+      </section>
+      <div id="prompt"></div>
+      <div id="progress"><i></i></div>
+      <div id="toast"></div>
+    </div>
+    <section id="menu" class="overlay">
+      <div class="panel">
+        <small>QUANTUM BILLING PRESENTS</small>
+        <h1>CATCH DAVEL<span>OPEN WORLD</span></h1>
+        <p>Armed robots have taken three worlds. Move in silence, hide in the trees, search the houses for the portal keycard, and pick your shots.</p>
+        <div class="controls">
+          <div><kbd>W A S D</kbd> move</div><div><kbd>Shift</kbd> run · hold breath when scoped</div>
+          <div><kbd>C</kbd> crouch</div><div><kbd>Z</kbd> crawl (prone)</div>
+          <div><kbd>Space</kbd> jump · climb onto ledges</div><div><kbd>W</kbd> at a ladder to climb</div>
+          <div><kbd>Right mouse</kbd> scope</div><div><kbd>Left mouse</kbd> fire</div>
+          <div><kbd>Wheel</kbd> 4× / 8× zoom</div><div><kbd>R</kbd> reload</div>
+          <div><kbd>E</kbd> open doors · search · use portal</div><div><kbd>Esc</kbd> pause</div>
+        </div>
+        <label class="quality">Graphics <select id="quality"><option value="high">High</option><option value="low">Low</option></select></label>
+        <button id="play" type="button">CLICK TO PLAY</button>
+        <a class="classic" href="./classic/">Play the classic maze game</a>
+      </div>
+    </section>
+    <section id="card" class="overlay card" hidden><small id="card-eyebrow">WORLD 1 OF 3</small><h2 id="card-title">GREEN VALLEY</h2><p id="card-text"></p></section>
+    <section id="death" class="overlay" hidden><div class="panel"><h2>YOU WERE TAKEN DOWN</h2><p>The robots found you. Stay low, use cover, and move after you shoot.</p><button id="retry" type="button">TRY AGAIN</button></div></section>
+    <section id="victory" class="overlay" hidden><div class="panel"><h2>ALL THREE WORLDS ARE FREE</h2><p id="victory-text"></p><button id="again" type="button">PLAY AGAIN</button></div></section>
+    <script type="module" src="./src/main.ts"></script>
+  </body>
+</html>
