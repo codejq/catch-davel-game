@@ -8,6 +8,9 @@ export class Input {
   private mouseDy = 0;
   private buttons = 0;
   private clicked = 0;
+  /** Actions an agent holds down or taps through the agent API, read exactly like real keys. */
+  private readonly virtualHeld = new Set<ControlAction>();
+  private readonly virtualTapped = new Set<ControlAction>();
   wheel = 0;
   /** While playing, game keys never scroll or navigate the page. */
   capture = false;
@@ -44,10 +47,21 @@ export class Input {
   isDown(code: string): boolean { return this.down.has(code); }
 
   /** True while any key bound to the action is held. */
-  held(action: ControlAction): boolean { return CONTROLS[action].some((code) => this.down.has(code)); }
+  held(action: ControlAction): boolean { return this.virtualHeld.has(action) || CONTROLS[action].some((code) => this.down.has(code)); }
 
   /** True on the frame any key bound to the action went down. */
-  tapped(action: ControlAction): boolean { return CONTROLS[action].some((code) => this.pressed.has(code)); }
+  tapped(action: ControlAction): boolean { return this.virtualTapped.has(action) || CONTROLS[action].some((code) => this.pressed.has(code)); }
+
+  /** Holds or releases an action on behalf of an agent. */
+  setVirtual(action: ControlAction, down: boolean): void {
+    if (down) this.virtualHeld.add(action);
+    else this.virtualHeld.delete(action);
+  }
+
+  /** Taps an action on behalf of an agent: true for the next frame only. */
+  tapVirtual(action: ControlAction): void { this.virtualTapped.add(action); }
+
+  releaseVirtual(): void { this.virtualHeld.clear(); this.virtualTapped.clear(); }
 
   wasPressed(code: string): boolean { return this.pressed.has(code); }
 
@@ -65,6 +79,7 @@ export class Input {
   /** Clears one-frame edge state; call at the end of every frame. */
   endFrame(): void {
     this.pressed.clear();
+    this.virtualTapped.clear();
     this.clicked = 0;
     this.wheel = 0;
   }

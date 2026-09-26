@@ -12,7 +12,7 @@ describe('loose loot', () => {
     for (const part of parts.parts) {
       if (!part.collide) continue;
       collision.add('solid', part.x - part.width / 2, part.y - part.height / 2, part.z - part.depth / 2,
-        part.x + part.width / 2, part.y + part.height / 2, part.z + part.depth / 2, part.role === 'glass' ? 'glass' : undefined);
+        part.x + part.width / 2, part.y + part.height / 2, part.z + part.depth / 2, part.role === 'glass' || part.role === 'stairs' ? part.role : undefined);
     }
     for (const box of parts.containers) collision.addBox('solid', box.x, box.y, box.z, box.width, box.height, box.depth);
   }
@@ -23,7 +23,7 @@ describe('loose loot', () => {
     const outdoors = spots.filter((spot) => spot.where !== 'indoors');
     expect(indoors.length).toBeGreaterThan(2);
     expect(outdoors.length).toBeGreaterThan(5);
-    for (const spot of spots) expect(collision.inside('solid', { ...spot.position, y: spot.position.y + 0.3 })).toBeNull();
+    for (const spot of spots) expect(collision.inside('solid', { ...spot.position, y: spot.position.y + 0.6 })).toBeNull();
     for (const a of spots) for (const b of spots) if (a !== b) expect(Math.hypot(a.position.x - b.position.x, a.position.z - b.position.z)).toBeGreaterThan(3);
   });
 

@@ -2,6 +2,15 @@
 
 A realistic first-person sniper game in the browser, built with [Three.js](https://threejs.org/), TypeScript, and Vite. Armed robot sentries have taken three worlds. Move quietly, hide, search buildings for each world's portal keycard, and pick your shots.
 
+**[Play it in your browser](https://codejq.github.io/catch-davel-game/)** · LLM agents can play too: see [AGENTS.md](AGENTS.md).
+
+![A robot squad closing in on the sniper in Green Valley](docs/screenshots/robots-flanking.jpg)
+
+| | |
+| --- | --- |
+| ![Dust Ridge through the scope: a robot at 99 m](docs/screenshots/scope.jpg) | ![A searched crate: its lid is open and a 12x scope floats out to be picked up](docs/screenshots/loot.jpg) |
+| ![Frost Pass: snowy bunkers from a rooftop](docs/screenshots/frost-pass.jpg) | ![Green Valley: a house beyond the trees](docs/screenshots/village.jpg) |
+
 ## Play
 
 ```powershell
@@ -20,7 +29,7 @@ The main layout uses the right hand around the arrow keys, like the classic maze
 | Home / End | A / D | Step left or right |
 | Ctrl | Left click | Fire (bolt-action, 5-round magazine) |
 | Right Shift (toggle) | Right mouse (hold) | Scope |
-| + / − | Wheel | Switch between 4× and 8× |
+| + / − | Wheel | Switch between 4× and 8× (and 12× with the scope upgrade) |
 | Enter | E | Open or close doors; hold to search; enter the portal |
 | Backspace | R | Reload |
 | Left Shift | Left Shift | Run; hold breath to steady the scope when aiming |
@@ -41,6 +50,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 
 ## How it plays
 
+- **Robot squads**: once a robot spots you it radios your position to every robot within 60 m, and they converge. Assault robots bound forward from cover to cover (tree trunks, rocks, walls), pausing hunkered down in each; flankers swing wide round to your side and close in from there. Up close they strafe while they shoot. A shot that passes near a robot makes it dive for the nearest cover, and robots keep hunting for several seconds after losing sight of you.
 - **Stealth**: robot sentries see you based on stance, movement, distance, and cover. Crouching or crawling inside a bush makes you nearly invisible. Their eyes turn cyan (patrolling), amber (suspicious or searching), and red (alert). Threat arrows around the reticle show robots that are noticing you.
 - **Cover**: robots check your head, chest, shoulders, and hips separately. A tree trunk, wall, or rock hides whatever it covers, and each layer of leaves thins what they can see. Their rounds are traced through the world, so a trunk between you and a robot stops the bullet (you'll see it splinter the bark).
 - **Close-quarters robots**: robot rifles only hurt within 10 m. A robot that spots you from farther away walks in to close the distance, so keep them at range and pick them off.
@@ -57,7 +67,8 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - `src/core`: seeded random numbers, noise, keyboard and mouse input, the collision world (axis-aligned boxes over a heightfield, with ladder, cover, and portal volumes plus raycasts), and procedural Web Audio.
 - `src/world`: themes, terrain, building and watchtower generators, layout, procedural canvas textures, vegetation with wind shaders, and the scene builder. The scene builder merges static geometry per material and splits forests and grass into instanced tiles that hide with distance and cast shadows only when near.
 - `src/player`: character physics (stances, stamina, jumping, ladders, climbing onto ledges), rifle state, ballistics, and the first-person rifle model. The rifle renders in its own scene with a narrower lens.
-- `src/enemies`: sentry AI (patrol, suspicious, alert, search, cover-aware sight and ballistics), hit testing, and the military robot model (hydraulic joints, sensor head, carbine) with stride, combat crouch, head tracking, recoil, and collapse animations.
+- `src/enemies`: sentry AI (patrol, suspicious, alert, search; cover-aware sight and ballistics; squad radio, bounding between cover, flanking, suppression), hit testing, and the military robot model (hydraulic joints, sensor head, carbine) with stride, combat crouch, head tracking, recoil, and collapse animations.
+- `src/agent` and `agent/`: the LLM agent interface: observations and aim solving, the command bridge and route finding (stairs and doorways included), the in-page `window.catchDavel` API, the MCP server, and an example Claude agent. See [AGENTS.md](AGENTS.md).
 - `src/game.ts`: the frame loop, rendering (physical sky, image-based lighting, sun shadows that follow the player, ACES tone mapping, and dimmer light indoors), interaction, the HUD, and world-to-world travel.
 
 ## Testing
@@ -66,6 +77,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 npm run world:lint     # TypeScript
 npm run world:test     # unit tests: movement, collision, layout, AI, ballistics, rifle
 npm run world:smoke    # browser run: snipe, take fire, arrow keys and Ctrl, open a door, search, cross all portals
+npm run world:agent-check   # after a build: the MCP server and every agent tool, plus the example agent's dry run
 ```
 
-The smoke test drives the real game through development-only hooks (`window.catchDavelWorld`), which production builds do not include.
+The smoke test drives the real game through development-only hooks (`window.catchDavelWorld`), which production builds do not include. `node world/scripts/screenshots.mjs` regenerates the screenshots in `docs/screenshots`.

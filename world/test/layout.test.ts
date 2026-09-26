@@ -40,3 +40,26 @@ describe('world layout', () => {
     expect(coverAt(-3, 1)).toBe(true);
   });
 });
+
+describe('doorways', () => {
+  it('every door opening is clear of walls and level with the ground outside, so houses can be entered', () => {
+    for (const theme of WORLDS) {
+      const layout = generateLayout(theme);
+      for (const { parts } of layout.buildings) {
+        for (const door of parts.doors) {
+          const cx = door.hingeX + Math.cos(door.closedYaw) * door.width / 2;
+          const cz = door.hingeZ - Math.sin(door.closedYaw) * door.width / 2;
+          // No wall piece may overlap the middle of the opening between the sill and head height.
+          const blocking = parts.parts.filter((part) => part.collide && part.role !== 'trim' && part.role !== 'floor'
+            && Math.abs(part.x - cx) < part.width / 2 + 0.05 && Math.abs(part.z - cz) < part.depth / 2 + 0.05
+            && part.y - part.height / 2 < door.hingeY + 1.9 && part.y + part.height / 2 > door.hingeY + 0.3);
+          expect(blocking, `${door.id} blocked`).toEqual([]);
+          for (const step of [-1, 1]) {
+            const ground = layout.terrain.heightAt(cx + Math.sin(door.closedYaw) * step, cz + Math.cos(door.closedYaw) * step);
+            expect(ground - door.hingeY, `${door.id} doorstep`).toBeLessThan(0.45);
+          }
+        }
+      }
+    }
+  });
+});

@@ -51,13 +51,7 @@ export class Terrain {
         const z = -terrain.half + row * CELL;
         let height = Terrain.baseHeight(theme, x, z);
         let path = 0;
-        for (let index = 0; index < sites.length; index += 1) {
-          const site = sites[index]!;
-          const distance = Math.hypot(x - site.x, z - site.z);
-          const blend = 1 - smoothstep(site.radius, site.radius + 10, distance);
-          height += (siteHeights[index]! - height) * blend;
-          path = Math.max(path, (1 - smoothstep(site.radius * 0.6, site.radius + 2, distance)) * 0.75);
-        }
+        // Roads first, then building plots flattened over them, so no road lifts the ground above a doorstep.
         for (const road of roads) {
           const distance = distanceToPolyline(x, z, road.points);
           const blend = 1 - smoothstep(road.width * 0.5, road.width * 0.5 + 4, distance);
@@ -66,6 +60,15 @@ export class Terrain {
             height += (smoothHeight - height) * blend * 0.6;
             path = Math.max(path, 1 - smoothstep(road.width * 0.35, road.width * 0.5 + 0.8, distance));
           }
+        }
+        // Later sites (village square, portal, towers) blend in first; the house plots listed first go last so
+        // each house keeps its own level ground right up to its doorstep.
+        for (let index = sites.length - 1; index >= 0; index -= 1) {
+          const site = sites[index]!;
+          const distance = Math.hypot(x - site.x, z - site.z);
+          const blend = 1 - smoothstep(site.radius, site.radius + 10, distance);
+          height += (siteHeights[index]! - height) * blend;
+          path = Math.max(path, (1 - smoothstep(site.radius * 0.6, site.radius + 2, distance)) * 0.75);
         }
         const index = row * terrain.resolution + column;
         terrain.heights[index] = height;

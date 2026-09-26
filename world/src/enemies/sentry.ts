@@ -19,7 +19,7 @@ export const SENTRY = {
   sightRange: 95,
   fieldOfView: Math.PI * 0.62,
   patrolSpeed: 1.35,
-  huntSpeed: 2.6,
+  huntSpeed: 3.2,
   health: 100,
   fireInterval: 1.2,
   damage: 12,
@@ -28,7 +28,17 @@ export const SENTRY = {
   /** How close an alerted robot tries to get before it stops to shoot. */
   standoff: 6.5,
   hearingRange: 75,
+  /** Squad radio: an alerted robot passes the player's position to others this close. */
+  radioRange: 60,
+  /** Seconds an alerted robot keeps hunting after losing sight before it falls back to searching. */
+  alertMemory: 7,
+  /** How far a robot looks for its next piece of cover. */
+  coverRadius: 16,
 } as const;
+
+/** How an alerted robot fights: `assault` bounds from cover to cover, `flank` swings round to the player's side. */
+export type SentryRole = 'assault' | 'flank';
+export type SentryTactic = 'advance' | 'cover' | 'flank' | 'engage';
 
 export interface SentryState {
   readonly id: string;
@@ -53,6 +63,19 @@ export interface SentryState {
   deathTime: number;
   /** Seconds since this sentry last fired, for muzzle flash. */
   sinceShot: number;
+  readonly role: SentryRole;
+  /** Which side a flanker swings round to, and which way it sidesteps while shooting. */
+  side: -1 | 1;
+  tactic: SentryTactic;
+  tacticTimer: number;
+  /** Where the robot is heading for this tactic (cover spot, flank point), if anywhere. */
+  moveTarget: { x: number; z: number } | null;
+  /** Seconds left diving for cover after the player's shots landed nearby. */
+  suppressed: number;
+  /** Seconds left to reach `moveTarget` before giving up on it (walls can make a spot unreachable). */
+  moveBudget: number;
+  sinceSeen: number;
+  radioTimer: number;
 }
 
 export interface PlayerSnapshot {
@@ -117,7 +140,15 @@ export function createSentry(id: string, waypoints: readonly { x: number; z: num
     id, waypoints, guard, waypoint: 0, mode: 'patrol', awareness: 0, health: SENTRY.health, fireCooldown: 1,
     position: { x: start.x, y: world.terrainHeight(start.x, start.z), z: start.z },
     heading: 0, lastKnown: null, searchTimer: 0, sightCheckTimer: 0, canSeePlayer: false, exposure: 0, aimPoint: null, walkPhase: 0, deathTime: 0, sinceShot: 99,
+    role: hashId(id) % 2 === 0 ? 'assault' : 'flank', side: hashId(id) % 4 < 2 ? 1 : -1,
+    tactic: 'advance', tacticTimer: 0, moveTarget: null, moveBudget: 0, suppressed: 0, sinceSeen: 99, radioTimer: 0,
   };
+}
+
+function hashId(id: string): number {
+  let hash = 7;
+  for (let index = 0; index < id.length; index += 1) hash = (hash * 31 + id.charCodeAt(index)) >>> 0;
+  return hash;
 }
 
 /** How visible the player is to a sentry at `distance` metres (0..1+), before line of sight. */
@@ -169,6 +200,10 @@ export function updateSentry(
     sentry.canSeePlayer = seen.exposure > 0.06;
   }
 
+  sentry.suppressed = Math.max(0, sentry.suppressed - dt);
+  sentry.moveBudget = Math.max(0, sentry.moveBudget - dt);
+  sentry.radioTimer = Math.max(0, sentry.radioTimer - dt);
+  sentry.sinceSeen = sentry.canSeePlayer ? 0 : sentry.sinceSeen + dt;
   if (sentry.canSeePlayer) {
     const gain = playerVisibility(player, distance) * Math.min(1, sentry.exposure * 1.5) * (sentry.mode === 'alert' ? 4 : 1.7);
     sentry.awareness = Math.min(1.2, sentry.awareness + gain * dt);
@@ -178,13 +213,15 @@ export function updateSentry(
   }
 
   if (sentry.awareness >= 1) sentry.mode = 'alert';
-  else if (sentry.mode === 'alert' && !sentry.canSeePlayer) { sentry.mode = 'search'; sentry.searchTimer = 14; }
+  else if (sentry.mode === 'alert' && sentry.sinceSeen > SENTRY.alertMemory) { sentry.mode = 'search'; sentry.searchTimer = 14; }
   else if (sentry.mode === 'patrol' && sentry.awareness > 0.35) sentry.mode = 'suspicious';
   else if (sentry.mode === 'suspicious' && sentry.awareness < 0.1) sentry.mode = 'patrol';
 
   let shot: SentryShot | null = null;
   let target: { x: number; z: number } | null = null;
   let speed = 0;
+  /** False to sidestep while still facing (and shooting at) the player. */
+  let faceMovement = true;
   switch (sentry.mode) {
     case 'patrol': {
       const waypoint = sentry.waypoints[sentry.waypoint];
@@ -202,24 +239,34 @@ export function updateSentry(
       sentry.heading = turnToward(sentry.heading, sentry.lastKnown === null ? sentry.heading
         : Math.atan2(sentry.lastKnown.x - sentry.position.x, sentry.lastKnown.z - sentry.position.z), 2 * dt);
       break;
-    case 'alert':
-      sentry.heading = turnToward(sentry.heading, bearing, 4 * dt);
+    case 'alert': {
+      const known = sentry.canSeePlayer ? { x: player.position.x, z: player.position.z } : sentry.lastKnown;
       sentry.fireCooldown -= dt;
-      if (sentry.canSeePlayer && distance <= SENTRY.effectiveRange && sentry.fireCooldown <= 0 && facing < 0.35) {
+      if (sentry.tacticTimer >= 0) sentry.tacticTimer = Math.max(0, sentry.tacticTimer - dt);
+      if (sentry.canSeePlayer && distance <= SENTRY.effectiveRange && sentry.fireCooldown <= 0 && facing < 0.35 && sentry.suppressed <= 0) {
         sentry.fireCooldown = SENTRY.fireInterval * (0.8 + random.next() * 0.5);
         sentry.sinceShot = 0;
         shot = fireAt(sentry, player, world, eye, distance, random);
       }
-      if (!sentry.canSeePlayer && sentry.lastKnown !== null) { target = sentry.lastKnown; speed = SENTRY.huntSpeed; }
-      else if (sentry.canSeePlayer && distance > SENTRY.standoff) {
-        // Too far to shoot: advance on the player, slowing down once inside firing range.
-        target = { x: player.position.x, z: player.position.z };
-        speed = distance > SENTRY.effectiveRange ? SENTRY.huntSpeed : SENTRY.patrolSpeed;
-      }
+      if (known === null) break;
+      const plan = planTactic(sentry, known, player.eye, distance, world, random);
+      target = plan.target;
+      speed = plan.speed;
+      faceMovement = plan.faceMovement;
+      // Keep the gun on the player whenever the robot isn't running somewhere.
+      if (!faceMovement || target === null) sentry.heading = turnToward(sentry.heading, bearing, 4 * dt);
       break;
+    }
     case 'search':
       sentry.searchTimer -= dt;
-      if (sentry.lastKnown !== null && Math.hypot(sentry.lastKnown.x - sentry.position.x, sentry.lastKnown.z - sentry.position.z) > 1.5) {
+      if (sentry.suppressed > 0 && sentry.lastKnown !== null) {
+        const threat = { x: sentry.lastKnown.x, y: sentry.position.y + 1.6, z: sentry.lastKnown.z };
+        if (sentry.moveTarget === null || sentry.tactic !== 'cover') {
+          setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), SENTRY.huntSpeed);
+          sentry.tactic = 'cover';
+        }
+        if (sentry.moveTarget !== null) { target = sentry.moveTarget; speed = SENTRY.huntSpeed; }
+      } else if (sentry.lastKnown !== null && Math.hypot(sentry.lastKnown.x - sentry.position.x, sentry.lastKnown.z - sentry.position.z) > 1.5) {
         target = sentry.lastKnown;
         speed = SENTRY.huntSpeed * 0.7;
       } else {
@@ -229,17 +276,172 @@ export function updateSentry(
       break;
   }
 
-  if (target !== null && speed > 0) {
+  if (target !== null && speed > 0 && Math.hypot(target.x - sentry.position.x, target.z - sentry.position.z) > 0.3) {
     const desired = Math.atan2(target.x - sentry.position.x, target.z - sentry.position.z);
-    sentry.heading = turnToward(sentry.heading, desired, 3 * dt);
-    const step = speed * dt * Math.max(0, Math.cos(angleDifference(desired, sentry.heading)));
-    sentry.position.x += Math.sin(sentry.heading) * step;
-    sentry.position.z += Math.cos(sentry.heading) * step;
+    let step: number;
+    if (faceMovement) {
+      sentry.heading = turnToward(sentry.heading, desired, 3 * dt);
+      step = speed * dt * Math.max(0, Math.cos(angleDifference(desired, sentry.heading)));
+      sentry.position.x += Math.sin(sentry.heading) * step;
+      sentry.position.z += Math.cos(sentry.heading) * step;
+    } else {
+      step = speed * dt;
+      sentry.position.x += Math.sin(desired) * step;
+      sentry.position.z += Math.cos(desired) * step;
+    }
     world.resolveHorizontal(sentry.position, SENTRY.radius, 2.1, 0.45);
     sentry.walkPhase += step * 2.4;
   }
   sentry.position.y = world.groundHeight(sentry.position.x, sentry.position.z, SENTRY.radius * 0.5, sentry.position.y + 0.3, 0.45);
   return shot;
+}
+
+function setMoveTarget(sentry: SentryState, target: { x: number; z: number } | null, speed: number): void {
+  sentry.moveTarget = target;
+  sentry.moveBudget = target === null ? 0 : Math.hypot(target.x - sentry.position.x, target.z - sentry.position.z) / speed + 3;
+}
+
+interface TacticPlan { readonly target: { x: number; z: number } | null; readonly speed: number; readonly faceMovement: boolean }
+
+/**
+ * Chooses how an alerted robot moves this frame. Under fire it dives for cover; out of range, assault robots bound
+ * from cover to cover towards the player while flankers swing round to the player's side; in range, it fights from
+ * where it is, sidestepping so it is harder to hit, and relocates after a few shots.
+ */
+function planTactic(sentry: SentryState, known: { x: number; z: number }, threatEye: Vec3, distance: number, world: CollisionWorld, random: Random): TacticPlan {
+  const here = sentry.position;
+  const arrived = sentry.moveTarget !== null && (Math.hypot(sentry.moveTarget.x - here.x, sentry.moveTarget.z - here.z) < 0.9 || sentry.moveBudget <= 0);
+  const threat = sentry.canSeePlayer ? threatEye : { x: known.x, y: threatEye.y, z: known.z };
+
+  if (sentry.suppressed > 0) {
+    if (sentry.tactic !== 'cover' || sentry.moveTarget === null) {
+      sentry.tactic = 'cover';
+      setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), SENTRY.huntSpeed);
+      sentry.tacticTimer = 2 + random.next() * 1.5;
+    }
+    return sentry.moveTarget === null || arrived
+      ? { target: null, speed: 0, faceMovement: false }
+      : { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+  }
+
+  if (distance <= SENTRY.effectiveRange && sentry.canSeePlayer) {
+    if (sentry.tactic !== 'engage' || sentry.tacticTimer <= 0) {
+      sentry.tactic = 'engage';
+      sentry.tacticTimer = 1.6 + random.next() * 1.4;
+      sentry.side = sentry.side === 1 ? -1 : 1;
+      // Sidestep across the player's line of fire.
+      const awayX = here.x - known.x; const awayZ = here.z - known.z;
+      const length = Math.hypot(awayX, awayZ) || 1;
+      setMoveTarget(sentry, { x: here.x + (-awayZ / length) * sentry.side * 2.5, z: here.z + (awayX / length) * sentry.side * 2.5 }, SENTRY.patrolSpeed);
+    }
+    // Close in a little if still far from the standoff distance.
+    if (distance > SENTRY.standoff + 1.5 && sentry.moveTarget !== null) {
+      const towardX = known.x - here.x; const towardZ = known.z - here.z;
+      const length = Math.hypot(towardX, towardZ) || 1;
+      return { target: { x: sentry.moveTarget.x + towardX / length * 1.5, z: sentry.moveTarget.z + towardZ / length * 1.5 }, speed: SENTRY.patrolSpeed, faceMovement: false };
+    }
+    return { target: sentry.moveTarget, speed: SENTRY.patrolSpeed * 0.8, faceMovement: false };
+  }
+
+  // Out of range (or the player is out of sight): work closer.
+  if (sentry.role === 'flank' && sentry.tactic !== 'cover') {
+    if (sentry.tactic !== 'flank' || sentry.moveTarget === null) {
+      // Swing round ~65 degrees to one side, just outside firing range, then close in from there.
+      const awayX = here.x - known.x; const awayZ = here.z - known.z;
+      const length = Math.hypot(awayX, awayZ) || 1;
+      const radius = Math.max(SENTRY.effectiveRange - 1, Math.min(length * 0.45, 14));
+      const angle = Math.atan2(awayX, awayZ) + 1.1 * sentry.side;
+      sentry.tactic = 'flank';
+      sentry.tacticTimer = 1;
+      setMoveTarget(sentry, { x: known.x + Math.sin(angle) * radius, z: known.z + Math.cos(angle) * radius }, SENTRY.huntSpeed);
+    } else if (arrived || sentry.tacticTimer < 0) {
+      // Flank reached: now close in on the player from the side (tacticTimer < 0 marks this stage).
+      sentry.tacticTimer = -1;
+      setMoveTarget(sentry, { x: known.x, z: known.z }, SENTRY.huntSpeed);
+    }
+    return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+  }
+
+  // Assault: bound from cover to cover, pausing in each.
+  if (sentry.tactic === 'cover' && sentry.moveTarget !== null && !arrived) {
+    return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+  }
+  if (sentry.tactic === 'cover' && sentry.tacticTimer > 0) return { target: null, speed: 0, faceMovement: false };
+  const next = findCover(world, sentry, threat, SENTRY.coverRadius, known);
+  if (next !== null) {
+    sentry.tactic = 'cover';
+    setMoveTarget(sentry, next, SENTRY.huntSpeed);
+    sentry.tacticTimer = 1.2 + random.next() * 1.4;
+    return { target: next, speed: SENTRY.huntSpeed, faceMovement: true };
+  }
+  sentry.tactic = 'advance';
+  setMoveTarget(sentry, { x: known.x, z: known.z }, SENTRY.huntSpeed);
+  return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+}
+
+/**
+ * Finds a spot behind a tree trunk, rock, or wall that hides a robot from `threat`. With `toward` set it only
+ * accepts cover that gets the robot at least a few metres closer to that point (for bounding forward).
+ */
+export function findCover(world: CollisionWorld, sentry: SentryState, threat: Vec3, radius: number, toward: { x: number; z: number } | null): { x: number; z: number } | null {
+  const here = sentry.position;
+  const currentGap = toward === null ? 0 : Math.hypot(toward.x - here.x, toward.z - here.z);
+  let best: { x: number; z: number } | null = null;
+  let bestScore = Number.POSITIVE_INFINITY;
+  const volumes = world.query(here.x - radius, here.z - radius, here.x + radius, here.z + radius, 'solid')
+    .filter((volume) => volume.enabled && volume.tag !== 'glass' && volume.maxY - volume.minY > 1.6 && volume.maxX - volume.minX < 12 && volume.maxZ - volume.minZ < 12)
+    .sort((a, b) => Math.hypot((a.minX + a.maxX) / 2 - here.x, (a.minZ + a.maxZ) / 2 - here.z) - Math.hypot((b.minX + b.maxX) / 2 - here.x, (b.minZ + b.maxZ) / 2 - here.z))
+    .slice(0, 28);
+  for (const volume of volumes) {
+    const centerX = (volume.minX + volume.maxX) / 2; const centerZ = (volume.minZ + volume.maxZ) / 2;
+    const awayX = centerX - threat.x; const awayZ = centerZ - threat.z;
+    const length = Math.hypot(awayX, awayZ) || 1;
+    const reach = Math.max(volume.maxX - volume.minX, volume.maxZ - volume.minZ) / 2 + SENTRY.radius + 0.35;
+    const spot = { x: centerX + awayX / length * reach, z: centerZ + awayZ / length * reach };
+    const travel = Math.hypot(spot.x - here.x, spot.z - here.z);
+    if (travel > radius) continue;
+    let gap = 0;
+    if (toward !== null) {
+      gap = Math.hypot(toward.x - spot.x, toward.z - spot.z);
+      if (gap > currentGap - 3 || gap < SENTRY.standoff) continue;
+    }
+    const ground = world.groundHeight(spot.x, spot.z, SENTRY.radius * 0.5, here.y + 0.5, 0.45);
+    if (world.inside('solid', { x: spot.x, y: ground + 1, z: spot.z }, SENTRY.radius * 0.6) !== null) continue;
+    if (world.lineOfSight(threat, { x: spot.x, y: ground + 1.8, z: spot.z }, (candidate) => candidate.tag === 'glass')) continue;
+    const score = travel + gap * 0.6;
+    if (score < bestScore) { bestScore = score; best = spot; }
+  }
+  return best;
+}
+
+/** The player's shot passed close by: the robot dives for cover and knows roughly where it came from. */
+export function suppressSentry(sentry: SentryState, shooter: Vec3): void {
+  if (sentry.mode === 'dead') return;
+  sentry.suppressed = 2.5;
+  sentry.lastKnown = { x: shooter.x, z: shooter.z };
+  sentry.awareness = Math.max(sentry.awareness, 0.7);
+  sentry.moveTarget = null;
+  sentry.tactic = 'advance';
+  if (sentry.mode === 'patrol' || sentry.mode === 'suspicious') { sentry.mode = 'search'; sentry.searchTimer = 16; }
+}
+
+/** An alerted robot that can see the player radios the position to nearby robots, who converge to help. */
+export function radioSquad(sentries: readonly SentryState[], spotter: SentryState, player: Vec3): number {
+  if (spotter.mode !== 'alert' || !spotter.canSeePlayer || spotter.radioTimer > 0) return 0;
+  spotter.radioTimer = 1.5;
+  let told = 0;
+  for (const other of sentries) {
+    if (other === spotter || other.mode === 'dead') continue;
+    if (Math.hypot(other.position.x - spotter.position.x, other.position.z - spotter.position.z) > SENTRY.radioRange) continue;
+    other.lastKnown = { x: player.x, z: player.z };
+    if (other.mode === 'patrol' || other.mode === 'suspicious' || other.mode === 'search') {
+      other.mode = 'search';
+      other.searchTimer = Math.max(other.searchTimer, 18);
+      other.awareness = Math.max(other.awareness, 0.6);
+    }
+    told += 1;
+  }
+  return told;
 }
 
 /**

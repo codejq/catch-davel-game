@@ -91,7 +91,8 @@ export function buildBuilding(plan: BuildingPlan): BuildingParts {
   const front: Opening[] = [{ center: doorCenter, width: 1.15, bottom: 0, top: 2.25, door: true }];
   const back: Opening[] = backDoor ? [{ center: 0, width: 1.15, bottom: 0, top: 2.25, door: true }] : [];
   for (let floor = 0; floor < plan.floors; floor += 1) {
-    front.push(...windowRow(floor, w - 1, floor === 0 ? doorCenter : null));
+    // No window directly above the door either: its sill would be built from the ground up and seal the doorway.
+    front.push(...windowRow(floor, w - 1, doorCenter));
     back.push(...windowRow(floor, w - 1, floor === 0 && backDoor ? 0 : null));
   }
   const sides: Opening[] = [];

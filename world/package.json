@@ -10,16 +10,20 @@
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "lint": "tsc --noEmit",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "agent:mcp": "node agent/mcp-server.mjs",
+    "agent:claude": "node agent/claude-agent.mjs",
+    "agent:check": "node scripts/agent-check.mjs"
   },
   "dependencies": {
     "three": "0.186.1"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "0.128.0",
     "@types/three": "0.186.0",
+    "playwright-core": "1.62.1",
     "typescript": "7.0.2",
     "vite": "8.2.1",
-    "vitest": "4.1.10",
-    "playwright-core": "1.62.1"
+    "vitest": "4.1.10"
   }
 }
