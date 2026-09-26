@@ -6,8 +6,9 @@ import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
 import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
-import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop } from './player/loot';
+import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop, type LootKind } from './player/loot';
 import { createPickupMesh } from './world/pickups';
+import { scatterLootSpots } from './world/loot-spots';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, updateSentry, type PlayerSnapshot, type SentryState,
   SENTRY,
@@ -28,6 +29,10 @@ const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ri
 
 /** How long the sniper must stand still before the information panels fade back in. */
 const HUD_RETURN_SECONDS = 0.6;
+
+function freshSeed(): string {
+  return `${Date.now()}-${Math.random()}`;
+}
 
 type Phase = 'menu' | 'playing' | 'paused' | 'dead' | 'victory';
 
@@ -70,6 +75,8 @@ export class Game {
   private readonly input: Input;
   private readonly audio = new GameAudio();
   private readonly random = new Random('catch-davel-open-world');
+  /** Loot is reshuffled every time a world loads, so each playthrough turns up different finds in different places. */
+  private lootRandom = new Random(freshSeed());
   private readonly rifle = new RifleState();
   private readonly rifleModel = createRifleModel();
   private readonly effects: Effect[] = [];
@@ -211,6 +218,8 @@ export class Game {
     this.world = buildWorld(this.layout, this.quality);
     this.scene.add(this.world.root);
     this.applyAtmosphere(theme);
+    this.lootRandom = new Random(freshSeed());
+    this.scatterLoot();
     this.sentries = this.layout.patrols.map((patrol) => createSentry(patrol.id, patrol.waypoints, patrol.guard, this.world!.collision));
     this.rigs = this.sentries.map(() => {
       const rig = createRobotRig(ROBOT_PAINT[theme.id] ?? 0x707070);
@@ -577,7 +586,8 @@ export class Game {
       consider(center, 2.4, { kind: 'door', label: door.open ? 'Close door' : 'Open door', door });
     }
     for (const pickup of this.pickups) {
-      consider(pickup.position, 2.8, { kind: 'pickup', label: `Pick up ${LOOT_NAMES[pickup.drop.kind]}`, pickup });
+      const refusal = this.refusal(pickup);
+      consider(pickup.position, 2.8, { kind: 'pickup', label: refusal === null ? `Pick up ${LOOT_NAMES[pickup.drop.kind]}` : `${LOOT_NAMES[pickup.drop.kind]} · ${refusal}`, pickup });
     }
     for (const container of world.containers) {
       if (container.searched) continue;
@@ -598,7 +608,8 @@ export class Game {
       this.hud.progress.classList.remove('show');
       return;
     }
-    this.hud.prompt.innerHTML = `<kbd>Enter</kbd><kbd>E</kbd>${target.label}`;
+    const refused = target.kind === 'pickup' && this.refusal(target.pickup!) !== null;
+    this.hud.prompt.innerHTML = refused ? target.label : `<kbd>Enter</kbd><kbd>E</kbd>${target.label}`;
     if (target.kind === 'door' && this.input.tapped('interact')) {
       const door = target.door!;
       door.open = !door.open;
@@ -609,7 +620,7 @@ export class Game {
       this.audio.door(door.open);
       if (door.open && !this.lootedDoors.has(door)) {
         this.lootedDoors.add(door);
-        const drop = rollDoorLoot(this.random, usefulKinds(this.loadout, this.rifle));
+        const drop = rollDoorLoot(this.lootRandom, usefulKinds(this.loadout, this.rifle));
         if (drop !== null) {
           // Left on the floor just the other side of the door.
           const direction = side > 0 ? -1 : 1;
@@ -621,7 +632,7 @@ export class Game {
         }
       }
     }
-    if (target.kind === 'pickup' && this.input.tapped('interact')) this.collect(target.pickup!);
+    if (target.kind === 'pickup' && this.input.tapped('interact') && this.refusal(target.pickup!) === null) this.collect(target.pickup!);
     if (target.kind === 'container') {
       const container = target.container!;
       if (this.input.held('interact')) {
@@ -642,7 +653,6 @@ export class Game {
     container.searched = true;
     this.searchProgress = 0;
     this.hud.progress.classList.remove('show');
-    const random = new Random(container.plan.id);
     if (container.hasKeycard) {
       this.keycard = true;
       this.audio.pickup(true);
@@ -650,8 +660,14 @@ export class Game {
       this.refreshObjectives();
     } else {
       // The lid swings open and the find rises out of the box, ready to pick up.
-      const drop = rollLoot(random, usefulKinds(this.loadout, this.rifle));
+      const drop = rollLoot(this.lootRandom, usefulKinds(this.loadout, this.rifle));
       const plan = container.plan;
+      // Now and then a box holds a second find.
+      if (this.lootRandom.chance(0.25)) {
+        const bonus = rollLoot(this.lootRandom, this.looseKinds());
+        const side = { x: Math.cos(plan.yaw) * 0.55, z: -Math.sin(plan.yaw) * 0.55 };
+        this.spawnPickup(bonus, { x: plan.x + side.x, y: plan.y + plan.height + 0.35, z: plan.z + side.z }, 0.5);
+      }
       if (plan.kind === 'crate') {
         this.spawnPickup(drop, { x: plan.x, y: plan.y + plan.height + 0.35, z: plan.z }, 0.5);
       } else {
@@ -662,6 +678,27 @@ export class Game {
       this.audio.door(true);
       this.toast(`FOUND ${LOOT_NAMES[drop.kind].toUpperCase()} · PICK IT UP`, 2);
     }
+  }
+
+  /** Every kind of find except weapon upgrades already fitted: loose loot waits in the world until it is needed. */
+  private looseKinds(): Set<LootKind> {
+    const kinds = usefulKinds({ ...this.loadout, health: 0, armor: 0 }, this.rifle);
+    return kinds;
+  }
+
+  /** Leaves loose finds lying around the new world, in different spots every time. */
+  private scatterLoot(): void {
+    const spots = scatterLootSpots(this.layout!, this.world!.collision, this.lootRandom, this.lootRandom.int(4, 7), this.lootRandom.int(6, 10));
+    for (const spot of spots) {
+      this.spawnPickup(rollLoot(this.lootRandom, this.looseKinds()), { x: spot.position.x, y: spot.position.y + 0.35, z: spot.position.z }, 0);
+    }
+  }
+
+  /** Why a pickup cannot be taken right now, or null if it can. */
+  private refusal(pickup: Pickup): string | null {
+    if (pickup.drop.kind === 'medkit' && this.loadout.health >= 100) return 'health full';
+    if (pickup.drop.kind === 'armor' && this.loadout.armor >= MAX_ARMOR) return 'armor full';
+    return null;
   }
 
   private spawnPickup(drop: LootDrop, position: Vec3, rise: number): void {
@@ -701,7 +738,7 @@ export class Game {
     // Walking into an item picks it up.
     const feet = this.body.position;
     for (const pickup of [...this.pickups]) {
-      if (pickup.age < 0.8) continue;
+      if (pickup.age < 0.8 || this.refusal(pickup) !== null) continue;
       if (Math.hypot(pickup.position.x - feet.x, pickup.position.z - feet.z) < 0.8 && Math.abs(pickup.position.y - feet.y - 0.6) < 1.4) this.collect(pickup);
     }
   }
