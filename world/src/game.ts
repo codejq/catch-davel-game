@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { GameAudio } from './core/audio';
 import type { Vec3 } from './core/collision';
+import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
 import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
@@ -80,6 +81,7 @@ export class Game {
   private wasAirborne = false;
   private indoorBlend = 0;
   private debugAim = false;
+  private scopeToggled = false;
   private debugFire = false;
   private readonly debugImpacts: string[] = [];
   private baseHemi = 0.4;
@@ -145,12 +147,18 @@ export class Game {
       this.input.lock();
     });
     element('#again').addEventListener('click', () => location.reload());
+    // Keyboard players can start, resume, and retry with Enter.
+    addEventListener('keydown', (event) => {
+      if (event.code !== 'Enter' && event.code !== 'NumpadEnter') return;
+      if (!element('#menu').hidden) { event.preventDefault(); element('#play').click(); }
+      else if (!element('#death').hidden) { event.preventDefault(); element('#retry').click(); }
+    });
     this.canvas.addEventListener('click', () => { if (this.phase === 'playing') this.input.lock(); });
     document.addEventListener('pointerlockchange', () => {
       if (!this.input.locked && this.phase === 'playing') {
         this.phase = 'paused';
         element('#menu').hidden = false;
-        element('#play').textContent = 'RESUME';
+        element('#play').textContent = 'PRESS ENTER OR CLICK TO RESUME';
       }
     });
   }
@@ -286,6 +294,7 @@ export class Game {
     const frame = (now: number): void => {
       const dt = Math.min(1 / 30, (now - last) / 1000);
       last = now;
+      this.input.capture = this.phase === 'playing';
       if (this.phase === 'playing') this.update(dt);
       this.render(dt);
       this.input.endFrame();
@@ -303,16 +312,20 @@ export class Game {
     // Look: slower when scoped so the reticle stays controllable.
     const look = this.input.consumeLook();
     const fovScale = this.camera.fov / BASE_FOV;
-    this.body.yaw += look.dx * LOOK_SENSITIVITY * fovScale;
-    this.body.pitch = THREE.MathUtils.clamp(this.body.pitch - look.dy * LOOK_SENSITIVITY * fovScale, -1.45, 1.45);
+    const turnKeys = (this.input.held('turnRight') ? 1 : 0) - (this.input.held('turnLeft') ? 1 : 0);
+    const lookKeys = (this.input.held('lookUp') ? 1 : 0) - (this.input.held('lookDown') ? 1 : 0);
+    this.body.yaw += look.dx * LOOK_SENSITIVITY * fovScale + turnKeys * KEYBOARD_TURN_SPEED * fovScale * dt;
+    this.body.pitch = THREE.MathUtils.clamp(
+      this.body.pitch - look.dy * LOOK_SENSITIVITY * fovScale + lookKeys * KEYBOARD_LOOK_SPEED * fovScale * dt, -1.45, 1.45,
+    );
 
     const intent: MoveIntent = {
-      forward: (this.input.isDown('KeyW') ? 1 : 0) - (this.input.isDown('KeyS') ? 1 : 0),
-      strafe: (this.input.isDown('KeyD') ? 1 : 0) - (this.input.isDown('KeyA') ? 1 : 0),
-      sprint: this.input.isDown('ShiftLeft') && this.rifle.aim < 0.3,
-      jump: this.input.wasPressed('Space'),
-      crouch: this.input.wasPressed('KeyC') || this.input.wasPressed('ControlLeft'),
-      prone: this.input.wasPressed('KeyZ'),
+      forward: (this.input.held('forward') ? 1 : 0) - (this.input.held('back') ? 1 : 0),
+      strafe: (this.input.held('strafeRight') ? 1 : 0) - (this.input.held('strafeLeft') ? 1 : 0),
+      sprint: this.input.held('run') && this.rifle.aim < 0.3,
+      jump: this.input.tapped('jump'),
+      crouch: this.input.tapped('crouch'),
+      prone: this.input.tapped('prone'),
     };
     const airborneBefore = !this.body.onGround;
     this.body.step(intent, dt, world.collision);
@@ -359,11 +372,15 @@ export class Game {
   }
 
   private updateRifle(dt: number): void {
-    const aiming = (this.input.mouseDown(2) || this.debugAim) && !this.body.sprinting && !this.body.climbing;
-    this.rifle.update(dt, aiming, this.input.isDown('ShiftLeft'));
+    // Right Shift toggles the scope for keyboard players; the right mouse button still holds it.
+    if (this.input.tapped('scope')) this.scopeToggled = !this.scopeToggled;
+    if (this.body.sprinting || this.body.climbing) this.scopeToggled = false;
+    const aiming = (this.input.mouseDown(2) || this.scopeToggled || this.debugAim) && !this.body.sprinting && !this.body.climbing;
+    this.rifle.update(dt, aiming, this.input.held('run'));
     if (this.input.wheel !== 0 && this.rifle.aim > 0.5) this.rifle.zoomIndex = this.input.wheel > 0 ? 0 : 1;
-    if (this.input.wasPressed('KeyR') && this.rifle.startReload()) this.audio.reload();
-    const trigger = this.input.mouseClicked(0) || this.debugFire;
+    if (this.input.tapped('zoom') && this.rifle.aim > 0.5) this.rifle.zoomIndex = this.rifle.zoomIndex === 0 ? 1 : 0;
+    if (this.input.tapped('reload') && this.rifle.startReload()) this.audio.reload();
+    const trigger = this.input.mouseClicked(0) || this.input.tapped('fire') || this.debugFire;
     this.debugFire = false;
     if (trigger && !this.body.climbing && this.body.mantle === null) {
       if (this.rifle.magazine === 0 && !this.rifle.reloading) {
@@ -517,8 +534,8 @@ export class Game {
       this.hud.progress.classList.remove('show');
       return;
     }
-    this.hud.prompt.innerHTML = `<kbd>E</kbd>${target.label}`;
-    if (target.kind === 'door' && this.input.wasPressed('KeyE')) {
+    this.hud.prompt.innerHTML = `<kbd>Enter</kbd><kbd>E</kbd>${target.label}`;
+    if (target.kind === 'door' && this.input.tapped('interact')) {
       const door = target.door!;
       door.open = !door.open;
       // Swing away from the player.
@@ -529,7 +546,7 @@ export class Game {
     }
     if (target.kind === 'container') {
       const container = target.container!;
-      if (this.input.isDown('KeyE')) {
+      if (this.input.held('interact')) {
         if (this.searchTarget !== container) { this.searchTarget = container; this.searchProgress = 0; this.audio.search(); }
         this.searchProgress += dt / 1.4;
         this.hud.progress.classList.add('show');
@@ -540,7 +557,7 @@ export class Game {
         this.hud.progress.classList.remove('show');
       }
     }
-    if (target.kind === 'portal' && this.input.wasPressed('KeyE') && this.keycard) this.travel();
+    if (target.kind === 'portal' && this.input.tapped('interact') && this.keycard) this.travel();
   }
 
   private finishSearch(container: Container): void {

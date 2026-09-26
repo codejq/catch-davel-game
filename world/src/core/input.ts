@@ -1,3 +1,5 @@
+import { CAPTURED_KEYS, CONTROLS, type ControlAction } from './controls';
+
 /** Keyboard + mouse state with pointer lock for first-person look. */
 export class Input {
   private readonly down = new Set<string>();
@@ -7,13 +9,15 @@ export class Input {
   private buttons = 0;
   private clicked = 0;
   wheel = 0;
+  /** While playing, game keys never scroll or navigate the page. */
+  capture = false;
 
   constructor(private readonly element: HTMLElement) {
     addEventListener('keydown', (event) => {
+      if (this.capture && (CAPTURED_KEYS.has(event.code) || event.ctrlKey)) event.preventDefault();
       if (event.repeat) return;
       this.down.add(event.code);
       this.pressed.add(event.code);
-      if (['Space', 'Tab', 'ControlLeft', 'KeyC', 'KeyZ'].includes(event.code) && this.locked) event.preventDefault();
     });
     addEventListener('keyup', (event) => this.down.delete(event.code));
     addEventListener('blur', () => { this.down.clear(); this.buttons = 0; });
@@ -38,6 +42,12 @@ export class Input {
   }
 
   isDown(code: string): boolean { return this.down.has(code); }
+
+  /** True while any key bound to the action is held. */
+  held(action: ControlAction): boolean { return CONTROLS[action].some((code) => this.down.has(code)); }
+
+  /** True on the frame any key bound to the action went down. */
+  tapped(action: ControlAction): boolean { return CONTROLS[action].some((code) => this.pressed.has(code)); }
 
   wasPressed(code: string): boolean { return this.pressed.has(code); }
 

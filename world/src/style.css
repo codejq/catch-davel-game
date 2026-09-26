@@ -74,6 +74,8 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 .panel h2 { margin: 0 0 12px; font-size: 30px; letter-spacing: .06em; }
 .panel p { color: #cdd6c6; line-height: 1.5; }
 .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin: 20px 0; font-size: 13px; color: #dfe6d6; }
+.controls .wide { grid-column: 1 / -1; color: #aebaa6; }
+.controls kbd + kbd { margin-left: -2px; }
 .quality { display: block; margin: 8px 0 18px; font-size: 13px; color: #c5cfbd; }
 .quality select { margin-left: 8px; padding: 4px 8px; background: #1a231d; color: #eef2ea; border: 1px solid #ffffff44; border-radius: 4px; }
 .panel button { width: 100%; padding: 14px; border: 0; border-radius: 6px; background: #cfe3a0; color: #0e1511; font: inherit; font-size: 16px; font-weight: 900; letter-spacing: .2em; cursor: pointer; }
