@@ -32,8 +32,13 @@ import { combatStateMarkers } from './combat-state-markers';
 import { robotHealthBar } from './robot-health-bar';
 import { difficultyRobotHealth } from '../sim/difficulty';
 import { projectileWakeSegments } from './projectile-wake';
+import {
+  applyLightingUniforms, DEPTH_FRAGMENT_SHADER, LIGHTING_FUNCTIONS_GLSL, LIGHTING_UNIFORMS_GLSL,
+  lightingUniformLocations, linkProgram, shaderVariant, type LightingFrame, type LightingUniformLocations,
+} from './lighting-glsl';
 
 type Color = readonly [number, number, number];
+const GLOW = 0.9;
 interface Point { readonly x: number; readonly y: number; readonly z: number }
 
 const VERTEX_SHADER = `#version 300 es
@@ -47,90 +52,135 @@ layout(location=5) in vec4 aMatrix3;
 layout(location=6) in vec3 aColor;
 layout(location=7) in float aEmission;
 uniform mat4 uViewProjection;
+uniform float uDepthPass;
 out vec3 vNormal;
 out vec3 vColor;
-out float vGlow;
+out vec3 vWorld;
 out float vEmission;
+out float vDistance;
 void main() {
   mat4 model = mat4(aMatrix0, aMatrix1, aMatrix2, aMatrix3);
   vec4 world = model * vec4(aPosition, 1.0);
-  vNormal = normalize(mat3(model) * aNormal);
+  mat3 linear = mat3(model);
+  vec3 axisScale = vec3(length(linear[0]), length(linear[1]), length(linear[2]));
+  vNormal = normalize(linear * (aNormal / max(axisScale * axisScale, vec3(1e-6))));
   vColor = aColor;
-  vGlow = max(max(aColor.r, aColor.g), aColor.b);
+  vWorld = world.xyz;
   vEmission = aEmission;
-  gl_Position = uViewProjection * world;
+  vec4 clip = uViewProjection * world;
+  vDistance = clip.w;
+  gl_Position = uDepthPass > 0.5 && aEmission > 0.05 ? vec4(2.0, 2.0, 2.0, 1.0) : clip;
 }`;
 
 const FRAGMENT_SHADER = `#version 300 es
 precision highp float;
 in vec3 vNormal;
 in vec3 vColor;
-in float vGlow;
+in vec3 vWorld;
 in float vEmission;
+in float vDistance;
+${LIGHTING_UNIFORMS_GLSL}
 out vec4 outColor;
+${LIGHTING_FUNCTIONS_GLSL}
+#ifndef DETAILED
 void main() {
   vec3 normal = normalize(vNormal);
-  vec3 light = normalize(vec3(-0.35, 0.82, 0.45));
-  float diffuse = max(dot(normal, light), 0.0);
-  float rim = pow(1.0 - abs(normal.z), 2.0) * 0.12;
-  vec3 color = vColor * (0.52 + diffuse * 0.55 + rim);
-  color = mix(color, vColor, clamp(vEmission, 0.0, 1.0));
-  outColor = vec4(color, 1.0);
-}`;
+  float diffuse = max(dot(normal, uSunDirection), 0.0);
+  vec3 viewDirection = normalize(uCamera - vWorld);
+  float rim = pow(1.0 - max(dot(normal, viewDirection), 0.0), 2.0) * 0.14;
+  float highlight = pow(max(dot(normal, normalize(uSunDirection + viewDirection)), 0.0), 48.0) * 0.35;
+  vec3 color = vColor * (0.5 + diffuse * 0.55 + rim) + vec3(highlight);
+  color = mix(color, vColor * 1.1, clamp(vEmission, 0.0, 1.0));
+  outColor = vec4(applyFog(color, vDistance, vEmission), 1.0);
+}
+#else
+void main() {
+  vec3 normal = normalize(vNormal);
+  float luminance = dot(vColor, vec3(0.2126, 0.7152, 0.0722));
+  vec3 albedo = toLinear(mix(vec3(luminance), vColor, 0.84));
+  bool gunmetal = luminance < 0.12;
+  float metallic = gunmetal ? 0.9 : 0.12;
+  float roughness = gunmetal ? 0.32 : 0.28;
+  float shadow = sunShadow(vWorld, normal);
+  vec3 radiance = shadeSurface(albedo, vWorld, normal, roughness, metallic, 1.0, shadow);
+  vec3 viewDirection = normalize(uCamera - vWorld);
+  vec3 halfVector = normalize(uSunDirection + viewDirection);
+  float coat = pow(max(dot(normal, halfVector), 0.0), 220.0) * 3.2 * shadow;
+  radiance += vec3(coat) * (gunmetal ? 0.4 : 1.0);
+  float rim = pow(1.0 - max(dot(normal, viewDirection), 0.0), 3.0);
+  radiance += toLinear(uSkyHorizon) * rim * 0.32;
+  vec3 color = toDisplay(filmicToneMap(radiance));
+  float glow = clamp(vEmission, 0.0, 1.0);
+  vec3 emissive = vColor * (1.15 + pow(max(dot(normal, viewDirection), 0.0), 2.0) * 0.35);
+  color = mix(color, emissive, glow);
+  outColor = vec4(applyFog(color, vDistance, vEmission), 1.0);
+}
+#endif`;
 
-function compile(gl: WebGL2RenderingContext, type: number, source: string): WebGLShader {
-  const shader = gl.createShader(type);
-  if (shader === null) throw new Error('Unable to allocate Davel shader');
-  gl.shaderSource(shader, source);
-  gl.compileShader(shader);
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) ?? 'Davel shader compilation failed');
-  return shader;
+interface DavelProgram {
+  readonly program: WebGLProgram;
+  readonly viewProjection: WebGLUniformLocation | null;
+  readonly depthPass: WebGLUniformLocation | null;
+  readonly lighting: LightingUniformLocations;
 }
 
-function createProgram(gl: WebGL2RenderingContext): WebGLProgram {
-  const result = gl.createProgram();
-  if (result === null) throw new Error('Unable to allocate Davel program');
-  const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
-  const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
-  gl.attachShader(result, vertex);
-  gl.attachShader(result, fragment);
-  gl.linkProgram(result);
-  gl.deleteShader(vertex);
-  gl.deleteShader(fragment);
-  if (!gl.getProgramParameter(result, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(result) ?? 'Davel program link failed');
-  return result;
+function createDavelProgram(gl: WebGL2RenderingContext, detailed: boolean): DavelProgram {
+  const program = linkProgram(gl, VERTEX_SHADER, shaderVariant(FRAGMENT_SHADER, detailed), 'Davel');
+  if (gl.getUniformLocation(program, 'uViewProjection') === null) {
+    throw new Error('Davel view projection uniform is unavailable');
+  }
+  return {
+    program,
+    viewProjection: gl.getUniformLocation(program, 'uViewProjection'),
+    depthPass: gl.getUniformLocation(program, 'uDepthPass'),
+    lighting: lightingUniformLocations(gl, program),
+  };
 }
 
+interface MeshBinding {
+  readonly vao: WebGLVertexArrayObject;
+  readonly indexCount: number;
+}
+
+// Instance data is shared between a detailed and a fast mesh so quality tiers can swap tessellation freely.
 class InstanceBatch {
-  private readonly vao: WebGLVertexArrayObject;
+  private readonly detailedMesh: MeshBinding;
+  private readonly fastMesh: MeshBinding;
   private readonly matrixBuffer: WebGLBuffer;
   private readonly colorBuffer: WebGLBuffer;
   private readonly emissionBuffer: WebGLBuffer;
   private readonly matrices: Float32Array;
   private readonly colors: Float32Array;
   private readonly emissions: Float32Array;
-  private readonly indexCount: number;
   count = 0;
 
-  constructor(private readonly gl: WebGL2RenderingContext, mesh: MeshData, capacity: number) {
-    const vao = gl.createVertexArray();
-    const vertexBuffer = gl.createBuffer();
-    const indexBuffer = gl.createBuffer();
+  constructor(
+    private readonly gl: WebGL2RenderingContext, detailedMesh: MeshData, fastMesh: MeshData, capacity: number,
+  ) {
     const matrixBuffer = gl.createBuffer();
     const colorBuffer = gl.createBuffer();
     const emissionBuffer = gl.createBuffer();
-    if (vao === null || vertexBuffer === null || indexBuffer === null || matrixBuffer === null
-      || colorBuffer === null || emissionBuffer === null) {
+    if (matrixBuffer === null || colorBuffer === null || emissionBuffer === null) {
       throw new Error('Unable to allocate Davel mesh buffers');
     }
-    this.vao = vao;
     this.matrixBuffer = matrixBuffer;
     this.colorBuffer = colorBuffer;
     this.emissionBuffer = emissionBuffer;
     this.matrices = new Float32Array(capacity * 16);
     this.colors = new Float32Array(capacity * 3);
     this.emissions = new Float32Array(capacity);
-    this.indexCount = mesh.indices.length;
+    this.detailedMesh = this.bindMesh(detailedMesh);
+    this.fastMesh = this.bindMesh(fastMesh);
+  }
+
+  private bindMesh(mesh: MeshData): MeshBinding {
+    const { gl } = this;
+    const vao = gl.createVertexArray();
+    const vertexBuffer = gl.createBuffer();
+    const indexBuffer = gl.createBuffer();
+    if (vao === null || vertexBuffer === null || indexBuffer === null) {
+      throw new Error('Unable to allocate Davel mesh buffers');
+    }
     gl.bindVertexArray(vao);
     gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, mesh.vertices, gl.STATIC_DRAW);
@@ -140,21 +190,23 @@ class InstanceBatch {
     gl.vertexAttribPointer(1, 3, gl.FLOAT, false, 24, 12);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, matrixBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.matrixBuffer);
     for (let column = 0; column < 4; column += 1) {
       const location = 2 + column;
       gl.enableVertexAttribArray(location);
       gl.vertexAttribPointer(location, 4, gl.FLOAT, false, 64, column * 16);
       gl.vertexAttribDivisor(location, 1);
     }
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.colorBuffer);
     gl.enableVertexAttribArray(6);
     gl.vertexAttribPointer(6, 3, gl.FLOAT, false, 12, 0);
     gl.vertexAttribDivisor(6, 1);
-    gl.bindBuffer(gl.ARRAY_BUFFER, emissionBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.emissionBuffer);
     gl.enableVertexAttribArray(7);
     gl.vertexAttribPointer(7, 1, gl.FLOAT, false, 4, 0);
     gl.vertexAttribDivisor(7, 1);
+    gl.bindVertexArray(null);
+    return { vao, indexCount: mesh.indices.length };
   }
 
   reset(): void { this.count = 0; }
@@ -167,7 +219,7 @@ class InstanceBatch {
     this.count += 1;
   }
 
-  draw(): void {
+  upload(): void {
     if (this.count === 0) return;
     const { gl } = this;
     gl.bindBuffer(gl.ARRAY_BUFFER, this.matrixBuffer);
@@ -176,8 +228,13 @@ class InstanceBatch {
     gl.bufferData(gl.ARRAY_BUFFER, this.colors.subarray(0, this.count * 3), gl.DYNAMIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.emissionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, this.emissions.subarray(0, this.count), gl.DYNAMIC_DRAW);
-    gl.bindVertexArray(this.vao);
-    gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.count);
+  }
+
+  draw(detailed: boolean): void {
+    if (this.count === 0) return;
+    const mesh = detailed ? this.detailedMesh : this.fastMesh;
+    this.gl.bindVertexArray(mesh.vao);
+    this.gl.drawElementsInstanced(this.gl.TRIANGLES, mesh.indexCount, this.gl.UNSIGNED_SHORT, 0, this.count);
   }
 }
 
@@ -331,8 +388,13 @@ function blendColor(from: Color, to: Color, amount: number): Color {
 }
 
 export class DavelRenderer {
-  private readonly program: WebGLProgram;
-  private readonly viewProjectionLocation: WebGLUniformLocation;
+  private readonly detailedProgram: DavelProgram;
+  private readonly fastProgram: DavelProgram;
+  private readonly depthProgram: WebGLProgram;
+  private readonly depthViewProjectionLocation: WebGLUniformLocation | null;
+  private readonly depthDepthPassLocation: WebGLUniformLocation | null;
+  private contactShadows = true;
+  private fineDetail = true;
   private readonly spheres: InstanceBatch;
   private readonly capsules: InstanceBatch;
   private readonly coinBursts = new CoinBurstTracker();
@@ -343,12 +405,13 @@ export class DavelRenderer {
   private readonly swordArcs = new SwordArcTracker();
 
   constructor(private readonly gl: WebGL2RenderingContext) {
-    this.program = createProgram(gl);
-    const uniform = gl.getUniformLocation(this.program, 'uViewProjection');
-    if (uniform === null) throw new Error('Davel view projection uniform is unavailable');
-    this.viewProjectionLocation = uniform;
-    this.spheres = new InstanceBatch(gl, createSphere(), 1024);
-    this.capsules = new InstanceBatch(gl, createCapsule(), 1024);
+    this.detailedProgram = createDavelProgram(gl, true);
+    this.fastProgram = createDavelProgram(gl, false);
+    this.depthProgram = linkProgram(gl, VERTEX_SHADER, DEPTH_FRAGMENT_SHADER, 'Davel depth');
+    this.depthViewProjectionLocation = gl.getUniformLocation(this.depthProgram, 'uViewProjection');
+    this.depthDepthPassLocation = gl.getUniformLocation(this.depthProgram, 'uDepthPass');
+    this.spheres = new InstanceBatch(gl, createSphere(24, 18), createSphere(), 4096);
+    this.capsules = new InstanceBatch(gl, createCapsule(18, 5), createCapsule(), 4096);
   }
 
   emitPulseEnergyCell(effect: PulseEnergyCellEffect): void { this.pulseEnergyCells.emit(effect); }
@@ -368,10 +431,12 @@ export class DavelRenderer {
     this.swordArcs.clear();
   }
 
-  render(
-    state: RenderGameState, viewProjection: Float32Array, motionScale = 1, flashScale = 1,
-    qualityTier: RenderQualityTier = 'high',
+  prepare(
+    state: RenderGameState, motionScale = 1, flashScale = 1,
+    qualityTier: RenderQualityTier = 'high', contactShadows = true,
   ): void {
+    this.contactShadows = contactShadows;
+    this.fineDetail = qualityTier !== 'low';
     this.spheres.reset();
     this.capsules.reset();
     const quality = RENDER_QUALITY_PROFILES[qualityTier];
@@ -382,8 +447,8 @@ export class DavelRenderer {
       for (let coinIndex = 0; coinIndex < quality.coinBurstCount; coinIndex += 1) {
         const current = coinBurstPoint(effect, state.tick, coinIndex, state.player, motionScale);
         const previous = coinBurstPoint(effect, Math.max(effect.startTick, state.tick - 1), coinIndex, state.player, motionScale);
-        if (state.tick > effect.startTick) this.addCapsule(previous, current, current.scale * 0.28, [1, 0.54, 0.04]);
-        this.addSphere(current, current.scale, coinIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.58, 0.05], 1.3, 0.28);
+        if (state.tick > effect.startTick) this.addCapsule(previous, current, current.scale * 0.28, [1, 0.54, 0.04], 0.6);
+        this.addSphere(current, current.scale, coinIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.58, 0.05], 1.3, 0.28, 0.35);
       }
       for (let fragmentIndex = 0; fragmentIndex < quality.defeatFragmentCount; fragmentIndex += 1) {
         const fragment = mechanicalFragmentSegment(effect, state.tick, fragmentIndex, motionScale);
@@ -397,9 +462,9 @@ export class DavelRenderer {
       const cell = pulseEnergyCellSegment(effect, state.tick, motionScale);
       if (cell === null) continue;
       this.addCapsule(cell.start, cell.end, cell.radius, [0.08, 0.28, 0.42]);
-      this.addSphere(cell.center, cell.glowRadius, [0.24, 1, 0.96], 0.72, 0.72);
-      this.addSphere(cell.start, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
-      this.addSphere(cell.end, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82);
+      this.addSphere(cell.center, cell.glowRadius, [0.24, 1, 0.96], 0.72, 0.72, GLOW);
+      this.addSphere(cell.start, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82, GLOW);
+      this.addSphere(cell.end, cell.radius * 1.08, [1, 0.68, 0.12], 0.82, 0.82, GLOW);
     }
     for (const effect of this.pulseImpacts.update(state.tick)) {
       const sparkCount = motionScale === 0 ? Math.min(2, quality.pulseImpactSparkCount) : quality.pulseImpactSparkCount;
@@ -409,11 +474,11 @@ export class DavelRenderer {
         const spark = pulseImpactSparkSegment(effect, state.tick, sparkIndex, motionScale);
         if (spark === null) continue;
         const color: Color = sparkIndex % 2 === 0 ? primary : [1, 0.94, 0.5];
-        this.addCapsule(spark.start, spark.end, spark.radius, color);
-        this.addSphere(spark.end, spark.radius * 1.35, color);
+        this.addCapsule(spark.start, spark.end, spark.radius, color, GLOW);
+        this.addSphere(spark.end, spark.radius * 1.35, color, 1, 1, GLOW);
       }
       const flashRadius = pulseImpactFlashRadius(effect, state.tick, flashScale);
-      if (flashRadius !== null) this.addSphere(effect, flashRadius, primary);
+      if (flashRadius !== null) this.addSphere(effect, flashRadius, primary, 1, 1, GLOW);
     }
     for (const effect of this.bombDetonations.update(state.tick)) {
       for (let segmentIndex = 0; segmentIndex < quality.bombPressureRingSegments; segmentIndex += 1) {
@@ -422,19 +487,19 @@ export class DavelRenderer {
         );
         if (segment !== null) this.addCapsule(
           segment.start, segment.end, segment.radius,
-          segmentIndex % 2 === 0 ? [1, 0.26, 0.035] : [1, 0.78, 0.08],
+          segmentIndex % 2 === 0 ? [1, 0.26, 0.035] : [1, 0.78, 0.08], GLOW,
         );
       }
       const sparkCount = motionScale === 0 ? Math.min(2, quality.bombSparkCount) : quality.bombSparkCount;
       for (let sparkIndex = 0; sparkIndex < sparkCount; sparkIndex += 1) {
         const spark = bombRadialSparkSegment(effect, state.tick, sparkIndex, motionScale);
         if (spark === null) continue;
-        this.addCapsule(spark.start, spark.end, spark.radius, sparkIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.22, 0.05]);
-        this.addSphere(spark.end, spark.radius * 1.4, [1, 0.62, 0.08]);
+        this.addCapsule(spark.start, spark.end, spark.radius, sparkIndex % 2 === 0 ? [1, 0.9, 0.2] : [1, 0.22, 0.05], GLOW);
+        this.addSphere(spark.end, spark.radius * 1.4, [1, 0.62, 0.08], 1, 1, GLOW);
       }
       const flashRadius = bombFlashRadius(effect, state.tick, flashScale);
       if (flashRadius !== null) {
-        this.addSphere({ x: effect.x, y: Math.max(0.2, effect.y), z: effect.z }, flashRadius, [1, 0.92, 0.42]);
+        this.addSphere({ x: effect.x, y: Math.max(0.2, effect.y), z: effect.z }, flashRadius, [1, 0.92, 0.42], 1, 1, GLOW);
       }
     }
     for (const effect of this.swordArcs.update(state.tick)) {
@@ -447,9 +512,9 @@ export class DavelRenderer {
         const color: Color = effect.charged
           ? [1, 0.22 + colorProgress * 0.64, 0.7 - colorProgress * 0.42]
           : [0.3 + colorProgress * 0.62, 1, 1];
-        this.addCapsule(segment.start, segment.end, segment.radius, color);
+        this.addCapsule(segment.start, segment.end, segment.radius, color, GLOW);
         if (segmentIndex === quality.swordArcSegmentCount - 1) {
-          this.addSphere(segment.end, segment.radius, color);
+          this.addSphere(segment.end, segment.radius, color, 1, 1, GLOW);
         }
       }
     }
@@ -474,13 +539,13 @@ export class DavelRenderer {
           const puff = fireballSmokePuff(projectile, puffIndex, motionScale);
           this.addSphere(puff, puff.radius, puff.color, 1.1, 0.7);
         }
-        this.addSphere(center, 0.3, [1, 0.28, 0.035]);
-        this.addSphere(center, 0.14, [1, 0.96, 0.38]);
+        this.addSphere(center, 0.3, [1, 0.28, 0.035], 1, 1, GLOW);
+        this.addSphere(center, 0.14, [1, 0.96, 0.38], 1, 1, 1);
       } else if (projectile.kind === 'slider-bolt') {
-        this.addSphere(center, 0.13, [0.58, 0.95, 1]);
+        this.addSphere(center, 0.13, [0.58, 0.95, 1], 1, 1, GLOW);
       } else {
-        this.addSphere(center, 0.16, [1, 0.82, 0.08]);
-        this.addSphere(center, 0.075, [1, 1, 0.72]);
+        this.addSphere(center, 0.16, [1, 0.82, 0.08], 1, 1, GLOW);
+        this.addSphere(center, 0.075, [1, 1, 0.72], 1, 1, 1);
       }
     }
     for (const bomb of state.playerBombs) {
@@ -493,14 +558,14 @@ export class DavelRenderer {
         const urgent = bomb.fuseTicks <= 30;
         this.addCapsule(
           segment.start, segment.end, segment.radius,
-          urgent ? segmentIndex % 2 === 0 ? [1, 0.12, 0.04] : [1, 0.78, 0.08] : [0.2, 0.9, 1],
+          urgent ? segmentIndex % 2 === 0 ? [1, 0.12, 0.04] : [1, 0.78, 0.08] : [0.2, 0.9, 1], 0.7,
         );
       }
       const pulse = 0.19 + Math.sin(bomb.fuseTicks * 0.35) * 0.025 * motionScale;
       this.addSphere(center, pulse, [0.08, 0.1, 0.16]);
       this.addSphere(
         { x: bomb.x, y: bomb.y + 0.15, z: bomb.z }, 0.07,
-        bomb.fuseTicks < 30 ? [1, 0.12, 0.04] : [1, 0.72, 0.08],
+        bomb.fuseTicks < 30 ? [1, 0.12, 0.04] : [1, 0.72, 0.08], 1, 1, GLOW,
       );
     }
     if (state.laserActive) {
@@ -522,13 +587,13 @@ export class DavelRenderer {
         z: eye.z + directionZ * state.laserBeamDistance,
       };
       const focused = state.laserFocusTicks > 45;
-      this.addCapsule(start, end, focused ? 0.045 : 0.035, focused ? [1, 0.22, 0.52] : [0.18, 1, 0.9]);
+      this.addCapsule(start, end, focused ? 0.045 : 0.035, focused ? [1, 0.22, 0.52] : [0.18, 1, 0.9], 1);
       const contact = {
         x: end.x - directionX * 0.14,
         y: end.y - directionY * 0.14,
         z: end.z - directionZ * 0.14,
       };
-      this.addSphere(contact, focused ? 0.14 : 0.1, focused ? [1, 0.72, 0.9] : [0.8, 1, 1]);
+      this.addSphere(contact, focused ? 0.14 : 0.1, focused ? [1, 0.72, 0.9] : [0.8, 1, 1], 1, 1, 1);
       const sparkCount = motionScale === 0
         ? Math.min(2, quality.laserContactSparkCount) : quality.laserContactSparkCount;
       for (let sparkIndex = 0; sparkIndex < sparkCount; sparkIndex += 1) {
@@ -538,15 +603,38 @@ export class DavelRenderer {
         );
         this.addCapsule(
           spark.start, spark.end, spark.radius,
-          sparkIndex % 2 === 0 ? [0.72, 1, 1] : focused ? [1, 0.2, 0.56] : [1, 0.94, 0.42],
+          sparkIndex % 2 === 0 ? [0.72, 1, 1] : focused ? [1, 0.2, 0.56] : [1, 0.94, 0.42], GLOW,
         );
-        this.addSphere(spark.end, spark.radius * 1.45, sparkIndex % 2 === 0 ? [0.72, 1, 1] : [1, 0.72, 0.24]);
+        this.addSphere(spark.end, spark.radius * 1.45, sparkIndex % 2 === 0 ? [0.72, 1, 1] : [1, 0.72, 0.24], 1, 1, GLOW);
       }
     }
-    this.gl.useProgram(this.program);
-    this.gl.uniformMatrix4fv(this.viewProjectionLocation, false, viewProjection);
-    this.capsules.draw();
-    this.spheres.draw();
+    this.capsules.upload();
+    this.spheres.upload();
+  }
+
+  drawDepth(lightViewProjection: Float32Array): void {
+    const { gl } = this;
+    gl.useProgram(this.depthProgram);
+    gl.uniformMatrix4fv(this.depthViewProjectionLocation, false, lightViewProjection);
+    gl.uniform1f(this.depthDepthPassLocation, 1);
+    gl.disable(gl.CULL_FACE);
+    this.capsules.draw(true);
+    this.spheres.draw(true);
+    gl.enable(gl.CULL_FACE);
+  }
+
+  draw(viewProjection: Float32Array, frame: LightingFrame, detailed: boolean): void {
+    const { gl } = this;
+    const program = detailed ? this.detailedProgram : this.fastProgram;
+    gl.useProgram(program.program);
+    gl.uniformMatrix4fv(program.viewProjection, false, viewProjection);
+    gl.uniform1f(program.depthPass, 0);
+    applyLightingUniforms(gl, program.lighting, frame);
+    this.capsules.draw(detailed);
+    // The sphere generator winds its triangles clockwise, so flip the front face while drawing spheres.
+    gl.frontFace(gl.CW);
+    this.spheres.draw(detailed);
+    gl.frontFace(gl.CCW);
   }
 
   private addSphere(point: Point, radius: number, color: Color, yScale = 1, zScale = 1, emission = 0): void {
@@ -575,7 +663,7 @@ export class DavelRenderer {
     const accentColor = blendColor(definition.accentColor, [0.12, 0.08, 0.12], 0.28 + collapse.progress * 0.48);
     const shadowX = (hip.x + chest.x + head.x) / 3;
     const shadowZ = (hip.z + chest.z + head.z) / 3;
-    this.addSphere({ x: shadowX, y: 0.04, z: shadowZ }, 0.72 * scale, [0.025, 0.035, 0.055], 0.045, 0.82);
+    if (this.contactShadows) this.addSphere({ x: shadowX, y: 0.04, z: shadowZ }, 0.72 * scale, [0.025, 0.035, 0.055], 0.045, 0.82);
     this.addSphere(hip, 0.31 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);
     this.addSphere(chest, 0.37 * definition.torsoWidth * scale, bodyColor, 1.24, 0.82);
     this.addSphere(head, 0.35 * definition.headScale * scale, bodyColor, 0.88, 0.83);
@@ -621,14 +709,14 @@ export class DavelRenderer {
     for (const marker of combatStateMarkers(robot, scale, motionScale)) {
       this.addSphere(marker, marker.radius, marker.color, marker.yScale, marker.zScale, marker.emission);
     }
-    this.addSphere({ x: robot.x, y: 0.045, z: robot.z }, 0.62 * scale, [0.035, 0.055, 0.09], 0.055, 0.76);
+    if (this.contactShadows) this.addSphere({ x: robot.x, y: 0.045, z: robot.z }, 0.62 * scale, [0.035, 0.055, 0.09], 0.055, 0.76);
     this.addSphere(p.chest, 0.39 * definition.torsoWidth * scale, bodyColor, 1.32, 0.82);
     if (weakPointActive) {
       const core = weakPointPosition(robot, definition);
       const radius = weakPointRadius(definition);
       this.addSphere(core, radius * 1.28, [0.06, 0.08, 0.15], 1.06, 0.45);
-      this.addSphere(core, radius, [0.24, 1, 0.92], 1.08, 0.5);
-      this.addSphere(core, radius * 0.42, [1, 1, 0.72], 1.12, 0.55);
+      this.addSphere(core, radius, [0.24, 1, 0.92], 1.08, 0.5, GLOW);
+      this.addSphere(core, radius * 0.42, [1, 1, 0.72], 1.12, 0.55, 1);
     }
     if (robot.hitFlashTicks > 0 && flashScale > 0) {
       const travel = (7 - robot.hitFlashTicks) * 0.075;
@@ -638,7 +726,7 @@ export class DavelRenderer {
           x: p.chest.x + Math.cos(angle) * (0.36 * scale + travel),
           y: p.chest.y + (index - 1.5) * 0.13 + travel * 0.35,
           z: p.chest.z + Math.sin(angle) * (0.36 * scale + travel),
-        }, 0.055 * scale * flashScale, index % 2 === 0 ? [1, 0.92, 0.18] : [0.25, 1, 1]);
+        }, 0.055 * scale * flashScale, index % 2 === 0 ? [1, 0.92, 0.18] : [0.25, 1, 1], 1, 1, GLOW);
       }
     }
     this.addSphere(p.hip, 0.33 * definition.torsoWidth * scale, accentColor, 0.82, 0.78);
@@ -657,6 +745,9 @@ export class DavelRenderer {
     this.addSphere(p.rightHand, 0.15 * scale, accentColor, 0.88, 0.88);
     this.addSphere(p.leftFoot, 0.17 * scale, jointColor, 0.62, 1.35);
     this.addSphere(p.rightFoot, 0.17 * scale, jointColor, 0.62, 1.35);
+    if (this.fineDetail) {
+      this.addMechanicalDetail(robot, p, definition, bodyColor, accentColor, jointColor, shoulderLeft, shoulderRight);
+    }
     const headRadius = 0.37 * definition.headScale * scale;
     this.addSphere(p.head, headRadius, bodyColor, 0.9, 0.83);
     for (const segment of robotHealthBar({
@@ -670,8 +761,8 @@ export class DavelRenderer {
     const eyeForward = headRadius * 0.78;
     const eyeLeft = localPoint(robot, -headRadius * 0.36, eyeY, eyeForward);
     const eyeRight = localPoint(robot, headRadius * 0.36, eyeY, eyeForward);
-    this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
-    this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55);
+    this.addSphere(eyeLeft, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55, 0.85);
+    this.addSphere(eyeRight, headRadius * 0.15, definition.eyeColor, 1.25 * expression.eyeOpen, 0.55, 0.85);
     const pupilY = eyeY + expression.pupilOffset * headRadius;
     const pupilLeft = localPoint(robot, headRadius * (-0.36 + expression.pupilCross), pupilY, eyeForward * 1.12);
     const pupilRight = localPoint(robot, headRadius * (0.36 - expression.pupilCross), pupilY, eyeForward * 1.12);
@@ -698,6 +789,69 @@ export class DavelRenderer {
     }
     this.addAccessory(robot, p, definition, expression, headRadius, eyeLeft, eyeRight, shoulderLeft, shoulderRight,
       accentColor, jointColor);
+  }
+
+  // Hard-surface detail that makes each Davel read as a built machine: spine and neck actuators, a glowing
+  // reactor core, a rear power pack with vents, armored pauldrons and knee plates, and articulated fingers.
+  private addMechanicalDetail(
+    robot: RenderRobotState, p: Pose, definition: RobotDefinition, bodyColor: Color, accentColor: Color,
+    jointColor: Color, shoulderLeft: Point, shoulderRight: Point,
+  ): void {
+    const scale = definition.scale;
+    const rightX = Math.cos(robot.heading);
+    const rightZ = -Math.sin(robot.heading);
+    const forwardX = Math.sin(robot.heading);
+    const forwardZ = Math.cos(robot.heading);
+    const offset = (point: Point, right: number, up: number, forward: number): Point => ({
+      x: point.x + rightX * right + forwardX * forward,
+      y: point.y + up,
+      z: point.z + rightZ * right + forwardZ * forward,
+    });
+    const chestRadius = 0.39 * definition.torsoWidth * scale;
+    const steel: Color = [0.34, 0.36, 0.4];
+    this.addCapsule(p.hip, p.chest, 0.085 * scale, steel);
+    this.addCapsule(offset(p.chest, 0, chestRadius * 1.05, 0), p.head, 0.07 * scale, steel);
+    for (const side of [-1, 1] as const) {
+      this.addCapsule(
+        offset(p.chest, side * chestRadius * 0.35, chestRadius * 0.95, -chestRadius * 0.1),
+        offset(p.head, side * chestRadius * 0.22, -0.2 * scale, -0.05 * scale), 0.03 * scale, jointColor,
+      );
+    }
+    const core = offset(p.chest, 0, chestRadius * 0.28, chestRadius * 0.78);
+    this.addSphere(core, 0.13 * scale, jointColor, 1, 0.42);
+    this.addSphere(offset(core, 0, 0, 0.03 * scale), 0.078 * scale, definition.eyeColor, 1, 0.55, 0.95);
+    const packTop = offset(p.chest, 0, chestRadius * 0.62, -chestRadius * 0.74);
+    const packBottom = offset(p.chest, 0, -chestRadius * 0.5, -chestRadius * 0.7);
+    this.addCapsule(packTop, packBottom, 0.13 * scale * definition.torsoWidth, jointColor);
+    for (const side of [-1, 1] as const) {
+      this.addSphere(
+        offset(packTop, side * 0.085 * scale, -0.08 * scale, -0.12 * scale * definition.torsoWidth),
+        0.038 * scale, accentColor, 1, 1, 0.8,
+      );
+    }
+    this.addSphere(offset(shoulderLeft, 0, 0.06 * scale, 0), 0.19 * scale, bodyColor, 0.6, 1.05);
+    this.addSphere(offset(shoulderRight, 0, 0.06 * scale, 0), 0.19 * scale, bodyColor, 0.6, 1.05);
+    this.addSphere(offset(p.leftKnee, 0, 0.02 * scale, 0.08 * scale), 0.1 * scale, bodyColor, 1.1, 0.6);
+    this.addSphere(offset(p.rightKnee, 0, 0.02 * scale, 0.08 * scale), 0.1 * scale, bodyColor, 1.1, 0.6);
+    for (const [elbow, hand] of [[p.leftElbow, p.leftHand], [p.rightElbow, p.rightHand]] as const) {
+      const dx = hand.x - elbow.x; const dy = hand.y - elbow.y; const dz = hand.z - elbow.z;
+      const length = Math.max(0.001, Math.hypot(dx, dy, dz));
+      const ux = dx / length; const uy = dy / length; const uz = dz / length;
+      for (const finger of [-1, 0, 1] as const) {
+        const start = {
+          x: hand.x + ux * 0.1 * scale + rightX * finger * 0.055 * scale,
+          y: hand.y + uy * 0.1 * scale,
+          z: hand.z + uz * 0.1 * scale + rightZ * finger * 0.055 * scale,
+        };
+        const curl = finger === 0 ? 0.13 : 0.1;
+        const end = {
+          x: start.x + ux * curl * scale + forwardX * 0.03 * scale,
+          y: start.y + uy * curl * scale - 0.02 * scale,
+          z: start.z + uz * curl * scale + forwardZ * 0.03 * scale,
+        };
+        this.addCapsule(start, end, 0.028 * scale, jointColor);
+      }
+    }
   }
 
   private addAccessory(
@@ -835,7 +989,7 @@ export class DavelRenderer {
         (antennaDirection * 0.08 + expression.antennaSway) * scale, headRadius * 1.35,
       );
       this.addCapsule(antennaBase, antennaTip, 0.045 * scale, jointColor);
-      this.addSphere(antennaTip, 0.105 * scale, accentColor);
+      this.addSphere(antennaTip, 0.105 * scale, accentColor, 1, 1, 0.55);
     }
   }
 }

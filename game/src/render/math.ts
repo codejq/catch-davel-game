@@ -70,3 +70,16 @@ export function writeTranslationScale(
     x, y, z, 1,
   ], offset);
 }
+
+export function orthographic(
+  out: Float32Array, left: number, right: number, bottom: number, top: number, near: number, far: number,
+): void {
+  out.fill(0);
+  out[0] = 2 / (right - left);
+  out[5] = 2 / (top - bottom);
+  out[10] = -2 / (far - near);
+  out[12] = -(right + left) / (right - left);
+  out[13] = -(top + bottom) / (top - bottom);
+  out[14] = -(far + near) / (far - near);
+  out[15] = 1;
+}
