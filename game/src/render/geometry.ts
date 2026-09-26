@@ -75,3 +75,53 @@ export function createCapsule(radialSegments = 12, capSegments = 4): MeshData {
   }
   return { vertices: new Float32Array(vertices), indices: new Uint16Array(indices) };
 }
+
+/**
+ * A unit box (-0.5..0.5) with rounded edges of the given radius. Grid lines are packed near the edges so the
+ * bevel reads smoothly; triangles wind counter-clockwise when viewed from outside.
+ */
+export function createRoundedBox(radius = 0.1, detailed = true): MeshData {
+  const r = Math.max(0.001, Math.min(0.49, radius));
+  const coordinates = detailed
+    ? [-0.5, -0.5 + r * 0.3, -0.5 + r, 0, 0.5 - r, 0.5 - r * 0.3, 0.5]
+    : [-0.5, 0.5];
+  const faces: readonly (readonly [readonly number[], readonly number[], readonly number[]])[] = [
+    [[0, 0, 1], [1, 0, 0], [0, 1, 0]],
+    [[0, 0, -1], [-1, 0, 0], [0, 1, 0]],
+    [[1, 0, 0], [0, 0, -1], [0, 1, 0]],
+    [[-1, 0, 0], [0, 0, 1], [0, 1, 0]],
+    [[0, 1, 0], [1, 0, 0], [0, 0, -1]],
+    [[0, -1, 0], [1, 0, 0], [0, 0, 1]],
+  ];
+  const inner = 0.5 - r;
+  const vertices: number[] = [];
+  const indices: number[] = [];
+  const count = coordinates.length;
+  for (const [normal, tangent, bitangent] of faces) {
+    const base = vertices.length / 6;
+    for (const b of coordinates) {
+      for (const a of coordinates) {
+        const px = normal[0]! * 0.5 + tangent[0]! * a + bitangent[0]! * b;
+        const py = normal[1]! * 0.5 + tangent[1]! * a + bitangent[1]! * b;
+        const pz = normal[2]! * 0.5 + tangent[2]! * a + bitangent[2]! * b;
+        const cx = Math.max(-inner, Math.min(inner, px));
+        const cy = Math.max(-inner, Math.min(inner, py));
+        const cz = Math.max(-inner, Math.min(inner, pz));
+        const dx = px - cx; const dy = py - cy; const dz = pz - cz;
+        const length = Math.hypot(dx, dy, dz);
+        const nx = length > 1e-6 ? dx / length : normal[0]!;
+        const ny = length > 1e-6 ? dy / length : normal[1]!;
+        const nz = length > 1e-6 ? dz / length : normal[2]!;
+        vertices.push(cx + nx * r, cy + ny * r, cz + nz * r, nx, ny, nz);
+      }
+    }
+    for (let row = 0; row < count - 1; row += 1) {
+      for (let column = 0; column < count - 1; column += 1) {
+        const first = base + row * count + column;
+        const above = first + count;
+        indices.push(first, first + 1, above + 1, first, above + 1, above);
+      }
+    }
+  }
+  return { vertices: new Float32Array(vertices), indices: new Uint16Array(indices) };
+}

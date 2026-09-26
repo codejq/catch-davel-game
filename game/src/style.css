@@ -183,6 +183,8 @@ html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
 #prompt small { font-weight: 650; letter-spacing: 0; color: #aeeeff; }
 .touch-prompt { display: none; }
 #weapon { --weapon-locomotion-x: 0px; --weapon-locomotion-y: 0px; --weapon-locomotion-roll: 0deg; position: absolute; left: 60%; bottom: -34px; width: 250px; height: 270px; translate: calc(-50% + var(--weapon-locomotion-x)) var(--weapon-locomotion-y); rotate: var(--weapon-locomotion-roll); filter: drop-shadow(0 12px 14px #07132680); transform-origin: 50% 100%; }
+/* The weapon is rendered in 3D by the WebGL view model; the DOM node keeps its animation and state hooks. */
+#weapon > * { visibility: hidden; }
 .soldier-shadow { position: absolute; left: 45px; bottom: 25px; width: 155px; height: 34px; border-radius: 50%; background: #07132670; filter: blur(5px); }
 .soldier-body { position: absolute; left: 78px; bottom: 64px; width: 92px; height: 112px; border: 5px solid #10203e; border-radius: 28px 28px 18px 18px; background: linear-gradient(90deg, #172b4f, #2e7190 44%, #214d70 68%, #112343); box-shadow: inset 12px 0 #1c385d, inset -10px 0 #0c1a34, 0 0 18px #54eaff40; }
 .soldier-pack { position: absolute; left: 19px; top: 30px; width: 48px; height: 56px; border: 4px solid #0a1931; border-radius: 10px; background: linear-gradient(#304d69, #152c4c); box-shadow: inset 0 0 0 3px #4f8191; }

@@ -256,6 +256,8 @@ export class WorldRenderer {
   private readonly projection = new Float32Array(16);
   private readonly view = new Float32Array(16);
   private readonly viewProjection = new Float32Array(16);
+  private readonly viewmodelProjection = new Float32Array(16);
+  private readonly viewmodelViewProjection = new Float32Array(16);
   private readonly indexCount: number;
   private readonly davels: DavelRenderer;
   private readonly wallArt: WallArtRenderer;
@@ -460,6 +462,11 @@ export class WorldRenderer {
     gl.drawElementsInstanced(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0, this.instanceCount);
     this.wallArt.render(this.viewProjection);
     this.davels.draw(this.viewProjection, frame, detailed);
+    gl.clear(gl.DEPTH_BUFFER_BIT);
+    // The weapon uses its own narrower lens, as in most shooters, so it is not stretched by the world FOV.
+    perspective(this.viewmodelProjection, Math.PI / 3.9, aspect, 0.02, 4);
+    multiplyMatrix4(this.viewmodelViewProjection, this.viewmodelProjection, this.view);
+    this.davels.drawViewmodel(this.viewmodelViewProjection, frame, detailed);
     if (postProcessor !== null) {
       const hurtPulse = state.player.maxHealth > 0 ? 1 - state.player.health / state.player.maxHealth : 0;
       postProcessor.finish(
