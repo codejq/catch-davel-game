@@ -139,6 +139,13 @@ export function buildWorld(layout: WorldLayout, quality: QualityTier): BuiltWorl
     trees.forEach((tree) => {
       const radius = model.trunkRadius * tree.scale;
       collision.addBox('solid', tree.x, tree.y - 0.5, tree.z, radius * 2, model.height * tree.scale * 0.7, radius * 2, 'tree');
+      // Dense crowns block robot sight lines (not bullets): pines reach down to head height, broadleaf crowns sit higher.
+      const crown = CROWNS[kind];
+      if (crown !== undefined) {
+        const s = tree.scale;
+        collision.add('cover', tree.x - crown.radius * s, tree.y + crown.bottom * s, tree.z - crown.radius * s,
+          tree.x + crown.radius * s, tree.y + crown.top * s, tree.z + crown.radius * s, 'crown');
+      }
     });
   }
 
@@ -199,6 +206,15 @@ export function buildWorld(layout: WorldLayout, quality: QualityTier): BuiltWorl
 }
 
 const CHUNK = 48;
+
+/** Foliage volume of each tree kind in model units: half-width and vertical extent above the ground. */
+const CROWNS: Partial<Record<TreeKind, { radius: number; bottom: number; top: number }>> = {
+  pine: { radius: 1.9, bottom: 1.3, top: 10 },
+  'snow-pine': { radius: 1.9, bottom: 1.3, top: 10 },
+  oak: { radius: 2.8, bottom: 3.4, top: 9.5 },
+  birch: { radius: 2.1, bottom: 4, top: 10 },
+  palm: { radius: 2.2, bottom: 7.4, top: 9.6 },
+};
 
 interface LodEntry { readonly object: THREE.Object3D; readonly x: number; readonly z: number; readonly visibleWithin: number; readonly shadowWithin: number }
 

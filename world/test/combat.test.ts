@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CollisionWorld } from '../src/core/collision';
 import { Random } from '../src/core/random';
-import { createSentry, damageSentry, hearGunshot, playerVisibility, updateSentry, type PlayerSnapshot } from '../src/enemies/sentry';
+import { createSentry, damageSentry, hearGunshot, hitChance, playerVisibility, updateSentry, type PlayerSnapshot, type SentryShot } from '../src/enemies/sentry';
 import { fireBullet, stepBullet, zeroAngle, ZERO_RANGE } from '../src/player/ballistics';
 import { MAGAZINE_SIZE, RifleState } from '../src/player/rifle-state';
 
@@ -16,9 +16,23 @@ describe('robot sentries', () => {
     const sentry = createSentry('s', [{ x: 0, z: -40 }], true, world);
     const random = new Random('t');
     let shots = 0;
-    for (let tick = 0; tick < 60 * 8; tick += 1) if (updateSentry(sentry, player(), world, 1 / 60, random) !== null) shots += 1;
+    let firstShotRange = Infinity;
+    for (let tick = 0; tick < 60 * 24; tick += 1) {
+      if (updateSentry(sentry, player(), world, 1 / 60, random) !== null) {
+        shots += 1;
+        firstShotRange = Math.min(firstShotRange, Math.hypot(sentry.position.x, sentry.position.z));
+      }
+    }
     expect(sentry.mode).toBe('alert');
     expect(shots).toBeGreaterThan(2);
+    // It had to walk in from 40 m: robots only shoot at close quarters.
+    expect(firstShotRange).toBeLessThanOrEqual(10.5);
+  });
+
+  it('cannot hurt the player from long range', () => {
+    expect(hitChance(player(), 11)).toBe(0);
+    expect(hitChance(player(), 100)).toBe(0);
+    expect(hitChance(player(), 8)).toBeGreaterThan(0.3);
   });
 
   it('miss a prone player hidden in a bush', () => {
@@ -49,6 +63,62 @@ describe('robot sentries', () => {
     expect(damageSentry(sentry, 60, { x: 0, y: 0, z: 0 })).toBe(false);
     expect(damageSentry(sentry, 150, { x: 0, y: 0, z: 0 })).toBe(true);
     expect(sentry.mode).toBe('dead');
+  });
+});
+
+describe('cover from trees', () => {
+  const treeWorld = () => {
+    const world = new CollisionWorld(() => 0);
+    // A 0.8 m trunk between the robot and the player, with a leafy crown overhead.
+    world.addBox('solid', 0, 0, -1.2, 0.8, 10, 0.8, 'tree');
+    world.addBox('cover', 0, 2.5, -1.2, 5, 7, 5, 'crown');
+    return world;
+  };
+
+  it('a crouched player tucked behind a trunk is never spotted or hit', () => {
+    const world = treeWorld();
+    const sentry = createSentry('s', [{ x: 0, z: -9 }], true, world);
+    sentry.mode = 'alert';
+    sentry.awareness = 1;
+    sentry.lastKnown = { x: 0, z: 0 };
+    const random = new Random('t');
+    let hits = 0;
+    const crouched = player({ stance: 'crouch', eye: { x: 0, y: 1.05, z: 0 } });
+    for (let tick = 0; tick < 60 * 12; tick += 1) {
+      const shot = updateSentry(sentry, crouched, world, 1 / 60, random);
+      if (shot?.hit) hits += 1;
+    }
+    expect(hits).toBe(0);
+    expect(sentry.exposure).toBeLessThan(0.06);
+  });
+
+  it('cover stops stray rounds and reports where they struck', () => {
+    const world = new CollisionWorld(() => 0);
+    // A chest-high log: the head is visible, but low rounds bury themselves in the wood.
+    world.addBox('solid', 0, 0, -1.5, 3, 1.45, 0.6, 'tree');
+    const sentry = createSentry('s', [{ x: 0, z: -9 }], true, world);
+    sentry.mode = 'alert';
+    sentry.awareness = 1;
+    const random = new Random('shots');
+    const blocked: SentryShot[] = [];
+    for (let tick = 0; tick < 60 * 20; tick += 1) {
+      const shot = updateSentry(sentry, player(), world, 1 / 60, random);
+      if (shot !== null && shot.impact !== null) blocked.push(shot);
+      if (shot?.hit) expect(shot.impact).toBeNull();
+    }
+    expect(blocked.length).toBeGreaterThan(0);
+    for (const shot of blocked) expect(shot.hit).toBe(false);
+  });
+
+  it('foliage reduces how exposed a player standing among the leaves is', () => {
+    const open = new CollisionWorld(() => 0);
+    const leafy = new CollisionWorld(() => 0);
+    leafy.addBox('cover', 0, 0, -3, 4, 8, 4, 'crown');
+    const a = createSentry('a', [{ x: 0, z: -40 }], true, open);
+    const b = createSentry('b', [{ x: 0, z: -40 }], true, leafy);
+    updateSentry(a, player(), open, 1 / 60, new Random('t'));
+    updateSentry(b, player(), leafy, 1 / 60, new Random('t'));
+    expect(b.exposure).toBeLessThan(a.exposure * 0.5);
   });
 });
 

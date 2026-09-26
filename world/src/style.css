@@ -39,6 +39,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 .bar span { flex: 1; height: 6px; background: #ffffff22; border-radius: 3px; overflow: hidden; }
 .bar i { display: block; height: 100%; width: 100%; background: #e7ecdf; transition: width .1s linear; }
 #health-bar { background: linear-gradient(90deg, #d8453a, #f0e6d8); }
+#armor-bar { width: 0; background: linear-gradient(90deg, #3a7ad8, #b8d4f5); }
+#purse { display: flex; gap: 16px; margin: 8px 0 4px; font-size: 13px; font-weight: 800; letter-spacing: .08em; }
+#lives { color: #ff6b5e; }
+#money { color: #f2cf5b; }
 #stamina-bar { background: #b7d27a; }
 #breath-bar { background: #7fc6e8; }
 .bar.breath { opacity: 0; transition: opacity .2s; }
@@ -60,6 +64,15 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 #toast.show { opacity: 1; transition: opacity .1s; }
 #detection .marker { position: absolute; left: 50%; top: 50%; width: 0; height: 0; }
 #detection .marker i { position: absolute; left: -14px; top: -170px; width: 28px; height: 22px; clip-path: polygon(50% 0, 100% 100%, 0 100%); background: #fff; opacity: .85; }
+.threat { position: absolute; left: 50%; top: 50%; width: 0; height: 0; animation: threat 1.8s ease-out forwards; }
+.threat i { position: absolute; left: -60px; top: -250px; width: 120px; height: 46px; background: radial-gradient(ellipse at 50% 100%, #ffb020cc, transparent 70%); clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.threat.hit i { background: radial-gradient(ellipse at 50% 100%, #ff2a1aee, #ff2a1a55 60%, transparent 75%); }
+@keyframes threat { 0% { opacity: 1; } 60% { opacity: .9; } 100% { opacity: 0; } }
+#shooters .shooter { position: absolute; transform: translate(-50%, -50%); border: 2px solid #ff3b2f; border-radius: 4px; box-shadow: 0 0 8px #ff3b2f88; }
+#shooters .shooter::before { content: '!'; position: absolute; left: 50%; top: -26px; transform: translateX(-50%); color: #ff3b2f; font-weight: 900; font-size: 18px; }
+#shooters .shooter span { position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%); font-size: 11px; font-weight: 800; color: #ffb0a8; white-space: nowrap; }
+#shooters .shooter.firing { border-color: #ffd060; box-shadow: 0 0 16px #ffb020; }
+#scope ~ #shooters .shooter { border-width: 2px; }
 .overlay { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #0b120ecc, #050706f2); }
 .overlay.card { background: transparent; pointer-events: none; }
 .card { text-align: center; animation: card 4.2s ease forwards; }

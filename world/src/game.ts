@@ -6,6 +6,7 @@ import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
 import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
+import { applyLoot, MAX_ARMOR, rollDoorLoot, takeDamage, type Loadout } from './player/loot';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, updateSentry, type PlayerSnapshot, type SentryState,
 } from './enemies/sentry';
@@ -59,7 +60,8 @@ export class Game {
   private readonly effects: Effect[] = [];
   private readonly bullets: Bullet[] = [];
   private readonly tracerMaterial = new THREE.LineBasicMaterial({ color: 0xffe6b0, transparent: true, opacity: 0.9 });
-  private readonly enemyTracerMaterial = new THREE.LineBasicMaterial({ color: 0xff6040, transparent: true, opacity: 0.9 });
+  private readonly enemyTracerMaterial = new THREE.MeshBasicMaterial({ color: 0xff7a3a, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false });
+  private readonly muzzleLight = new THREE.PointLight(0xffb060, 0, 16, 2);
   private quality: QualityTier;
   private phase: Phase = 'menu';
   private worldIndex = 0;
@@ -68,7 +70,8 @@ export class Game {
   private sentries: SentryState[] = [];
   private rigs: RobotRig[] = [];
   private body = new PlayerBody(0, 0, 0);
-  private health = 100;
+  private readonly loadout: Loadout = { health: 100, armor: 0, lives: 0, money: 0 };
+  private readonly lootedDoors = new WeakSet<object>();
   private sinceHurt = 99;
   private keycard = false;
   private time = 0;
@@ -87,15 +90,15 @@ export class Game {
   private baseHemi = 0.4;
   private baseEnvironment = 0.5;
   private readonly alerted = new Set<string>();
-  private readonly stats = { shots: 0, hits: 0, headshots: 0, kills: 0, started: 0 };
+  private readonly stats = { shots: 0, hits: 0, headshots: 0, kills: 0, started: 0, loot: 0 };
   private readonly hud = {
     root: element('#hud'), scope: element('#scope'), crosshair: element('#crosshair'), hitmarker: element('#hitmarker'),
     damage: element('#damage'), worldName: element('#world-name'), objectives: element('#objective-list'),
-    compass: element('#compass-strip'), health: element('#health-bar'), stamina: element('#stamina-bar'),
+    compass: element('#compass-strip'), health: element('#health-bar'), armor: element('#armor-bar'), lives: element('#lives'), money: element('#money'), stamina: element('#stamina-bar'),
     breath: element('#breath-bar'), stance: element('#stance'), visibility: element('#visibility'),
     ammo: element('#ammo-count'), reserve: element('#ammo-reserve'), weaponState: element('#weapon-state'),
     prompt: element('#prompt'), progress: element('#progress'), toast: element('#toast'), detection: element('#detection'),
-    zoom: element('#scope-zoom'), range: element('#scope-range'),
+    zoom: element('#scope-zoom'), range: element('#scope-range'), threats: element('#threats'), shooters: element('#shooters'),
   };
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -116,7 +119,7 @@ export class Game {
     this.sun.castShadow = true;
     this.sun.shadow.bias = -0.0003;
     this.sun.shadow.normalBias = 0.04;
-    this.scene.add(this.camera);
+    this.scene.add(this.camera, this.muzzleLight);
 
     // The view model lives in its own scene so it never clips into walls.
     this.viewScene.add(new THREE.HemisphereLight(0xdde6ff, 0x3a3226, 0.7));
@@ -198,10 +201,10 @@ export class Game {
     const spawn = this.layout.spawn;
     this.body = new PlayerBody(spawn.x, this.layout.terrain.heightAt(spawn.x, spawn.z), spawn.z);
     this.body.yaw = spawn.yaw;
-    this.health = 100;
+    this.loadout.health = 100;
     this.keycard = false;
     this.alerted.clear();
-    this.rifle.magazine = 5;
+    this.rifle.magazine = this.rifle.capacity;
     this.rifle.reserve = Math.max(this.rifle.reserve, 20);
     this.stats.started = this.stats.started === 0 ? performance.now() : this.stats.started;
     this.audio.setAmbience(theme.snow ? 'snow' : theme.id === 'dust-ridge' ? 'desert' : 'forest');
@@ -341,7 +344,7 @@ export class Game {
     this.updateEffects(dt);
 
     this.sinceHurt += dt;
-    if (this.sinceHurt > 6 && this.health < 50) this.health = Math.min(50, this.health + dt * 3);
+    if (this.sinceHurt > 6 && this.loadout.health < 50) this.loadout.health = Math.min(50, this.loadout.health + dt * 3);
     this.toastTimer -= dt;
     if (this.toastTimer <= 0) this.hud.toast.classList.remove('show');
     this.hitTimer -= dt;
@@ -460,7 +463,7 @@ export class Game {
     const player = this.snapshot();
     this.sentries.forEach((sentry, index) => {
       const shot = updateSentry(sentry, player, this.world!.collision, dt, this.random);
-      poseRobot(this.rigs[index]!, sentry, this.time + index);
+      poseRobot(this.rigs[index]!, sentry, this.time + index, player.eye);
       if (sentry.mode === 'alert' && !this.alerted.has(sentry.id)) {
         this.alerted.add(sentry.id);
         this.audio.robotAlert(0);
@@ -472,8 +475,17 @@ export class Game {
       const bearing = angleDifference(Math.atan2(shot.from.x - player.eye.x, -(shot.from.z - player.eye.z)), this.body.yaw);
       this.audio.robotShot(Math.sin(bearing), distance);
       this.tracer(shot.from, shot.to);
+      this.flashMuzzle(shot.from);
+      if (shot.impact !== null) {
+        // The round struck cover: show and hear it hitting the tree, wall, or ground.
+        this.dust(shot.impact, 'tree');
+        if (Math.hypot(shot.impact.x - player.eye.x, shot.impact.z - player.eye.z) < 6) this.audio.impact('world');
+      }
+      this.showThreat(shot.from, shot.hit);
       if (shot.hit) {
-        this.health -= shot.damage;
+        const armored = this.loadout.armor > 0;
+        takeDamage(this.loadout, shot.damage);
+        if (armored) this.audio.impact('world');
         this.sinceHurt = 0;
         this.audio.hurt();
         this.hud.damage.style.transition = 'none';
@@ -482,14 +494,40 @@ export class Game {
           this.hud.damage.style.transition = '';
           this.hud.damage.style.boxShadow = '';
         });
-        if (this.health <= 0) this.die();
-      } else {
+        if (this.loadout.health <= 0) this.die();
+      } else if (shot.impact === null) {
         this.audio.bulletSnap();
       }
     });
   }
 
+  /** A red (hit) or amber (miss) arrow at the screen edge pointing at the robot that fired. */
+  private showThreat(from: Vec3, hit: boolean): void {
+    const bearing = angleDifference(Math.atan2(from.x - this.body.position.x, -(from.z - this.body.position.z)), this.body.yaw);
+    const arrow = document.createElement('div');
+    arrow.className = hit ? 'threat hit' : 'threat';
+    arrow.style.transform = `rotate(${bearing}rad)`;
+    arrow.innerHTML = '<i></i>';
+    this.hud.threats.append(arrow);
+    window.setTimeout(() => arrow.remove(), 1800);
+    while (this.hud.threats.childElementCount > 6) this.hud.threats.firstElementChild?.remove();
+  }
+
+  private flashMuzzle(from: Vec3): void {
+    this.muzzleLight.position.set(from.x, from.y, from.z);
+    this.muzzleLight.intensity = 60;
+  }
+
   private die(): void {
+    if (this.loadout.lives > 0) {
+      // A spare life: get back up on the spot.
+      this.loadout.lives -= 1;
+      this.loadout.health = 60;
+      this.sinceHurt = 99;
+      this.audio.pickup(true);
+      this.toast(`EXTRA LIFE USED · ${this.loadout.lives} LEFT`, 2.6);
+      return;
+    }
     this.phase = 'dead';
     document.exitPointerLock();
     element('#death').hidden = false;
@@ -543,6 +581,15 @@ export class Game {
       const side = (this.body.position.x - door.plan.hingeX) * normalX + (this.body.position.z - door.plan.hingeZ) * normalZ;
       door.pivot.userData.swing = side > 0 ? 1 : -1;
       this.audio.door(door.open);
+      if (door.open && !this.lootedDoors.has(door)) {
+        this.lootedDoors.add(door);
+        const drop = rollDoorLoot(this.random);
+        if (drop !== null) {
+          this.audio.pickup(drop.kind === 'life' || drop.kind === 'magazine');
+          this.toast(`FOUND ${applyLoot(drop, this.loadout, this.rifle)}`, 2.6);
+          this.stats.loot += 1;
+        }
+      }
     }
     if (target.kind === 'container') {
       const container = target.container!;
@@ -576,7 +623,7 @@ export class Game {
       this.audio.pickup(false);
       this.toast(`+${rounds} ROUNDS`);
     } else if (random.chance(0.5)) {
-      this.health = Math.min(100, this.health + 35);
+      this.loadout.health = Math.min(100, this.loadout.health + 35);
       this.audio.pickup(false);
       this.toast('MEDKIT · +35 HEALTH');
     } else {
@@ -598,7 +645,7 @@ export class Game {
       document.exitPointerLock();
       const minutes = (performance.now() - this.stats.started) / 60000;
       const accuracy = this.stats.shots === 0 ? 0 : Math.round((this.stats.hits / this.stats.shots) * 100);
-      element('#victory-text').textContent = `Robots destroyed: ${this.stats.kills} · Headshots: ${this.stats.headshots} · Accuracy: ${accuracy}% · Time: ${minutes.toFixed(1)} min`;
+      element('#victory-text').textContent = `Robots destroyed: ${this.stats.kills} · Headshots: ${this.stats.headshots} · Accuracy: ${accuracy}% · Time: ${minutes.toFixed(1)} min · Cash: $${this.loadout.money}`;
       element('#victory').hidden = false;
       return;
     }
@@ -614,11 +661,16 @@ export class Game {
     }
   }
 
+  /** A glowing streak along the path of a robot round, so you can see where it came from. */
   private tracer(from: Vec3, to: Vec3): void {
-    const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(from.x, from.y, from.z), new THREE.Vector3(to.x, to.y, to.z)]);
-    const line = new THREE.Line(geometry, this.enemyTracerMaterial);
-    this.scene.add(line);
-    this.effects.push({ object: line, life: 0.08, maxLife: 0.08 });
+    const start = new THREE.Vector3(from.x, from.y, from.z);
+    const end = new THREE.Vector3(to.x, to.y, to.z);
+    const length = start.distanceTo(end);
+    const streak = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, length, 5, 1, true), this.enemyTracerMaterial);
+    streak.position.copy(start).lerp(end, 0.5);
+    streak.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), end.clone().sub(start).normalize());
+    this.scene.add(streak);
+    this.effects.push({ object: streak, life: 0.22, maxLife: 0.22 });
   }
 
   private sparks(point: Vec3, color: number, count: number): void {
@@ -649,6 +701,7 @@ export class Game {
   }
 
   private updateEffects(dt: number): void {
+    this.muzzleLight.intensity = Math.max(0, this.muzzleLight.intensity - dt * 600);
     for (let index = this.effects.length - 1; index >= 0; index -= 1) {
       const effect = this.effects[index]!;
       effect.life -= dt;
@@ -667,7 +720,10 @@ export class Game {
 
   private updateHud(): void {
     const hud = this.hud;
-    hud.health.style.width = `${Math.max(0, this.health)}%`;
+    hud.health.style.width = `${Math.max(0, this.loadout.health)}%`;
+    hud.armor.style.width = `${this.loadout.armor / MAX_ARMOR * 100}%`;
+    hud.lives.textContent = `♥ ${this.loadout.lives}`;
+    hud.money.textContent = `$${this.loadout.money}`;
     hud.stamina.style.width = `${this.body.stamina}%`;
     hud.breath.style.width = `${this.rifle.breath}%`;
     hud.breath.parentElement!.parentElement!.classList.toggle('show', this.rifle.aim > 0.5);
@@ -714,6 +770,24 @@ export class Game {
       markers.push(`<div class="marker" style="transform:rotate(${bearing}rad)"><i style="background:${color};opacity:${0.4 + Math.min(1, sentry.awareness) * 0.6}"></i></div>`);
     }
     hud.detection.innerHTML = markers.join('');
+    // Red brackets over robots that are shooting at you, so you can find the shooter.
+    const shooterMarks: string[] = [];
+    const projected = new THREE.Vector3();
+    for (const sentry of this.sentries) {
+      if (sentry.mode !== 'alert' && sentry.sinceShot > 3) continue;
+      if (sentry.mode === 'dead') continue;
+      projected.set(sentry.position.x, sentry.position.y + 2.1, sentry.position.z).project(this.camera);
+      const top = projected.y;
+      projected.set(sentry.position.x, sentry.position.y, sentry.position.z).project(this.camera);
+      if (projected.z > 1 || Math.abs(projected.x) > 1.05 || projected.y > 1.05 || top < -1.05) continue;
+      const distance = Math.hypot(sentry.position.x - this.body.position.x, sentry.position.z - this.body.position.z);
+      const height = Math.max(34, (top - projected.y) * 0.5 * this.canvas.clientHeight + 8);
+      const size = height * 0.5;
+      projected.y = (top + projected.y) / 2;
+      const firing = sentry.sinceShot < 0.4 ? ' firing' : '';
+      shooterMarks.push(`<div class="shooter${firing}" style="left:${(projected.x * 0.5 + 0.5) * 100}%;top:${(-projected.y * 0.5 + 0.5) * 100}%;width:${size}px;height:${height}px"><span>${Math.round(distance)} m</span></div>`);
+    }
+    hud.shooters.innerHTML = shooterMarks.join('');
   }
 
   private render(dt: number): void {
@@ -796,7 +870,8 @@ export class Game {
       },
       setAim: (value: number) => { this.rifle.aim = value; this.debugAim = value > 0.5; },
       fire: () => { this.debugFire = true; },
-      stats: () => ({ ...this.stats, health: this.health, keycard: this.keycard, world: this.worldIndex, phase: this.phase }),
+      loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve }),
+      stats: () => ({ ...this.stats, health: this.loadout.health, keycard: this.keycard, world: this.worldIndex, phase: this.phase }),
       searchAll: () => { for (const container of this.world!.containers) if (!container.searched) this.finishSearch(container); },
       travel: () => this.travel(),
       los: (from: Vec3, to: Vec3) => this.world!.collision.lineOfSight(from, to, (volume) => volume.tag === 'glass'),
