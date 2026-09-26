@@ -33,7 +33,7 @@ try {
       const x = target.position.x + Math.cos(angle) * 50; const z = target.position.z + Math.sin(angle) * 50;
       w.teleport(x, z, 0, 0);
       const body = w.body();
-      if (w.los({ x, y: body.position.y + 1.1, z }, { x: target.position.x, y: target.position.y + 1.3, z: target.position.z })) spot = { x, z };
+      if (w.los({ x, y: body.position.y + 1.1, z }, { x: target.position.x, y: target.position.y + 1.9, z: target.position.z })) spot = { x, z };
     }
     w.stance('crouch');
     w.setAim(1);
@@ -42,7 +42,7 @@ try {
       const body = w.body();
       const dx = target.position.x - body.position.x; const dz = target.position.z - body.position.z;
       body.yaw = Math.atan2(dx, -dz);
-      body.pitch = Math.atan2(target.position.y + 1.3 - (body.position.y + body.eyeHeight), Math.hypot(dx, dz));
+      body.pitch = Math.atan2(target.position.y + 1.9 - (body.position.y + body.eyeHeight), Math.hypot(dx, dz));
       w.fire(); w.step(1.35);
     }
     const sniped = target.mode === 'dead';

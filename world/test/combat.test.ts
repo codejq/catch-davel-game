@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { CollisionWorld } from '../src/core/collision';
 import { Random } from '../src/core/random';
-import { createSentry, damageSentry, hearGunshot, hitChance, playerVisibility, updateSentry, type PlayerSnapshot, type SentryShot } from '../src/enemies/sentry';
+import { createSentry, damageSentry, SENTRY, hearGunshot, hitChance, playerVisibility, updateSentry, type PlayerSnapshot, type SentryShot } from '../src/enemies/sentry';
 import { fireBullet, stepBullet, zeroAngle, ZERO_RANGE } from '../src/player/ballistics';
 import { MAGAZINE_SIZE, RifleState } from '../src/player/rifle-state';
 
@@ -145,12 +145,24 @@ describe('sniper ballistics', () => {
   });
 
   it('lands headshots at medium range and drops at long range', () => {
-    const near = flight(80, 1.95);
+    const near = flight(80, SENTRY.headHeight);
     expect(near?.kind).toBe('sentry');
     expect(near?.kind === 'sentry' && near.headshot).toBe(true);
     // At 380 m, aiming at the head, the bullet drops below it into the body or the ground.
-    const far = flight(380, 1.95);
+    const far = flight(380, SENTRY.headHeight);
     expect(far === null || far.kind === 'world' || (far.kind === 'sentry' && !far.headshot)).toBe(true);
+  });
+
+  it('the sniper can drop robots from long range with holdover', () => {
+    for (const range of [150, 250, 400]) {
+      // Aim above the chest to allow for bullet drop, like using the scope's range readout.
+      let hit = false;
+      for (let hold = 0; hold < 12 && !hit; hold += 0.25) {
+        const impact = flight(range, (SENTRY.bodyBottom + SENTRY.bodyTop) / 2 + hold);
+        hit = impact?.kind === 'sentry';
+      }
+      expect(hit, `hit at ${range} m`).toBe(true);
+    }
   });
 
   it('cycles the bolt, empties the magazine, and reloads from reserve', () => {

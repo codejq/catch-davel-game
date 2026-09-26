@@ -4,14 +4,18 @@ import type { Stance } from '../player/body';
 
 export type SentryMode = 'patrol' | 'suspicious' | 'alert' | 'search' | 'dead';
 
+/** Robots are 1.8x human size (about three and a half metres tall) so they read clearly through the scope at range. */
+const SCALE = 1.8;
+
 export const SENTRY = {
-  radius: 0.45,
-  eyeHeight: 1.85,
-  headHeight: 1.95,
-  headRadius: 0.24,
-  bodyHalfWidth: 0.34,
-  bodyBottom: 0.75,
-  bodyTop: 1.65,
+  scale: SCALE,
+  radius: 0.45 * SCALE,
+  eyeHeight: 1.85 * SCALE,
+  headHeight: 1.95 * SCALE,
+  headRadius: 0.24 * SCALE,
+  bodyHalfWidth: 0.45 * SCALE,
+  bodyBottom: 0.75 * SCALE,
+  bodyTop: 1.65 * SCALE,
   sightRange: 95,
   fieldOfView: Math.PI * 0.62,
   patrolSpeed: 1.35,
@@ -243,7 +247,7 @@ export function updateSentry(
  * its target so a tree trunk or wall in the way stops it.
  */
 function fireAt(sentry: SentryState, player: PlayerSnapshot, world: CollisionWorld, eye: Vec3, distance: number, random: Random): SentryShot {
-  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5, y: eye.y - 0.4, z: eye.z + Math.cos(sentry.heading) * 0.5 };
+  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * SCALE, y: eye.y - 0.4 * SCALE, z: eye.z + Math.cos(sentry.heading) * 0.5 * SCALE };
   const aim = sentry.aimPoint ?? { x: player.position.x, y: player.position.y + 1, z: player.position.z };
   // Out of effective range a round can never hurt; hitChance is zero there.
   const wantsHit = random.next() < hitChance(player, distance) * Math.min(1, sentry.exposure * 1.3);
