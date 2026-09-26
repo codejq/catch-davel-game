@@ -21,6 +21,11 @@ export interface Container {
   readonly mesh: THREE.Object3D;
   searched: boolean;
   readonly hasKeycard: boolean;
+  /** Crate lid (hinged at the back) or cabinet door (hinged at the side) that swings open once searched. */
+  readonly lid: THREE.Object3D;
+  readonly lidAxis: 'x' | 'y';
+  /** 0 closed .. 1 fully open. */
+  open: number;
 }
 
 export interface Portal {
@@ -104,10 +109,10 @@ export function buildWorld(layout: WorldLayout, quality: QualityTier): BuiltWorl
     }
   }
   for (const plan of allContainers) {
-    const mesh = containerMesh(plan);
+    const { group: mesh, lid, lidAxis } = containerMesh(plan);
     root.add(mesh);
     collision.addBox('solid', plan.x, plan.y, plan.z, Math.max(plan.width, plan.depth) * 0.95, plan.height, Math.max(plan.width, plan.depth) * 0.95);
-    containers.push({ plan, mesh, searched: false, hasKeycard: plan.id === layout.keycardContainerId });
+    containers.push({ plan, mesh, searched: false, hasKeycard: plan.id === layout.keycardContainerId, lid, lidAxis, open: 0 });
   }
   for (const [material, geometries] of buckets) {
     const mesh = new THREE.Mesh(mergeGeometries(geometries)!, material);
@@ -318,31 +323,67 @@ function createDoor(plan: DoorPlan, root: THREE.Group, collision: CollisionWorld
   return { plan, pivot, collider, open: false, angle: 0 };
 }
 
-function containerMesh(plan: ContainerPlan): THREE.Object3D {
+function containerMesh(plan: ContainerPlan): { group: THREE.Group; lid: THREE.Object3D; lidAxis: 'x' | 'y' } {
   const group = new THREE.Group();
   const material = plan.kind === 'crate' ? namedMaterial('crate') : plan.kind === 'locker' ? namedMaterial('locker') : namedMaterial('cabinet');
-  const body = new THREE.Mesh(worldBox(plan.width, plan.height, plan.depth, plan.kind === 'crate' ? plan.width : 1.5), material);
-  body.position.y = plan.height / 2;
-  body.castShadow = true;
-  body.receiveShadow = true;
-  group.add(body);
-  if (plan.kind !== 'crate') {
-    // Drawer and door seams on the front face.
+  const tile = plan.kind === 'crate' ? plan.width : 1.5;
+  let lid: THREE.Object3D;
+  let lidAxis: 'x' | 'y';
+  if (plan.kind === 'crate') {
+    // Open-topped box with a lid hinged along the back edge.
+    const bodyHeight = plan.height * 0.86;
+    const body = new THREE.Mesh(worldBox(plan.width, bodyHeight, plan.depth, tile), material);
+    body.position.y = bodyHeight / 2;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    group.add(body);
+    const inside = new THREE.Mesh(new THREE.BoxGeometry(plan.width * 0.9, 0.01, plan.depth * 0.9), new THREE.MeshStandardMaterial({ color: 0x1a140e, roughness: 1 }));
+    inside.position.y = bodyHeight + 0.004;
+    group.add(inside);
+    const hinge = new THREE.Group();
+    hinge.position.set(0, bodyHeight, -plan.depth / 2);
+    const cover = new THREE.Mesh(worldBox(plan.width * 1.02, plan.height - bodyHeight, plan.depth * 1.02, tile), material);
+    cover.position.set(0, (plan.height - bodyHeight) / 2, plan.depth / 2);
+    cover.castShadow = true;
+    hinge.add(cover);
+    group.add(hinge);
+    lid = hinge;
+    lidAxis = 'x';
+  } else {
+    const body = new THREE.Mesh(worldBox(plan.width, plan.height, plan.depth, tile), material);
+    body.position.y = plan.height / 2;
+    body.castShadow = true;
+    body.receiveShadow = true;
+    group.add(body);
+    // Dark interior shows once the door swings open.
+    const inside = new THREE.Mesh(new THREE.PlaneGeometry(plan.width * 0.9, plan.height * 0.9), new THREE.MeshStandardMaterial({ color: 0x15110d, roughness: 1 }));
+    inside.position.set(0, plan.height / 2, plan.depth / 2 + 0.004);
+    group.add(inside);
+    // Front door hinged on the left edge, with its seams and handle.
+    const hinge = new THREE.Group();
+    hinge.position.set(-plan.width / 2, 0, plan.depth / 2 + 0.012);
+    const panel = new THREE.Mesh(worldBox(plan.width, plan.height * 0.96, 0.024, tile), material);
+    panel.position.set(plan.width / 2, plan.height / 2, 0);
+    panel.castShadow = true;
+    hinge.add(panel);
     const seamMaterial = new THREE.MeshStandardMaterial({ color: 0x1c1712, roughness: 0.8 });
     const rows = plan.kind === 'desk' ? 2 : 3;
     for (let row = 1; row < rows; row += 1) {
       const seam = new THREE.Mesh(new THREE.BoxGeometry(plan.width * 0.92, 0.02, 0.02), seamMaterial);
-      seam.position.set(0, (plan.height * row) / rows, plan.depth / 2 + 0.005);
-      group.add(seam);
+      seam.position.set(plan.width / 2, (plan.height * row) / rows, 0.013);
+      hinge.add(seam);
     }
     const knob = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), namedMaterial('ladder'));
-    knob.position.set(plan.width * 0.3, plan.height * 0.55, plan.depth / 2 + 0.02);
-    group.add(knob);
+    knob.position.set(plan.width * 0.85, plan.height * 0.55, 0.03);
+    hinge.add(knob);
+    group.add(hinge);
+    lid = hinge;
+    lidAxis = 'y';
   }
   group.position.set(plan.x, plan.y, plan.z);
   group.rotation.y = plan.yaw;
   group.userData.containerId = plan.id;
-  return group;
+  return { group, lid, lidAxis };
 }
 
 function ladderGeometry(height: number): THREE.BufferGeometry {

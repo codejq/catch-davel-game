@@ -4,7 +4,7 @@ import type { Stance } from './body';
 export const MAGAZINE_SIZE = 5;
 export const BOLT_SECONDS = 1.15;
 export const RELOAD_SECONDS = 2.8;
-export const SCOPE_ZOOMS = [4, 8] as const;
+export const SCOPE_ZOOMS = [4, 8, 12] as const;
 
 /** Bolt-action sniper rifle state: ammo, bolt cycling, reload, aim-down-sights blend, and scope sway. */
 export class RifleState {
@@ -16,6 +16,8 @@ export class RifleState {
   reloadTime = 0;
   aim = 0;
   zoomIndex = 0;
+  /** How many of SCOPE_ZOOMS the fitted scope offers; the 12× scope upgrade unlocks the third. */
+  zoomLevels = 2;
   breath = 100;
   holdingBreath = false;
   recoil = 0;
@@ -23,7 +25,13 @@ export class RifleState {
 
   get reloading(): boolean { return this.reloadTime > 0; }
 
-  get zoom(): number { return SCOPE_ZOOMS[this.zoomIndex]!; }
+  get zoom(): number { return SCOPE_ZOOMS[Math.min(this.zoomIndex, this.zoomLevels - 1)]!; }
+
+  /** Steps the scope magnification: +1 zooms in, -1 zooms out, 0 cycles round. */
+  stepZoom(direction: -1 | 0 | 1): void {
+    if (direction === 0) this.zoomIndex = (this.zoomIndex + 1) % this.zoomLevels;
+    else this.zoomIndex = Math.max(0, Math.min(this.zoomLevels - 1, this.zoomIndex + direction));
+  }
 
   canFire(): boolean { return this.magazine > 0 && this.cooldown <= 0 && !this.reloading; }
 

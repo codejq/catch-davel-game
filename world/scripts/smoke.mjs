@@ -1,6 +1,6 @@
 // Browser smoke test for the open world. Drives the real game through its development hooks:
 // snipes a robot, gets shot at in the open, opens a door with Enter, plays with the arrow keys and Ctrl,
-// finds the keycard,
+// finds the keycard, opens boxes and picks up what is inside,
 // travels through every portal, and fails on any browser error.
 // Usage: CHROME_PATH=/path/to/chromium node scripts/smoke.mjs
 import { existsSync } from 'node:fs';
@@ -100,12 +100,16 @@ try {
     const worlds = [];
     for (let index = 0; index < 3; index += 1) {
       w.searchAll();
-      worlds.push({ world: w.stats().world, keycard: w.stats().keycard });
+      w.step(0.8);
+      const pickups = w.pickups().length;
+      const before = w.stats().loot;
+      w.collectAll();
+      worlds.push({ world: w.stats().world, keycard: w.stats().keycard, pickups, collected: w.stats().loot - before });
       w.travel();
     }
     return { worlds, phase: w.stats().phase };
   });
-  if (!journey.worlds.every((entry, index) => entry.world === index && entry.keycard) || journey.phase !== 'victory') {
+  if (!journey.worlds.every((entry, index) => entry.world === index && entry.keycard && entry.pickups > 0 && entry.collected === entry.pickups) || journey.phase !== 'victory') {
     throw new Error(`World-to-world journey failed: ${JSON.stringify(journey)}`);
   }
   if (errors.length > 0) throw new Error(`Browser errors: ${errors.join('; ')}`);
