@@ -1,5 +1,6 @@
 // Browser smoke test for the open world. Drives the real game through its development hooks:
-// snipes a robot, gets shot at in the open, opens a door with the E key, finds the keycard,
+// snipes a robot, gets shot at in the open, opens a door with Enter, plays with the arrow keys and Ctrl,
+// finds the keycard,
 // travels through every portal, and fails on any browser error.
 // Usage: CHROME_PATH=/path/to/chromium node scripts/smoke.mjs
 import { existsSync } from 'node:fs';
@@ -64,10 +65,35 @@ try {
     w.teleport(x, z, Math.atan2(cx - x, -(cz - z)), -0.1, door.hingeY + 0.3);
     w.step(0.1);
   });
-  await page.keyboard.press('KeyE');
+  await page.keyboard.press('Enter');
   await page.waitForTimeout(200);
   const door = await page.evaluate(() => { window.catchDavelWorld.step(1); return window.catchDavelWorld.doors()[0]; });
-  if (!door.open || door.blocking) throw new Error(`Door did not open with E: ${JSON.stringify(door)}`);
+  if (!door.open || door.blocking) throw new Error(`Door did not open with Enter: ${JSON.stringify(door)}`);
+
+  // Right-hand keyboard layout: arrows move and turn, Ctrl fires, Right Shift scopes.
+  await page.evaluate(() => { const w = window.catchDavelWorld; w.load(0); w.play(); const s = w.layout().spawn; w.teleport(s.x, s.z, s.yaw, 0); });
+  const start = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
+  await page.keyboard.down('ArrowUp');
+  await page.evaluate(() => window.catchDavelWorld.step(1));
+  await page.keyboard.up('ArrowUp');
+  await page.keyboard.down('ArrowLeft');
+  await page.evaluate(() => window.catchDavelWorld.step(0.5));
+  await page.keyboard.up('ArrowLeft');
+  const moved = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
+  await page.keyboard.press('ShiftRight');
+  await page.evaluate(() => window.catchDavelWorld.step(0.6));
+  const scoped = await page.evaluate(() => document.querySelector('#scope').style.opacity === '1');
+  const shotsBefore = await page.evaluate(() => window.catchDavelWorld.stats().shots);
+  await page.keyboard.down('ControlRight');
+  await page.evaluate(() => window.catchDavelWorld.step(0.1));
+  await page.keyboard.up('ControlRight');
+  const shotsAfter = await page.evaluate(() => window.catchDavelWorld.stats().shots);
+  const keyboard = {
+    walked: Math.hypot(moved.x - start.x, moved.z - start.z), turned: start.yaw - moved.yaw, scoped, fired: shotsAfter - shotsBefore,
+  };
+  if (keyboard.walked < 2 || keyboard.turned < 0.5 || !keyboard.scoped || keyboard.fired !== 1) {
+    throw new Error(`Keyboard controls failed: ${JSON.stringify(keyboard)}`);
+  }
 
   const journey = await page.evaluate(() => {
     const w = window.catchDavelWorld;
@@ -83,7 +109,7 @@ try {
     throw new Error(`World-to-world journey failed: ${JSON.stringify(journey)}`);
   }
   if (errors.length > 0) throw new Error(`Browser errors: ${errors.join('; ')}`);
-  console.log(JSON.stringify({ combat, door: { open: door.open }, journey }, null, 2));
+  console.log(JSON.stringify({ combat, door: { open: door.open }, keyboard, journey }, null, 2));
   console.log('Open-world smoke test passed');
 } finally {
   await browser.close();

@@ -10,19 +10,26 @@ npm run world:dev      # development server with debug hooks
 npm run world:build    # production build in world/dist
 ```
 
-| Control | Action |
-| --- | --- |
-| W A S D | Move |
-| Shift | Run; hold breath to steady the scope when aiming |
-| C / Ctrl | Crouch |
-| Z | Crawl (prone) |
-| Space | Jump; climb onto crates, walls, and ledges up to about 2 m |
-| W at a ladder | Climb onto roofs and watchtowers |
-| Right mouse | Aim through the scope; the wheel switches between 4× and 8× |
-| Left mouse | Fire (bolt-action, 5-round magazine) |
-| R | Reload |
-| E | Open or close doors; hold to search cabinets, crates, desks, and lockers; enter the portal |
-| Esc | Pause |
+The main layout uses the right hand around the arrow keys, like the classic maze game. The WASD and mouse layout works at the same time.
+
+| Arrow-key layout | WASD and mouse | Action |
+| --- | --- | --- |
+| ↑ / ↓ | W / S | Move forward or back |
+| ← / → | Mouse | Turn |
+| Page Up / Page Down (or Insert / Delete) | Mouse | Look up or down |
+| Home / End | A / D | Step left or right |
+| Ctrl | Left click | Fire (bolt-action, 5-round magazine) |
+| Right Shift (toggle) | Right mouse (hold) | Scope |
+| + / − | Wheel | Switch between 4× and 8× |
+| Enter | E | Open or close doors; hold to search; enter the portal |
+| Backspace | R | Reload |
+| Left Shift | Left Shift | Run; hold breath to steady the scope when aiming |
+| C / Z | C / Z | Crouch / crawl (prone) |
+| Space | Space | Jump; climb onto crates, walls, and ledges up to about 2 m |
+| ↑ at a ladder | W at a ladder | Climb onto roofs and watchtowers |
+| Enter (menu) | Click | Start, resume, or retry; Esc pauses |
+
+Most browsers close the tab on Ctrl + W, so if you move with W, fire with the mouse.
 
 ## The worlds
 
@@ -53,7 +60,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 ```powershell
 npm run world:lint     # TypeScript
 npm run world:test     # unit tests: movement, collision, layout, AI, ballistics, rifle
-npm run world:smoke    # browser run: snipe, take fire, open a door, search, cross all portals
+npm run world:smoke    # browser run: snipe, take fire, arrow keys and Ctrl, open a door, search, cross all portals
 ```
 
 The smoke test drives the real game through development-only hooks (`window.catchDavelWorld`), which production builds do not include.
