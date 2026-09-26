@@ -116,6 +116,11 @@ const ENGLISH_UI = {
   swordCoolingDescription: '-12% sword heat per level', bombCapacityDescription: '+1 starting bomb per level',
   laserCoolingDescription: '-12% laser heat per level',
   maxHealthDescription: '+15 maximum health per level', maxEnergyDescription: '+12 maximum energy per level',
+  hypeFirstCatch: 'FIRST CATCH!', hypeDoubleCatch: 'DOUBLE CATCH!', hypeTripleCatch: 'TRIPLE CATCH!',
+  hypeQuadCatch: 'QUAD CATCH!', hypeFrenzy: 'DAVEL FRENZY! ×{streak}', hypeClutch: 'CLUTCH CATCH!',
+  hypeLastDavel: 'LAST DAVEL STANDING!', hypeComboFire: 'COMBO ×{combo} · ON FIRE!',
+  hypeComboBlaze: 'COMBO ×{combo} · BLAZING!', hypeComboLegend: 'COMBO ×{combo} · LEGENDARY!',
+  scorePopup: '+{coins} COINS',
 } as const;
 
 type RuntimeUiKey = keyof typeof ENGLISH_UI;
@@ -238,6 +243,11 @@ const ARABIC_UI: Record<RuntimeUiKey, string> = {
   swordCoolingDescription: '-12٪ من حرارة السيف لكل مستوى', bombCapacityDescription: '+1 قنبلة بداية لكل مستوى',
   laserCoolingDescription: '-12٪ من حرارة الليزر لكل مستوى',
   maxHealthDescription: '+15 صحة قصوى لكل مستوى', maxEnergyDescription: '+12 طاقة قصوى لكل مستوى',
+  hypeFirstCatch: 'أول صيد!', hypeDoubleCatch: 'صيد مزدوج!', hypeTripleCatch: 'صيد ثلاثي!',
+  hypeQuadCatch: 'صيد رباعي!', hypeFrenzy: 'جنون دافل! ×{streak}', hypeClutch: 'صيد حاسم!',
+  hypeLastDavel: 'آخر دافل صامد!', hypeComboFire: 'كومبو ×{combo} · مشتعل!',
+  hypeComboBlaze: 'كومبو ×{combo} · ملتهب!', hypeComboLegend: 'كومبو ×{combo} · أسطوري!',
+  scorePopup: '+{coins} عملة',
 };
 
 const CATALOGS: Readonly<Record<'en' | 'ar', Readonly<Record<RuntimeUiKey, string>>>> = {

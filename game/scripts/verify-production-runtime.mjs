@@ -127,7 +127,6 @@ try {
     document.querySelector('#setting-shake-motion').value = '1';
     document.querySelector('#setting-flash-intensity').value = '0.55';
     document.querySelector('#setting-master').value = '0.8';
-    document.querySelector('#setting-music').value = '0.6';
     document.querySelector('#setting-effects').value = '0.7';
     document.querySelector('#setting-weapons-volume').value = '0.55';
     document.querySelector('#setting-robots-volume').value = '0.6';
@@ -221,7 +220,6 @@ try {
   if (settingsProfile.profile.settings.language !== 'ar'
     || settingsProfile.profile.settings.mouseSensitivity !== 1.4
     || settingsProfile.profile.settings.masterVolume !== 0.8
-    || settingsProfile.profile.settings.musicVolume !== 0.6
     || settingsProfile.profile.settings.effectsVolume !== 0.7
     || settingsProfile.profile.settings.weaponsVolume !== 0.55
     || settingsProfile.profile.settings.robotsVolume !== 0.6

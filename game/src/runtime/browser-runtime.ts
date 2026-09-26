@@ -69,6 +69,9 @@ import {
 import { isWallAtWorld, worldCell } from '../sim/level';
 import { CombatPacingTracker } from './combat-pacing';
 import { ObjectiveClearTransitionTracker } from './objective-clear-transition';
+import {
+  comboHeatTier, HypeAnnouncer, lowHealthIntensity, type HypeCallout,
+} from './hype-announcer';
 import { WeaponLocomotionTracker } from './weapon-locomotion';
 import { ProjectileNearMissTracker } from './projectile-near-miss';
 import {
@@ -173,6 +176,9 @@ export async function startBrowserGame(): Promise<void> {
   const weapon = requireElement<HTMLElement>('#weapon');
   const damageDirection = requireElement<HTMLElement>('#damage-direction');
   const combatMessage = requireElement<HTMLElement>('#combat-message');
+  const hud = requireElement<HTMLElement>('#hud');
+  const hypeCalloutElement = requireElement<HTMLElement>('#hype-callout');
+  const scorePopups = requireElement<HTMLElement>('#score-popups');
   const objectiveClearTransition = requireElement<HTMLElement>('#objective-clear-transition');
   const objectiveClearTitle = requireElement<HTMLElement>('#objective-clear-title');
   const objectiveClearDistance = requireElement<HTMLElement>('#objective-clear-distance');
@@ -305,6 +311,8 @@ export async function startBrowserGame(): Promise<void> {
     motionScale: 1, flashScale: 1, fieldOfViewScale: 1, qualityTier: resolvedQuality,
   };
   let messageTimeout = 0;
+  let hypeTimeout = 0;
+  let crosshairKillTimeout = 0;
   let damageDirectionTimeout = 0;
   let barkTimeout = 0;
   let lastBarkTick = -10_000;
@@ -316,6 +324,7 @@ export async function startBrowserGame(): Promise<void> {
   const bombFuseAudio = new BombFuseAudioSequencer();
   const combatPacing = new CombatPacingTracker();
   const objectiveClearTracker = new ObjectiveClearTransitionTracker();
+  const hypeAnnouncer = new HypeAnnouncer();
   const weaponLocomotion = new WeaponLocomotionTracker();
   const projectileNearMiss = new ProjectileNearMissTracker();
   let profileWrite: Promise<void> = Promise.resolve();
@@ -862,6 +871,30 @@ export async function startBrowserGame(): Promise<void> {
     messageTimeout = window.setTimeout(() => combatMessage.classList.remove('show'), 650);
   };
 
+  const showHype = (callout: HypeCallout | null): void => {
+    if (callout === null || renderState?.victory || renderState?.defeat) return;
+    hypeCalloutElement.textContent = ui(callout.key, { streak: callout.streak, combo: callout.combo });
+    hypeCalloutElement.dataset.tier = String(callout.tier);
+    hypeCalloutElement.dataset.key = callout.key;
+    hypeCalloutElement.classList.remove('show');
+    void hypeCalloutElement.offsetWidth;
+    hypeCalloutElement.classList.add('show');
+    window.clearTimeout(hypeTimeout);
+    hypeTimeout = window.setTimeout(() => hypeCalloutElement.classList.remove('show'), 1_150 + callout.tier * 250);
+    document.body.dataset.hypeCallout = callout.key;
+    sound(callout.tier === 1 ? 'coin' : 'objective', undefined, 0.55 + callout.tier * 0.15, 1 + (callout.tier - 1) * 0.14);
+  };
+
+  const showScorePopup = (coins: number): void => {
+    const popup = document.createElement('span');
+    popup.className = 'score-popup';
+    popup.textContent = ui('scorePopup', { coins });
+    popup.style.setProperty('--popup-drift', `${(scorePopups.childElementCount % 3 - 1) * 26}px`);
+    scorePopups.append(popup);
+    window.setTimeout(() => popup.remove(), 1_100);
+    while (scorePopups.childElementCount > 4) scorePopups.firstElementChild?.remove();
+  };
+
   const showDavelBark = (
     event: DecodedGameEvent,
     occasion: DavelBarkOccasion,
@@ -944,6 +977,14 @@ export async function startBrowserGame(): Promise<void> {
     runScoreHud.textContent = state.run.score.toLocaleString(activeProfile.settings.language);
     runComboHud.textContent = `×${state.run.currentCombo}`;
     runStatsHud.classList.toggle('combo-active', state.run.currentCombo > 1);
+    const comboHeat = String(comboHeatTier(state.run.currentCombo));
+    if (runStatsHud.dataset.comboHeat !== comboHeat) runStatsHud.dataset.comboHeat = comboHeat;
+    const heartbeat = state.defeat || state.victory ? 0 : lowHealthIntensity(state.player.health, state.player.maxHealth);
+    const lowHealth = String(heartbeat > 0);
+    if (document.body.dataset.lowHealth !== lowHealth) document.body.dataset.lowHealth = lowHealth;
+    if (hud.style.getPropertyValue('--low-health-intensity') !== String(heartbeat)) {
+      hud.style.setProperty('--low-health-intensity', String(heartbeat));
+    }
     const compass = bossTraining ? null : objectiveCompassReading(state);
     objectiveCompass.hidden = compass === null;
     if (compass !== null) {
@@ -1207,6 +1248,15 @@ export async function startBrowserGame(): Promise<void> {
     if (event.type === 'exit-unlocked') showMessage(ui('exitOnline'));
     if (event.type === 'robot-defeated') {
       showMessage(ui('davelDown', { coins: event.coins ?? 0 }));
+      crosshair.classList.remove('kill');
+      void crosshair.offsetWidth;
+      crosshair.classList.add('kill');
+      window.clearTimeout(crosshairKillTimeout);
+      crosshairKillTimeout = window.setTimeout(() => crosshair.classList.remove('kill'), 320);
+      showScorePopup(event.coins ?? 0);
+      const healthRatio = renderState === null || renderState.player.maxHealth <= 0
+        ? 1 : renderState.player.health / renderState.player.maxHealth;
+      showHype(hypeAnnouncer.robotDefeated(event.tick, healthRatio, renderState?.run.currentCombo ?? 0));
       eventSound('robot-defeat', event.robotId);
       showDavelBark(event, 'defeated', 150);
     }
@@ -1258,6 +1308,7 @@ export async function startBrowserGame(): Promise<void> {
           bombFuseAudio.reset();
           combatPacing.reset();
           objectiveClearTracker.reset();
+          hypeAnnouncer.reset();
           weaponLocomotion.reset();
           projectileNearMiss.reset();
           renderer.clearPresentationEffects();
@@ -1269,6 +1320,14 @@ export async function startBrowserGame(): Promise<void> {
           tick: state.tick, heat: state.player.laserHeat, overheated: state.player.laserOverheated,
         }));
         updateHud(state);
+        const remainingCallout = hypeAnnouncer.remainingChanged(
+          state.robots.filter((robot) => robot.active).length, state.robots.length,
+        );
+        const comboCallout = hypeAnnouncer.comboChanged(state.run.currentCombo);
+        const snapshotCallout = [remainingCallout, comboCallout]
+          .filter((callout): callout is HypeCallout => callout !== null)
+          .sort((left, right) => right.tier - left.tier)[0] ?? null;
+        if (snapshotCallout !== null && !hypeCalloutElement.classList.contains('show')) showHype(snapshotCallout);
         const pacing = combatPacing.sample(state);
         const combatIntensity = pacing.intensity;
         document.body.dataset.combatPacingPhase = pacing.phase;
@@ -1317,6 +1376,7 @@ export async function startBrowserGame(): Promise<void> {
         bombFuseAudio.reset();
         combatPacing.reset();
         objectiveClearTracker.reset();
+        hypeAnnouncer.reset();
         weaponLocomotion.reset();
         projectileNearMiss.reset();
         pendingPulseEffectTicks.length = 0;
