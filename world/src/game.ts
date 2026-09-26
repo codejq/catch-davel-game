@@ -6,7 +6,8 @@ import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
 import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
-import { applyLoot, MAX_ARMOR, rollDoorLoot, takeDamage, type Loadout } from './player/loot';
+import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop } from './player/loot';
+import { createPickupMesh } from './world/pickups';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, updateSentry, type PlayerSnapshot, type SentryState,
   SENTRY,
@@ -28,10 +29,20 @@ const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ri
 type Phase = 'menu' | 'playing' | 'paused' | 'dead' | 'victory';
 
 interface Interactable {
-  readonly kind: 'door' | 'container' | 'portal';
+  readonly kind: 'door' | 'container' | 'portal' | 'pickup';
   readonly label: string;
   readonly door?: Door;
   readonly container?: Container;
+  readonly pickup?: Pickup;
+}
+
+/** An item lying in the world (popped out of a searched box or behind a door) waiting to be picked up. */
+interface Pickup {
+  readonly drop: LootDrop;
+  readonly root: THREE.Group;
+  readonly item: THREE.Group;
+  readonly position: Vec3;
+  age: number;
 }
 
 interface Effect { readonly object: THREE.Object3D; life: number; readonly maxLife: number; readonly velocity?: THREE.Vector3 }
@@ -71,7 +82,8 @@ export class Game {
   private sentries: SentryState[] = [];
   private rigs: RobotRig[] = [];
   private body = new PlayerBody(0, 0, 0);
-  private readonly loadout: Loadout = { health: 100, armor: 0, lives: 0, money: 0 };
+  private readonly loadout: Loadout = { health: 100, armor: 0, lives: 0, money: 0, suppressor: false };
+  private pickups: Pickup[] = [];
   private readonly lootedDoors = new WeakSet<object>();
   private sinceHurt = 99;
   private keycard = false;
@@ -188,6 +200,7 @@ export class Game {
     }
     for (const effect of this.effects.splice(0)) this.scene.remove(effect.object);
     this.bullets.length = 0;
+    this.pickups = [];
     const theme = WORLDS[index]!;
     this.layout = generateLayout(theme);
     this.world = buildWorld(this.layout, this.quality);
@@ -341,6 +354,7 @@ export class Game {
     this.updateBullets(dt);
     this.updateSentries(dt);
     this.updateInteraction(dt);
+    this.updatePickups(dt);
     this.updateDoors(dt);
     this.updateEffects(dt);
 
@@ -381,8 +395,8 @@ export class Game {
     if (this.body.sprinting || this.body.climbing) this.scopeToggled = false;
     const aiming = (this.input.mouseDown(2) || this.scopeToggled || this.debugAim) && !this.body.sprinting && !this.body.climbing;
     this.rifle.update(dt, aiming, this.input.held('run'));
-    if (this.input.wheel !== 0 && this.rifle.aim > 0.5) this.rifle.zoomIndex = this.input.wheel > 0 ? 0 : 1;
-    if (this.input.tapped('zoom') && this.rifle.aim > 0.5) this.rifle.zoomIndex = this.rifle.zoomIndex === 0 ? 1 : 0;
+    if (this.input.wheel !== 0 && this.rifle.aim > 0.5) this.rifle.stepZoom(this.input.wheel > 0 ? -1 : 1);
+    if (this.input.tapped('zoom') && this.rifle.aim > 0.5) this.rifle.stepZoom(0);
     if (this.input.tapped('reload') && this.rifle.startReload()) this.audio.reload();
     const trigger = this.input.mouseClicked(0) || this.input.tapped('fire') || this.debugFire;
     this.debugFire = false;
@@ -399,9 +413,9 @@ export class Game {
         const eye = this.body.eye;
         this.bullets.push(fireBullet(eye, direction));
         this.stats.shots += 1;
-        this.audio.rifleShot(true);
+        this.audio.rifleShot(true, this.loadout.suppressor);
         if (this.rifle.magazine > 0) this.audio.bolt();
-        hearGunshot(this.sentries, eye, this.random);
+        hearGunshot(this.sentries, eye, this.random, SENTRY.hearingRange * (this.loadout.suppressor ? SUPPRESSED_HEARING : 1));
         const recoil = this.body.stance === 'prone' ? 0.012 : this.body.stance === 'crouch' ? 0.022 : 0.03;
         this.body.pitch += recoil;
         this.recoilPitch = recoil * 0.7;
@@ -555,6 +569,9 @@ export class Game {
       const center = { x: door.plan.hingeX + Math.cos(angle) * door.plan.width / 2, y: door.plan.hingeY + 1.1, z: door.plan.hingeZ - Math.sin(angle) * door.plan.width / 2 };
       consider(center, 2.4, { kind: 'door', label: door.open ? 'Close door' : 'Open door', door });
     }
+    for (const pickup of this.pickups) {
+      consider(pickup.position, 2.8, { kind: 'pickup', label: `Pick up ${LOOT_NAMES[pickup.drop.kind]}`, pickup });
+    }
     for (const container of world.containers) {
       if (container.searched) continue;
       const plan = container.plan;
@@ -585,14 +602,19 @@ export class Game {
       this.audio.door(door.open);
       if (door.open && !this.lootedDoors.has(door)) {
         this.lootedDoors.add(door);
-        const drop = rollDoorLoot(this.random);
+        const drop = rollDoorLoot(this.random, usefulKinds(this.loadout, this.rifle));
         if (drop !== null) {
-          this.audio.pickup(drop.kind === 'life' || drop.kind === 'magazine');
-          this.toast(`FOUND ${applyLoot(drop, this.loadout, this.rifle)}`, 2.6);
-          this.stats.loot += 1;
+          // Left on the floor just the other side of the door.
+          const direction = side > 0 ? -1 : 1;
+          const angle = door.plan.closedYaw;
+          const centerX = door.plan.hingeX + Math.cos(angle) * door.plan.width / 2;
+          const centerZ = door.plan.hingeZ - Math.sin(angle) * door.plan.width / 2;
+          this.spawnPickup(drop, { x: centerX + normalX * direction * 1.3, y: door.plan.hingeY + 0.35, z: centerZ + normalZ * direction * 1.3 }, 0);
+          this.toast(`SOMETHING IS BEHIND THIS DOOR · ${LOOT_NAMES[drop.kind].toUpperCase()}`, 2.2);
         }
       }
     }
+    if (target.kind === 'pickup' && this.input.tapped('interact')) this.collect(target.pickup!);
     if (target.kind === 'container') {
       const container = target.container!;
       if (this.input.held('interact')) {
@@ -619,25 +641,62 @@ export class Game {
       this.audio.pickup(true);
       this.toast('PORTAL KEYCARD FOUND', 3);
       this.refreshObjectives();
-    } else if (random.chance(0.45)) {
-      const rounds = random.int(3, 8);
-      this.rifle.reserve += rounds;
-      this.audio.pickup(false);
-      this.toast(`+${rounds} ROUNDS`);
-    } else if (random.chance(0.5)) {
-      this.loadout.health = Math.min(100, this.loadout.health + 35);
-      this.audio.pickup(false);
-      this.toast('MEDKIT · +35 HEALTH');
     } else {
-      this.toast('NOTHING USEFUL', 1.4);
-    }
-    container.mesh.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
-        const material = (object.material as THREE.MeshStandardMaterial).clone();
-        material.color.multiplyScalar(0.7);
-        object.material = material;
+      // The lid swings open and the find rises out of the box, ready to pick up.
+      const drop = rollLoot(random, usefulKinds(this.loadout, this.rifle));
+      const plan = container.plan;
+      if (plan.kind === 'crate') {
+        this.spawnPickup(drop, { x: plan.x, y: plan.y + plan.height + 0.35, z: plan.z }, 0.5);
+      } else {
+        // Floats out in front of the open cabinet door.
+        const reach = plan.depth / 2 + 0.45;
+        this.spawnPickup(drop, { x: plan.x + Math.sin(plan.yaw) * reach, y: plan.y + Math.min(plan.height * 0.55, 1.1), z: plan.z + Math.cos(plan.yaw) * reach }, 0.15);
       }
-    });
+      this.audio.door(true);
+      this.toast(`FOUND ${LOOT_NAMES[drop.kind].toUpperCase()} · PICK IT UP`, 2);
+    }
+  }
+
+  private spawnPickup(drop: LootDrop, position: Vec3, rise: number): void {
+    const { root, item } = createPickupMesh(drop.kind);
+    root.position.set(position.x, position.y - rise, position.z);
+    root.userData.rise = rise;
+    this.world!.root.add(root);
+    this.pickups.push({ drop, root, item, position, age: 0 });
+  }
+
+  private collect(pickup: Pickup): void {
+    this.pickups.splice(this.pickups.indexOf(pickup), 1);
+    pickup.root.removeFromParent();
+    const important = pickup.drop.kind === 'life' || pickup.drop.kind === 'magazine' || pickup.drop.kind === 'suppressor' || pickup.drop.kind === 'scope';
+    this.audio.pickup(important);
+    this.toast(applyLoot(pickup.drop, this.loadout, this.rifle), 2.6);
+    this.stats.loot += 1;
+    this.sparks(pickup.position, 0xfff0a0, 8);
+  }
+
+  private updatePickups(dt: number): void {
+    for (const container of this.world!.containers) {
+      if (!container.searched || container.open >= 1) continue;
+      container.open = Math.min(1, container.open + dt * 2.2);
+      const eased = 1 - (1 - container.open) ** 3;
+      if (container.lidAxis === 'x') container.lid.rotation.x = -1.95 * eased;
+      else container.lid.rotation.y = -1.85 * eased;
+    }
+    for (const pickup of this.pickups) {
+      pickup.age += dt;
+      const rise = pickup.root.userData.rise as number;
+      const lift = Math.min(1, pickup.age / 0.6);
+      pickup.root.position.y = pickup.position.y - rise * (1 - lift) ** 2;
+      pickup.item.rotation.y += dt * 1.8;
+      pickup.item.position.y = Math.sin(pickup.age * 2.6) * 0.05;
+    }
+    // Walking into an item picks it up.
+    const feet = this.body.position;
+    for (const pickup of [...this.pickups]) {
+      if (pickup.age < 0.8) continue;
+      if (Math.hypot(pickup.position.x - feet.x, pickup.position.z - feet.z) < 0.8 && Math.abs(pickup.position.y - feet.y - 0.6) < 1.4) this.collect(pickup);
+    }
   }
 
   private travel(): void {
@@ -739,7 +798,7 @@ export class Game {
     hud.visibility.classList.toggle('hidden-state', !spotted && hidden);
     hud.ammo.textContent = String(this.rifle.magazine);
     hud.reserve.textContent = `/ ${this.rifle.reserve}`;
-    hud.weaponState.textContent = this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · PRESS R' : 'BOLT-ACTION · ZEROED 100 m';
+    hud.weaponState.textContent = this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · PRESS R' : `BOLT-ACTION${this.loadout.suppressor ? ' · SUPPRESSED' : ''} · ZEROED 100 m`;
     const scoped = this.rifle.aim > 0.85;
     hud.scope.style.opacity = scoped ? '1' : '0';
     hud.crosshair.classList.toggle('scoped', this.rifle.aim > 0.2);
@@ -858,7 +917,8 @@ export class Game {
     const phase = Math.min(1, Math.max(0, (cycle - 0.15) / 0.6));
     model.bolt.rotation.z = Math.sin(phase * Math.PI) * 1.2;
     model.bolt.position.z = 0.1 + Math.sin(phase * Math.PI) * 0.09;
-    (model.flash.material as THREE.MeshBasicMaterial).opacity = this.rifle.sinceShot < 0.05 ? 1 : 0;
+    model.suppressor.visible = this.loadout.suppressor;
+    (model.flash.material as THREE.MeshBasicMaterial).opacity = this.rifle.sinceShot < 0.05 && !this.loadout.suppressor ? 1 : 0;
   }
 
   /** Development hook used by screenshot scripts. */
@@ -872,7 +932,10 @@ export class Game {
       },
       setAim: (value: number) => { this.rifle.aim = value; this.debugAim = value > 0.5; },
       fire: () => { this.debugFire = true; },
-      loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve }),
+      loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels }),
+      pickups: () => this.pickups.map((pickup) => ({ kind: pickup.drop.kind, position: pickup.position })),
+      collectAll: () => { for (const pickup of [...this.pickups]) this.collect(pickup); },
+      containers: () => this.world!.containers.map((container) => ({ ...container.plan, searched: container.searched, keycard: container.hasKeycard })),
       stats: () => ({ ...this.stats, health: this.loadout.health, keycard: this.keycard, world: this.worldIndex, phase: this.phase }),
       searchAll: () => { for (const container of this.world!.containers) if (!container.searched) this.finishSearch(container); },
       travel: () => this.travel(),

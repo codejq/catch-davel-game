@@ -267,14 +267,14 @@ function fireAt(sentry: SentryState, player: PlayerSnapshot, world: CollisionWor
 }
 
 /** A gunshot alerts every living sentry within hearing range, pointing them roughly at the shooter. */
-export function hearGunshot(sentries: readonly SentryState[], origin: Vec3, random: Random): void {
+export function hearGunshot(sentries: readonly SentryState[], origin: Vec3, random: Random, range: number = SENTRY.hearingRange): void {
   for (const sentry of sentries) {
     if (sentry.mode === 'dead') continue;
     const distance = Math.hypot(sentry.position.x - origin.x, sentry.position.z - origin.z);
-    if (distance > SENTRY.hearingRange) continue;
+    if (distance > range) continue;
     const error = distance * 0.18;
     sentry.lastKnown = { x: origin.x + (random.next() - 0.5) * error, z: origin.z + (random.next() - 0.5) * error };
-    sentry.awareness = Math.max(sentry.awareness, 0.5 + (1 - distance / SENTRY.hearingRange) * 0.3);
+    sentry.awareness = Math.max(sentry.awareness, 0.5 + (1 - distance / range) * 0.3);
     if (sentry.mode === 'patrol' || sentry.mode === 'suspicious') { sentry.mode = 'search'; sentry.searchTimer = 16; }
   }
 }

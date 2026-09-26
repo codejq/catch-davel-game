@@ -16,7 +16,7 @@ function part(geometry: THREE.BufferGeometry, material: THREE.Material, x: numbe
 }
 
 /** First-person bolt-action rifle with scope, bipod, gloved hands, and sleeves. Units are metres, -Z forward. */
-export function createRifleModel(): { group: THREE.Group; bolt: THREE.Group; magazine: THREE.Mesh; flash: THREE.Mesh } {
+export function createRifleModel(): { group: THREE.Group; bolt: THREE.Group; magazine: THREE.Mesh; flash: THREE.Mesh; suppressor: THREE.Group } {
   const group = new THREE.Group();
   group.add(part(worldBox(0.05, 0.07, 0.34, 0.3), gunmetal, 0, 0, -0.02));
   group.add(part(worldBox(0.058, 0.09, 0.42, 0.3), woodStock, 0, -0.03, 0.34));
@@ -58,6 +58,12 @@ export function createRifleModel(): { group: THREE.Group; bolt: THREE.Group; mag
   const flash = part(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffd08a, transparent: true, opacity: 0, depthWrite: false }), 0, 0.004, -1.02);
   flash.scale.set(1, 1, 2.5);
   group.add(flash);
+  // Suppressor found in the world: screws onto the muzzle brake.
+  const suppressor = new THREE.Group();
+  suppressor.add(part(new THREE.CylinderGeometry(0.024, 0.024, 0.26, 16).rotateX(Math.PI / 2), gunmetal, 0, 0.004, -1.1));
+  for (const z of [-1.0, -1.2]) suppressor.add(part(new THREE.CylinderGeometry(0.026, 0.026, 0.012, 16).rotateX(Math.PI / 2), gunmetal, 0, 0.004, z));
+  suppressor.visible = false;
+  group.add(suppressor);
   group.traverse((object) => { object.renderOrder = 10; });
-  return { group, bolt, magazine, flash };
+  return { group, bolt, magazine, flash, suppressor };
 }

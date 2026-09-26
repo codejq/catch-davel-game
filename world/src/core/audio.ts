@@ -84,7 +84,14 @@ export class GameAudio {
     oscillator.stop(start + duration + 0.02);
   }
 
-  rifleShot(outdoors: boolean): void {
+  rifleShot(outdoors: boolean, suppressed = false): void {
+    if (suppressed) {
+      // A muffled cough and the action cycling, with little echo.
+      this.burst({ duration: 0.12, gain: 0.7, frequency: 700, q: 0.7, type: 'lowpass' });
+      this.tone(70, 0.2, 0.35, 'sine', 40);
+      this.burst({ duration: 0.4, gain: 0.08, frequency: 400, q: 0.5, type: 'lowpass', delay: outdoors ? 0.3 : 0.08 });
+      return;
+    }
     this.burst({ duration: 0.08, gain: 1.4, frequency: 2600, q: 0.5, type: 'highpass' });
     this.burst({ duration: 0.45, gain: 1.1, frequency: 180, q: 0.6, type: 'lowpass' });
     this.tone(90, 0.35, 0.8, 'sine', 40);
