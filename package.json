@@ -44,6 +44,8 @@
     "world:build": "npm run build --workspace @quantum-billing/catch-davel-world",
     "world:test": "npm run test --workspace @quantum-billing/catch-davel-world",
     "world:lint": "npm run lint --workspace @quantum-billing/catch-davel-world",
-    "world:smoke": "npm run smoke --workspace @quantum-billing/catch-davel-world"
+    "world:smoke": "npm run smoke --workspace @quantum-billing/catch-davel-world",
+    "world:agent-check": "npm run agent:check --workspace @quantum-billing/catch-davel-world",
+    "world:mcp": "npm run agent:mcp --silent --workspace @quantum-billing/catch-davel-world"
   }
 }

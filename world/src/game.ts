@@ -9,8 +9,10 @@ import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
 import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop, type LootKind } from './player/loot';
 import { createPickupMesh } from './world/pickups';
 import { scatterLootSpots } from './world/loot-spots';
+import type { AgentHost, GameSnapshot } from './agent/bridge';
+import { findPath } from './agent/pathfind';
 import {
-  angleDifference, createSentry, damageSentry, hearGunshot, updateSentry, type PlayerSnapshot, type SentryState,
+  angleDifference, createSentry, damageSentry, hearGunshot, radioSquad, raySentry, suppressSentry, updateSentry, type PlayerSnapshot, type SentryState,
   SENTRY,
 } from './enemies/sentry';
 import { fireBullet, stepBullet, type Bullet } from './player/ballistics';
@@ -46,6 +48,7 @@ interface Interactable {
 
 /** An item lying in the world (popped out of a searched box or behind a door) waiting to be picked up. */
 interface Pickup {
+  readonly id: string;
   readonly drop: LootDrop;
   readonly root: THREE.Group;
   readonly item: THREE.Group;
@@ -96,6 +99,12 @@ export class Game {
   private pickups: Pickup[] = [];
   /** Seconds the sniper has been standing still; the HUD clears away while moving. */
   private stillTime = 99;
+  private pickupCounter = 0;
+  /** While an agent is driving, the world only advances through `agentHost().step`. */
+  private lockstep = false;
+  private redraw = false;
+  /** What happened recently, in words, for agents. */
+  private readonly events: string[] = [];
   private readonly lootedDoors = new WeakSet<object>();
   private sinceHurt = 99;
   private keycard = false;
@@ -314,7 +323,13 @@ export class Game {
     }));
   }
 
+  private logEvent(text: string): void {
+    this.events.push(text);
+    if (this.events.length > 40) this.events.shift();
+  }
+
   private toast(text: string, seconds = 2.2): void {
+    this.logEvent(text.toLowerCase());
     this.hud.toast.textContent = text;
     this.hud.toast.classList.add('show');
     this.toastTimer = seconds;
@@ -326,8 +341,9 @@ export class Game {
       const dt = Math.min(1 / 30, (now - last) / 1000);
       last = now;
       this.input.capture = this.phase === 'playing';
-      if (this.phase === 'playing') this.update(dt);
-      this.render(dt);
+      if (this.phase === 'playing' && !this.lockstep) this.update(dt);
+      // While an agent drives, the world is frozen between commands: draw once after each batch, not every frame.
+      if (!this.lockstep || this.redraw) { this.render(this.lockstep ? 1 : dt); this.redraw = false; }
       this.input.endFrame();
       requestAnimationFrame(frame);
     };
@@ -428,6 +444,14 @@ export class Game {
         );
         const eye = this.body.eye;
         this.bullets.push(fireBullet(eye, direction));
+        // Robots the round passes close to dive for cover.
+        for (const sentry of this.sentries) {
+          const chest = { x: sentry.position.x - eye.x, y: sentry.position.y + SENTRY.bodyTop * 0.7 - eye.y, z: sentry.position.z - eye.z };
+          const along = chest.x * direction.x + chest.y * direction.y + chest.z * direction.z;
+          if (along <= 0 || along > 400) continue;
+          const miss = Math.hypot(chest.x - direction.x * along, chest.y - direction.y * along, chest.z - direction.z * along);
+          if (miss < 4) suppressSentry(sentry, eye);
+        }
         this.stats.shots += 1;
         this.audio.rifleShot(true, this.loadout.suppressor);
         if (this.rifle.magazine > 0) this.audio.bolt();
@@ -455,6 +479,7 @@ export class Game {
           // A rifle round destroys a robot wherever it lands; a headshot just looks better.
           const damage = impact.headshot ? 150 : 100;
           const killed = damageSentry(impact.sentry, damage, this.body.position);
+          this.logEvent(`your shot hit ${this.robotId(impact.sentry)}${impact.headshot ? ' in the head' : ''}${killed ? ' - destroyed' : ''}`);
           this.stats.hits += 1;
           if (impact.headshot) this.stats.headshots += 1;
           this.audio.impact(impact.headshot ? 'headshot' : 'robot');
@@ -471,6 +496,7 @@ export class Game {
         } else {
           this.audio.impact('world');
           this.dust(impact.point, impact.surface);
+          this.logEvent(`your shot missed and hit ${impact.surface === 'terrain' ? 'the ground' : impact.surface === 'tree' ? 'a tree' : 'a wall'} ${Math.round(Math.hypot(impact.point.x - this.body.position.x, impact.point.z - this.body.position.z))} m away`);
         }
       }
       if (bullet.trail.length >= 2 && bullet.age < 0.4) {
@@ -495,6 +521,7 @@ export class Game {
     const player = this.snapshot();
     this.sentries.forEach((sentry, index) => {
       const shot = updateSentry(sentry, player, this.world!.collision, dt, this.random);
+      radioSquad(this.sentries, sentry, player.position);
       poseRobot(this.rigs[index]!, sentry, this.time + index, player.eye);
       if (sentry.mode === 'alert' && !this.alerted.has(sentry.id)) {
         this.alerted.add(sentry.id);
@@ -516,7 +543,8 @@ export class Game {
       this.showThreat(shot.from, shot.hit);
       if (shot.hit) {
         const armored = this.loadout.armor > 0;
-        takeDamage(this.loadout, shot.damage);
+        const taken = takeDamage(this.loadout, shot.damage);
+        this.logEvent(`${this.robotId(sentry)} shot you for ${Math.round(taken)} damage from ${Math.round(distance)} m, ${Math.round(bearing * 180 / Math.PI)}° from where you look`);
         if (armored) this.audio.impact('world');
         this.sinceHurt = 0;
         this.audio.hurt();
@@ -527,8 +555,9 @@ export class Game {
           this.hud.damage.style.boxShadow = '';
         });
         if (this.loadout.health <= 0) this.die();
-      } else if (shot.impact === null) {
-        this.audio.bulletSnap();
+      } else {
+        this.logEvent(`${this.robotId(sentry)} shot at you and missed (${Math.round(distance)} m, ${Math.round(bearing * 180 / Math.PI)}° from where you look)${shot.impact !== null ? ' - your cover stopped it' : ''}`);
+        if (shot.impact === null) this.audio.bulletSnap();
       }
     });
   }
@@ -592,7 +621,7 @@ export class Game {
     for (const container of world.containers) {
       if (container.searched) continue;
       const plan = container.plan;
-      consider({ x: plan.x, y: plan.y + plan.height * 0.6, z: plan.z }, 2.3, { kind: 'container', label: `Search ${plan.kind}`, container });
+      consider({ x: plan.x, y: plan.y + plan.height * 0.6, z: plan.z }, 2.6, { kind: 'container', label: `Search ${plan.kind}`, container });
     }
     const portal = world.portal;
     consider({ x: portal.x, y: portal.y + 2.4, z: portal.z }, 4, { kind: 'portal', label: this.keycard ? 'Enter the portal' : 'Portal locked · find the keycard' });
@@ -706,7 +735,8 @@ export class Game {
     root.position.set(position.x, position.y - rise, position.z);
     root.userData.rise = rise;
     this.world!.root.add(root);
-    this.pickups.push({ drop, root, item, position, age: 0 });
+    this.pickupCounter += 1;
+    this.pickups.push({ id: `p${this.pickupCounter}`, drop, root, item, position, age: 0 });
   }
 
   private collect(pickup: Pickup): void {
@@ -971,6 +1001,116 @@ export class Game {
   }
 
   /** Development hook used by screenshot scripts. */
+  private robotId(sentry: SentryState): string {
+    return `r${this.sentries.indexOf(sentry) + 1}`;
+  }
+
+  /** The hooks the agent API drives the game through (see src/agent/bridge.ts). */
+  agentHost(): AgentHost {
+    return {
+      phase: () => this.phase,
+      start: (world) => {
+        element('#menu').hidden = true;
+        element('#death').hidden = true;
+        element('#victory').hidden = true;
+        if (world !== undefined || this.world === null || this.phase === 'dead' || this.phase === 'victory') this.loadWorld(Math.max(0, Math.min(WORLDS.length - 1, world ?? (this.phase === 'victory' ? 0 : this.worldIndex))));
+        this.phase = 'playing';
+        this.hud.root.hidden = false;
+        this.events.length = 0;
+      },
+      step: (dt) => {
+        if (this.phase === 'playing') this.update(dt);
+        this.input.endFrame();
+      },
+      setLockstep: (on) => { this.lockstep = on; this.redraw = true; },
+      redraw: () => { this.redraw = true; },
+      hold: (action, down) => this.input.setVirtual(action, down),
+      tap: (action) => this.input.tapVirtual(action),
+      releaseAll: () => this.input.releaseVirtual(),
+      view: () => ({ yaw: this.body.yaw, pitch: this.body.pitch }),
+      setView: (yaw, pitch) => { this.body.yaw = yaw; this.body.pitch = THREE.MathUtils.clamp(pitch, -1.45, 1.45); },
+      setStance: (stance) => { this.body.setStance(stance, this.world!.collision); },
+      setScope: (on) => { this.scopeToggled = on; },
+      eye: () => this.body.eye,
+      lineOfSight: (from, to) => this.world!.collision.lineOfSight(from, to, (volume) => volume.tag === 'glass'),
+      findPath: (to, reach) => findPath(this.world!.collision, this.body.position, to, reach),
+      drainEvents: () => this.events.splice(0),
+      snapshot: () => this.agentSnapshot(),
+    };
+  }
+
+  private agentSnapshot(): GameSnapshot {
+    const world = this.world!;
+    const player = this.snapshot();
+    const spotted = this.sentries.some((sentry) => sentry.mode === 'alert');
+    const visibility = spotted ? 'spotted' : player.concealed && player.stance !== 'stand' ? 'hidden' : player.concealed ? 'concealed' : 'visible';
+    const alive = this.sentries.filter((sentry) => sentry.mode !== 'dead').length;
+    // What the crosshair is on: the nearest robot along the view line, unless a wall is closer.
+    const eye = this.body.eye;
+    const direction = this.viewDirection();
+    let crosshair: GameSnapshot['crosshair'] = { robot: null, distance: null };
+    const wall = world.collision.raycast(eye, direction, 600, (volume) => volume.tag === 'glass');
+    for (const sentry of this.sentries) {
+      const hit = raySentry(eye, direction, sentry);
+      if (hit !== null && (wall === null || hit.distance < wall.distance) && (crosshair.distance === null || hit.distance < crosshair.distance)) {
+        crosshair = { robot: this.robotId(sentry), distance: Math.round(hit.distance) };
+      }
+    }
+    return {
+      time: this.time,
+      world: { index: this.worldIndex, count: WORLDS.length, name: WORLDS[this.worldIndex]!.name },
+      objectives: [
+        { text: 'Search containers in the houses for the portal keycard', done: this.keycard },
+        { text: 'Reach the portal and enter it', done: false },
+        { text: `Optional: destroy the robots (${this.sentries.length - alive}/${this.sentries.length})`, done: alive === 0 },
+      ],
+      player: {
+        x: this.body.position.x, y: this.body.position.y, z: this.body.position.z, stance: this.body.stance, moving: this.body.moving,
+        health: Math.max(0, this.loadout.health), armor: this.loadout.armor, lives: this.loadout.lives, money: this.loadout.money,
+        magazine: this.rifle.magazine, capacity: this.rifle.capacity, reserve: this.rifle.reserve, reloading: this.rifle.reloading,
+        boltReady: this.rifle.cooldown <= 0, scoped: this.rifle.aim > 0.5, zoom: this.rifle.zoom, suppressor: this.loadout.suppressor,
+        visibility, indoors: this.indoorBlend > 0.5, keycard: this.keycard,
+      },
+      robots: this.sentries.map((sentry) => ({
+        id: this.robotId(sentry), position: { ...sentry.position }, mode: sentry.mode, tactic: sentry.tactic, seesYou: sentry.canSeePlayer && sentry.mode !== 'dead',
+        chest: { x: sentry.position.x, y: sentry.position.y + (SENTRY.bodyBottom + SENTRY.bodyTop) / 2, z: sentry.position.z },
+      })),
+      doors: world.doors.map((door, index) => {
+        const angle = door.plan.closedYaw;
+        return {
+          id: `d${index + 1}`, open: door.open,
+          center: { x: door.plan.hingeX + Math.cos(angle) * door.plan.width / 2, y: door.plan.hingeY + 1.1, z: door.plan.hingeZ - Math.sin(angle) * door.plan.width / 2 },
+        };
+      }),
+      containers: world.containers.map((container, index) => ({
+        id: `c${index + 1}`, kind: container.plan.kind, searched: container.searched,
+        center: { x: container.plan.x, y: container.plan.y + container.plan.height * 0.6, z: container.plan.z },
+      })),
+      pickups: this.pickups.map((pickup) => ({ id: pickup.id, kind: LOOT_NAMES[pickup.drop.kind], position: pickup.position, refusal: this.refusal(pickup) })),
+      portal: { x: world.portal.x, y: world.portal.y + 2.4, z: world.portal.z, unlocked: this.keycard },
+      buildings: this.layout!.buildings.map(({ plan }, index) => {
+        const turned = plan.rotation % 2 === 1;
+        const halfX = (turned ? plan.depth : plan.width) / 2; const halfZ = (turned ? plan.width : plan.depth) / 2;
+        const inside = (point: { x: number; z: number }): boolean => Math.abs(point.x - plan.x) <= halfX + 0.5 && Math.abs(point.z - plan.z) <= halfZ + 0.5;
+        // Stand just outside the house's nearest door.
+        const doors = world.doors.filter((door) => inside({ x: door.plan.hingeX, z: door.plan.hingeZ }));
+        let entrance = { x: plan.x, y: plan.baseY, z: plan.z };
+        if (doors.length > 0) {
+          const door = doors[0]!;
+          const angle = door.plan.closedYaw;
+          const center = { x: door.plan.hingeX + Math.cos(angle) * door.plan.width / 2, z: door.plan.hingeZ - Math.sin(angle) * door.plan.width / 2 };
+          const normal = { x: Math.sin(angle), z: Math.cos(angle) };
+          const out = (center.x + normal.x - plan.x) ** 2 + (center.z + normal.z - plan.z) ** 2 > (center.x - normal.x - plan.x) ** 2 + (center.z - normal.z - plan.z) ** 2 ? 1 : -1;
+          entrance = { x: center.x + normal.x * out * 1.6, y: door.plan.hingeY + 1, z: center.z + normal.z * out * 1.6 };
+        }
+        const unsearched = world.containers.filter((container) => !container.searched && inside(container.plan)).length;
+        return { id: `b${index + 1}`, entrance, unsearched };
+      }),
+      crosshair,
+      prompt: this.phase === 'playing' ? this.interactables()?.label ?? null : null,
+    };
+  }
+
   debug(): Record<string, unknown> {
     return {
       teleport: (x: number, z: number, yaw: number, pitch = 0, fromY?: number) => {

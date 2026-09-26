@@ -16,7 +16,8 @@ export interface LootSpot {
 export function scatterLootSpots(layout: WorldLayout, collision: CollisionWorld, random: Random, indoorCount: number, outdoorCount: number): LootSpot[] {
   const spots: LootSpot[] = [];
   const clear = (point: Vec3): boolean =>
-    collision.inside('solid', { x: point.x, y: point.y + 0.3, z: point.z }, 0.3) === null
+    // Probe at knee height (the margin also applies vertically, so lower would catch the floor itself).
+    collision.inside('solid', { x: point.x, y: point.y + 0.6, z: point.z }, 0.3) === null
     && spots.every((spot) => Math.hypot(spot.position.x - point.x, spot.position.z - point.z) > 3);
 
   for (let attempt = 0; attempt < indoorCount * 12 && spots.length < indoorCount && layout.buildings.length > 0; attempt += 1) {

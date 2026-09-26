@@ -1,0 +1,96 @@
+// Regenerates the README screenshots in docs/screenshots from the real game (dev server + debug hooks).
+// Usage: CHROME_PATH=/path/to/chromium node scripts/screenshots.mjs
+import { existsSync, mkdirSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { chromium } from 'playwright-core';
+import { createServer } from 'vite';
+
+const executable = [process.env.CHROME_PATH, '/usr/bin/chromium', '/usr/bin/google-chrome', '/opt/pw-browsers/chromium'].filter(Boolean).find((path) => existsSync(path));
+const root = fileURLToPath(new URL('..', import.meta.url));
+const out = fileURLToPath(new URL('../docs/screenshots/', import.meta.url));
+mkdirSync(out, { recursive: true });
+const server = await createServer({ root, server: { host: '127.0.0.1', port: 0 }, logLevel: 'error' });
+await server.listen();
+const browser = await chromium.launch({ executablePath: executable, args: ['--enable-webgl', '--ignore-gpu-blocklist', '--enable-unsafe-swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
+page.on('pageerror', (error) => console.error(error.message));
+await page.goto(server.resolvedUrls.local[0]);
+await page.waitForFunction(() => window.catchDavelWorld !== undefined);
+
+async function shot(name, setup) {
+  await page.evaluate(setup);
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: `${out}${name}.jpg`, type: 'jpeg', quality: 82 });
+  console.log(`${name}.jpg`);
+}
+
+// Helpers installed in the page.
+await page.evaluate(() => {
+  const w = window.catchDavelWorld;
+  window.shots = {
+    world: (index) => { w.load(index); w.play(); w.setAim(0); w.stance('stand'); w.step(0.2); },
+    /** Parks robots out of the way for scenery shots. */
+    clear: () => { for (const s of w.sentries()) { s.mode = 'dead'; s.deathTime = 9; s.position.x += 5000; } },
+    /** Stands `distance` m from a point on a clear sight line and looks at it. */
+    viewOf: (target, distance, height = 1.6, lift = 0, startAngle = 0) => {
+      for (let step = 0; step < 40; step += 1) {
+        const angle = startAngle + step * 0.31;
+        const x = target.x + Math.cos(angle) * distance; const z = target.z + Math.sin(angle) * distance;
+        w.teleport(x, z, 0, 0);
+        const body = w.body();
+        if (w.los({ x, y: body.position.y + 1.6, z }, { x: target.x, y: target.y + height, z: target.z })) break;
+      }
+      const body = w.body();
+      body.yaw = Math.atan2(target.x - body.position.x, -(target.z - body.position.z));
+      body.pitch = Math.atan2(target.y + height - (body.position.y + body.eyeHeight), Math.hypot(target.x - body.position.x, target.z - body.position.z)) + lift;
+    },
+  };
+});
+
+await shot('village', () => {
+  const w = window.catchDavelWorld; window.shots.world(0); window.shots.clear();
+  const layout = w.layout(); const b = layout.buildings[5].plan;
+  window.shots.viewOf({ x: b.x, y: b.baseY, z: b.z }, 30, 3, 0.02, 0.8);
+  w.step(1.2);
+});
+
+await shot('robots-flanking', () => {
+  const w = window.catchDavelWorld; window.shots.world(0);
+  const [a, b] = [w.sentries()[3], w.sentries()[4]];
+  window.shots.viewOf(a.position, 22, 2.2, 0.02, 1.2);
+  const body = w.body();
+  b.position.x = a.position.x + 5; b.position.z = a.position.z + 3;
+  for (const robot of [a, b]) { robot.mode = 'alert'; robot.awareness = 1.1; robot.lastKnown = { x: body.position.x, z: body.position.z }; }
+  w.step(2.5);
+  body.yaw = Math.atan2(a.position.x - body.position.x, -(a.position.z - body.position.z));
+  body.pitch = Math.atan2(a.position.y + 2 - (body.position.y + body.eyeHeight), Math.hypot(a.position.x - body.position.x, a.position.z - body.position.z));
+  w.step(1 / 60);
+});
+
+await shot('scope', () => {
+  const w = window.catchDavelWorld; window.shots.world(1);
+  const robot = w.sentries()[2];
+  window.shots.viewOf(robot.position, 85, 2.3, 0.004);
+  w.setAim(1); w.step(0.8);
+});
+
+await shot('loot', () => {
+  const w = window.catchDavelWorld; window.shots.world(0); window.shots.clear();
+  const crate = w.containers().find((c) => c.kind === 'crate' && !c.keycard);
+  const fx = Math.sin(crate.yaw); const fz = Math.cos(crate.yaw);
+  w.teleport(crate.x + fx * 2.4, crate.z + fz * 2.4, 0, 0, crate.y + 0.2);
+  const body = w.body();
+  body.yaw = Math.atan2(crate.x - body.position.x, -(crate.z - body.position.z));
+  body.pitch = -0.22;
+  w.searchAll(); w.step(1.2);
+});
+
+await shot('frost-pass', () => {
+  const w = window.catchDavelWorld; window.shots.world(2); window.shots.clear();
+  const layout = w.layout(); const b = layout.buildings[1].plan;
+  window.shots.viewOf({ x: b.x, y: b.baseY, z: b.z }, 34, 3, 0.05, 4);
+  w.step(1.2);
+});
+
+await browser.close();
+await server.close();

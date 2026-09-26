@@ -51,6 +51,7 @@ jobs:
       - run: npm run world:test
       - run: npm run world:build
       - run: npm run world:smoke
+      - run: npm run world:agent-check
 
   tauri:
     name: Tauri native contract

@@ -10,9 +10,26 @@ The production workspace is in [`game`](game/README.md). The approved design and
 
 The main browser game is now [Catch Davel: Open World](world/README.md), a realistic first-person sniper game built on Three.js. You cross three worlds (Green Valley, Dust Ridge, Frost Pass) with villages, forests, lakes, desert outposts, and snowy bunkers. You can walk, run, crouch, crawl, jump, climb ladders and ledges, open doors, go from building to building, hide in bushes, and search houses for the keycard that opens each world's portal, while armored robot sentries patrol, hunt, and shoot back.
 
+![A robot squad closing in on the sniper in Green Valley](world/docs/screenshots/robots-flanking.jpg)
+
+| | |
+| --- | --- |
+| ![Dust Ridge through the scope](world/docs/screenshots/scope.jpg) | ![A searched crate with its loot floating out](world/docs/screenshots/loot.jpg) |
+
+The robots fight as a squad: they radio your position, bound from cover to cover, flank, and dive for cover when your shots land near them. Doors, boxes, and the ground around the houses hide randomized loot, from cash and armor to a suppressor and a 12x scope.
+
 ```powershell
 npm ci
 npm run world:dev
+```
+
+### Built for LLM agents
+
+Language-model agents can play the open world through an MCP server, a ready-made Claude agent, or the in-page `window.catchDavel` API. The world pauses while the agent thinks, observations come as text briefings (with screenshots for vision models), and commands are high level: walk to a building (route finding through doors and up stairs included), search a crate, aim at a robot, fire. See [world/AGENTS.md](world/AGENTS.md).
+
+```powershell
+npm run world:build
+claude mcp add catch-davel -- node world/agent/mcp-server.mjs
 ```
 
 The original raw-WebGL2 maze game described below is still playable at `/classic/` on the published site, and its last standalone version is preserved on the `maze-game` branch.

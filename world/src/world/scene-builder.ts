@@ -82,7 +82,7 @@ export function buildWorld(layout: WorldLayout, quality: QualityTier): BuiltWorl
     buckets.set(material, list);
     if (part.collide) {
       collision.add('solid', part.x - part.width / 2, part.y - part.height / 2, part.z - part.depth / 2,
-        part.x + part.width / 2, part.y + part.height / 2, part.z + part.depth / 2, part.role === 'glass' ? 'glass' : undefined);
+        part.x + part.width / 2, part.y + part.height / 2, part.z + part.depth / 2, part.role === 'glass' || part.role === 'stairs' ? part.role : undefined);
     }
   };
   const doors: Door[] = [];

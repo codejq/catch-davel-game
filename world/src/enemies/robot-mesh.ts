@@ -262,7 +262,9 @@ export function poseRobot(rig: RobotRig, sentry: SentryState, time: number, targ
   const wary = sentry.mode === 'search' || sentry.mode === 'suspicious' ? 1 : 0;
 
   // Legs: a base crouch plus the stride. The ankle keeps the foot flat on the ground.
-  const crouch = 0.12 + combat * 0.28 + wary * 0.1;
+  // Deeper still when holding a piece of cover.
+  const hunkered = sentry.tactic === 'cover' && stride < 0.3 ? 0.35 : 0;
+  const crouch = 0.12 + combat * 0.28 + wary * 0.1 + hunkered;
   legs.forEach((leg, index) => {
     const offset = index === 0 ? 0 : Math.PI;
     const swing = Math.sin(phase + offset) * 0.5 * stride;
