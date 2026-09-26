@@ -184,6 +184,19 @@ export class CollisionWorld {
     return best;
   }
 
+  /** Number of enabled volumes of `kind` that the segment from `from` to `to` passes through. */
+  countAlong(kind: VolumeKind, from: Vec3, to: Vec3): number {
+    const dx = to.x - from.x; const dy = to.y - from.y; const dz = to.z - from.z;
+    const length = Math.hypot(dx, dy, dz);
+    if (length < 1e-6) return 0;
+    let count = 0;
+    for (const volume of this.query(Math.min(from.x, to.x), Math.min(from.z, to.z), Math.max(from.x, to.x), Math.max(from.z, to.z), kind)) {
+      const distance = rayBox(from, dx / length, dy / length, dz / length, volume);
+      if (distance !== null && distance <= length) count += 1;
+    }
+    return count;
+  }
+
   /** Clear line of sight between two points (terrain and solid boxes block). */
   lineOfSight(from: Vec3, to: Vec3, ignore?: (volume: Volume) => boolean): boolean {
     const direction = { x: to.x - from.x, y: to.y - from.y, z: to.z - from.z };

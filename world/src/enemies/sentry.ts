@@ -17,8 +17,12 @@ export const SENTRY = {
   patrolSpeed: 1.35,
   huntSpeed: 2.6,
   health: 100,
-  fireInterval: 1.5,
-  damage: 11,
+  fireInterval: 1.2,
+  damage: 12,
+  /** Robot rifles only hurt at close quarters; beyond this they close in instead of shooting. */
+  effectiveRange: 10,
+  /** How close an alerted robot tries to get before it stops to shoot. */
+  standoff: 6.5,
   hearingRange: 75,
 } as const;
 
@@ -37,6 +41,10 @@ export interface SentryState {
   searchTimer: number;
   sightCheckTimer: number;
   canSeePlayer: boolean;
+  /** How much of the player this sentry can see right now, 0..1 (cover and foliage reduce it). */
+  exposure: number;
+  /** The most exposed point on the player, where this sentry aims. */
+  aimPoint: Vec3 | null;
   walkPhase: number;
   deathTime: number;
   /** Seconds since this sentry last fired, for muzzle flash. */
@@ -57,6 +65,46 @@ export interface SentryShot {
   readonly to: Vec3;
   readonly hit: boolean;
   readonly damage: number;
+  /** Where the round struck the world (a tree, wall, or the ground) instead of the player, if it did. */
+  readonly impact: Vec3 | null;
+}
+
+/** Each layer of leaves between a sentry and a body point lets through this much visibility. */
+export const FOLIAGE_TRANSMISSION = 0.3;
+
+/** Points on the player's body that a sentry tries to see: head, chest, both shoulders, and hips. */
+export function bodySamples(player: PlayerSnapshot, from: Vec3): Vec3[] {
+  const { position } = player;
+  const heights = player.stance === 'prone' ? { head: 0.38, chest: 0.25, hips: 0.2 }
+    : player.stance === 'crouch' ? { head: 1.08, chest: 0.8, hips: 0.5 } : { head: 1.62, chest: 1.3, hips: 0.95 };
+  const awayX = position.x - from.x; const awayZ = position.z - from.z;
+  const length = Math.hypot(awayX, awayZ) || 1;
+  const sideX = -awayZ / length * 0.28; const sideZ = awayX / length * 0.28;
+  return [
+    { x: position.x, y: position.y + heights.head, z: position.z },
+    { x: position.x, y: position.y + heights.chest, z: position.z },
+    { x: position.x + sideX, y: position.y + heights.chest, z: position.z + sideZ },
+    { x: position.x - sideX, y: position.y + heights.chest, z: position.z - sideZ },
+    { x: position.x, y: position.y + heights.hips, z: position.z },
+  ];
+}
+
+/**
+ * Fraction of the player's body a sentry can see from `eye`: solid cover (tree trunks, walls, rocks) hides a
+ * point completely and every layer of foliage in the way thins it out.
+ */
+export function playerExposure(world: CollisionWorld, eye: Vec3, player: PlayerSnapshot): { exposure: number; aimPoint: Vec3 | null } {
+  let total = 0;
+  let best = 0;
+  let aimPoint: Vec3 | null = null;
+  const samples = bodySamples(player, eye);
+  for (const sample of samples) {
+    if (!world.lineOfSight(eye, sample, (volume) => volume.tag === 'glass')) continue;
+    const weight = FOLIAGE_TRANSMISSION ** world.countAlong('cover', eye, sample);
+    total += weight;
+    if (weight > best) { best = weight; aimPoint = sample; }
+  }
+  return { exposure: total / samples.length, aimPoint };
 }
 
 export function createSentry(id: string, waypoints: readonly { x: number; z: number }[], guard: boolean, world: CollisionWorld): SentryState {
@@ -64,7 +112,7 @@ export function createSentry(id: string, waypoints: readonly { x: number; z: num
   return {
     id, waypoints, guard, waypoint: 0, mode: 'patrol', awareness: 0, health: SENTRY.health, fireCooldown: 1,
     position: { x: start.x, y: world.terrainHeight(start.x, start.z), z: start.z },
-    heading: 0, lastKnown: null, searchTimer: 0, sightCheckTimer: 0, canSeePlayer: false, walkPhase: 0, deathTime: 0, sinceShot: 99,
+    heading: 0, lastKnown: null, searchTimer: 0, sightCheckTimer: 0, canSeePlayer: false, exposure: 0, aimPoint: null, walkPhase: 0, deathTime: 0, sinceShot: 99,
   };
 }
 
@@ -82,7 +130,8 @@ export function hitChance(player: PlayerSnapshot, distance: number): number {
   const stance = player.stance === 'stand' ? 1 : player.stance === 'crouch' ? 0.7 : 0.4;
   const motion = player.sprinting ? 0.55 : player.moving ? 0.8 : 1;
   const cover = player.concealed ? 0.5 : 1;
-  return clamp(0.8 * (1 - distance / 110) * stance * motion * cover, 0.04, 0.8);
+  if (distance > SENTRY.effectiveRange) return 0;
+  return clamp(0.85 * (1 - distance / (SENTRY.effectiveRange * 2.5)) * stance * motion * cover, 0.1, 0.85);
 }
 
 export function sentryHeadPosition(sentry: SentryState): Vec3 {
@@ -109,12 +158,15 @@ export function updateSentry(
   sentry.sightCheckTimer -= dt;
   if (sentry.sightCheckTimer <= 0) {
     sentry.sightCheckTimer = 0.12 + random.next() * 0.08;
-    const chest = { x: player.position.x, y: player.position.y + (player.stance === 'prone' ? 0.25 : player.stance === 'crouch' ? 0.8 : 1.3), z: player.position.z };
-    sentry.canSeePlayer = distance < SENTRY.sightRange && facing < fieldOfView / 2 && world.lineOfSight(eye, chest, (volume) => volume.tag === 'glass');
+    const inView = distance < SENTRY.sightRange && facing < fieldOfView / 2;
+    const seen = inView ? playerExposure(world, eye, player) : { exposure: 0, aimPoint: null };
+    sentry.exposure = seen.exposure;
+    sentry.aimPoint = seen.aimPoint;
+    sentry.canSeePlayer = seen.exposure > 0.06;
   }
 
   if (sentry.canSeePlayer) {
-    const gain = playerVisibility(player, distance) * (sentry.mode === 'alert' ? 4 : 1.7);
+    const gain = playerVisibility(player, distance) * Math.min(1, sentry.exposure * 1.5) * (sentry.mode === 'alert' ? 4 : 1.7);
     sentry.awareness = Math.min(1.2, sentry.awareness + gain * dt);
     if (sentry.awareness > 0.3) sentry.lastKnown = { x: player.position.x, z: player.position.z };
   } else {
@@ -149,18 +201,17 @@ export function updateSentry(
     case 'alert':
       sentry.heading = turnToward(sentry.heading, bearing, 4 * dt);
       sentry.fireCooldown -= dt;
-      if (sentry.canSeePlayer && sentry.fireCooldown <= 0 && facing < 0.35) {
+      if (sentry.canSeePlayer && distance <= SENTRY.effectiveRange && sentry.fireCooldown <= 0 && facing < 0.35) {
         sentry.fireCooldown = SENTRY.fireInterval * (0.8 + random.next() * 0.5);
         sentry.sinceShot = 0;
-        const hit = random.next() < hitChance(player, distance);
-        const miss = hit ? 0 : 0.6 + random.next() * 1.4;
-        shot = {
-          from: { x: eye.x + Math.sin(sentry.heading) * 0.5, y: eye.y - 0.4, z: eye.z + Math.cos(sentry.heading) * 0.5 },
-          to: { x: player.eye.x + (random.next() - 0.5) * miss, y: player.eye.y - 0.3 + (random.next() - 0.5) * miss, z: player.eye.z + (random.next() - 0.5) * miss },
-          hit, damage: hit ? SENTRY.damage : 0,
-        };
+        shot = fireAt(sentry, player, world, eye, distance, random);
       }
       if (!sentry.canSeePlayer && sentry.lastKnown !== null) { target = sentry.lastKnown; speed = SENTRY.huntSpeed; }
+      else if (sentry.canSeePlayer && distance > SENTRY.standoff) {
+        // Too far to shoot: advance on the player, slowing down once inside firing range.
+        target = { x: player.position.x, z: player.position.z };
+        speed = distance > SENTRY.effectiveRange ? SENTRY.huntSpeed : SENTRY.patrolSpeed;
+      }
       break;
     case 'search':
       sentry.searchTimer -= dt;
@@ -185,6 +236,30 @@ export function updateSentry(
   }
   sentry.position.y = world.groundHeight(sentry.position.x, sentry.position.z, SENTRY.radius * 0.5, sentry.position.y + 0.3, 0.45);
   return shot;
+}
+
+/**
+ * Resolves one sentry round. Partly covered players are harder to hit, and the round is traced from the gun to
+ * its target so a tree trunk or wall in the way stops it.
+ */
+function fireAt(sentry: SentryState, player: PlayerSnapshot, world: CollisionWorld, eye: Vec3, distance: number, random: Random): SentryShot {
+  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5, y: eye.y - 0.4, z: eye.z + Math.cos(sentry.heading) * 0.5 };
+  const aim = sentry.aimPoint ?? { x: player.position.x, y: player.position.y + 1, z: player.position.z };
+  // Out of effective range a round can never hurt; hitChance is zero there.
+  const wantsHit = random.next() < hitChance(player, distance) * Math.min(1, sentry.exposure * 1.3);
+  const spread = wantsHit ? 0 : 0.5 + random.next() * 1.2;
+  const target = {
+    x: aim.x + (random.next() - 0.5) * spread, y: aim.y + (random.next() - 0.5) * spread, z: aim.z + (random.next() - 0.5) * spread,
+  };
+  const direction = { x: target.x - from.x, y: target.y - from.y, z: target.z - from.z };
+  const reach = Math.hypot(direction.x, direction.y, direction.z);
+  // Misses fly on past the player; either way the first solid thing on the path stops the round.
+  const travel = wantsHit ? reach : reach + 25;
+  const blocked = world.raycast(from, direction, wantsHit ? Math.max(0, reach - 0.35) : travel, (volume) => volume.tag === 'glass');
+  if (blocked !== null) return { from, to: blocked.point, hit: false, damage: 0, impact: blocked.point };
+  const scale = travel / Math.max(reach, 1e-6);
+  const to = { x: from.x + direction.x * scale, y: from.y + direction.y * scale, z: from.z + direction.z * scale };
+  return { from, to, hit: wantsHit, damage: wantsHit ? SENTRY.damage : 0, impact: null };
 }
 
 /** A gunshot alerts every living sentry within hearing range, pointing them roughly at the shooter. */

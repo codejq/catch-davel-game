@@ -9,6 +9,8 @@ export const SCOPE_ZOOMS = [4, 8] as const;
 /** Bolt-action sniper rifle state: ammo, bolt cycling, reload, aim-down-sights blend, and scope sway. */
 export class RifleState {
   magazine = MAGAZINE_SIZE;
+  /** Rounds a full magazine holds; extended magazines found behind doors raise it. */
+  capacity = MAGAZINE_SIZE;
   reserve = 20;
   cooldown = 0;
   reloadTime = 0;
@@ -35,7 +37,7 @@ export class RifleState {
   }
 
   startReload(): boolean {
-    if (this.reloading || this.magazine >= MAGAZINE_SIZE || this.reserve <= 0) return false;
+    if (this.reloading || this.magazine >= this.capacity || this.reserve <= 0) return false;
     this.reloadTime = RELOAD_SECONDS;
     return true;
   }
@@ -47,7 +49,7 @@ export class RifleState {
     if (this.reloadTime > 0) {
       this.reloadTime -= dt;
       if (this.reloadTime <= 0) {
-        const loaded = Math.min(MAGAZINE_SIZE - this.magazine, this.reserve);
+        const loaded = Math.min(this.capacity - this.magazine, this.reserve);
         this.magazine += loaded;
         this.reserve -= loaded;
         this.reloadTime = 0;
