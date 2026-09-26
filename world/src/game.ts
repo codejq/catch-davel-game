@@ -9,6 +9,7 @@ import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
 import { applyLoot, MAX_ARMOR, rollDoorLoot, takeDamage, type Loadout } from './player/loot';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, updateSentry, type PlayerSnapshot, type SentryState,
+  SENTRY,
 } from './enemies/sentry';
 import { fireBullet, stepBullet, type Bullet } from './player/ballistics';
 import { PlayerBody, STANCE, type MoveIntent } from './player/body';
@@ -421,7 +422,8 @@ export class Game {
         if (impact === null) continue;
         if (import.meta.env.DEV) this.debugImpacts.push(impact.kind === 'sentry' ? `sentry:${impact.headshot}` : `${impact.surface}@${impact.point.x.toFixed(1)},${impact.point.y.toFixed(1)},${impact.point.z.toFixed(1)}`);
         if (impact.kind === 'sentry') {
-          const damage = impact.headshot ? 150 : 60;
+          // A rifle round destroys a robot wherever it lands; a headshot just looks better.
+          const damage = impact.headshot ? 150 : 100;
           const killed = damageSentry(impact.sentry, damage, this.body.position);
           this.stats.hits += 1;
           if (impact.headshot) this.stats.headshots += 1;
@@ -776,7 +778,7 @@ export class Game {
     for (const sentry of this.sentries) {
       if (sentry.mode !== 'alert' && sentry.sinceShot > 3) continue;
       if (sentry.mode === 'dead') continue;
-      projected.set(sentry.position.x, sentry.position.y + 2.1, sentry.position.z).project(this.camera);
+      projected.set(sentry.position.x, sentry.position.y + SENTRY.headHeight + 0.3, sentry.position.z).project(this.camera);
       const top = projected.y;
       projected.set(sentry.position.x, sentry.position.y, sentry.position.z).project(this.camera);
       if (projected.z > 1 || Math.abs(projected.x) > 1.05 || projected.y > 1.05 || top < -1.05) continue;

@@ -47,7 +47,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - **Who's shooting**: every incoming round leaves a glowing tracer and a muzzle flash, a red (hit) or amber (near miss) arrow at the edge of the screen points at the shooter, and robots firing at you are boxed in red with their distance.
 - **Loot behind doors**: the first time you open a door there's a good chance something is behind it: cash, ammo, body armor (soaks up part of each hit), a medkit, an extended magazine, or an extra life that gets you back up when you'd otherwise die.
 - **Sound**: every shot is loud. Robots within 75 m hear it and move to search the area it came from, so relocate after you fire.
-- **Ballistics**: bullets fly at 820 m/s with gravity, zeroed at 100 m. Aim higher for long shots; the scope shows the range. A headshot destroys a robot, and a body shot takes two.
+- **Ballistics**: bullets fly at 820 m/s with gravity, zeroed at 100 m. Aim higher for long shots; the scope shows the range. A single hit anywhere on a robot destroys it.
 - **Scope**: sway grows with standing, moving, and fatigue. It shrinks when you crouch or go prone, or when you hold your breath.
 - **Survival**: health slowly regenerates up to 50%. Medkits and extra rounds turn up when you search.
 

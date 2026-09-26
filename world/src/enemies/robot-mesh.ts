@@ -130,10 +130,12 @@ let serialCounter = 0;
 export function createRobotRig(paint: number): RobotRig {
   const plate = armor(paint);
   const accent = armor(new THREE.Color(paint).multiplyScalar(0.55).getHex(), 0.65);
-  const eyes = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x33ddff, emissiveIntensity: 4 });
+  // Unfogged, so the glowing visor gives robots away even far off in haze.
+  const eyes = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x33ddff, emissiveIntensity: 4, fog: false });
   serialCounter += 1;
   const markings = stencil(`D-${String(serialCounter).padStart(2, '0')}`);
   const root = new THREE.Group();
+  root.scale.setScalar(SENTRY.scale);
 
   const pelvis = new THREE.Group();
   pelvis.position.y = HIP_HEIGHT;
@@ -334,7 +336,7 @@ export function poseRobot(rig: RobotRig, sentry: SentryState, time: number, targ
     right.shoulder.rotation.set(-0.2, 0, 0.6 * buckle);
     left.shoulder.rotation.set(-0.3, 0, -0.7 * buckle);
     rig.root.rotation.x = -fall * fall * 1.35;
-    rig.root.position.y = sentry.position.y - fall * 0.35;
+    rig.root.position.y = sentry.position.y - fall * 0.35 * SENTRY.scale;
   }
 }
 
