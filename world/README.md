@@ -2,7 +2,7 @@
 
 A realistic first-person sniper game in the browser, built with [Three.js](https://threejs.org/), TypeScript, and Vite. Armed robot sentries have taken three worlds. Move quietly, hide, search buildings for each world's portal keycard, and pick your shots.
 
-**[Play it in your browser](https://codejq.github.io/Zama-sniper/)** · LLM agents can play too: see [AGENTS.md](AGENTS.md).
+**[Play it in your browser](https://codejq.github.io/zama-sniper/)** · LLM agents can play too: see [AGENTS.md](AGENTS.md).
 
 ![A robot squad closing in on the sniper in Green Valley](docs/screenshots/robots-flanking.jpg)
 

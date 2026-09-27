@@ -36,10 +36,10 @@ The original raw-WebGL2 maze game described below is still playable at `/classic
 
 ## Play and download
 
-- [Play Zama Sniper: Open World in your browser](https://codejq.github.io/Zama-sniper/)
-- [Play the classic maze game](https://codejq.github.io/Zama-sniper/classic/)
-- [Download Windows, Linux, macOS, or offline web builds](https://github.com/codejq/Zama-sniper/releases)
-- [View cross-platform build runs](https://github.com/codejq/Zama-sniper/actions/workflows/platform-builds.yml)
+- [Play Zama Sniper: Open World in your browser](https://codejq.github.io/zama-sniper/)
+- [Play the classic maze game](https://codejq.github.io/zama-sniper/classic/)
+- [Download Windows, Linux, macOS, or offline web builds](https://github.com/codejq/zama-sniper/releases)
+- [View cross-platform build runs](https://github.com/codejq/zama-sniper/actions/workflows/platform-builds.yml)
 
 ## Quick start
 
