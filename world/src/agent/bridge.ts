@@ -3,7 +3,7 @@ import type { ControlAction } from '../core/controls';
 import type { Stance } from '../player/body';
 import {
   bearingDegrees, describeObservation, normalizeDegrees, relativeDegrees, round, solveAim,
-  type Observation, type RobotView, type ThingView,
+  type InnocentView, type Observation, type RobotView, type ThingView,
 } from './observation';
 
 /** Everything the bridge needs from the running game. The game implements this in `Game.agentHost()`. */
@@ -38,16 +38,17 @@ export interface GameSnapshot {
   readonly objectives: readonly { readonly text: string; readonly done: boolean }[];
   readonly player: Omit<Observation['player'], 'heading' | 'pitch'> & { readonly moving: boolean };
   readonly robots: readonly {
-    readonly id: string; readonly position: Vec3; readonly chest: Vec3; readonly mode: string; readonly tactic: string;
+    readonly id: string; readonly kind: 'robot' | 'tank'; readonly position: Vec3; readonly chest: Vec3; readonly mode: string; readonly tactic: string;
     readonly seesYou: boolean;
   }[];
+  readonly innocents: readonly { readonly id: string; readonly kind: 'adult' | 'child' | 'dog'; readonly position: Vec3; readonly mode: string }[];
   readonly doors: readonly { readonly id: string; readonly center: Vec3; readonly open: boolean }[];
   readonly containers: readonly { readonly id: string; readonly kind: string; readonly center: Vec3; readonly searched: boolean }[];
   readonly pickups: readonly { readonly id: string; readonly kind: string; readonly position: Vec3; readonly refusal: string | null }[];
   /** Houses, with a spot just outside the door to walk to and how many containers are still unsearched inside. */
   readonly buildings: readonly { readonly id: string; readonly entrance: Vec3; readonly unsearched: number }[];
   readonly portal: Vec3 & { readonly unlocked: boolean };
-  readonly crosshair: { readonly robot: string | null; readonly distance: number | null };
+  readonly crosshair: { readonly robot: string | null; readonly distance: number | null; readonly innocent: string | null };
   /** The interaction prompt on screen right now (what {"do":"interact"} or search would do), if any. */
   readonly prompt: string | null;
 }
@@ -60,7 +61,8 @@ export type AgentCommand =
   | { do: 'look'; degrees: number }
   | { do: 'face'; bearing?: number; target?: string }
   | { do: 'aim'; target: string }
-  | { do: 'fire' }
+  | { do: 'fire'; rounds?: number }
+  | { do: 'weapon'; name: 'rifle' | 'carbine' }
   | { do: 'scope'; on: boolean }
   | { do: 'zoom' }
   | { do: 'stance'; value: Stance }
@@ -77,8 +79,9 @@ export const COMMAND_HELP = `Commands (send a list; they run in order and the wo
   {"do":"turn","degrees":30}                turn right (negative = left)
   {"do":"look","degrees":-5}                tilt the view up (negative = down)
   {"do":"face","bearing":90} or {"do":"face","target":"r2"}   turn to a compass bearing or toward a robot/thing
-  {"do":"aim","target":"r2"}                scope in and aim at a robot's chest with bullet drop allowed for
-  {"do":"fire"}                             shoot; waits for the round to land and reports the result
+  {"do":"aim","target":"r2"}                raise the sights and aim at a robot's (r#) or tank's (t#) body, allowing for bullet drop
+  {"do":"fire","rounds":1}                  shoot; with the carbine, "rounds" fires a burst (default 5). Never shoot innocents
+  {"do":"weapon","name":"carbine"}          switch between "rifle" and "carbine" (take a carbine from a destroyed robot first)
   {"do":"scope","on":true}                  raise or lower the scope
   {"do":"zoom"}                             cycle scope magnification
   {"do":"stance","value":"stand|crouch|prone"}   crouch or crawl to hide (prone in a bush is near invisible)
@@ -88,7 +91,7 @@ export const COMMAND_HELP = `Commands (send a list; they run in order and the wo
   {"do":"go_to","target":"c3","run":false,"seconds":30} or {"do":"go_to","x":10,"z":-4}   walk there by a route
                                             around walls, opening doors; stops early if a robot spots you or you are hit
   {"do":"wait","seconds":1}                 let time pass (max 10 s; stops early if a robot spots you or you are hit)
-Ids: r# robots, d# doors, c# containers, p# pickups, b# buildings (go_to walks to the entrance), "portal".`;
+Ids: r# robots, t# tanks, h# civilians and k# dogs (innocents: never shoot), d# doors, c# containers, p# pickups, b# buildings (go_to walks to the entrance), "portal".`;
 
 const FRAME = 1 / 60;
 
@@ -113,13 +116,22 @@ export class AgentBridge {
       if (distance > 150 && !inSight && robot.mode !== 'alert') continue;
       const bearing = bearingDegrees(eye, robot.position);
       robots.push({
-        id: robot.id, bearing: round(bearing, 0), relative: relative(bearing), distance: round(distance),
-        state: robot.mode as RobotView['state'], tactic: robot.mode === 'alert' ? robot.tactic : null,
+        id: robot.id, kind: robot.kind, bearing: round(bearing, 0), relative: relative(bearing), distance: round(distance),
+        state: robot.mode as RobotView['state'], tactic: robot.mode === 'alert' && robot.kind === 'robot' ? robot.tactic : null,
         seesYou: robot.seesYou, inSight, canHurtYou: distance <= 10,
       });
     }
     robots.sort((a, b) => a.distance - b.distance);
 
+    const innocents: InnocentView[] = snapshot.innocents
+      .filter((innocent) => innocent.mode !== 'dead' && Math.hypot(innocent.position.x - eye.x, innocent.position.z - eye.z) < 80)
+      .map((innocent) => {
+        const bearing = bearingDegrees(eye, innocent.position);
+        const state: InnocentView['state'] = innocent.mode === 'flee' ? 'fleeing' : innocent.mode === 'hide' ? 'hiding' : 'calm';
+        return { id: innocent.id, kind: innocent.kind, bearing: round(bearing, 0), relative: relative(bearing), distance: round(Math.hypot(innocent.position.x - eye.x, innocent.position.z - eye.z)), state };
+      })
+      .sort((a, b) => a.distance - b.distance)
+      .slice(0, 8);
     const nearby: ThingView[] = [];
     const feet = snapshot.player.y;
     const addThing = (id: string, kind: ThingView['kind'], detail: string, point: Vec3): void => {
@@ -142,7 +154,7 @@ export class AgentBridge {
     return {
       time: round(snapshot.time, 2), phase: this.host.phase(), world: snapshot.world, objectives: snapshot.objectives,
       player: { ...withoutMoving(snapshot.player), heading: round(heading, 0), pitch: round(view.pitch * 180 / Math.PI, 0) },
-      robots: robots.slice(0, 8), nearby: nearby.slice(0, 10), buildings,
+      robots: robots.slice(0, 8), innocents, nearby: nearby.slice(0, 10), buildings,
       portal: { bearing: round(portalBearing, 0), relative: relative(portalBearing), distance: round(Math.hypot(snapshot.portal.x - eye.x, snapshot.portal.z - eye.z)), unlocked: snapshot.portal.unlocked },
       crosshair: snapshot.crosshair,
       prompt: snapshot.prompt,
@@ -224,9 +236,11 @@ export class AgentBridge {
     if (container !== undefined) return container.center;
     const pickup = snapshot.pickups.find((candidate) => candidate.id === id);
     if (pickup !== undefined) return pickup.position;
+    const innocent = snapshot.innocents.find((candidate) => candidate.id === id && candidate.mode !== 'dead');
+    if (innocent !== undefined) return { x: innocent.position.x, y: innocent.position.y + 1, z: innocent.position.z };
     const building = snapshot.buildings.find((candidate) => candidate.id === id);
     if (building !== undefined) return building.entrance;
-    if (/^[rp]\d+$/.test(id)) throw new Error(`${id} is no longer there (${id.startsWith('r') ? 'destroyed' : 'already picked up'})`);
+    if (/^[rtp]\d+$/.test(id)) throw new Error(`${id} is no longer there (${id.startsWith('p') ? 'already picked up' : 'destroyed'})`);
     throw new Error(`unknown target "${id}" - use an id from the latest observation`);
   }
 
@@ -272,7 +286,7 @@ export class AgentBridge {
         return `now facing ${Math.round(normalizeDegrees(host.view().yaw * 180 / Math.PI))}°`;
       }
       case 'aim': {
-        if (!command.target?.startsWith('r')) throw new Error('aim needs a robot id like "r2"');
+        if (!/^[rt]\d+$/.test(command.target ?? '')) throw new Error('aim needs a robot or tank id like "r2" or "t1"');
         host.setScope(true);
         // Let the scope come up and the sway settle, tracking the target as it moves.
         this.steps(0.45, () => {
@@ -284,7 +298,30 @@ export class AgentBridge {
         const clear = host.lineOfSight(host.eye(), robot.chest);
         return `aimed at ${command.target} (${Math.round(Math.hypot(robot.position.x - host.eye().x, robot.position.z - host.eye().z))} m)${clear ? '' : ' - something is in the way'}`;
       }
+      case 'weapon': {
+        if (command.name !== 'rifle' && command.name !== 'carbine') throw new Error('name must be "rifle" or "carbine"');
+        host.tap(command.name === 'rifle' ? 'weapon1' : 'weapon2');
+        this.steps(0.6);
+        const now = host.snapshot().player.weapon;
+        return now === command.name ? `now holding the ${now === 'rifle' ? 'sniper rifle' : 'robot carbine'}` : 'no carbine yet: destroy a robot and walk up to it to take one';
+      }
       case 'fire': {
+        if (host.snapshot().player.weapon === 'carbine') {
+          const carbine = host.snapshot().player.carbine;
+          if (carbine.magazine === 0) {
+            if (carbine.reserve === 0) return 'click - carbine out of ammo; switch to the rifle';
+            host.tap('reload');
+            this.steps(2.3);
+            return `carbine reloaded (${host.snapshot().player.carbine.magazine} rounds) - fire again`;
+          }
+          const rounds = clamp(command.rounds ?? 5, 1, 24);
+          const before = carbine.magazine;
+          host.hold('fire', true);
+          this.steps(rounds * 0.11 + 0.02, () => before - host.snapshot().player.carbine.magazine >= rounds);
+          host.hold('fire', false);
+          this.steps(0.3);
+          return `fired ${before - host.snapshot().player.carbine.magazine} rounds (see events)`;
+        }
         const before = host.snapshot().player;
         if (before.magazine === 0) {
           if (before.reserve === 0) return 'click - out of ammo; find an ammo box';
@@ -348,7 +385,7 @@ export class AgentBridge {
     const goal = (): Vec3 => command.target !== undefined ? this.locate(command.target) : { x: finite(command.x ?? NaN), y: 0, z: finite(command.z ?? NaN) };
     // Close enough to interact: containers and doors are reached from beside them, pickups by walking onto them.
     const target = command.target ?? '';
-    const arrive = target === 'portal' ? 2.5 : target.startsWith('r') ? 8 : target.startsWith('c') ? 1.5 : target.startsWith('d') ? 1.8 : target.startsWith('p') ? 0.7 : 1.4;
+    const arrive = target === 'portal' ? 2.5 : target.startsWith('r') || target.startsWith('t') ? 8 : target.startsWith('h') || target.startsWith('k') ? 3 : target.startsWith('c') ? 1.5 : target.startsWith('d') ? 1.8 : target.startsWith('p') ? 0.7 : 1.4;
     const seconds = clamp(command.seconds ?? 30, 0.2, 60);
     const alarm = this.alarm();
     let route = host.findPath(goal(), Math.min(arrive, 1.3)) ?? [goal()];

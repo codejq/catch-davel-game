@@ -12,11 +12,16 @@ export const CONTROLS = {
   lookUp: ['PageUp', 'Insert'],
   lookDown: ['PageDown', 'Delete'],
   fire: ['ControlRight', 'ControlLeft'],
+  /** Right Shift tapped on its own toggles the scope; held while moving it sprints (see `run`). */
   scope: ['ShiftRight'],
   zoom: ['Equal', 'Minus', 'NumpadAdd', 'NumpadSubtract'],
   interact: ['Enter', 'NumpadEnter', 'KeyE'],
   reload: ['Backspace', 'KeyR'],
-  run: ['ShiftLeft'],
+  run: ['ShiftLeft', 'ShiftRight'],
+  /** Weapons: 1 sniper rifle, 2 robot carbine, Q switches between them. */
+  weapon1: ['Digit1', 'Numpad1'],
+  weapon2: ['Digit2', 'Numpad2'],
+  switchWeapon: ['KeyQ'],
   jump: ['Space'],
   crouch: ['KeyC'],
   prone: ['KeyZ'],

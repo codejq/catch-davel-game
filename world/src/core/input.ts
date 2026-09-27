@@ -4,6 +4,7 @@ import { CAPTURED_KEYS, CONTROLS, type ControlAction } from './controls';
 export class Input {
   private readonly down = new Set<string>();
   private readonly pressed = new Set<string>();
+  private readonly released = new Set<string>();
   private mouseDx = 0;
   private mouseDy = 0;
   private buttons = 0;
@@ -22,7 +23,7 @@ export class Input {
       this.down.add(event.code);
       this.pressed.add(event.code);
     });
-    addEventListener('keyup', (event) => this.down.delete(event.code));
+    addEventListener('keyup', (event) => { this.down.delete(event.code); this.released.add(event.code); });
     addEventListener('blur', () => { this.down.clear(); this.buttons = 0; });
     addEventListener('mousemove', (event) => {
       if (!this.locked) return;
@@ -65,6 +66,8 @@ export class Input {
 
   wasPressed(code: string): boolean { return this.pressed.has(code); }
 
+  wasReleased(code: string): boolean { return this.released.has(code); }
+
   mouseDown(button: number): boolean { return (this.buttons & (1 << button)) !== 0; }
 
   mouseClicked(button: number): boolean { return (this.clicked & (1 << button)) !== 0; }
@@ -79,6 +82,7 @@ export class Input {
   /** Clears one-frame edge state; call at the end of every frame. */
   endFrame(): void {
     this.pressed.clear();
+    this.released.clear();
     this.virtualTapped.clear();
     this.clicked = 0;
     this.wheel = 0;

@@ -135,6 +135,41 @@ export class GameAudio {
     this.burst({ duration: 0.18, gain: gain * 0.5, frequency: 900, q: 1, pan });
   }
 
+  /** The robot carbine: a short, sharp crack. */
+  carbineShot(): void {
+    this.burst({ duration: 0.05, gain: 0.9, frequency: 3200, q: 0.6, type: 'highpass' });
+    this.burst({ duration: 0.16, gain: 0.6, frequency: 420, q: 0.8, type: 'lowpass' });
+  }
+
+  /** A tank's main gun, loud and low, quieter with distance. */
+  cannon(pan: number, distance: number): void {
+    const gain = Math.max(0.15, 1.2 - distance / 150);
+    this.burst({ duration: 0.9, gain: gain * 1.2, frequency: 90, q: 0.5, type: 'lowpass', pan });
+    this.tone(55, 0.8, gain * 0.7, 'sine', 30);
+  }
+
+  explosion(pan: number, distance: number): void {
+    const gain = Math.max(0.1, 1.3 - distance / 120);
+    this.burst({ duration: 1.2, gain: gain * 1.3, frequency: 140, q: 0.4, type: 'lowpass', pan });
+    this.burst({ duration: 0.3, gain: gain * 0.6, frequency: 1800, q: 0.5, pan });
+  }
+
+  /** A dog barking twice. */
+  bark(pan: number, distance: number): void {
+    const gain = Math.max(0.05, 0.6 - distance / 60);
+    for (const delay of [0, 0.22]) {
+      this.tone(520, 0.1, gain * 0.5, 'sawtooth', 300, delay);
+      this.burst({ duration: 0.08, gain: gain * 0.4, frequency: 900, q: 2, delay, pan });
+    }
+  }
+
+  /** A frightened cry from a civilian. */
+  scream(pan: number, distance: number): void {
+    const gain = Math.max(0.04, 0.45 - distance / 70);
+    this.tone(700 + Math.random() * 300, 0.6, gain, 'triangle', 1100);
+    void pan;
+  }
+
   bulletSnap(): void {
     this.burst({ duration: 0.05, gain: 0.5, frequency: 5000, q: 1.5 });
   }

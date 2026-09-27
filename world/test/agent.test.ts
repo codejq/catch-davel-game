@@ -38,13 +38,14 @@ describe('agent helpers', () => {
       player: {
         x: 1, y: 0, z: 2, heading: 90, pitch: 0, stance: 'crouch', health: 80, armor: 20, lives: 1, money: 50,
         magazine: 4, capacity: 5, reserve: 12, reloading: false, boltReady: true, scoped: false, zoom: 4, suppressor: false,
-        visibility: 'hidden', indoors: false, keycard: false,
+        visibility: 'hidden', indoors: false, keycard: false, weapon: 'rifle', carbine: { owned: true, magazine: 20, reserve: 30 },
       },
-      robots: [{ id: 'r2', bearing: 100, relative: 10, distance: 64, state: 'alert', tactic: 'flank', seesYou: false, inSight: true, canHurtYou: false }],
+      innocents: [{ id: 'h3', kind: 'child', bearing: 40, relative: -50, distance: 22, state: 'hiding' }],
+      robots: [{ id: 'r2', kind: 'robot', bearing: 100, relative: 10, distance: 64, state: 'alert', tactic: 'flank', seesYou: false, inSight: true, canHurtYou: false }],
       nearby: [{ id: 'c3', kind: 'container', detail: 'crate, unsearched', bearing: 200, relative: 110, distance: 12 }],
       buildings: [{ id: 'b2', bearing: 30, relative: -60, distance: 45, unsearched: 3 }],
       portal: { bearing: 0, relative: -90, distance: 140, unlocked: false },
-      crosshair: { robot: null, distance: null },
+      crosshair: { robot: null, distance: 30, innocent: 'h3' },
       prompt: 'Search crate',
       events: ['your shot missed and hit a tree 60 m away'],
     };
@@ -54,6 +55,9 @@ describe('agent helpers', () => {
     expect(text).toContain('c3 container');
     expect(text).toContain('locked');
     expect(text).toContain('b2 45 m');
+    expect(text).toContain('do not fire');
+    expect(text).toContain('h3 child 22 m');
+    expect(text).toContain('Robot carbine: 20 loaded');
     expect(text).toContain('your shot missed');
   });
 });

@@ -21,7 +21,9 @@ There are three ways in:
 
 Angles: a **bearing** is a compass direction in degrees (0 = north, 90 = east). A **relative** angle is measured from where the sniper is looking, positive to the right.
 
-Ids in observations: `r#` robots, `d#` doors, `c#` containers, `p#` pickups, `b#` buildings, and `portal`.
+Ids in observations: `r#` robots, `t#` tanks, `h#` civilians and `k#` dogs (innocents: never shoot them), `d#` doors, `c#` containers, `p#` pickups, `b#` buildings, and `portal`.
+
+**Innocents.** Observations list the civilians and dogs nearby with their state (calm, fleeing, hiding). If one is in the line of fire, the crosshair reports it and the briefing warns *do not fire*. Every innocent the sniper hits costs 5% health, and a round can strike someone standing behind or in front of the target.
 
 ## MCP server
 
@@ -88,8 +90,9 @@ Options: `--turns <n>` (default 40), `--world <0-2>`, `--url <address>`, `--head
 | `{"do":"move","direction":"forward","seconds":1}` | Walk (`forward`, `back`, `left`, `right`; max 5 s; `run` optional). |
 | `{"do":"turn","degrees":30}` / `{"do":"look","degrees":-5}` | Turn right (negative = left) / tilt the view up (negative = down). |
 | `{"do":"face","bearing":90}` / `{"do":"face","target":"c2"}` | Face a compass bearing or a thing. |
-| `{"do":"aim","target":"r2"}` | Scope in and aim at a robot's chest, allowing for bullet drop. Warns if something is in the way. |
-| `{"do":"fire"}` | Shoot and report what the round hit. Reloads automatically when the magazine is empty. |
+| `{"do":"aim","target":"r2"}` | Raise the sights and aim at a robot's (`r#`) or tank's (`t#`) body, allowing for bullet drop. Warns if something is in the way. |
+| `{"do":"fire"}` / `{"do":"fire","rounds":5}` | Shoot and report what the round hit; with the carbine, fire a burst. Reloads automatically when the magazine is empty. |
+| `{"do":"weapon","name":"carbine"}` | Switch between `rifle` and `carbine` (walk up to a destroyed robot first to take its carbine). |
 | `{"do":"scope","on":true}` / `{"do":"zoom"}` | Raise or lower the scope / cycle magnification (4×, 8×, 12× with the scope upgrade). |
 | `{"do":"stance","value":"prone"}` | `stand`, `crouch`, or `prone`. Crouching or crawling inside a bush makes you nearly invisible. |
 | `{"do":"interact"}` | Open or close a door, pick up an item, or enter the portal. The observation's `prompt` says what it would do. |
@@ -117,14 +120,17 @@ A briefing looks like this:
 
 ```text
 [PLAYING] Green Valley (world 1 of 3), t=0.2s
-Objectives: [ ] Search containers in the houses for the portal keycard; [ ] Reach the portal and enter it; [ ] Optional: destroy the robots (0/7)
-You: at (18.1, 122.4), facing 347° (pitch 0°), stand, visible. Health 100, armor 0, lives 0, cash $0.
-Rifle: 5/5 in magazine, 20 spare.
+Objectives: [ ] Search containers in the houses for the portal keycard; [ ] Reach the portal and enter it; [ ] Optional: destroy the robots (0/7); [ ] Protect the civilians: 18 of 18 safe (shooting an innocent costs 5% health)
+You: at (35, 50.6), facing 44° (pitch 0°), stand, spotted. Health 100, armor 0, lives 0, cash $0.
+Rifle (in hand): 5/5 in magazine, 20 spare.
+Robot carbine: not yet (destroy a robot and walk up to it to take its carbine).
 Robots (relative angle: + right / - left):
-  r5: 94 m at 26° (bearing 13°) - patrol, blocked from view
-  r6: 110 m at -7° (bearing 340°) - patrol, blocked from view
-Buildings: b7 101 m at 32° (4 unsearched); b8 139 m at -12° (2 unsearched)
-Portal: 241 m at 14° (locked - find the keycard in a container).
+  r5: 26 m at -8° (bearing 36°) - alert, cover, SEES YOU, in your line of fire
+  t1 (TANK): 88 m at -70° (bearing 334°) - patrol, blocked from view
+Innocents nearby (never shoot them): k3 dog 16 m at -4° (fleeing); h17 child 17 m at -6° (hiding); h15 adult 17 m at -4° (fleeing)
+Buildings: b7 28 m at -10° (4 unsearched); b8 53 m at -68° (2 unsearched)
+Portal: 169 m at -48° (locked - find the keycard in a container).
+Events: you have been spotted
 ```
 
 The observation's TypeScript types are in [`src/agent/observation.ts`](src/agent/observation.ts), and the commands in [`src/agent/bridge.ts`](src/agent/bridge.ts).
@@ -132,6 +138,8 @@ The observation's TypeScript types are in [`src/agent/observation.ts`](src/agent
 ## Tips for agent authors
 
 - Search buildings nearest first; `go_to` a building's id (`b#`) walks to just outside its door. Inside, containers show up under *Nearby*, and ones on the other floor are marked `upstairs` or `downstairs`.
+- In the example above a frightened family is between the sniper and robot r5: move to get a clear line before firing.
+- Tanks shell you from 35 m or closer; keep further away or get behind a wall, and put four rifle rounds into them.
 - Robots only hurt you within 10 m, but they radio your position to each other, take cover, and flank. Shoot from far away, and after every shot expect robots to come looking.
 - Check `inSight` before shooting and heed `aim`'s "something is in the way" warning; move or change stance to get a clear line.
 - A medkit or armor pickup you don't need yet stays where it is ("health full"), so you can come back for it.

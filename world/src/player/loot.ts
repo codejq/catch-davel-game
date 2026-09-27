@@ -1,7 +1,8 @@
 import type { Random } from '../core/random';
 import type { RifleState } from './rifle-state';
+import { CARBINE, type CarbineState } from '../weapons/carbine-state';
 
-export type LootKind = 'money' | 'ammo' | 'armor' | 'medkit' | 'life' | 'magazine' | 'suppressor' | 'scope';
+export type LootKind = 'money' | 'ammo' | 'armor' | 'medkit' | 'life' | 'magazine' | 'suppressor' | 'scope' | 'carbine';
 
 /** What the sniper carries besides the rifle: body armor, spare lives, cash, and a suppressor. */
 export interface Loadout {
@@ -23,7 +24,7 @@ export const SUPPRESSED_HEARING = 0.35;
 
 export const LOOT_NAMES: Record<LootKind, string> = {
   money: 'cash', ammo: 'ammo box', armor: 'body armor', medkit: 'medkit', life: 'extra life',
-  magazine: 'extended magazine', suppressor: 'suppressor', scope: '12× scope',
+  magazine: 'extended magazine', suppressor: 'suppressor', scope: '12× scope', carbine: 'robot carbine',
 };
 
 const TABLE: readonly (readonly [LootKind, number])[] = [
@@ -67,8 +68,17 @@ export function rollDoorLoot(random: Random, useful: ReadonlySet<LootKind>): Loo
 }
 
 /** Applies a pickup. Returns the line to show the player. */
-export function applyLoot(drop: LootDrop, loadout: Loadout, rifle: RifleState): string {
+export function applyLoot(drop: LootDrop, loadout: Loadout, rifle: RifleState, carbine?: CarbineState): string {
   switch (drop.kind) {
+    case 'carbine': {
+      // Stripped from a destroyed robot: the gun (or its rounds) plus its armor plates.
+      const before = loadout.armor;
+      loadout.armor = Math.min(MAX_ARMOR, loadout.armor + CARBINE.armorPerPickup);
+      const armor = Math.round(loadout.armor - before);
+      if (carbine === undefined) return `ROBOT ARMOR · +${armor} ARMOR`;
+      const taken = carbine.take();
+      return `${taken.unlocked ? 'ROBOT CARBINE · PRESS 2 OR Q TO SWITCH' : `CARBINE ROUNDS · +${taken.rounds}`}${armor > 0 ? ` · +${armor} ARMOR` : ''}`;
+    }
     case 'money':
       loadout.money += drop.amount;
       return `CASH · +$${drop.amount}`;

@@ -103,7 +103,7 @@ function piston(from: THREE.Vector3, to: THREE.Vector3): THREE.Group {
 }
 
 /** The robot's carbine: receiver, magazine, stock, vented shroud, barrel, brake, optic. Built along +Z. */
-function carbine(): { gun: THREE.Group; muzzle: THREE.Mesh } {
+export function carbine(): { gun: THREE.Group; muzzle: THREE.Mesh } {
   const gun = new THREE.Group();
   gun.add(box(0.07, 0.1, 0.42, gunMaterial, 0, 0, 0.1));
   gun.add(box(0.05, 0.16, 0.07, gunMaterial, 0, -0.12, 0.14));

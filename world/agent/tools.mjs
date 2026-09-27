@@ -5,6 +5,9 @@
 export const GUIDE = `Zama Sniper: you are a sniper in an open 3D world held by armed robots.
 Goal in each of 3 worlds: search containers (crates, cabinets, lockers, desks) in the houses until you find the portal keycard, then reach the portal and interact with it. Entering the third portal wins.
 Robots are 3.5 m tall. Their rifles only hurt you within 10 m, but they hunt in squads: they radio your position, take cover behind trees and walls, and flank. Your rifle destroys a robot with one hit at any range; every shot is loud and brings robots to search, and a robot your shot passes near dives for cover. Crouch or go prone (especially inside bushes) to stay unseen, keep trees and walls between you and them, and shoot from far away.
+Tanks (t#) drive the roads; once they see you they shell you from up to 35 m (splash damage; cover stops shells). Four rifle hits destroy a tank.
+Civilian families (h#) and their dogs (k#) live in every world: some picnic, some stroll. They never attack, panic at gunfire and hide, and robots sometimes shoot them. Never shoot an innocent: each one you hit costs 5% health. Check the crosshair warning before firing.
+A destroyed robot drops its automatic carbine: walk up to it to take it (plus armor and rounds), then switch with {"do":"weapon","name":"carbine"}; fire bursts with {"do":"fire","rounds":5}. The carbine is for close range; the rifle kills a robot with one hit at any range.
 Doors and boxes hide loot: armor, medkits, ammo, extra lives, cash, and rifle upgrades (suppressor, extended magazine, 12x scope). Loot changes every run.
 Angles: bearings are compass degrees (0 = north, 90 = east); "relative" angles are from where you look, + to the right.
 The world is frozen between your commands, so take your time. Long commands (go_to, wait) stop early when a robot spots you or you are hit.`;
@@ -13,13 +16,15 @@ export const COMMAND_SCHEMA = {
   type: 'object',
   description: 'One command. The "do" field picks it; see game_help for every command and its fields.',
   properties: {
-    do: { type: 'string', enum: ['start', 'move', 'turn', 'look', 'face', 'aim', 'fire', 'scope', 'zoom', 'stance', 'jump', 'reload', 'interact', 'search', 'go_to', 'wait'] },
+    do: { type: 'string', enum: ['start', 'move', 'turn', 'look', 'face', 'aim', 'fire', 'weapon', 'scope', 'zoom', 'stance', 'jump', 'reload', 'interact', 'search', 'go_to', 'wait'] },
+    name: { type: 'string', enum: ['rifle', 'carbine'], description: 'Weapon for {"do":"weapon"}.' },
+    rounds: { type: 'integer', minimum: 1, maximum: 24, description: 'Burst length for {"do":"fire"} with the carbine.' },
     direction: { type: 'string', enum: ['forward', 'back', 'left', 'right'] },
     seconds: { type: 'number' },
     run: { type: 'boolean' },
     degrees: { type: 'number' },
     bearing: { type: 'number' },
-    target: { type: 'string', description: 'Id from the observation: r# robot, d# door, c# container, p# pickup, b# building, or "portal".' },
+    target: { type: 'string', description: 'Id from the observation: r# robot, t# tank, h# civilian or k# dog (never shoot these), d# door, c# container, p# pickup, b# building, or "portal".' },
     on: { type: 'boolean' },
     value: { type: 'string', enum: ['stand', 'crouch', 'prone'] },
     world: { type: 'integer', minimum: 0, maximum: 2 },
