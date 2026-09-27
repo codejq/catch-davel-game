@@ -1,6 +1,6 @@
-# Playing Catch Davel with LLM agents
+# Playing Zama Sniper with LLM agents
 
-Catch Davel: Open World is built to be played by language-model agents as well as people. An agent gets a text briefing of what the sniper can see, sends high-level commands (walk to a building, search a crate, aim at a robot, fire), and the world waits while it thinks.
+Zama Sniper: Open World is built to be played by language-model agents as well as people. An agent gets a text briefing of what the sniper can see, sends high-level commands (walk to a building, search a crate, aim at a robot, fire), and the world waits while it thinks.
 
 There are three ways in:
 
@@ -8,7 +8,7 @@ There are three ways in:
 | --- | --- |
 | [MCP server](#mcp-server) (`agent/mcp-server.mjs`) | You want Claude Code, Claude Desktop, or any MCP client to play. |
 | [Example Claude agent](#example-claude-agent) (`agent/claude-agent.mjs`) | You want a ready-made agent loop on the Claude API to start from. |
-| [In-page API](#in-page-api-windowcatchdavel) (`window.catchDavel`) | You are writing your own harness (Playwright, Puppeteer, a browser extension, a test). |
+| [In-page API](#in-page-api-windowzamasniper) (`window.zamaSniper`) | You are writing your own harness (Playwright, Puppeteer, a browser extension, a test). |
 
 ![A robot squad closing in: brackets mark the shooters, and a tracer shows where a round came from](docs/screenshots/robots-flanking.jpg)
 
@@ -35,7 +35,7 @@ Ids in observations: `r#` robots, `d#` doors, `c#` containers, `p#` pickups, `b#
 | `game_act` | Runs up to 12 commands in order and returns what each did plus a fresh briefing. |
 | `game_screenshot` | A PNG of what the sniper sees. |
 
-Build the game once so the server can serve it locally (without a build it plays the [published game](https://codejq.github.io/catch-davel-game/)):
+Build the game once so the server can serve it locally (without a build it plays the [published game](https://codejq.github.io/Zama-sniper/)):
 
 ```powershell
 npm ci
@@ -45,7 +45,7 @@ npm run world:build
 Add it to Claude Code:
 
 ```powershell
-claude mcp add catch-davel -- node /path/to/catch-davel-game/world/agent/mcp-server.mjs
+claude mcp add zama-sniper -- node /path/to/Zama-sniper/world/agent/mcp-server.mjs
 ```
 
 Or to Claude Desktop (`claude_desktop_config.json`), or any client that takes the same shape:
@@ -53,15 +53,15 @@ Or to Claude Desktop (`claude_desktop_config.json`), or any client that takes th
 ```json
 {
   "mcpServers": {
-    "catch-davel": {
+    "zama-sniper": {
       "command": "node",
-      "args": ["/path/to/catch-davel-game/world/agent/mcp-server.mjs"]
+      "args": ["/path/to/Zama-sniper/world/agent/mcp-server.mjs"]
     }
   }
 }
 ```
 
-Then ask: *"Use the catch-davel tools to play the game. Read game_help first."*
+Then ask: *"Use the zama-sniper tools to play the game. Read game_help first."*
 
 Options: `--url <address>` plays a specific build (for example the dev server at `http://127.0.0.1:5173/`), and `--headed` shows the browser window so you can watch. Chromium is found through `CHROME_PATH`, then the usual install locations.
 
@@ -96,12 +96,12 @@ Options: `--turns <n>` (default 40), `--world <0-2>`, `--url <address>`, `--head
 | `{"do":"search","seconds":1.6}` | Hold interact to search the container in front of you. |
 | `{"do":"jump"}` / `{"do":"reload"}` / `{"do":"wait","seconds":1}` | Jump, reload, or let time pass (max 10 s). |
 
-## In-page API: `window.catchDavel`
+## In-page API: `window.zamaSniper`
 
 Every build of the game, including the published one, has this object:
 
 ```js
-const game = window.catchDavel;
+const game = window.zamaSniper;
 game.version;        // 1
 game.help;           // command reference text
 game.observe();      // structured observation (drains the event log)

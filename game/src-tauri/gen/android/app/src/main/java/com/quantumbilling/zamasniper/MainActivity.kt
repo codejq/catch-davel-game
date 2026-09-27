@@ -1,4 +1,4 @@
-package com.quantumbilling.catchdavel
+package com.quantumbilling.zamasniper
 
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge

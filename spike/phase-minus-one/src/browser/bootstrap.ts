@@ -113,7 +113,7 @@ const capture: BrowserCapture = {
   probeContextRecovery: () => contextProbeImplementation(),
   probeAudioVisual: () => runAudioVisualProbe(),
 };
-(globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__?: BrowserCapture }).__CATCH_DAVEL_SPIKE__ = capture;
+(globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__?: BrowserCapture }).__ZAMA_SNIPER_SPIKE__ = capture;
 addEventListener('error', (event) => runtimeErrors.push(event.message));
 addEventListener('unhandledrejection', (event) => runtimeErrors.push(String(event.reason)));
 

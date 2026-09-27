@@ -15,7 +15,7 @@ const browser = await chromium.launch({ executablePath: executable, args: ['--en
 const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', (error) => console.error(error.message));
 await page.goto(server.resolvedUrls.local[0]);
-await page.waitForFunction(() => window.catchDavelWorld !== undefined);
+await page.waitForFunction(() => window.zamaSniperWorld !== undefined);
 
 async function shot(name, setup) {
   await page.evaluate(setup);
@@ -26,7 +26,7 @@ async function shot(name, setup) {
 
 // Helpers installed in the page.
 await page.evaluate(() => {
-  const w = window.catchDavelWorld;
+  const w = window.zamaSniperWorld;
   window.shots = {
     world: (index) => { w.load(index); w.play(); w.setAim(0); w.stance('stand'); w.step(0.2); },
     /** Parks robots out of the way for scenery shots. */
@@ -48,14 +48,14 @@ await page.evaluate(() => {
 });
 
 await shot('village', () => {
-  const w = window.catchDavelWorld; window.shots.world(0); window.shots.clear();
+  const w = window.zamaSniperWorld; window.shots.world(0); window.shots.clear();
   const layout = w.layout(); const b = layout.buildings[5].plan;
   window.shots.viewOf({ x: b.x, y: b.baseY, z: b.z }, 30, 3, 0.02, 0.8);
   w.step(1.2);
 });
 
 await shot('robots-flanking', () => {
-  const w = window.catchDavelWorld; window.shots.world(0);
+  const w = window.zamaSniperWorld; window.shots.world(0);
   const [a, b] = [w.sentries()[3], w.sentries()[4]];
   window.shots.viewOf(a.position, 22, 2.2, 0.02, 1.2);
   const body = w.body();
@@ -68,14 +68,14 @@ await shot('robots-flanking', () => {
 });
 
 await shot('scope', () => {
-  const w = window.catchDavelWorld; window.shots.world(1);
+  const w = window.zamaSniperWorld; window.shots.world(1);
   const robot = w.sentries()[2];
   window.shots.viewOf(robot.position, 85, 2.3, 0.004);
   w.setAim(1); w.step(0.8);
 });
 
 await shot('loot', () => {
-  const w = window.catchDavelWorld; window.shots.world(0); window.shots.clear();
+  const w = window.zamaSniperWorld; window.shots.world(0); window.shots.clear();
   const crate = w.containers().find((c) => c.kind === 'crate' && !c.keycard);
   const fx = Math.sin(crate.yaw); const fz = Math.cos(crate.yaw);
   w.teleport(crate.x + fx * 2.4, crate.z + fz * 2.4, 0, 0, crate.y + 0.2);
@@ -86,7 +86,7 @@ await shot('loot', () => {
 });
 
 await shot('frost-pass', () => {
-  const w = window.catchDavelWorld; window.shots.world(2); window.shots.clear();
+  const w = window.zamaSniperWorld; window.shots.world(2); window.shots.clear();
   const layout = w.layout(); const b = layout.buildings[1].plan;
   window.shots.viewOf({ x: b.x, y: b.baseY, z: b.z }, 34, 3, 0.05, 4);
   w.step(1.2);

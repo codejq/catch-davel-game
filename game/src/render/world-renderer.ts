@@ -512,7 +512,7 @@ export class WorldRenderer {
       this.shadowMap = new ShadowMap(this.gl, size);
       this.shadowMap.fitLevel(LEVEL_WIDTH * CELL_SIZE / 2, LEVEL_HEIGHT * CELL_SIZE / 2);
     } catch (error) {
-      console.warn('Catch Davel shadows unavailable', error);
+      console.warn('Zama Sniper shadows unavailable', error);
       this.shadowMap = null;
       return null;
     }
@@ -524,7 +524,7 @@ export class WorldRenderer {
     try {
       this.postProcessor = new PostProcessor(this.gl);
     } catch (error) {
-      console.warn('Catch Davel post-processing unavailable', error);
+      console.warn('Zama Sniper post-processing unavailable', error);
       this.postProcessorFailed = true;
     }
     return this.postProcessor;

@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://quantum-billing.example/schemas/catch-davel/level-definition-v1.json",
-  "title": "Catch Davel LevelDefinition v1",
+  "$id": "https://quantum-billing.example/schemas/zama-sniper/level-definition-v1.json",
+  "title": "Zama Sniper LevelDefinition v1",
   "type": "object",
   "additionalProperties": false,
   "required": [

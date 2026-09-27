@@ -46,7 +46,7 @@ The owner records `APPROVED AS IMPLEMENTED` or an explicit replacement. Any repl
 
 | Plan decision | Implemented candidate | Owner/date | Outcome or replacement |
 |---|---|---|---|
-| 1–3 — title, family-safe mechanical tone, “deactivated/cleansed” terminology | Catch Davel: Rhythm Rebellion; no gore; robots deactivated and virus cleansed | `TBD` | `PENDING` |
+| 1–3 — title, family-safe mechanical tone, “deactivated/cleansed” terminology | Zama Sniper: Rhythm Rebellion; no gore; robots deactivated and virus cleansed | `TBD` | `PENDING` |
 | 4–5 — TypeScript and sprint/dash movement without jump | Implemented | `TBD` | `PENDING` |
 | 6–7 — English/Arabic and optional gamepad | Implemented | `TBD` | `PENDING` |
 | 8–10 — four sectors, four weapons/upgrades, no microtransactions | Implemented | `TBD` | `PENDING` |

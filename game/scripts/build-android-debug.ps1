@@ -15,7 +15,7 @@ try {
     & npx tauri android build --debug --apk --target $target.Tauri --ci
     if ($LASTEXITCODE -ne 0) {
       if ($env:OS -ne 'Windows_NT') { throw "Tauri Android build failed for $($target.Tauri)" }
-      $library = Join-Path $tauriRoot "target\$($target.Rust)\debug\libquantum_catch_davel_lib.so"
+      $library = Join-Path $tauriRoot "target\$($target.Rust)\debug\libquantum_zama_sniper_lib.so"
       if (-not (Test-Path -LiteralPath $library)) {
         throw "Tauri Android build failed before producing $library"
       }
@@ -25,13 +25,13 @@ try {
 
   if ($requiresWindowsFallback) {
     foreach ($target in $targets) {
-      $library = (Resolve-Path (Join-Path $tauriRoot "target\$($target.Rust)\debug\libquantum_catch_davel_lib.so")).Path
+      $library = (Resolve-Path (Join-Path $tauriRoot "target\$($target.Rust)\debug\libquantum_zama_sniper_lib.so")).Path
       $jniDirectory = Join-Path $androidRoot "app\src\main\jniLibs\$($target.Abi)"
       if (-not $jniDirectory.StartsWith($androidRoot, [StringComparison]::OrdinalIgnoreCase)) {
         throw "Refusing to write outside the generated Android project: $jniDirectory"
       }
       New-Item -ItemType Directory -Force -Path $jniDirectory | Out-Null
-      Copy-Item -LiteralPath $library -Destination (Join-Path $jniDirectory 'libquantum_catch_davel_lib.so') -Force
+      Copy-Item -LiteralPath $library -Destination (Join-Path $jniDirectory 'libquantum_zama_sniper_lib.so') -Force
     }
     Push-Location $androidRoot
     try {

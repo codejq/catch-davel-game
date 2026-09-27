@@ -1,4 +1,4 @@
-# Catch Davel: Game Design and Implementation Plan
+# Zama Sniper: Game Design and Implementation Plan
 
 Status: **Implementation complete; physical-device evidence waived for this implementation goal**
 Prepared for: **Quantum Billing LLC**  
@@ -56,7 +56,7 @@ Revision 12 records the implemented spatial-transient audio pass. Robot attacks,
 
 Revision 13 records the implemented granular effects-bus graph. Every procedural cue now routes exhaustively to one of five dedicated Web Audio gain nodes—`weapons`, `robots`, `environment`, `interface`, or `voice`—before the shared dry/room-response/master chain; continuous ambience enters `environment`, Davel mechanisms enter `robots`, and personality taunts enter `voice`. Music retains its separately controlled sequencer path. The existing persisted combat/world/interface controls currently operate as grouped macros over those five nodes, preserving profile v10 while the next persistence slice adds independent five-bus controls and migration required by Section 15.10.
 
-Revision 14 records the completed independent effects-bus persistence contract. English and Arabic settings now expose separate `weapons`, `robots`, `environment`, `interface`, and `voice` controls; a persisted value of zero is the bus mute. Profile v11 stores all five values independently. Its checksum-first v10→v11 migration maps legacy combat gain to weapons and robots, world gain to environment and voice, and interface gain to interface. Because this is presentation-only, a valid schema-v18 campaign checkpoint is retained unchanged. The strict browser and packaged transfer filename is now `catch-davel-profile-v11.json`; simulation schema, replay format, transport contracts, frozen checksums, and LLM observations are unchanged.
+Revision 14 records the completed independent effects-bus persistence contract. English and Arabic settings now expose separate `weapons`, `robots`, `environment`, `interface`, and `voice` controls; a persisted value of zero is the bus mute. Profile v11 stores all five values independently. Its checksum-first v10→v11 migration maps legacy combat gain to weapons and robots, world gain to environment and voice, and interface gain to interface. Because this is presentation-only, a valid schema-v18 campaign checkpoint is retained unchanged. The strict browser and packaged transfer filename is now `zama-sniper-profile-v11.json`; simulation schema, replay format, transport contracts, frozen checksums, and LLM observations are unchanged.
 
 Revision 15 records the completed maze-obstruction and event-variation audio pass. Positioned Davel and bomb cues sample the open listener/source segment against static maze walls, the closed workshop door, and active timed gates using current immutable presentation state. An obstructed route applies a fixed 0.58 gain multiplier and a real 920 Hz per-transient low-pass node; endpoints are excluded so a listener or source touching a gate cannot self-occlude. Non-interface transported events also derive bounded 0.94–1.0 gain and 0.975–1.025 pitch variation from cue plus stable event ID, while interface cues remain exact and movement/laser/fuse sequencers retain their purpose-built modulation. No runtime random source, simulation state, replay dependency, transport field, save field, or LLM observation was added.
 
@@ -130,7 +130,7 @@ Revision 49 records playable Level 34, **Frosted Crossroads**, as a route-readin
 
 ## 1. Executive summary
 
-Catch Davel is an original, fast, funny, first-person 3D maze-combat game. The player enters colorful mazes across 36 progressively harder levels and defeats dancing, mischievous Davel robots. The robots are comedic and expressive but also dangerous: they grin, taunt, dodge to the beat, ambush the player, fire projectiles, and sometimes spit fire.
+Zama Sniper is an original, fast, funny, first-person 3D maze-combat game. The player enters colorful mazes across 36 progressively harder levels and defeats dancing, mischievous Davel robots. The robots are comedic and expressive but also dangerous: they grin, taunt, dodge to the beat, ambush the player, fire projectiles, and sometimes spit fire.
 
 The player begins with a pulse gun and later unlocks a sword, bombs, and a laser. Defeated robots release Quantum Coins. Coins purchase permanent weapon improvements, defensive upgrades, and cosmetic items. Each level has its own palette, maze configuration, dance profile, combat mix, secrets, and optional mastery challenges.
 
@@ -161,15 +161,15 @@ Humans, automated tests, replay playback, and LLM agents will all use the same a
 
 ### 3.1 Working title
 
-**Catch Davel: Rhythm Rebellion**
+**Zama Sniper: Rhythm Rebellion**
 
 Other acceptable subtitles for later review:
 
-- Catch Davel: Maze of Mischief
-- Catch Davel: Quantum Breakdown
-- Catch Davel: Dance or Disassemble
+- Zama Sniper: Maze of Mischief
+- Zama Sniper: Quantum Breakdown
+- Zama Sniper: Dance or Disassemble
 
-The short store/display title remains **Catch Davel**.
+The short store/display title remains **Zama Sniper**.
 
 ### 3.2 Attribution
 
@@ -179,7 +179,7 @@ Proposed title-screen credit:
 
 Proposed repository description:
 
-> Catch Davel is an open-source first-person 3D maze game featuring Quantum Billing's original dancing Davel robots.
+> Zama Sniper is an open-source first-person 3D maze game featuring Quantum Billing's original dancing Davel robots.
 
 ### 3.3 Intellectual-property boundary
 
@@ -961,7 +961,7 @@ For every robot link, rendering derives:
 - radius from robot definition and current effect state;
 - final model matrix written into an instance buffer.
 
-This reproduces the rounded connected-body character of the original Catch Davel page in full 3D.
+This reproduces the rounded connected-body character of the original Zama Sniper page in full 3D.
 
 ### 15.9 Effects pipeline
 
@@ -995,7 +995,7 @@ Effects are event-driven and may be dropped on low quality without altering the 
 ### 15.11 Proposed repository structure
 
 ```text
-quantum-catch-davel/
+quantum-zama-sniper/
   .github/workflows/
   docs/
     architecture/
@@ -1120,7 +1120,7 @@ quantum-catch-davel/
 Agent-enabled builds expose a frozen, capability-limited object:
 
 ```text
-window.CatchDavelAgent
+window.ZamaSniperAgent
   getVersion()
   getActionSchema()
   reset({ levelId, seed, difficulty, mode })
@@ -1765,7 +1765,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
 
 ### Original interactive reference
 
-- [FacePrintLab Catch Davel](https://www.faceprintlab.com/catch-davel.html): reference for articulated point/link bodies, procedural dance motion, rounded limb rendering, pointer interaction, worker rendering, OffscreenCanvas enhancement, and main-thread fallback. Its code and presentation should be treated as inspiration/reference; confirm its reuse license before copying any implementation text.
+- [FacePrintLab Zama Sniper](https://www.faceprintlab.com/zama-sniper.html): reference for articulated point/link bodies, procedural dance motion, rounded limb rendering, pointer interaction, worker rendering, OffscreenCanvas enhancement, and main-thread fallback. Its code and presentation should be treated as inspiration/reference; confirm its reuse license before copying any implementation text.
 
 ### Cross-platform and LLM reference repository
 
@@ -1779,7 +1779,7 @@ Not every product decision blocks the feasibility spike. A decision must be reso
   - browser LLM hook and Playwright harness;
   - accessibility and viewport smoke tests.
 - Important issue to avoid:
-  - its shipped browser `main.js` and modular headless simulation currently operate as parallel implementations. Catch Davel must connect the production renderer and input directly to the one authoritative deterministic simulation.
+  - its shipped browser `main.js` and modular headless simulation currently operate as parallel implementations. Zama Sniper must connect the production renderer and input directly to the one authoritative deterministic simulation.
 
 ### Technical references
 

@@ -2,7 +2,7 @@
 // one implementation. Each tool returns neutral content blocks: { type: 'text', text } or
 // { type: 'image', data (base64 PNG), mimeType }.
 
-export const GUIDE = `Catch Davel: you are a sniper in an open 3D world held by armed robots.
+export const GUIDE = `Zama Sniper: you are a sniper in an open 3D world held by armed robots.
 Goal in each of 3 worlds: search containers (crates, cabinets, lockers, desks) in the houses until you find the portal keycard, then reach the portal and interact with it. Entering the third portal wins.
 Robots are 3.5 m tall. Their rifles only hurt you within 10 m, but they hunt in squads: they radio your position, take cover behind trees and walls, and flank. Your rifle destroys a robot with one hit at any range; every shot is loud and brings robots to search, and a robot your shot passes near dives for cover. Crouch or go prone (especially inside bushes) to stay unseen, keep trees and walls between you and them, and shoot from far away.
 Doors and boxes hide loot: armor, medkits, ammo, extra lives, cash, and rifle upgrades (suppressor, extended magazine, 12x scope). Loot changes every run.
@@ -32,7 +32,7 @@ export const COMMAND_SCHEMA = {
 export const TOOLS = [
   {
     name: 'game_help',
-    description: 'How to play Catch Davel and the full list of commands game_act accepts. Read this first.',
+    description: 'How to play Zama Sniper and the full list of commands game_act accepts. Read this first.',
     inputSchema: { type: 'object', properties: {} },
   },
   {

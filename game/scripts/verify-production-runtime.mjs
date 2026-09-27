@@ -20,7 +20,7 @@ function browserExecutable() {
 async function readBrowserProfile(page) {
   return page.evaluate(async () => {
     const database = await new Promise((resolve, reject) => {
-      const request = indexedDB.open('quantum-catch-davel', 1);
+      const request = indexedDB.open('quantum-zama-sniper', 1);
       request.addEventListener('success', () => resolve(request.result), { once: true });
       request.addEventListener('error', () => reject(request.error), { once: true });
     });
@@ -66,7 +66,7 @@ try {
   const result = await page.evaluate((before) => ({
     startTick: before,
     endTick: Number(document.body.dataset.snapshotTick),
-    agentApiExposed: window.CatchDavelAgent !== undefined,
+    agentApiExposed: window.ZamaSniperAgent !== undefined,
     rendererMode: document.body.dataset.rendererMode,
     workerStatus: document.body.dataset.workerStatus,
     profileReady: document.body.dataset.profileReady,
@@ -307,7 +307,7 @@ try {
   const exportedProfileText = Buffer.concat(downloadChunks).toString('utf8');
   const exportedProfile = JSON.parse(exportedProfileText);
   const exportStatus = await page.locator('#profile-transfer-status').textContent();
-  if (download.suggestedFilename() !== 'catch-davel-profile-v15.json'
+  if (download.suggestedFilename() !== 'zama-sniper-profile-v15.json'
     || exportedProfile.profileSchemaVersion !== 15
     || !/^[0-9a-f]{16}$/.test(exportedProfile.integrityChecksum)
     || exportStatus !== 'تم تصدير الحفظ.') {
@@ -318,7 +318,7 @@ try {
   const chooser = await chooserPromise;
   const dialogPromise = page.waitForEvent('dialog');
   await chooser.setFiles({
-    name: 'catch-davel-profile-v15.json',
+    name: 'zama-sniper-profile-v15.json',
     mimeType: 'application/json',
     buffer: Buffer.from(exportedProfileText),
   });
@@ -432,10 +432,10 @@ try {
   }
   await page.mouse.up();
   await page.evaluate(() => {
-    window.__catchDavelTestVisibility = 'hidden';
+    window.__zamaSniperTestVisibility = 'hidden';
     Object.defineProperty(document, 'visibilityState', {
       configurable: true,
-      get: () => window.__catchDavelTestVisibility,
+      get: () => window.__zamaSniperTestVisibility,
     });
     document.dispatchEvent(new Event('visibilitychange'));
   });
@@ -447,7 +447,7 @@ try {
   const suspendedEndTick = await page.evaluate(() => Number(document.body.dataset.snapshotTick));
   const suspendedProfile = await readBrowserProfile(page);
   await page.evaluate(() => {
-    window.__catchDavelTestVisibility = 'visible';
+    window.__zamaSniperTestVisibility = 'visible';
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.waitForFunction((tick) => document.body.dataset.suspended === 'false'
@@ -459,7 +459,7 @@ try {
   await page.waitForTimeout(100);
   const resumedProfile = await readBrowserProfile(page);
   await page.evaluate(() => {
-    window.__catchDavelTestVisibility = 'hidden';
+    window.__zamaSniperTestVisibility = 'hidden';
     document.dispatchEvent(new Event('visibilitychange'));
   });
   await page.waitForFunction(() => document.body.dataset.suspended === 'true');
@@ -518,7 +518,7 @@ try {
     mode: document.body.dataset.rendererMode,
     webgl2: document.querySelector('#game')?.getContext('webgl2') !== null,
     tick: Number(document.body.dataset.snapshotTick),
-    agentApiExposed: window.CatchDavelAgent !== undefined,
+    agentApiExposed: window.ZamaSniperAgent !== undefined,
     pacingPhase: document.body.dataset.combatPacingPhase,
     pacingTarget: Number(document.body.dataset.combatPacingTarget),
     pacingIntensity: Number(document.body.dataset.combatPacingIntensity),
@@ -647,15 +647,15 @@ try {
   const contextLossStartTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
   const supportsContextLoss = await fallbackPage.evaluate(() => {
     const gl = document.querySelector('#game')?.getContext('webgl2');
-    window.__catchDavelContextLoss = gl?.getExtension('WEBGL_lose_context') ?? null;
-    window.__catchDavelContextLoss?.loseContext();
-    return window.__catchDavelContextLoss !== null;
+    window.__zamaSniperContextLoss = gl?.getExtension('WEBGL_lose_context') ?? null;
+    window.__zamaSniperContextLoss?.loseContext();
+    return window.__zamaSniperContextLoss !== null;
   });
   if (!supportsContextLoss) throw new Error('Headless WebGL2 did not expose the context-loss verification extension');
   await fallbackPage.waitForFunction(() => document.body.dataset.renderContext === 'lost');
   await fallbackPage.waitForTimeout(180);
   const contextLossEndTick = await fallbackPage.evaluate(() => Number(document.body.dataset.snapshotTick));
-  await fallbackPage.evaluate(() => window.__catchDavelContextLoss.restoreContext());
+  await fallbackPage.evaluate(() => window.__zamaSniperContextLoss.restoreContext());
   await fallbackPage.waitForFunction(() => document.body.dataset.renderContext === 'restored');
   await fallbackPage.waitForTimeout(100);
   const contextRecovery = {
@@ -695,7 +695,7 @@ try {
     defenseMaxHealth: document.body.dataset.defenseMaxHealth ?? '',
     bossTitle: document.querySelector('#boss-status [data-ui-text="bossTitle"]')?.textContent ?? '',
     bossHidden: document.querySelector('#boss-status')?.hidden,
-    agentApiExposed: window.CatchDavelAgent !== undefined,
+    agentApiExposed: window.ZamaSniperAgent !== undefined,
   }));
   const expectedChapterRemaining = chapterLevel.language === 'ar' ? 'متبقٍ 4 من دافل' : '4 Davels remain';
   if (!chapterLevel.remaining.includes(expectedChapterRemaining)) {
@@ -774,7 +774,7 @@ try {
       touchPromptVisible: getComputedStyle(document.querySelector('.touch-prompt')).display !== 'none',
       desktopPromptVisible: getComputedStyle(document.querySelector('.desktop-prompt')).display !== 'none',
       profileStorage: document.body.dataset.profileStorage,
-      agentApiExposed: window.CatchDavelAgent !== undefined,
+      agentApiExposed: window.ZamaSniperAgent !== undefined,
     };
   });
   await mobilePage.touchscreen.tap(803, 334);

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { parseArguments, REQUIRED_NOTICES, sha256File, verifyDistributedNotices } from './create-release-evidence.mjs';
 
-const temporaryRoot = mkdtempSync(join(tmpdir(), 'catch-davel-release-evidence-'));
+const temporaryRoot = mkdtempSync(join(tmpdir(), 'zama-sniper-release-evidence-'));
 try {
   const repositoryRoot = join(temporaryRoot, 'repository');
   const gameRoot = join(repositoryRoot, 'game');
@@ -19,12 +19,12 @@ try {
   assert.equal(notices[0].sha256, sha256File(join(repositoryRoot, REQUIRED_NOTICES[0])));
 
   const parsed = parseArguments([
-    '--version', '0.1.0', '--source-url', 'https://example.com/quantum-catch-davel/v0.1.0',
+    '--version', '0.1.0', '--source-url', 'https://example.com/quantum-zama-sniper/v0.1.0',
     '--artifact', 'windows-msi=release/game.msi',
     '--artifact', 'android-arm64=release/game.apk', '--output', 'release/evidence.json',
   ]);
   assert.equal(parsed.version, '0.1.0');
-  assert.equal(parsed.sourceUrl, 'https://example.com/quantum-catch-davel/v0.1.0');
+  assert.equal(parsed.sourceUrl, 'https://example.com/quantum-zama-sniper/v0.1.0');
   assert.deepEqual(parsed.artifacts, ['windows-msi=release/game.msi', 'android-arm64=release/game.apk']);
   assert.throws(() => parseArguments(['--version', 'latest', '--source-url', 'https://example.com/source', '--output', 'out.json', '--artifact', 'web=x.zip']));
   assert.throws(() => parseArguments(['--version', '0.1.0', '--source-url', 'http://example.com/source', '--output', 'out.json', '--artifact', 'web=x.zip']));

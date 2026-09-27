@@ -51,7 +51,7 @@ interface QueuedAction {
   readonly resolve: (observation: AgentObservation) => void;
 }
 
-export interface CatchDavelAgentApi {
+export interface ZamaSniperAgentApi {
   readonly version: typeof AGENT_API_VERSION;
   getVersion(): { readonly apiVersion: typeof AGENT_API_VERSION; readonly simulationSchemaVersion: number; readonly replayFormatVersion: number };
   getActionSchema(): Readonly<Record<string, unknown>>;
@@ -126,8 +126,8 @@ export class AgentController {
 
   isAgentControlled(): boolean { return this.controlled; }
 
-  install(): CatchDavelAgentApi {
-    const api: CatchDavelAgentApi = {
+  install(): ZamaSniperAgentApi {
+    const api: ZamaSniperAgentApi = {
       version: AGENT_API_VERSION,
       getVersion: () => ({ apiVersion: AGENT_API_VERSION, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
       getActionSchema: () => agentActionSchema(),
@@ -157,7 +157,7 @@ export class AgentController {
       replayLog: () => this.replay.map((entry) => ({ ...entry, action: { ...entry.action } })),
     };
     Object.freeze(api);
-    window.CatchDavelAgent = api;
+    window.ZamaSniperAgent = api;
     return api;
   }
 
@@ -239,6 +239,6 @@ export class AgentController {
 
 declare global {
   interface Window {
-    CatchDavelAgent?: CatchDavelAgentApi;
+    ZamaSniperAgent?: ZamaSniperAgentApi;
   }
 }

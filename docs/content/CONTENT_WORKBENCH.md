@@ -1,4 +1,4 @@
-# Catch Davel content workbench
+# Zama Sniper content workbench
 
 Date: 2026-08-16
 

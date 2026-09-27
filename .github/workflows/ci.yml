@@ -1,11 +1,11 @@
-name: Catch Davel CI
+name: Zama Sniper CI
 
 on:
   push:
   pull_request:
 
 concurrency:
-  group: catch-davel-${{ github.workflow }}-${{ github.ref }}
+  group: zama-sniper-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

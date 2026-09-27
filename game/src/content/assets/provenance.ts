@@ -126,7 +126,7 @@ function originalRecord(recipe: OriginalLevelAssetRecipe): ProjectOriginalProven
     ],
     assetKind: 'mixed',
     sourceType: 'project-original',
-    creator: 'Quantum Billing Catch Davel contributors',
+    creator: 'Quantum Billing Zama Sniper contributors',
     licenseId: 'MIT',
     sourcePath: recipe.sourcePath,
     modifications: 'Original procedural palette, maze, WebAudio preset, and deterministic choreography authored in this repository.',
@@ -141,10 +141,10 @@ export const CAMPAIGN_ASSET_PROVENANCE = {
 
 export const PACKAGING_ASSET_PROVENANCE = {
   id: 'packaging-app-icon-original',
-  assetIds: ['quantum-catch-davel-app-icon'],
+  assetIds: ['quantum-zama-sniper-app-icon'],
   assetKind: 'mixed',
   sourceType: 'project-original',
-  creator: 'Quantum Billing Catch Davel contributors',
+  creator: 'Quantum Billing Zama Sniper contributors',
   licenseId: 'MIT',
   sourcePath: 'game/src-tauri/icons/app-icon.svg',
   modifications: 'Original vector Davel face, Quantum ring, gradients, and generated Tauri desktop/mobile raster variants.',

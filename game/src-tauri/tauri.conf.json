@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Quantum Catch Davel",
+  "productName": "Quantum Zama Sniper",
   "version": "0.1.8",
-  "identifier": "com.quantumbilling.catchdavel",
+  "identifier": "com.quantumbilling.zamasniper",
   "build": {
     "beforeDevCommand": "npm run dev",
     "devUrl": "http://127.0.0.1:5173",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Quantum Catch Davel",
+        "title": "Quantum Zama Sniper",
         "width": 1280,
         "height": 720,
         "minWidth": 960,
@@ -40,6 +40,6 @@
     "category": "Game",
     "shortDescription": "A deterministic first-person maze hunt through dancing Davel robots.",
     "longDescription": "Quantum Billing's open-source deterministic first-person maze game with funny, dangerous dancing Davel robots and an LLM-ready simulation interface.",
-    "copyright": "Copyright Quantum Billing Catch Davel contributors"
+    "copyright": "Copyright Quantum Billing Zama Sniper contributors"
   }
 }

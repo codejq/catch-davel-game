@@ -10,6 +10,8 @@ use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_fs::{FsExt, OpenOptions as PluginOpenOptions};
 
 const MAX_PROFILE_BYTES: usize = 4 * 1024 * 1024;
+/// Bundle identifier the app used before it was renamed; a profile saved there is carried over once.
+const LEGACY_IDENTIFIER: &str = "com.quantumbilling.catchdavel";
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -105,9 +107,43 @@ fn store_profile_in(directory: &Path, serialized_profile: &str) -> Result<(), St
     sync_directory(directory)
 }
 
+/// The pre-rename profile directory that sits beside this app's own app-data directory.
+fn legacy_profile_directory(app_data: &Path) -> Option<PathBuf> {
+    Some(
+        app_data
+            .parent()?
+            .join(LEGACY_IDENTIFIER)
+            .join("profiles")
+            .join("default"),
+    )
+}
+
+/// Copies profile files from the pre-rename location when this location has no profile yet.
+fn adopt_legacy_profile(directory: &Path, legacy: &Path) -> Result<(), String> {
+    if directory.join("profile.json").exists() || !legacy.join("profile.json").exists() {
+        return Ok(());
+    }
+    fs::create_dir_all(directory)
+        .map_err(|error| format!("Unable to create packaged profile directory: {error}"))?;
+    for name in ["profile.json", "profile.previous.json"] {
+        let source = legacy.join(name);
+        if source.exists() {
+            fs::copy(&source, directory.join(name))
+                .map_err(|error| format!("Unable to carry over the pre-rename profile: {error}"))?;
+        }
+    }
+    sync_directory(directory)
+}
+
 #[tauri::command]
 fn load_packaged_profile(app: tauri::AppHandle) -> Result<ProfileCandidates, String> {
-    load_candidates_from(&profile_directory(&app)?)
+    let directory = profile_directory(&app)?;
+    if let Ok(app_data) = app.path().app_data_dir() {
+        if let Some(legacy) = legacy_profile_directory(&app_data) {
+            adopt_legacy_profile(&directory, &legacy)?;
+        }
+    }
+    load_candidates_from(&directory)
 }
 
 #[tauri::command]
@@ -160,9 +196,9 @@ async fn export_packaged_profile(
     let Some(path) = app
         .dialog()
         .file()
-        .set_title("Export Catch Davel profile")
-        .set_file_name("catch-davel-profile-v8.json")
-        .add_filter("Catch Davel JSON profile", &["json"])
+        .set_title("Export Zama Sniper profile")
+        .set_file_name("zama-sniper-profile-v8.json")
+        .add_filter("Zama Sniper JSON profile", &["json"])
         .blocking_save_file()
     else {
         return Ok(false);
@@ -184,8 +220,8 @@ async fn import_packaged_profile(app: tauri::AppHandle) -> Result<Option<String>
     let Some(path) = app
         .dialog()
         .file()
-        .set_title("Import Catch Davel profile")
-        .add_filter("Catch Davel JSON profile", &["json"])
+        .set_title("Import Zama Sniper profile")
+        .add_filter("Zama Sniper JSON profile", &["json"])
         .blocking_pick_file()
     else {
         return Ok(None);
@@ -212,7 +248,7 @@ pub fn run() {
             import_packaged_profile
         ])
         .run(tauri::generate_context!())
-        .expect("error while running Quantum Catch Davel");
+        .expect("error while running Quantum Zama Sniper");
 }
 
 #[cfg(test)]
@@ -226,7 +262,36 @@ mod tests {
             .duration_since(UNIX_EPOCH)
             .unwrap()
             .as_nanos();
-        std::env::temp_dir().join(format!("catch-davel-{name}-{}-{nonce}", std::process::id()))
+        std::env::temp_dir().join(format!("zama-sniper-{name}-{}-{nonce}", std::process::id()))
+    }
+
+    #[test]
+    fn adopts_the_pre_rename_profile_once() {
+        let root = temporary_directory("legacy");
+        let app_data = root.join("com.quantumbilling.zamasniper");
+        let legacy = legacy_profile_directory(&app_data).unwrap();
+        assert_eq!(
+            legacy,
+            root.join(LEGACY_IDENTIFIER)
+                .join("profiles")
+                .join("default")
+        );
+        fs::create_dir_all(&legacy).unwrap();
+        fs::write(legacy.join("profile.json"), "{\"old\":1}").unwrap();
+        let directory = app_data.join("profiles").join("default");
+        adopt_legacy_profile(&directory, &legacy).unwrap();
+        assert_eq!(
+            fs::read_to_string(directory.join("profile.json")).unwrap(),
+            "{\"old\":1}"
+        );
+        // A profile saved under the new name is never overwritten.
+        fs::write(directory.join("profile.json"), "{\"new\":2}").unwrap();
+        adopt_legacy_profile(&directory, &legacy).unwrap();
+        assert_eq!(
+            fs::read_to_string(directory.join("profile.json")).unwrap(),
+            "{\"new\":2}"
+        );
+        fs::remove_dir_all(root).unwrap();
     }
 
     #[test]

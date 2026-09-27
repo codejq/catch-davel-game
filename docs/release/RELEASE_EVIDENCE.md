@@ -1,6 +1,6 @@
 # Release artifact evidence
 
-This procedure creates the machine-readable checksum record used for a reviewed Catch Davel release. It does not select targets, sign artifacts, or publish anything.
+This procedure creates the machine-readable checksum record used for a reviewed Zama Sniper release. It does not select targets, sign artifacts, or publish anything.
 
 ## Contract
 
@@ -23,8 +23,8 @@ The command fails when the tracked worktree is dirty, a target is duplicated, an
 ```powershell
 npm run game:release:evidence -- `
   --version 0.1.0 `
-  --source-url https://example.invalid/quantum-catch-davel/releases/v0.1.0 `
-  --artifact windows-msi=game/src-tauri/target/release/bundle/msi/Quantum-Catch-Davel_0.1.0_x64_en-US.msi `
+  --source-url https://example.invalid/quantum-zama-sniper/releases/v0.1.0 `
+  --artifact windows-msi=game/src-tauri/target/release/bundle/msi/Quantum-Zama-Sniper_0.1.0_x64_en-US.msi `
   --artifact android-arm64=path/to/app-arm64-v8a-release.apk `
   --output release-evidence.json
 ```

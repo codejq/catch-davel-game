@@ -2,7 +2,7 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 import { parseProfile, validateProfile, type ProfileV12 } from './profile';
 
 export const PROFILE_TRANSFER_MAX_BYTES = 4 * 1024 * 1024;
-export const PROFILE_EXPORT_FILENAME = 'catch-davel-profile-v15.json';
+export const PROFILE_EXPORT_FILENAME = 'zama-sniper-profile-v15.json';
 
 function byteLength(value: string): number {
   return new TextEncoder().encode(value).byteLength;
@@ -19,7 +19,7 @@ export function parseProfileExport(serialized: string): ProfileV12 {
   const length = byteLength(serialized);
   if (length === 0 || length > PROFILE_TRANSFER_MAX_BYTES) throw new Error('Profile import must contain 1 byte through 4 MiB');
   const profile = parseProfile(serialized);
-  if (profile.profileId !== 'default') throw new Error('Only the default Catch Davel profile can be imported in this build');
+  if (profile.profileId !== 'default') throw new Error('Only the default Zama Sniper profile can be imported in this build');
   return profile;
 }
 

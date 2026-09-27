@@ -46,7 +46,7 @@ On the Windows development host:
 - ARM64 debug APK: 128,285,738 bytes, SHA-256 `64bb6df60ceb1f0d24778e8fe0b663ea9e17ba4b0d85536c808ae56b49443f50`;
 - x86_64 debug APK: 128,715,759 bytes, SHA-256 `87667e00fab162bc84bfb39afbdd298eac6c63dbcfa1d1df2808c4ce21ab6baf`;
 - five Rust rotation/interruption/bounds/native-transfer tests and six TypeScript corruption/fallback/read-back/transfer tests pass.
-- current packaged smoke launch opened a responsive `Quantum Catch Davel` window (process 17900 for this run) and retained its valid profile at `%APPDATA%/com.quantumbilling.catchdavel/profiles/default/profile.json`.
+- current packaged smoke launch opened a responsive `Quantum Zama Sniper` window (process 17900 for this run) and retained its valid profile at `%APPDATA%/com.quantumbilling.zamasniper/profiles/default/profile.json`.
 
 Build artifacts and native target caches are intentionally ignored. These hashes identify milestone `a771b2a`; later source changes require a fresh hash set before release. Installer restart, native picker behavior, Android emulator/device behavior, touch feel, OS lifecycle edge cases, and signed release bundles require their named validation gates. Physical-device absence does not block further implementation and is never represented as certification.
 

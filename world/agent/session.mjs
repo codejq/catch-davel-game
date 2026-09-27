@@ -1,12 +1,12 @@
-// Launches Catch Davel in a (headless) Chromium page and drives it through the in-game agent API,
-// `window.catchDavel`. Shared by the MCP server and the example Claude agent.
+// Launches Zama Sniper in a (headless) Chromium page and drives it through the in-game agent API,
+// `window.zamaSniper`. Shared by the MCP server and the example Claude agent.
 import { existsSync, createReadStream, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
-export const LIVE_URL = 'https://codejq.github.io/catch-davel-game/';
+export const LIVE_URL = 'https://codejq.github.io/Zama-sniper/';
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 
 const TYPES = {
@@ -53,14 +53,14 @@ export async function openGame({ url, headed = false, width = 960, height = 540 
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(url, { waitUntil: 'load' });
-  await page.waitForFunction(() => window.catchDavel !== undefined, undefined, { timeout: 60_000 });
+  await page.waitForFunction(() => window.zamaSniper !== undefined, undefined, { timeout: 60_000 });
   return {
     url,
     errors,
-    help: () => page.evaluate(() => window.catchDavel.help),
-    observe: () => page.evaluate(() => window.catchDavel.observe()),
-    describe: () => page.evaluate(() => window.catchDavel.describe()),
-    act: (commands) => page.evaluate((list) => window.catchDavel.act(list), commands),
+    help: () => page.evaluate(() => window.zamaSniper.help),
+    observe: () => page.evaluate(() => window.zamaSniper.observe()),
+    describe: () => page.evaluate(() => window.zamaSniper.describe()),
+    act: (commands) => page.evaluate((list) => window.zamaSniper.act(list), commands),
     /** PNG of what the sniper sees, base64-encoded. */
     screenshot: async () => (await page.screenshot({ type: 'png', timeout: 120_000 })).toString('base64'),
     close: async () => { await browser.close(); local?.server.close(); },

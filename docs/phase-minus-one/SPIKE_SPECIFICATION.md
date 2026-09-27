@@ -261,4 +261,4 @@ The sibling project demonstrates useful conventions that may be carried forward:
 - an agent-facing `reset`/`observe`/`act`/`step` API operating on game state rather than DOM controls;
 - separate headless tests for deterministic behavior.
 
-Its existing Three.js renderer, JavaScript source layout, 30 Hz agent default, browser-demo determinism limitations, and temporary `csp: null` setting are not copied. Catch Davel remains strict TypeScript, raw WebGL2, 60 Hz, simulation-authoritative, and least-privilege by its own plan.
+Its existing Three.js renderer, JavaScript source layout, 30 Hz agent default, browser-demo determinism limitations, and temporary `csp: null` setting are not copied. Zama Sniper remains strict TypeScript, raw WebGL2, 60 Hz, simulation-authoritative, and least-privilege by its own plan.

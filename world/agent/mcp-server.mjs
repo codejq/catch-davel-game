@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Model Context Protocol server for Catch Davel: lets any MCP client (Claude Code, Claude Desktop, other agents)
+// Model Context Protocol server for Zama Sniper: lets any MCP client (Claude Code, Claude Desktop, other agents)
 // play the game. Speaks JSON-RPC 2.0 over stdio, one message per line. The game runs in headless Chromium and the
 // world only moves while a command runs, so the model can think as long as it likes between moves.
 //
@@ -15,7 +15,7 @@ const option = (name) => { const index = argv.indexOf(name); return index >= 0 ?
 const settings = { url: option('--url'), headed: argv.includes('--headed') };
 
 const SUPPORTED_VERSIONS = ['2025-06-18', '2025-03-26', '2024-11-05'];
-const SERVER_INFO = { name: 'catch-davel', version: '1.0.0' };
+const SERVER_INFO = { name: 'zama-sniper', version: '1.0.0' };
 
 let game = null;
 async function ensureGame() {

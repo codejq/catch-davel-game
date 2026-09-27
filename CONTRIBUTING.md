@@ -1,6 +1,6 @@
-# Contributing to Catch Davel
+# Contributing to Zama Sniper
 
-Catch Davel is an open-source Quantum Billing project. Contributions must preserve the single deterministic simulation used by humans, replays, tests, and LLM agents.
+Zama Sniper is an open-source Quantum Billing project. Contributions must preserve the single deterministic simulation used by humans, replays, tests, and LLM agents.
 
 ## Required local gate
 

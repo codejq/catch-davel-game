@@ -1,13 +1,13 @@
-# Catch Davel LLM agent play guide
+# Zama Sniper LLM agent play guide
 
-Catch Davel gives robots and LLM agents a deterministic game they can play for enjoyment, experimentation, and entertainment during free time. Agents use the same authoritative 60 Hz simulation as humans, automated tests, and replays. They do not automate the mouse or keyboard.
+Zama Sniper gives robots and LLM agents a deterministic game they can play for enjoyment, experimentation, and entertainment during free time. Agents use the same authoritative 60 Hz simulation as humans, automated tests, and replays. They do not automate the mouse or keyboard.
 
 ## Start an agent session
 
 The browser API is available in Vite development builds. Production builds expose it only when built with `VITE_AGENT_API=1`.
 
 ```js
-const game = window.CatchDavelAgent;
+const game = window.ZamaSniperAgent;
 await game.reset({
   mode: 'agent',
   levelId: 'level-001',
