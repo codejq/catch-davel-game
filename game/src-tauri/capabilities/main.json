@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "main",
-  "description": "Minimum core capability for the bundled Catch Davel game window. Fixed-path persistence and user-selected profile transfer are available only through dedicated Rust commands.",
+  "description": "Minimum core capability for the bundled Zama Sniper game window. Fixed-path persistence and user-selected profile transfer are available only through dedicated Rust commands.",
   "windows": ["main"],
   "permissions": ["core:default"]
 }

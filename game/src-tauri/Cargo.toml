@@ -1,13 +1,13 @@
 [package]
-name = "quantum-catch-davel"
+name = "quantum-zama-sniper"
 version = "0.1.8"
-description = "Quantum Billing Catch Davel desktop and mobile shell"
-authors = ["Quantum Billing Catch Davel contributors"]
+description = "Quantum Billing Zama Sniper desktop and mobile shell"
+authors = ["Quantum Billing Zama Sniper contributors"]
 edition = "2024"
 license = "MIT"
 
 [lib]
-name = "quantum_catch_davel_lib"
+name = "quantum_zama_sniper_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

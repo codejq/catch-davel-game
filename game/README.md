@@ -1,4 +1,4 @@
-# Catch Davel production game
+# Zama Sniper production game
 
 This is the production workspace for the raw-WebGL2 game. It is intentionally separate from the disposable Phase -1 spike.
 
@@ -67,10 +67,10 @@ The complete current operating instructions are in [`docs/agent/LLM_AGENT_PLAY_G
 
 Vite development sessions expose the frozen agent API for local evaluation. Production builds expose it only when built with `VITE_AGENT_API=1`; the normal production artifact has no mutation-capable API.
 
-The same Worker-owned `GameSimulation` used by the human controller is available through `window.CatchDavelAgent` in an enabled build:
+The same Worker-owned `GameSimulation` used by the human controller is available through `window.ZamaSniperAgent` in an enabled build:
 
 ```js
-const api = window.CatchDavelAgent;
+const api = window.ZamaSniperAgent;
 await api.reset({ levelId: 'level-001', seed: 'example', difficulty: 'standard', mode: 'agent' });
 const map = api.level();
 const before = api.observe();
@@ -88,7 +88,7 @@ Calling `act` or `step` transfers control to the agent. Simulation time advances
 
 The version-19 observation includes the authoritative playable campaign level/difficulty identity and choreography, tick/seed, player pose, current/maximum resources and player-upgrade levels, selected/unlocked weapons, snapshotted weapon upgrades, pulse burst/spread state, dash unlock/readiness/cooldown, bomb/sword/laser resources, live thrown bombs and laser focus state, stable robot IDs, names, dances, archetypes/ranks, boss phase, telegraph/recovery state, tempo buffs, shield activity and damage multiplier, relative positions, range, bearing, vertical aiming error, heading, health, line of sight, typed hostile projectiles, resource/coin pickups, typed conveyors, ice lanes, and gates with time-to-toggle, encounter-wave timing, door/key/checkpoint/exit and objective state, remaining count, terminal state, and the complete defense target position, health, strike timing, and stable threat IDs. Level 18's route swap uses those existing public key and hazard fields: its state-driven gates report zero timer ticks and their exact active collision state. Level metadata supplies the matching level ID, grid rows, cell size, world origin, and coordinate conventions. API v4 inputs—including boolean `sprint` and `dash` actions—are bounded and normalized before they enter simulation schema v21. Agents can select any authored playable ID and difficulty with `reset({ mode: 'agent', levelId: 'level-036', difficulty: 'hard' })`, request the isolated full arsenal with `loadout: 'training'`, or request the boss-training encounter; agent resets deliberately use zero upgrades. `getVersion`, `getActionSchema`, `getMetrics`, replay save/load, and the legacy compact `replayLog` are also available.
 
-`BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.CatchDavelAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,519—below the 6,000-tick hard budget.
+`BaselineCampaignAgent` is the public-observation reference policy. The browser verifier drives it only through `window.ZamaSniperAgent`; its frozen Standard run collects the key, opens the door, activates the checkpoint, deactivates all six Davels, and reaches the exit at tick 4,519—below the 6,000-tick hard budget.
 
 `npm run game:qa:campaign` executes the same public-observation policy against all thirty-six playable levels, enforces each level's declared tick/stuck/illegal-action gates, repeats every run for determinism, and prints a canonical machine-readable report. The checked-in `qa/frozen-checksum-manifest.json` freezes Levels 1, 3, 5, 6, 8, and 10 with exact final ticks, checksums, seeds, and all replay dependency hashes; drift blocks the command rather than silently rewriting its reference.
 

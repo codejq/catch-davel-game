@@ -161,30 +161,30 @@ async function run(): Promise<void> {
     const pageUrl = rendererPreference === 'main' ? `${url}?renderer=main` : url;
     await page.goto(pageUrl, { waitUntil: 'load' });
     await page.waitForFunction(() => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__?: { rendererInfo: () => unknown } }).__CATCH_DAVEL_SPIKE__;
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__?: { rendererInfo: () => unknown } }).__ZAMA_SNIPER_SPIKE__;
       return capture?.rendererInfo() !== null;
     }, undefined, { timeout: 15_000 });
     await page.waitForTimeout(warmupSeconds * 1_000);
     const memoryBeforeBytes = await measureHeap();
     await page.evaluate(() => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
         drainSimulationSamples: () => unknown;
         drainRenderSamples: () => unknown;
         drainErrors: () => unknown;
-      } }).__CATCH_DAVEL_SPIKE__;
+      } }).__ZAMA_SNIPER_SPIKE__;
       capture.drainSimulationSamples();
       capture.drainRenderSamples();
       capture.drainErrors();
     });
     await page.waitForTimeout(measuredSeconds * 1_000);
     captured = await page.evaluate(() => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
         mode: () => string;
         rendererInfo: () => RendererInfo | null;
         drainSimulationSamples: () => BrowserSimulationSample[];
         drainRenderSamples: () => RenderStats[];
         drainErrors: () => string[];
-      } }).__CATCH_DAVEL_SPIKE__;
+      } }).__ZAMA_SNIPER_SPIKE__;
       return {
         mode: capture.mode(),
         rendererInfo: capture.rendererInfo(),
@@ -199,9 +199,9 @@ async function run(): Promise<void> {
       };
     });
     const contextRecovery = await page.evaluate(async () => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
         probeContextRecovery: () => Promise<ContextRecoveryResult>;
-      } }).__CATCH_DAVEL_SPIKE__;
+      } }).__ZAMA_SNIPER_SPIKE__;
       return capture.probeContextRecovery();
     });
     captured = { ...captured, contextRecovery };
@@ -211,9 +211,9 @@ async function run(): Promise<void> {
     await page.waitForTimeout(500);
     await page.locator('#game').click({ position: { x: 10, y: 10 } });
     const audioVisual = await page.evaluate(async () => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
         probeAudioVisual: () => Promise<AudioVisualProbeResult>;
-      } }).__CATCH_DAVEL_SPIKE__;
+      } }).__ZAMA_SNIPER_SPIKE__;
       return capture.probeAudioVisual();
     });
     captured = { ...captured, audioVisual };
@@ -225,24 +225,24 @@ async function run(): Promise<void> {
     for (const target of targets) {
       for (const milliseconds of [50, 250, 1_000, 5_000]) {
         const before = await page.evaluate(() => {
-          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+          const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
             latestTicks: () => { main: number; render: number };
-          } }).__CATCH_DAVEL_SPIKE__;
+          } }).__ZAMA_SNIPER_SPIKE__;
           return capture.latestTicks();
         });
         await page.evaluate(async ({ target: stallTarget, milliseconds: duration }) => {
-          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+          const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
             stallMain: (value: number) => void;
             stallRender: (value: number) => Promise<void>;
-          } }).__CATCH_DAVEL_SPIKE__;
+          } }).__ZAMA_SNIPER_SPIKE__;
           if (stallTarget === 'main') capture.stallMain(duration);
           else await capture.stallRender(duration);
         }, { target, milliseconds });
         await page.waitForTimeout(target === 'render' ? 1_100 : 150);
         const after = await page.evaluate(() => {
-          const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+          const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
             latestTicks: () => { main: number; render: number };
-          } }).__CATCH_DAVEL_SPIKE__;
+          } }).__ZAMA_SNIPER_SPIKE__;
           return capture.latestTicks();
         });
         const monitoredTickDelta = target === 'main' ? after.render - before.render : after.main - before.main;
@@ -254,11 +254,11 @@ async function run(): Promise<void> {
       }
     }
     const postProbe = await page.evaluate(() => {
-      const capture = (globalThis as typeof globalThis & { __CATCH_DAVEL_SPIKE__: {
+      const capture = (globalThis as typeof globalThis & { __ZAMA_SNIPER_SPIKE__: {
         drainSimulationSamples: () => unknown;
         drainRenderSamples: () => unknown;
         drainErrors: () => string[];
-      } }).__CATCH_DAVEL_SPIKE__;
+      } }).__ZAMA_SNIPER_SPIKE__;
       capture.drainSimulationSamples();
       capture.drainRenderSamples();
       return { errors: capture.drainErrors() };

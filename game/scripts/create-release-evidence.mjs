@@ -94,7 +94,7 @@ export function createEvidence(options, roots = { gameRoot: GAME_ROOT, repositor
   }
   return {
     schemaVersion: 1,
-    product: 'Quantum Catch Davel',
+    product: 'Quantum Zama Sniper',
     version: options.version,
     sourceUrl: options.sourceUrl,
     gitCommit: gitText(['rev-parse', 'HEAD'], repositoryRoot),

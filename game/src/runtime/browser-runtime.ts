@@ -292,7 +292,7 @@ export async function startBrowserGame(): Promise<void> {
   } catch (error) {
     activeProfile = createDefaultProfile();
     document.body.dataset.profileReady = 'error';
-    console.warn('Catch Davel profile load failed; continuing without durable persistence', error);
+    console.warn('Zama Sniper profile load failed; continuing without durable persistence', error);
   }
   if (!trainingMode && !activeProfile.unlockedLevelIds.includes(activeLevelId)) {
     activeLevelId = 'level-001';
@@ -623,7 +623,7 @@ export async function startBrowserGame(): Promise<void> {
     activeInputBindings = applyDirectionalControlSwap(normalizeInputBindings(profile.inputMappings));
     if (trainingMode) return;
     profileWrite = profileWrite.then(() => profileRepository.save(profile)).catch((error: unknown) => {
-      console.warn('Catch Davel profile save failed', error);
+      console.warn('Zama Sniper profile save failed', error);
     });
   };
 
@@ -1240,7 +1240,7 @@ export async function startBrowserGame(): Promise<void> {
             }));
             showMessage(ui('checkpointBanked', { coins: newlyBanked }));
           }
-        }).catch((error: unknown) => console.warn('Catch Davel checkpoint save failed', error));
+        }).catch((error: unknown) => console.warn('Zama Sniper checkpoint save failed', error));
       } else {
         showMessage(ui('checkpoint'));
       }
@@ -1275,7 +1275,7 @@ export async function startBrowserGame(): Promise<void> {
           ));
           renderCampaignMap();
           window.setTimeout(() => showMissionResults(summary), 700);
-        }).catch((error: unknown) => console.warn('Catch Davel mission results failed', error));
+        }).catch((error: unknown) => console.warn('Zama Sniper mission results failed', error));
       }
     }
     if (event.type === 'defeat') {
@@ -1581,7 +1581,7 @@ export async function startBrowserGame(): Promise<void> {
       ).then(() => client.setMode('realtime')).catch((error: unknown) => console.error(error));
       showMessage(ui('upgradeInstalled', { name: ui(UPGRADE_UI_KEYS[id].name) }));
     } catch (error) {
-      console.warn('Catch Davel upgrade rejected', error);
+      console.warn('Zama Sniper upgrade rejected', error);
       showMessage(ui('upgradeFailed'));
     }
   });

@@ -1,4 +1,4 @@
-# Catch Davel release checklist
+# Zama Sniper release checklist
 
 This checklist separates reproducible engineering evidence from owner approvals, human review, signing, and distribution actions. A checked engineering item is not a claim of platform certification or company approval.
 

@@ -2359,7 +2359,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "quantum-catch-davel"
+name = "quantum-zama-sniper"
 version = "0.1.8"
 dependencies = [
  "serde",

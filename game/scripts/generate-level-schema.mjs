@@ -110,8 +110,8 @@ const definitions = {
 
 const schema = {
   $schema: 'https://json-schema.org/draft/2020-12/schema',
-  $id: 'https://quantum-billing.example/schemas/catch-davel/level-definition-v1.json',
-  title: 'Catch Davel LevelDefinition v1',
+  $id: 'https://quantum-billing.example/schemas/zama-sniper/level-definition-v1.json',
+  title: 'Zama Sniper LevelDefinition v1',
   ...strict({
     schemaVersion: { const: 1 }, id: { type: 'string', pattern: '^level-\\d{3}$' }, number: integer(1, 36),
     chapterId: { type: 'string', pattern: '^chapter-\\d{2}$' }, nameKey: id, briefingKey: id, seed: id,

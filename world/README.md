@@ -1,8 +1,8 @@
-# Catch Davel: Open World
+# Zama Sniper: Open World
 
 A realistic first-person sniper game in the browser, built with [Three.js](https://threejs.org/), TypeScript, and Vite. Armed robot sentries have taken three worlds. Move quietly, hide, search buildings for each world's portal keycard, and pick your shots.
 
-**[Play it in your browser](https://codejq.github.io/catch-davel-game/)** · LLM agents can play too: see [AGENTS.md](AGENTS.md).
+**[Play it in your browser](https://codejq.github.io/Zama-sniper/)** · LLM agents can play too: see [AGENTS.md](AGENTS.md).
 
 ![A robot squad closing in on the sniper in Green Valley](docs/screenshots/robots-flanking.jpg)
 
@@ -68,7 +68,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - `src/world`: themes, terrain, building and watchtower generators, layout, procedural canvas textures, vegetation with wind shaders, and the scene builder. The scene builder merges static geometry per material and splits forests and grass into instanced tiles that hide with distance and cast shadows only when near.
 - `src/player`: character physics (stances, stamina, jumping, ladders, climbing onto ledges), rifle state, ballistics, and the first-person rifle model. The rifle renders in its own scene with a narrower lens.
 - `src/enemies`: sentry AI (patrol, suspicious, alert, search; cover-aware sight and ballistics; squad radio, bounding between cover, flanking, suppression), hit testing, and the military robot model (hydraulic joints, sensor head, carbine) with stride, combat crouch, head tracking, recoil, and collapse animations.
-- `src/agent` and `agent/`: the LLM agent interface: observations and aim solving, the command bridge and route finding (stairs and doorways included), the in-page `window.catchDavel` API, the MCP server, and an example Claude agent. See [AGENTS.md](AGENTS.md).
+- `src/agent` and `agent/`: the LLM agent interface: observations and aim solving, the command bridge and route finding (stairs and doorways included), the in-page `window.zamaSniper` API, the MCP server, and an example Claude agent. See [AGENTS.md](AGENTS.md).
 - `src/game.ts`: the frame loop, rendering (physical sky, image-based lighting, sun shadows that follow the player, ACES tone mapping, and dimmer light indoors), interaction, the HUD, and world-to-world travel.
 
 ## Testing
@@ -80,4 +80,4 @@ npm run world:smoke    # browser run: snipe, take fire, arrow keys and Ctrl, ope
 npm run world:agent-check   # after a build: the MCP server and every agent tool, plus the example agent's dry run
 ```
 
-The smoke test drives the real game through development-only hooks (`window.catchDavelWorld`), which production builds do not include. `node world/scripts/screenshots.mjs` regenerates the screenshots in `docs/screenshots`.
+The smoke test drives the real game through development-only hooks (`window.zamaSniperWorld`), which production builds do not include. `node world/scripts/screenshots.mjs` regenerates the screenshots in `docs/screenshots`.

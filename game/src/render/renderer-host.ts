@@ -43,7 +43,7 @@ function canvasSize(canvas: HTMLCanvasElement, quality: RenderQualityTier): { re
 
 function webGl2(canvas: HTMLCanvasElement): WebGL2RenderingContext {
   const context = canvas.getContext('webgl2', { alpha: false, antialias: true });
-  if (context === null) throw new Error('Catch Davel requires WebGL2');
+  if (context === null) throw new Error('Zama Sniper requires WebGL2');
   return context;
 }
 

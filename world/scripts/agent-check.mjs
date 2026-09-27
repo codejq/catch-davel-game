@@ -29,7 +29,7 @@ const call = async (name, args = {}) => {
 };
 
 const init = await rpc('initialize', { protocolVersion: '2025-06-18', capabilities: {}, clientInfo: { name: 'agent-check', version: '1' } });
-if (init.result?.serverInfo?.name !== 'catch-davel' || init.result.protocolVersion !== '2025-06-18') fail(`bad initialize reply ${JSON.stringify(init)}`);
+if (init.result?.serverInfo?.name !== 'zama-sniper' || init.result.protocolVersion !== '2025-06-18') fail(`bad initialize reply ${JSON.stringify(init)}`);
 server.stdin.write(`${JSON.stringify({ jsonrpc: '2.0', method: 'notifications/initialized' })}\n`);
 const names = (await rpc('tools/list')).result.tools.map((tool) => tool.name).sort();
 if (names.join() !== 'game_act,game_help,game_observe,game_screenshot,game_start') fail(`tools ${names}`);

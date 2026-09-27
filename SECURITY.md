@@ -8,7 +8,7 @@ Security fixes target the latest source revision and the latest official package
 
 Do not publish exploitable details, private data, signing material, or secrets in a public issue. Report the problem privately to the Quantum Billing project owner through the private channel associated with the repository. Include the affected revision or package version, platform, reproduction steps, impact, and any safe proof of concept.
 
-If no private repository reporting channel is configured, contact Quantum Billing through its official business contact and ask for the Catch Davel security maintainer. A public issue may state only that a private security report is pending.
+If no private repository reporting channel is configured, contact Quantum Billing through its official business contact and ask for the Zama Sniper security maintainer. A public issue may state only that a private security report is pending.
 
 ## Security boundary
 

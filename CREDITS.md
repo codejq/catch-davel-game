@@ -1,11 +1,11 @@
-# Catch Davel credits
+# Zama Sniper credits
 
-Catch Davel: Rhythm Rebellion is an original game by Quantum Billing LLC and the Catch Davel contributors.
+Zama Sniper: Rhythm Rebellion is an original game by Quantum Billing LLC and the Zama Sniper contributors.
 
 ## Production
 
 - Product owner and publisher: Quantum Billing LLC
-- Design, deterministic simulation, raw WebGL2 renderer, content pipeline, procedural visuals, procedural audio, campaign content, packaging, and documentation: Catch Davel contributors
+- Design, deterministic simulation, raw WebGL2 renderer, content pipeline, procedural visuals, procedural audio, campaign content, packaging, and documentation: Zama Sniper contributors
 - Davel robot identity and Quantum Billing marks: Quantum Billing LLC
 
 ## Technology
@@ -21,4 +21,4 @@ policy are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
 ## Inspiration boundary
 
-FacePrintLab's Catch Davel interactive demonstration inspired the goal of expressive articulated dancing robots. Its implementation and presentation are reference material only and are not copied into this game. Classic first-person maze games inform the genre, but their code, maps, characters, artwork, sounds, music, names, and trade dress are not used.
+FacePrintLab's Zama Sniper interactive demonstration inspired the goal of expressive articulated dancing robots. Its implementation and presentation are reference material only and are not copied into this game. Classic first-person maze games inform the genre, but their code, maps, characters, artwork, sounds, music, names, and trade dress are not used.

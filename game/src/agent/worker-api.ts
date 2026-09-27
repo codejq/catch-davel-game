@@ -4,7 +4,7 @@ import { DEFAULT_LEVEL_SEED, GAME_SCHEMA_VERSION } from '../sim/constants';
 import { levelObservation, type AgentObservation } from './observation';
 import {
   agentActionSchema, normalizeAgentAction,
-  type AgentAction, type CatchDavelAgentApi, type ReplayEntry,
+  type AgentAction, type ZamaSniperAgentApi, type ReplayEntry,
 } from './api';
 import { TRAINING_WEAPON_MASK } from '../sim/weapons';
 import { campaignLevel } from '../content/levels/catalog';
@@ -28,8 +28,8 @@ export class WorkerAgentController {
 
   isAgentControlled(): boolean { return this.controlled; }
 
-  install(): CatchDavelAgentApi {
-    const api: CatchDavelAgentApi = {
+  install(): ZamaSniperAgentApi {
+    const api: ZamaSniperAgentApi = {
       version: AGENT_API_VERSION,
       getVersion: () => ({ apiVersion: AGENT_API_VERSION, simulationSchemaVersion: GAME_SCHEMA_VERSION, replayFormatVersion: REPLAY_FORMAT_VERSION }),
       getActionSchema: () => agentActionSchema(),
@@ -57,7 +57,7 @@ export class WorkerAgentController {
       replayLog: () => this.replay.map((entry) => ({ ...entry, action: { ...entry.action } })),
     };
     Object.freeze(api);
-    window.CatchDavelAgent = api;
+    window.ZamaSniperAgent = api;
     return api;
   }
 

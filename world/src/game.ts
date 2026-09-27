@@ -77,7 +77,7 @@ export class Game {
   private environment: THREE.WebGLRenderTarget | null = null;
   private readonly input: Input;
   private readonly audio = new GameAudio();
-  private readonly random = new Random('catch-davel-open-world');
+  private readonly random = new Random('zama-sniper-open-world');
   /** Loot is reshuffled every time a world loads, so each playthrough turns up different finds in different places. */
   private lootRandom = new Random(freshSeed());
   private readonly rifle = new RifleState();

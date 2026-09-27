@@ -77,7 +77,7 @@ Ordered events travel on a port independent from snapshots. The current provisio
 
 ## Agent isolation
 
-Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.CatchDavelAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
+Local development exposes the agent API. A production build exposes it only with `VITE_AGENT_API=1`; the default artifact does not define `window.ZamaSniperAgent`. The object is frozen and accepts only bounded game actions. It has no filesystem, Tauri command, shell, network, or arbitrary profile capability.
 
 Agent action queues pause authoritative time between requests, and their replays carry `agentRun: true`. Human IndexedDB progress writes are suppressed while agent control is active. Reset—including explicit Story/Standard/Hard selection—action batches, replay save/load, observations, and metrics are Worker RPCs; the metrics response includes a defensive copy of the same authoritative run counters used by human results. Releasing control creates a clean human simulation from durable profile state before resuming realtime mode.
 

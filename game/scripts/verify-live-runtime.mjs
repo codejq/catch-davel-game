@@ -38,13 +38,13 @@ try {
   await page.waitForFunction(() => (
     document.body.dataset.profileReady === 'true'
     && document.body.dataset.workerStatus === 'ready'
-    && window.CatchDavelAgent !== undefined
+    && window.ZamaSniperAgent !== undefined
     && Number(document.body.dataset.snapshotTick) > 0
   ));
 
   const result = await page.evaluate(async () => {
     const readProfileRecords = async () => {
-      const request = indexedDB.open('quantum-catch-davel', 1);
+      const request = indexedDB.open('quantum-zama-sniper', 1);
       const database = await new Promise((resolve, reject) => {
         request.addEventListener('success', () => resolve(request.result), { once: true });
         request.addEventListener('error', () => reject(request.error), { once: true });
@@ -59,7 +59,7 @@ try {
       return values;
     };
 
-    const api = window.CatchDavelAgent;
+    const api = window.ZamaSniperAgent;
     if (!api) throw new Error('Development agent API was not installed');
     const realtimeStartTick = Number(document.body.dataset.snapshotTick);
     await new Promise((resolve) => setTimeout(resolve, 300));

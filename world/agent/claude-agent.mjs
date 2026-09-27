@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Example: Claude plays Catch Davel. A manual tool-use loop over the same game tools the MCP server offers, driving
-// the game in headless Chromium through `window.catchDavel`.
+// Example: Claude plays Zama Sniper. A manual tool-use loop over the same game tools the MCP server offers, driving
+// the game in headless Chromium through `window.zamaSniper`.
 //
 //   ANTHROPIC_API_KEY=... node world/agent/claude-agent.mjs [--turns 40] [--world 0] [--url <game url>] [--headed]
 //   node world/agent/claude-agent.mjs --dry-run      # no API calls: a scripted stand-in exercises the same tools

@@ -34,7 +34,7 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto(url, { waitUntil: 'load' });
-  await page.waitForFunction(() => Boolean(window.CatchDavelAgent));
+  await page.waitForFunction(() => Boolean(window.ZamaSniperAgent));
   const result = await page.evaluate(async () => {
     const seed = 'worker-determinism-proof';
     const action = { forward: 0.65, strafe: -0.2, turn: 0.001, look: 0, fire: false };

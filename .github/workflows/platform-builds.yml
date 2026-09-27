@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: catch-davel-platforms-${{ github.ref }}
+  group: zama-sniper-platforms-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" || gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}" --title "Catch Davel ${{ github.ref_name }}" --generate-notes
+        run: gh release view "${{ github.ref_name }}" --repo "${{ github.repository }}" || gh release create "${{ github.ref_name }}" --repo "${{ github.repository }}" --title "Zama Sniper ${{ github.ref_name }}" --generate-notes
 
   web:
     name: Offline web
@@ -38,17 +38,17 @@ jobs:
       - run: npm ci
       - run: npm run game:build
       - name: Package offline web build
-        run: cd game/dist && zip -r ../../catch-davel-web-${{ github.ref_name }}.zip .
+        run: cd game/dist && zip -r ../../zama-sniper-web-${{ github.ref_name }}.zip .
       - uses: actions/upload-artifact@v4
         with:
-          name: catch-davel-web
+          name: zama-sniper-web
           path: game/dist
           if-no-files-found: error
       - name: Add web build to GitHub Release
         if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.ref_name }}" "catch-davel-web-${{ github.ref_name }}.zip" --repo "${{ github.repository }}" --clobber
+        run: gh release upload "${{ github.ref_name }}" "zama-sniper-web-${{ github.ref_name }}.zip" --repo "${{ github.repository }}" --clobber
 
   desktop:
     name: ${{ matrix.name }}
@@ -88,18 +88,18 @@ jobs:
         run: cargo build --release --manifest-path game/src-tauri/Cargo.toml
       - uses: actions/upload-artifact@v4
         with:
-          name: catch-davel-${{ runner.os }}-${{ runner.arch }}
+          name: zama-sniper-${{ runner.os }}-${{ runner.arch }}
           path: |
             game/src-tauri/target/**/release/bundle/**
             game/src-tauri/target/release/bundle/**
-            game/src-tauri/target/release/quantum-catch-davel.exe
+            game/src-tauri/target/release/quantum-zama-sniper.exe
           if-no-files-found: error
       - name: Add Windows executable to GitHub Release
         if: runner.os == 'Windows' && startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: game/src-tauri/target/release/quantum-catch-davel.exe
+          files: game/src-tauri/target/release/quantum-zama-sniper.exe
           fail_on_unmatched_files: true
       - name: Add Linux packages to GitHub Release
         if: runner.os == 'Linux' && startsWith(github.ref, 'refs/tags/v')
@@ -157,7 +157,7 @@ jobs:
           exit "$status"
       - uses: actions/upload-artifact@v4
         with:
-          name: catch-davel-Android-ARM64
+          name: zama-sniper-Android-ARM64
           path: game/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
           if-no-files-found: error
       - name: Add APK to GitHub Release

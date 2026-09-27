@@ -3,8 +3,8 @@ import { describeObservation, type Observation } from './observation';
 
 export const AGENT_API_VERSION = 1;
 
-/** The object published as `window.catchDavel` for agents, test harnesses, and the MCP server. */
-export interface CatchDavelAgentApi {
+/** The object published as `window.zamaSniper` for agents, test harnesses, and the MCP server. */
+export interface ZamaSniperAgentApi {
   readonly version: number;
   /** Command reference, for putting into a prompt. */
   readonly help: string;
@@ -18,7 +18,7 @@ export interface CatchDavelAgentApi {
   release(): void;
 }
 
-export function createAgentApi(host: AgentHost): CatchDavelAgentApi {
+export function createAgentApi(host: AgentHost): ZamaSniperAgentApi {
   const bridge = new AgentBridge(host);
   return {
     version: AGENT_API_VERSION,

@@ -22,10 +22,10 @@ try {
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
   await page.goto(server.resolvedUrls.local[0], { waitUntil: 'load' });
-  await page.waitForFunction(() => window.catchDavelWorld !== undefined);
+  await page.waitForFunction(() => window.zamaSniperWorld !== undefined);
 
   const combat = await page.evaluate(() => {
-    const w = window.catchDavelWorld;
+    const w = window.zamaSniperWorld;
     w.play();
     const target = w.sentries()[2];
     let spot = null;
@@ -57,7 +57,7 @@ try {
   if (combat.damageTaken <= 0) throw new Error(`Robots never fired at an exposed player: ${JSON.stringify(combat)}`);
 
   await page.evaluate(() => {
-    const w = window.catchDavelWorld;
+    const w = window.zamaSniperWorld;
     w.load(0); w.play();
     const door = w.doors()[0].plan;
     const cx = door.hingeX + Math.cos(door.closedYaw) * door.width / 2; const cz = door.hingeZ - Math.sin(door.closedYaw) * door.width / 2;
@@ -67,30 +67,30 @@ try {
   });
   await page.keyboard.press('Enter');
   await page.waitForTimeout(200);
-  const door = await page.evaluate(() => { window.catchDavelWorld.step(1); return window.catchDavelWorld.doors()[0]; });
+  const door = await page.evaluate(() => { window.zamaSniperWorld.step(1); return window.zamaSniperWorld.doors()[0]; });
   if (!door.open || door.blocking) throw new Error(`Door did not open with Enter: ${JSON.stringify(door)}`);
 
   // Right-hand keyboard layout: arrows move and turn, Ctrl fires, Right Shift scopes.
-  await page.evaluate(() => { const w = window.catchDavelWorld; w.load(0); w.play(); const s = w.layout().spawn; w.teleport(s.x, s.z, s.yaw, 0); });
-  const start = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
+  await page.evaluate(() => { const w = window.zamaSniperWorld; w.load(0); w.play(); const s = w.layout().spawn; w.teleport(s.x, s.z, s.yaw, 0); });
+  const start = await page.evaluate(() => ({ ...window.zamaSniperWorld.body().position, yaw: window.zamaSniperWorld.body().yaw }));
   await page.keyboard.down('ArrowUp');
-  await page.evaluate(() => window.catchDavelWorld.step(1));
+  await page.evaluate(() => window.zamaSniperWorld.step(1));
   const clearWhileMoving = await page.evaluate(() => document.querySelector('#hud').classList.contains('clear-view'));
   await page.keyboard.up('ArrowUp');
   await page.keyboard.down('ArrowLeft');
-  await page.evaluate(() => window.catchDavelWorld.step(0.5));
+  await page.evaluate(() => window.zamaSniperWorld.step(0.5));
   await page.keyboard.up('ArrowLeft');
-  const moved = await page.evaluate(() => ({ ...window.catchDavelWorld.body().position, yaw: window.catchDavelWorld.body().yaw }));
-  await page.evaluate(() => window.catchDavelWorld.step(1));
+  const moved = await page.evaluate(() => ({ ...window.zamaSniperWorld.body().position, yaw: window.zamaSniperWorld.body().yaw }));
+  await page.evaluate(() => window.zamaSniperWorld.step(1));
   const infoWhenStill = !(await page.evaluate(() => document.querySelector('#hud').classList.contains('clear-view')));
   await page.keyboard.press('ShiftRight');
-  await page.evaluate(() => window.catchDavelWorld.step(0.6));
+  await page.evaluate(() => window.zamaSniperWorld.step(0.6));
   const scoped = await page.evaluate(() => document.querySelector('#scope').style.opacity === '1');
-  const shotsBefore = await page.evaluate(() => window.catchDavelWorld.stats().shots);
+  const shotsBefore = await page.evaluate(() => window.zamaSniperWorld.stats().shots);
   await page.keyboard.down('ControlRight');
-  await page.evaluate(() => window.catchDavelWorld.step(0.1));
+  await page.evaluate(() => window.zamaSniperWorld.step(0.1));
   await page.keyboard.up('ControlRight');
-  const shotsAfter = await page.evaluate(() => window.catchDavelWorld.stats().shots);
+  const shotsAfter = await page.evaluate(() => window.zamaSniperWorld.stats().shots);
   const keyboard = {
     walked: Math.hypot(moved.x - start.x, moved.z - start.z), turned: start.yaw - moved.yaw, scoped, fired: shotsAfter - shotsBefore, clearWhileMoving, infoWhenStill,
   };
@@ -99,7 +99,7 @@ try {
   }
 
   const journey = await page.evaluate(() => {
-    const w = window.catchDavelWorld;
+    const w = window.zamaSniperWorld;
     const worlds = [];
     for (let index = 0; index < 3; index += 1) {
       w.searchAll();
