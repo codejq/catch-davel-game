@@ -35,7 +35,7 @@ Ids in observations: `r#` robots, `d#` doors, `c#` containers, `p#` pickups, `b#
 | `game_act` | Runs up to 12 commands in order and returns what each did plus a fresh briefing. |
 | `game_screenshot` | A PNG of what the sniper sees. |
 
-Build the game once so the server can serve it locally (without a build it plays the [published game](https://codejq.github.io/Zama-sniper/)):
+Build the game once so the server can serve it locally (without a build it plays the [published game](https://codejq.github.io/zama-sniper/)):
 
 ```powershell
 npm ci
@@ -45,7 +45,7 @@ npm run world:build
 Add it to Claude Code:
 
 ```powershell
-claude mcp add zama-sniper -- node /path/to/Zama-sniper/world/agent/mcp-server.mjs
+claude mcp add zama-sniper -- node /path/to/zama-sniper/world/agent/mcp-server.mjs
 ```
 
 Or to Claude Desktop (`claude_desktop_config.json`), or any client that takes the same shape:
@@ -55,7 +55,7 @@ Or to Claude Desktop (`claude_desktop_config.json`), or any client that takes th
   "mcpServers": {
     "zama-sniper": {
       "command": "node",
-      "args": ["/path/to/Zama-sniper/world/agent/mcp-server.mjs"]
+      "args": ["/path/to/zama-sniper/world/agent/mcp-server.mjs"]
     }
   }
 }

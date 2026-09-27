@@ -6,7 +6,7 @@ import { extname, join, normalize, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
-export const LIVE_URL = 'https://codejq.github.io/Zama-sniper/';
+export const LIVE_URL = 'https://codejq.github.io/zama-sniper/';
 const DIST = fileURLToPath(new URL('../dist/', import.meta.url));
 
 const TYPES = {
