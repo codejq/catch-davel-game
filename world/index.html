@@ -66,6 +66,7 @@
         <small>QUANTUM BILLING PRESENTS</small>
         <h1>ZAMA SNIPER<span>OPEN WORLD</span></h1>
         <p>Armed robots, soldiers, and tanks have taken three worlds where families still live. Move in silence, hide in the trees, search the houses for the portal keycard, and pick your shots: never the civilians.</p>
+        <p id="continue-info" class="continue" hidden></p>
         <div class="controls">
           <div><kbd>↑</kbd><kbd>↓</kbd> move forward · back</div><div><kbd>←</kbd><kbd>→</kbd> turn</div>
           <div><kbd>Ctrl</kbd> fire</div><div><kbd>Right Shift</kbd> tap: scope on / off</div>
@@ -79,10 +80,11 @@
         <p class="agents">LLM agents can play too: <a href="https://github.com/codejq/zama-sniper/blob/main/world/AGENTS.md" target="_blank" rel="noopener">MCP server and agent API</a></p>
         <label class="quality">Graphics <select id="quality"><option value="high">High</option><option value="low">Low</option></select></label>
         <button id="play" type="button">PRESS ENTER OR CLICK TO PLAY</button>
+        <button id="new-game" class="secondary" type="button" hidden>NEW GAME FROM WORLD 1</button>
         <a class="classic" href="./classic/">Play the classic maze game</a>
       </div>
     </section>
-    <section id="card" class="overlay card" hidden><small id="card-eyebrow">WORLD 1 OF 3</small><h2 id="card-title">GREEN VALLEY</h2><p id="card-text"></p></section>
+    <section id="card" class="overlay card" hidden><small id="card-eyebrow">WORLD 1 OF 3</small><h2 id="card-title">GREEN VALLEY</h2><p id="card-text"></p><p id="card-carry" hidden></p></section>
     <section id="death" class="overlay" hidden><div class="panel"><h2>YOU WERE TAKEN DOWN</h2><p>The robots found you. Stay low, use cover, and move after you shoot.</p><button id="retry" type="button">TRY AGAIN</button></div></section>
     <section id="victory" class="overlay" hidden><div class="panel"><h2>ALL THREE WORLDS ARE FREE</h2><p id="victory-text"></p><button id="again" type="button">PLAY AGAIN</button></div></section>
     <script type="module" src="./src/main.ts"></script>

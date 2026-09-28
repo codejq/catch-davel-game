@@ -5,9 +5,10 @@ import type { Vec3 } from './core/collision';
 import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
-import { createRobotRig, createSoldierRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
+import { createRobotRig, createSoldierRig, poseRobot, poseRobotFar, setRobotDetail, type RobotRig } from './enemies/robot-mesh';
 import { planForces } from './enemies/deployment';
 import { Resupply } from './player/resupply';
+import { applyProgress, captureProgress, clearProgress, describeArsenal, loadProgress, saveProgress, type Progress } from './player/progress';
 import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop, type LootKind } from './player/loot';
 import { createPickupMesh } from './world/pickups';
 import { scatterLootSpots } from './world/loot-spots';
@@ -39,6 +40,9 @@ const LOOK_SENSITIVITY = 0.0022;
 const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ridge': 0x9a8466, 'frost-pass': 0xc4c8cc };
 /** Soldiers' fatigues blend with each world: woodland green, desert tan, winter grey. */
 const SOLDIER_CAMO: Record<string, number> = { 'green-valley': 0x7d8c5c, 'dust-ridge': 0xc7b08a, 'frost-pass': 0xd4d8dc };
+
+/** Enemies further than this (metres, divided by scope zoom and body size) are drawn as a simple stand-in. */
+const DETAIL_RANGE = 40;
 
 /** How long the sniper must stand still before the information panels fade back in. */
 const HUD_RETURN_SECONDS = 0.6;
@@ -137,6 +141,8 @@ export class Game {
   private scopeToggled = false;
   private readonly carbine = new CarbineState();
   private readonly resupply = new Resupply();
+  /** A run saved on reaching a later world, offered as CONTINUE on the menu. */
+  private saved: Progress | null = null;
   private readonly carbineModel = createCarbineViewModel();
   private weapon: WeaponName = 'rifle';
   /** Seconds left lowering one weapon and raising the other. */
@@ -196,11 +202,27 @@ export class Game {
   }
 
   private bindMenus(): void {
+    this.offerContinue();
+    element('#new-game').addEventListener('click', () => {
+      clearProgress();
+      this.saved = null;
+      element('#play').click();
+    });
     element('#play').addEventListener('click', () => {
       this.quality = element<HTMLSelectElement>('#quality').value === 'low' ? 'low' : 'high';
       this.audio.start();
       element('#menu').hidden = true;
-      if (this.world === null) this.loadWorld(0);
+      element('#new-game').hidden = true;
+      element('#continue-info').hidden = true;
+      if (this.world === null) {
+        if (this.saved !== null) {
+          // Pick up where the last session left off, with the weapons collected so far.
+          this.weapon = applyProgress(this.saved, this.rifle, this.carbine, this.loadout);
+          this.loadWorld(this.saved.world, describeArsenal(this.saved));
+        } else {
+          this.loadWorld(0);
+        }
+      }
       this.phase = 'playing';
       this.hud.root.hidden = false;
       this.input.lock();
@@ -240,7 +262,8 @@ export class Game {
 
   get theme(): WorldTheme { return WORLDS[this.worldIndex]!; }
 
-  loadWorld(index: number): void {
+  /** `carried` describes the weapons brought from the last world, for the arrival card. */
+  loadWorld(index: number, carried: string | null = null): void {
     this.worldIndex = index;
     if (this.world !== null) {
       this.scene.remove(this.world.root);
@@ -280,7 +303,7 @@ export class Game {
     this.stats.started = this.stats.started === 0 ? performance.now() : this.stats.started;
     this.audio.setAmbience(theme.snow ? 'snow' : theme.id === 'dust-ridge' ? 'desert' : 'forest');
     this.hud.worldName.textContent = `${theme.name.toUpperCase()} · WORLD ${index + 1} OF ${WORLDS.length}`;
-    this.showCard(theme, index);
+    this.showCard(theme, index, carried);
     this.refreshObjectives();
   }
 
@@ -330,11 +353,14 @@ export class Game {
     this.viewScene.environmentIntensity = 0.3;
   }
 
-  private showCard(theme: WorldTheme, index: number): void {
+  private showCard(theme: WorldTheme, index: number, carried: string | null = null): void {
     const card = element('#card');
     element('#card-eyebrow').textContent = `WORLD ${index + 1} OF ${WORLDS.length}`;
     element('#card-title').textContent = theme.name.toUpperCase();
     element('#card-text').textContent = theme.tagline;
+    const carry = element('#card-carry');
+    carry.textContent = carried === null ? '' : `Your weapons came with you: ${carried}`;
+    carry.hidden = carried === null;
     card.hidden = false;
     card.style.animation = 'none';
     void card.offsetWidth;
@@ -700,7 +726,11 @@ export class Game {
     this.sentries.forEach((sentry, index) => {
       const shot = updateSentry(sentry, player, this.world!.collision, dt, this.random, this.population?.victimFor(sentry) ?? null);
       radioSquad(this.sentries, sentry, player.position);
-      poseRobot(this.rigs[index]!, sentry, this.time + index, player.eye);
+      // Full model when close (or close-looking through the scope), a one-piece stand-in further out.
+      const rig = this.rigs[index]!;
+      const apparent = Math.hypot(sentry.position.x - player.eye.x, sentry.position.z - player.eye.z) * (this.camera.fov / BASE_FOV) / sentry.scale;
+      if (setRobotDetail(rig, apparent < DETAIL_RANGE)) poseRobot(rig, sentry, this.time + index, player.eye);
+      else poseRobotFar(rig, sentry);
       if (sentry.mode === 'alert' && !this.alerted.has(sentry.id)) {
         this.alerted.add(sentry.id);
         this.audio.robotAlert(0);
@@ -998,6 +1028,7 @@ export class Game {
   private travel(): void {
     this.audio.portal();
     if (this.worldIndex + 1 >= WORLDS.length) {
+      clearProgress();
       this.phase = 'victory';
       document.exitPointerLock();
       const minutes = (performance.now() - this.stats.started) / 60000;
@@ -1006,7 +1037,22 @@ export class Game {
       element('#victory').hidden = false;
       return;
     }
-    this.loadWorld(this.worldIndex + 1);
+    // Everything collected comes along to the next world, and is saved in case the page is closed.
+    const progress = captureProgress(this.worldIndex + 1, this.weapon, this.rifle, this.carbine, this.loadout);
+    saveProgress(progress);
+    this.loadWorld(this.worldIndex + 1, describeArsenal(progress));
+  }
+
+  /** With a saved run, the menu offers to continue it (with its weapons) or to start again from world 1. */
+  private offerContinue(): void {
+    this.saved = loadProgress(WORLDS.length);
+    if (this.saved === null) return;
+    const theme = WORLDS[this.saved.world]!;
+    element('#play').textContent = `CONTINUE · WORLD ${this.saved.world + 1} · ${theme.name.toUpperCase()}`;
+    const info = element('#continue-info');
+    info.textContent = `Your weapons are waiting: ${describeArsenal(this.saved)}.`;
+    info.hidden = false;
+    element('#new-game').hidden = false;
   }
 
   private updateDoors(dt: number): void {

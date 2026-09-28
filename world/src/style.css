@@ -78,8 +78,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 #shooters .shooter span { position: absolute; left: 50%; bottom: -20px; transform: translateX(-50%); font-size: 11px; font-weight: 800; color: #ffb0a8; white-space: nowrap; }
 #shooters .shooter.firing { border-color: #ffd060; box-shadow: 0 0 16px #ffb020; }
 #scope ~ #shooters .shooter { border-width: 2px; }
-.overlay { position: fixed; inset: 0; display: grid; place-items: center; background: radial-gradient(circle at 50% 40%, #0b120ecc, #050706f2); }
-.overlay.card { background: transparent; pointer-events: none; }
+/* Scrolls when the window is too short for the panel; margin: auto keeps it centred without clipping the top. */
+.overlay { position: fixed; inset: 0; display: flex; overflow-y: auto; background: radial-gradient(circle at 50% 40%, #0b120ecc, #050706f2); }
+.overlay > .panel { margin: auto; }
+.overlay.card { flex-direction: column; justify-content: center; align-items: center; background: transparent; pointer-events: none; }
 .card { text-align: center; animation: card 4.2s ease forwards; }
 .card small { letter-spacing: .3em; font-weight: 800; color: #cfe3a0; }
 .card h2 { margin: 8px 0; font-size: 58px; letter-spacing: .08em; text-shadow: 0 4px 24px #000; }
@@ -98,6 +100,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 .quality select { margin-left: 8px; padding: 4px 8px; background: #1a231d; color: #eef2ea; border: 1px solid #ffffff44; border-radius: 4px; }
 .panel button { width: 100%; padding: 14px; border: 0; border-radius: 6px; background: #cfe3a0; color: #0e1511; font: inherit; font-size: 16px; font-weight: 900; letter-spacing: .2em; cursor: pointer; }
 .panel button:hover { background: #e2f2bb; }
+.panel button.secondary { margin-top: 10px; padding: 10px; background: transparent; color: #cfe3a0; border: 1px solid #cfe3a066; font-size: 13px; }
+.panel button.secondary:hover { background: #cfe3a01a; }
+.continue { margin: 0 0 12px; padding: 10px 12px; border-left: 3px solid #cfe3a0; background: #cfe3a012; font-size: 14px; }
+#card-carry { margin-top: 6px; color: #cfe3a0; font-size: 14px; }
 .classic { display: block; margin-top: 14px; text-align: center; color: #9fb49a; font-size: 13px; }
 @media (max-width: 720px) {
   .controls { grid-template-columns: 1fr; }
