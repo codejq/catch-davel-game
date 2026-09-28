@@ -41,6 +41,18 @@ const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ri
 /** Soldiers' fatigues blend with each world: woodland green, desert tan, winter grey. */
 const SOLDIER_CAMO: Record<string, number> = { 'green-valley': 0x7d8c5c, 'dust-ridge': 0xc7b08a, 'frost-pass': 0xd4d8dc };
 
+/** At most this many threat arrows and shooter boxes on screen, nearest and most aware first. */
+const THREAT_MARKERS = 16;
+const SHOOTER_BOXES = 10;
+
+/** Only writes markup that changed: rewriting HUD elements every frame forces the browser to lay the page out again. */
+const lastHtml = new WeakMap<HTMLElement, string>();
+function setHtml(element: HTMLElement, html: string): void {
+  if (lastHtml.get(element) === html) return;
+  lastHtml.set(element, html);
+  element.innerHTML = html;
+}
+
 /** Enemies further than this (metres, divided by scope zoom and body size) are drawn as a simple stand-in. */
 const DETAIL_RANGE = 40;
 
@@ -143,6 +155,8 @@ export class Game {
   private readonly resupply = new Resupply();
   /** A run saved on reaching a later world, offered as CONTINUE on the menu. */
   private saved: Progress | null = null;
+  /** Height of the view in CSS pixels, kept from the last resize so the HUD never has to measure the page. */
+  private viewHeight = 720;
   private readonly carbineModel = createCarbineViewModel();
   private weapon: WeaponName = 'rifle';
   /** Seconds left lowering one weapon and raising the other. */
@@ -254,6 +268,7 @@ export class Game {
     const ratio = Math.min(devicePixelRatio, this.quality === 'high' ? 2 : 1);
     this.renderer.setPixelRatio(ratio);
     this.renderer.setSize(innerWidth, innerHeight, false);
+    this.viewHeight = innerHeight;
     this.camera.aspect = innerWidth / innerHeight;
     this.camera.updateProjectionMatrix();
     this.viewCamera.aspect = this.camera.aspect;
@@ -305,6 +320,38 @@ export class Game {
     this.hud.worldName.textContent = `${theme.name.toUpperCase()} · WORLD ${index + 1} OF ${WORLDS.length}`;
     this.showCard(theme, index, carried);
     this.refreshObjectives();
+    this.warmUp();
+  }
+
+  /**
+   * Compiles every shader the fighting will need while the world loads. Far-off enemies are drawn as simple
+   * stand-ins, so without this the full soldier and robot models, the carbine, tracers, sparks, dust, blasts, and
+   * dropped weapons were compiled the first time they appeared: a visible freeze right as an enemy attacked.
+   */
+  private warmUp(): void {
+    const shown = this.rigs.map((rig) => ({ rig, near: rig.pelvis.visible, far: rig.far.visible }));
+    for (const rig of this.rigs) { rig.pelvis.visible = true; rig.far.visible = true; }
+    const effectsBefore = this.effects.length;
+    const spot = { x: this.body.position.x, y: this.body.position.y - 50, z: this.body.position.z };
+    this.tracer(spot, { x: spot.x + 1, y: spot.y, z: spot.z });
+    this.sparks(spot, 0xffc070, 1);
+    this.dust(spot, 'tree');
+    const extras = new THREE.Group();
+    extras.position.set(spot.x, spot.y, spot.z);
+    extras.add(createPickupMesh('carbine').root);
+    extras.add(new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false })));
+    this.scene.add(extras);
+    const carbineShown = this.carbineModel.group.visible;
+    this.carbineModel.group.visible = true;
+    try {
+      this.renderer.compile(this.scene, this.camera);
+      this.renderer.compile(this.viewScene, this.viewCamera);
+    } finally {
+      this.carbineModel.group.visible = carbineShown;
+      this.scene.remove(extras);
+      for (const effect of this.effects.splice(effectsBefore)) this.scene.remove(effect.object);
+      for (const { rig, near, far } of shown) { rig.pelvis.visible = near; rig.far.visible = far; }
+    }
   }
 
   private applyAtmosphere(theme: WorldTheme): void {
@@ -1152,8 +1199,8 @@ export class Game {
       hud.reserve.textContent = `/ ${this.carbine.reserve}`;
       hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.carbine.reloading ? 'RELOADING…' : this.carbine.magazine === 0 ? 'EMPTY · RESUPPLYING…' : this.resupply.carbineLow(this.carbine) ? 'LOW AMMO · RESUPPLYING' : 'ROBOT CARBINE · AUTOMATIC';
     }
-    hud.weapons.innerHTML = `<span class="${this.weapon === 'rifle' ? 'active' : ''}"><kbd>1</kbd> RIFLE ${this.rifle.magazine}/${this.rifle.reserve}</span>`
-      + `<span class="${this.weapon === 'carbine' ? 'active' : ''}${this.carbine.owned ? '' : ' locked'}"><kbd>2</kbd> CARBINE ${this.carbine.owned ? `${this.carbine.magazine}/${this.carbine.reserve}` : '—'}</span>`;
+    setHtml(hud.weapons, `<span class="${this.weapon === 'rifle' ? 'active' : ''}"><kbd>1</kbd> RIFLE ${this.rifle.magazine}/${this.rifle.reserve}</span>`
+      + `<span class="${this.weapon === 'carbine' ? 'active' : ''}${this.carbine.owned ? '' : ' locked'}"><kbd>2</kbd> CARBINE ${this.carbine.owned ? `${this.carbine.magazine}/${this.carbine.reserve}` : '—'}</span>`);
     const scoped = this.rifle.aim > 0.85;
     hud.scope.style.opacity = scoped ? '1' : '0';
     hud.crosshair.classList.toggle('scoped', this.rifle.aim > 0.2);
@@ -1176,16 +1223,19 @@ export class Game {
     }
     const portal = this.world!.portal;
     add(Math.atan2(portal.x - this.body.position.x, -(portal.z - this.body.position.z)), '◆', 'portal');
-    hud.compass.innerHTML = marks.join('');
-    // Threat indicators around the reticle.
-    const markers: string[] = [];
-    for (const sentry of this.sentries) {
-      if (sentry.mode === 'dead' || sentry.awareness < 0.12) continue;
-      const bearing = angleDifference(Math.atan2(sentry.position.x - this.body.position.x, -(sentry.position.z - this.body.position.z)), this.body.yaw);
+    setHtml(hud.compass, marks.join(''));
+    // Threat indicators around the reticle: the most aware enemies only (with a hundred hunting you, drawing an
+    // arrow for each rebuilt the page every frame and made the game stutter), rounded so the markup rarely changes.
+    const here = this.body.position;
+    const aware = this.sentries.filter((sentry) => sentry.mode !== 'dead' && sentry.awareness >= 0.12)
+      .sort((a, b) => b.awareness - a.awareness || Math.hypot(a.position.x - here.x, a.position.z - here.z) - Math.hypot(b.position.x - here.x, b.position.z - here.z))
+      .slice(0, THREAT_MARKERS);
+    const markers = aware.map((sentry) => {
+      const bearing = angleDifference(Math.atan2(sentry.position.x - here.x, -(sentry.position.z - here.z)), this.body.yaw);
       const color = sentry.awareness >= 1 ? '#ff3b2f' : sentry.awareness > 0.5 ? '#ffa126' : '#ffffff';
-      markers.push(`<div class="marker" style="transform:rotate(${bearing}rad)"><i style="background:${color};opacity:${0.4 + Math.min(1, sentry.awareness) * 0.6}"></i></div>`);
-    }
-    hud.detection.innerHTML = markers.join('');
+      return `<div class="marker" style="transform:rotate(${bearing.toFixed(2)}rad)"><i style="background:${color};opacity:${(0.4 + Math.min(1, sentry.awareness) * 0.6).toFixed(1)}"></i></div>`;
+    });
+    setHtml(hud.detection, markers.join(''));
     // Red brackets over robots that are shooting at you, so you can find the shooter.
     const shooterMarks: string[] = [];
     const projected = new THREE.Vector3();
@@ -1195,19 +1245,20 @@ export class Game {
       projected.set(position.x, position.y, position.z).project(this.camera);
       if (projected.z > 1 || Math.abs(projected.x) > 1.05 || projected.y > 1.05 || top < -1.05) return;
       const distance = Math.hypot(position.x - this.body.position.x, position.z - this.body.position.z);
-      const tall = Math.max(34, (top - projected.y) * 0.5 * this.canvas.clientHeight + 8);
+      const tall = Math.max(34, (top - projected.y) * 0.5 * this.viewHeight + 8);
       projected.y = (top + projected.y) / 2;
       const firing = sinceShot < 0.4 ? ' firing' : '';
-      shooterMarks.push(`<div class="shooter${firing}" style="left:${(projected.x * 0.5 + 0.5) * 100}%;top:${(-projected.y * 0.5 + 0.5) * 100}%;width:${tall * aspect}px;height:${tall}px"><span>${Math.round(distance)} m</span></div>`);
+      shooterMarks.push(`<div class="shooter${firing}" style="left:${((projected.x * 0.5 + 0.5) * 100).toFixed(1)}%;top:${((-projected.y * 0.5 + 0.5) * 100).toFixed(1)}%;width:${Math.round(tall * aspect)}px;height:${Math.round(tall)}px"><span>${Math.round(distance)} m</span></div>`);
     };
-    for (const sentry of this.sentries) {
-      if (sentry.mode === 'dead' || (sentry.mode !== 'alert' && sentry.sinceShot > 3)) continue;
-      bracket(sentry.position, sentrySize(sentry).headHeight + 0.3, 0.5, sentry.sinceShot);
-    }
+    // The nearest few shooters: those are the ones that can hurt you.
+    const shooters = this.sentries.filter((sentry) => sentry.mode !== 'dead' && (sentry.mode === 'alert' || sentry.sinceShot <= 3))
+      .map((sentry) => ({ sentry, distance: Math.hypot(sentry.position.x - here.x, sentry.position.z - here.z) }))
+      .sort((a, b) => a.distance - b.distance).slice(0, SHOOTER_BOXES);
+    for (const { sentry } of shooters) bracket(sentry.position, sentrySize(sentry).headHeight + 0.3, 0.5, sentry.sinceShot);
     for (const tank of this.population?.tanks ?? []) {
       if (tank.mode === 'alert') bracket(tank.position, TANK.eyeHeight + 0.8, 1.8, tank.sinceShot);
     }
-    hud.shooters.innerHTML = shooterMarks.join('');
+    setHtml(hud.shooters, shooterMarks.join(''));
   }
 
   private render(dt: number): void {
@@ -1462,7 +1513,7 @@ export class Game {
       body: () => this.body,
       load: (index: number) => this.loadWorld(index),
       play: () => { this.phase = 'playing'; this.hud.root.hidden = false; element('#menu').hidden = true; if (this.world === null) this.loadWorld(0); },
-      info: () => ({ triangles: this.renderer.info.render.triangles, calls: this.renderer.info.render.calls }),
+      info: () => ({ triangles: this.renderer.info.render.triangles, calls: this.renderer.info.render.calls, programs: this.renderer.info.programs?.length ?? 0 }),
       step: (seconds: number) => { for (let t = 0; t < seconds; t += 1 / 60) this.update(1 / 60); },
     };
   }

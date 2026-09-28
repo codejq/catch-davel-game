@@ -49,6 +49,9 @@ export class Population {
   private readonly tankRigs: TankRig[] = [];
   private readonly shells: Shell[] = [];
   private readonly blasts: Blast[] = [];
+  /** Explosion lights, always in the scene (dark until a blast) so the set of lights never changes mid-game. */
+  private readonly blastLights = [0, 1].map(() => new THREE.PointLight(0xffa050, 0, 30, 2));
+  private nextBlastLight = 0;
   /** Which civilian each robot is picking on, and when robots may pick on someone again. */
   private readonly victims = new Map<SentryState, { civilian: Civilian; since: number; shots: number }>();
   private readonly victimCooldown = new Map<SentryState, number>();
@@ -64,6 +67,7 @@ export class Population {
   constructor(layout: WorldLayout, private readonly world: CollisionWorld, private readonly root: THREE.Object3D, private readonly random: Random,
     private readonly sounds: PopulationSounds) {
     const plan = planPopulation(layout, world, random);
+    root.add(...this.blastLights);
     for (const picnic of plan.picnics) root.add(createPicnic(picnic));
     for (const civilian of plan.civilians) {
       this.civilians.push(civilian);
@@ -263,9 +267,13 @@ export class Population {
     const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 10), new THREE.MeshBasicMaterial({ color: 0xffa040, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false }));
     mesh.position.set(point.x, point.y, point.z);
     mesh.scale.setScalar(0.5 * size);
-    const light = new THREE.PointLight(0xffa050, 80 * size, 30, 2);
+    // Reuse one of the blast lights that always stay in the scene: adding or removing a light makes three.js
+    // recompile every material, which froze the game for a moment at each explosion.
+    const light = this.blastLights[this.nextBlastLight]!;
+    this.nextBlastLight = (this.nextBlastLight + 1) % this.blastLights.length;
+    light.intensity = 80 * size;
     light.position.set(point.x, point.y + 1, point.z);
-    this.root.add(mesh, light);
+    this.root.add(mesh);
     this.blasts.push({ mesh, light, age: 0 });
     this.sounds.explosion(0, Math.hypot(point.x - listener.x, point.z - listener.z));
     this.gunshot(point, 40);
@@ -280,7 +288,8 @@ export class Population {
       (blast.mesh.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.9 * (1 - t));
       blast.light.intensity = Math.max(0, blast.light.intensity - dt * 200);
       if (t >= 1) {
-        this.root.remove(blast.mesh, blast.light);
+        this.root.remove(blast.mesh);
+        blast.light.intensity = 0;
         this.blasts.splice(index, 1);
       }
     }
