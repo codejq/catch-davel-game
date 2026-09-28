@@ -1,10 +1,11 @@
 import * as THREE from 'three';
 import type { LootKind } from '../player/loot';
+import { carbine } from '../enemies/robot-mesh';
 
 /** Glow colour under each kind of pickup, so you can tell them apart at a glance. */
 export const LOOT_GLOW: Record<LootKind, number> = {
   money: 0x6bdc6b, ammo: 0xf2c14e, armor: 0x5aa0ff, medkit: 0xff5a5a, life: 0xff3b6b,
-  magazine: 0xffa040, suppressor: 0xc080ff, scope: 0x40e0ff,
+  magazine: 0xffa040, suppressor: 0xc080ff, scope: 0x40e0ff, carbine: 0xff5040,
 };
 
 const olive = new THREE.MeshStandardMaterial({ color: 0x4a5236, roughness: 0.8 });
@@ -88,6 +89,15 @@ function model(kind: LootKind): THREE.Group {
       group.add(tube(0.02, 0.05, brass, -0.18, 0, 0));
       for (let ring = 0; ring < 3; ring += 1) group.add(tube(0.037, 0.012, band, -0.08 + ring * 0.08, 0, 0));
       break;
+    case 'carbine': {
+      // The dropped robot carbine lying on a salvaged armor plate.
+      const { gun } = carbine();
+      gun.rotation.y = Math.PI / 2;
+      gun.scale.setScalar(0.55);
+      group.add(gun);
+      group.add(box(0.3, 0.04, 0.3, new THREE.MeshStandardMaterial({ color: 0x55603f, roughness: 0.6, metalness: 0.4 }), 0, -0.1, 0));
+      break;
+    }
     case 'scope':
       group.add(tube(0.025, 0.3, darkMetal));
       group.add(tube(0.04, 0.08, darkMetal, 0.18, 0, 0));

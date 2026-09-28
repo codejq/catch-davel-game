@@ -17,8 +17,13 @@ page.on('pageerror', (error) => console.error(error.message));
 await page.goto(server.resolvedUrls.local[0]);
 await page.waitForFunction(() => window.zamaSniperWorld !== undefined);
 
-async function shot(name, setup) {
+async function shot(name, setup, carbine = false) {
   await page.evaluate(setup);
+  if (carbine) {
+    await page.evaluate(() => window.zamaSniperWorld.giveCarbine());
+    await page.keyboard.press('Digit2');
+    await page.evaluate(() => window.zamaSniperWorld.step(0.8));
+  }
   await page.waitForTimeout(700);
   await page.screenshot({ path: `${out}${name}.jpg`, type: 'jpeg', quality: 82 });
   console.log(`${name}.jpg`);
@@ -91,6 +96,51 @@ await shot('frost-pass', () => {
   window.shots.viewOf({ x: b.x, y: b.baseY, z: b.z }, 34, 3, 0.05, 4);
   w.step(1.2);
 });
+
+await shot('family-picnic', () => {
+  const w = window.zamaSniperWorld; window.shots.world(0); window.shots.clear();
+  const population = w.population();
+  const diner = population.civilians.filter((c) => c.activity === 'eat' && c.seat !== null).sort((a, b) => b.family - a.family)[0];
+  const seat = diner.seat;
+  // Stand a few metres off the table, looking across it at the family.
+  for (let step = 0; step < 40; step += 1) {
+    const angle = step * 0.31;
+    const x = seat.x + Math.cos(angle) * 5.5; const z = seat.z + Math.sin(angle) * 5.5;
+    w.teleport(x, z, 0, 0);
+    const body = w.body();
+    if (w.los({ x, y: body.position.y + 1.6, z }, { x: seat.x, y: seat.y + 1, z: seat.z })) break;
+  }
+  const body = w.body();
+  body.yaw = Math.atan2(seat.x - body.position.x, -(seat.z - body.position.z));
+  body.pitch = -0.2;
+  w.stance('crouch');
+  w.step(2);
+});
+
+await shot('tank', () => {
+  const w = window.zamaSniperWorld; window.shots.world(1); window.shots.clear();
+  const tank = w.population().tanks[0];
+  w.step(4);
+  window.shots.viewOf(tank.position, 28, 1.5, 0.03, 1);
+  w.step(0.1);
+});
+
+await shot('carbine', () => {
+  const w = window.zamaSniperWorld; window.shots.world(0);
+  // Take a carbine off a destroyed robot, then face the squad with it.
+  const [fallen, target] = [w.sentries()[3], w.sentries()[4]];
+  fallen.mode = 'dead'; fallen.deathTime = 9;
+  w.population().civilians.forEach((c) => { c.position.x += 5000; });
+  window.shots.viewOf(target.position, 16, 2, 0, 1);
+  const me = { x: w.body().position.x, z: w.body().position.z };
+  w.step(0.2);
+  target.mode = 'alert'; target.awareness = 1.1; target.lastKnown = me;
+  w.step(1);
+  const body = w.body();
+  body.yaw = Math.atan2(target.position.x - body.position.x, -(target.position.z - body.position.z));
+  body.pitch = Math.atan2(target.position.y + 2 - (body.position.y + body.eyeHeight), Math.hypot(target.position.x - body.position.x, target.position.z - body.position.z));
+  w.step(1 / 60);
+}, true);
 
 await browser.close();
 await server.close();

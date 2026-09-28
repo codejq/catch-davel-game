@@ -7,6 +7,8 @@ export const ZERO_RANGE = 100;
 export const MAX_FLIGHT_SECONDS = 2.2;
 
 export interface Bullet {
+  /** Which gun fired it: sets its damage. */
+  readonly weapon: 'rifle' | 'carbine';
   position: Vec3;
   velocity: Vec3;
   age: number;
@@ -15,7 +17,16 @@ export interface Bullet {
   readonly trail: Vec3[];
 }
 
+/** Anything besides robots a bullet can hit: tanks, civilians, dogs. */
+export interface HitTarget {
+  readonly kind: 'tank' | 'civilian' | 'dog';
+  readonly id: string;
+  /** Distance along the (unit) direction to where the ray enters the target, or null for a miss. */
+  hit(origin: Vec3, direction: Vec3): number | null;
+}
+
 export type BulletImpact =
+  | { readonly kind: 'target'; readonly target: HitTarget; readonly point: Vec3; readonly distance: number }
   | { readonly kind: 'sentry'; readonly sentry: SentryState; readonly headshot: boolean; readonly point: Vec3; readonly distance: number }
   | { readonly kind: 'world'; readonly point: Vec3; readonly surface: 'terrain' | 'solid' | 'glass' | 'tree' };
 
@@ -25,24 +36,26 @@ export function zeroAngle(range = ZERO_RANGE): number {
   return Math.atan2(0.5 * GRAVITY * time * time, range);
 }
 
-export function fireBullet(origin: Vec3, direction: Vec3): Bullet {
+/** Fires a round. The rifle is zeroed at 100 m; the carbine is slower and zeroed where it points. */
+export function fireBullet(origin: Vec3, direction: Vec3, weapon: 'rifle' | 'carbine' = 'rifle', speed = MUZZLE_VELOCITY): Bullet {
   const length = Math.hypot(direction.x, direction.y, direction.z) || 1;
   const dx = direction.x / length; const dy = direction.y / length; const dz = direction.z / length;
   // Tilt the bore up by the zero angle in the vertical plane of the shot.
-  const angle = zeroAngle();
+  const angle = weapon === 'rifle' ? zeroAngle() : 0;
   const horizontal = Math.hypot(dx, dz);
   const pitch = Math.atan2(dy, horizontal) + angle;
   const scale = horizontal > 1e-6 ? 1 / horizontal : 0;
   const vx = Math.cos(pitch) * dx * scale; const vz = Math.cos(pitch) * dz * scale;
   return {
     position: { ...origin },
-    velocity: { x: vx * MUZZLE_VELOCITY, y: Math.sin(pitch) * MUZZLE_VELOCITY, z: vz * MUZZLE_VELOCITY },
+    weapon,
+    velocity: { x: vx * speed, y: Math.sin(pitch) * speed, z: vz * speed },
     age: 0, alive: true, trail: [{ ...origin }],
   };
 }
 
 /** Advances a bullet one step, testing the swept segment against the world and every sentry. */
-export function stepBullet(bullet: Bullet, dt: number, world: CollisionWorld, sentries: readonly SentryState[]): BulletImpact | null {
+export function stepBullet(bullet: Bullet, dt: number, world: CollisionWorld, sentries: readonly SentryState[], targets: readonly HitTarget[] = []): BulletImpact | null {
   if (!bullet.alive) return null;
   bullet.age += dt;
   const start = { ...bullet.position };
@@ -60,6 +73,13 @@ export function stepBullet(bullet: Bullet, dt: number, world: CollisionWorld, se
         kind: 'sentry', sentry, headshot: hit.headshot, distance: hit.distance,
         point: { x: start.x + direction.x * hit.distance, y: start.y + direction.y * hit.distance, z: start.z + direction.z * hit.distance },
       };
+    }
+  }
+  for (const target of targets) {
+    const distance = target.hit(start, direction);
+    if (distance !== null && distance >= 0 && distance <= bestDistance) {
+      bestDistance = distance;
+      best = { kind: 'target', target, distance, point: { x: start.x + direction.x * distance, y: start.y + direction.y * distance, z: start.z + direction.z * distance } };
     }
   }
   // Bullets pass straight through window glass.

@@ -3,7 +3,7 @@ import { clamp, type CollisionWorld, type Vec3, type Volume } from '../core/coll
 export type Stance = 'stand' | 'crouch' | 'prone';
 
 export const STANCE = {
-  stand: { height: 1.8, eye: 1.64, walk: 3.3, run: 6.9 },
+  stand: { height: 1.8, eye: 1.64, walk: 3.3, run: 8.6 },
   crouch: { height: 1.2, eye: 1.08, walk: 1.9, run: 1.9 },
   prone: { height: 0.55, eye: 0.36, walk: 0.85, run: 0.85 },
 } as const satisfies Record<Stance, { height: number; eye: number; walk: number; run: number }>;

@@ -11,6 +11,13 @@ import { createPickupMesh } from './world/pickups';
 import { scatterLootSpots } from './world/loot-spots';
 import type { AgentHost, GameSnapshot } from './agent/bridge';
 import { findPath } from './agent/pathfind';
+import { CARBINE, CarbineState, type WeaponName } from './weapons/carbine-state';
+import { createCarbineViewModel } from './weapons/carbine-model';
+import { Population } from './population/population';
+import type { Civilian } from './population/civilians';
+import type { HitTarget } from './player/ballistics';
+import { PLAYER_RADIUS } from './player/body';
+import { TANK, type TankState } from './enemies/tank';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, radioSquad, raySentry, suppressSentry, updateSentry, type PlayerSnapshot, type SentryState,
   SENTRY,
@@ -119,6 +126,17 @@ export class Game {
   private indoorBlend = 0;
   private debugAim = false;
   private scopeToggled = false;
+  private readonly carbine = new CarbineState();
+  private readonly carbineModel = createCarbineViewModel();
+  private weapon: WeaponName = 'rifle';
+  /** Seconds left lowering one weapon and raising the other. */
+  private switchTimer = 0;
+  private population: Population | null = null;
+  /** Innocents lost this world: to robots and tanks, and to the player's own fire. */
+  private innocentsLost = 0;
+  private innocentsShot = 0;
+  private scopeTapStart = -99;
+  private scopeTapMoved = false;
   private debugFire = false;
   private readonly debugImpacts: string[] = [];
   private baseHemi = 0.4;
@@ -132,7 +150,7 @@ export class Game {
     breath: element('#breath-bar'), stance: element('#stance'), visibility: element('#visibility'),
     ammo: element('#ammo-count'), reserve: element('#ammo-reserve'), weaponState: element('#weapon-state'),
     prompt: element('#prompt'), progress: element('#progress'), toast: element('#toast'), detection: element('#detection'),
-    zoom: element('#scope-zoom'), range: element('#scope-range'), threats: element('#threats'), shooters: element('#shooters'),
+    zoom: element('#scope-zoom'), range: element('#scope-range'), threats: element('#threats'), shooters: element('#shooters'), weapons: element('#weapons'),
   };
 
   constructor(private readonly canvas: HTMLCanvasElement) {
@@ -160,7 +178,7 @@ export class Game {
     const viewSun = new THREE.DirectionalLight(0xffffff, 1.2);
     viewSun.position.set(0.4, 1, 0.3);
     this.viewScene.add(viewSun, this.viewCamera);
-    this.viewCamera.add(this.rifleModel.group);
+    this.viewCamera.add(this.rifleModel.group, this.carbineModel.group);
 
     addEventListener('resize', () => this.resize());
     this.resize();
@@ -235,6 +253,10 @@ export class Game {
       this.scene.add(rig.root);
       return rig;
     });
+    // Families, their dogs, and tanks: different people and places every run.
+    this.population = new Population(this.layout, this.world.collision, this.world.root, new Random(freshSeed()), this.audio);
+    this.innocentsLost = 0;
+    this.innocentsShot = 0;
     const spawn = this.layout.spawn;
     this.body = new PlayerBody(spawn.x, this.layout.terrain.heightAt(spawn.x, spawn.z), spawn.z);
     this.body.yaw = spawn.yaw;
@@ -308,12 +330,19 @@ export class Game {
     window.setTimeout(() => { card.hidden = true; }, 4300);
   }
 
+  private civilianObjective(): string {
+    const people = this.population?.civilians.filter((civilian) => civilian.kind !== 'dog') ?? [];
+    const safe = people.filter((civilian) => civilian.mode !== 'dead').length;
+    return `Protect the civilians: ${safe} of ${people.length} safe${this.innocentsShot > 0 ? ` · you shot ${this.innocentsShot}` : ''}`;
+  }
+
   private refreshObjectives(): void {
     const alive = this.sentries.filter((sentry) => sentry.mode !== 'dead').length;
     const items = [
       { text: 'Search the houses for the portal keycard', done: this.keycard },
       { text: 'Reach the portal and travel on', done: false },
       { text: `Optional: destroy the robots (${this.sentries.length - alive}/${this.sentries.length})`, done: alive === 0 },
+      { text: this.civilianObjective(), done: false },
     ];
     this.hud.objectives.replaceChildren(...items.map((item) => {
       const li = document.createElement('li');
@@ -369,20 +398,22 @@ export class Game {
     const intent: MoveIntent = {
       forward: (this.input.held('forward') ? 1 : 0) - (this.input.held('back') ? 1 : 0),
       strafe: (this.input.held('strafeRight') ? 1 : 0) - (this.input.held('strafeLeft') ? 1 : 0),
-      sprint: this.input.held('run') && this.rifle.aim < 0.3,
+      sprint: this.input.held('run') && this.rifle.aim < 0.3 && this.carbine.aim < 0.3,
       jump: this.input.tapped('jump'),
       crouch: this.input.tapped('crouch'),
       prone: this.input.tapped('prone'),
     };
     const airborneBefore = !this.body.onGround;
     this.body.step(intent, dt, world.collision);
+    this.population?.pushPlayer(this.body.position, PLAYER_RADIUS);
     if (airborneBefore && this.body.onGround && this.wasAirborne) this.audio.jumpLand();
     this.wasAirborne = !this.body.onGround;
     this.footsteps();
 
-    this.updateRifle(dt);
+    this.updateWeapons(dt);
     this.updateBullets(dt);
     this.updateSentries(dt);
+    this.updatePopulation(dt);
     this.updateInteraction(dt);
     this.updatePickups(dt);
     this.updateDoors(dt);
@@ -421,50 +452,115 @@ export class Game {
     return new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
   }
 
-  private updateRifle(dt: number): void {
-    // Right Shift toggles the scope for keyboard players; the right mouse button still holds it.
-    if (this.input.tapped('scope')) this.scopeToggled = !this.scopeToggled;
+  /** Switching, aiming, and firing whichever weapon is in hand. */
+  private updateWeapons(dt: number): void {
+    // Right Shift: a quick tap on its own toggles the scope; held with an arrow key it sprints instead.
+    if (this.input.wasPressed('ShiftRight')) { this.scopeTapStart = this.time; this.scopeTapMoved = false; }
+    if (this.input.isDown('ShiftRight') && (this.input.held('forward') || this.input.held('back') || this.input.held('strafeLeft') || this.input.held('strafeRight'))) this.scopeTapMoved = true;
+    if (this.input.wasReleased('ShiftRight') && !this.scopeTapMoved && this.time - this.scopeTapStart < 0.4) this.scopeToggled = !this.scopeToggled;
     if (this.body.sprinting || this.body.climbing) this.scopeToggled = false;
-    const aiming = (this.input.mouseDown(2) || this.scopeToggled || this.debugAim) && !this.body.sprinting && !this.body.climbing;
-    this.rifle.update(dt, aiming, this.input.held('run'));
-    if (this.input.wheel !== 0 && this.rifle.aim > 0.5) this.rifle.stepZoom(this.input.wheel > 0 ? -1 : 1);
-    if (this.input.tapped('zoom') && this.rifle.aim > 0.5) this.rifle.stepZoom(0);
-    if (this.input.tapped('reload') && this.rifle.startReload()) this.audio.reload();
-    const trigger = this.input.mouseClicked(0) || this.input.tapped('fire') || this.debugFire;
+
+    // 1 / 2 pick a weapon; Q (or the wheel when not aiming) swaps.
+    const notAiming = this.rifle.aim < 0.5 && this.carbine.aim < 0.5;
+    if (this.input.tapped('weapon1')) this.switchTo('rifle');
+    if (this.input.tapped('weapon2')) this.switchTo('carbine');
+    if (this.input.tapped('switchWeapon') || (this.input.wheel !== 0 && notAiming)) this.switchTo(this.weapon === 'rifle' ? 'carbine' : 'rifle');
+    this.switchTimer = Math.max(0, this.switchTimer - dt);
+
+    const aiming = (this.input.mouseDown(2) || this.scopeToggled || this.debugAim) && !this.body.sprinting && !this.body.climbing && this.switchTimer <= 0;
+    this.rifle.update(dt, aiming && this.weapon === 'rifle', this.input.held('run'));
+    this.carbine.update(dt, aiming && this.weapon === 'carbine');
+    const ready = !this.body.climbing && this.body.mantle === null && this.switchTimer <= 0;
+    if (this.weapon === 'rifle') this.updateRifle(ready);
+    else this.updateCarbine(ready);
     this.debugFire = false;
-    if (trigger && !this.body.climbing && this.body.mantle === null) {
-      if (this.rifle.magazine === 0 && !this.rifle.reloading) {
-        this.audio.dryFire();
-        if (this.rifle.startReload()) this.audio.reload();
-      } else if (this.rifle.fire()) {
-        const sway = this.rifle.sway(this.time, this.body.stance, this.body.moving, this.body.stamina);
-        const hipSpread = (1 - this.rifle.aim) * 0.035;
-        const direction = this.viewDirection(
-          sway.yaw + (this.random.next() - 0.5) * hipSpread, sway.pitch + (this.random.next() - 0.5) * hipSpread,
-        );
-        const eye = this.body.eye;
-        this.bullets.push(fireBullet(eye, direction));
-        // Robots the round passes close to dive for cover.
-        for (const sentry of this.sentries) {
-          const chest = { x: sentry.position.x - eye.x, y: sentry.position.y + SENTRY.bodyTop * 0.7 - eye.y, z: sentry.position.z - eye.z };
-          const along = chest.x * direction.x + chest.y * direction.y + chest.z * direction.z;
-          if (along <= 0 || along > 400) continue;
-          const miss = Math.hypot(chest.x - direction.x * along, chest.y - direction.y * along, chest.z - direction.z * along);
-          if (miss < 4) suppressSentry(sentry, eye);
-        }
-        this.stats.shots += 1;
-        this.audio.rifleShot(true, this.loadout.suppressor);
-        if (this.rifle.magazine > 0) this.audio.bolt();
-        hearGunshot(this.sentries, eye, this.random, SENTRY.hearingRange * (this.loadout.suppressor ? SUPPRESSED_HEARING : 1));
-        const recoil = this.body.stance === 'prone' ? 0.012 : this.body.stance === 'crouch' ? 0.022 : 0.03;
-        this.body.pitch += recoil;
-        this.recoilPitch = recoil * 0.7;
-      }
-    }
     // The muzzle kicks up instantly, then most of the climb settles back.
     const settle = Math.min(this.recoilPitch, dt * 0.08);
     this.body.pitch -= settle;
     this.recoilPitch -= settle;
+  }
+
+  private switchTo(weapon: WeaponName): void {
+    if (weapon === this.weapon) return;
+    if (weapon === 'carbine' && !this.carbine.owned) {
+      this.toast('NO CARBINE YET · TAKE ONE FROM A DESTROYED ROBOT', 2);
+      return;
+    }
+    this.weapon = weapon;
+    this.switchTimer = 0.45;
+    this.scopeToggled = false;
+    this.audio.reload();
+    this.logEvent(`switched to the ${weapon === 'rifle' ? 'sniper rifle' : 'robot carbine'}`);
+  }
+
+  private updateRifle(ready: boolean): void {
+    if (this.input.wheel !== 0 && this.rifle.aim > 0.5) this.rifle.stepZoom(this.input.wheel > 0 ? -1 : 1);
+    if (this.input.tapped('zoom') && this.rifle.aim > 0.5) this.rifle.stepZoom(0);
+    if (this.input.tapped('reload') && this.rifle.startReload()) this.audio.reload();
+    const trigger = this.input.mouseClicked(0) || this.input.tapped('fire') || this.debugFire;
+    if (!trigger || !ready) return;
+    if (this.rifle.magazine === 0 && !this.rifle.reloading) {
+      this.audio.dryFire();
+      if (this.rifle.startReload()) this.audio.reload();
+      return;
+    }
+    if (!this.rifle.fire()) return;
+    const sway = this.rifle.sway(this.time, this.body.stance, this.body.moving, this.body.stamina);
+    const hipSpread = (1 - this.rifle.aim) * 0.035;
+    const direction = this.viewDirection(
+      sway.yaw + (this.random.next() - 0.5) * hipSpread, sway.pitch + (this.random.next() - 0.5) * hipSpread,
+    );
+    const eye = this.body.eye;
+    this.bullets.push(fireBullet(eye, direction));
+    this.suppressAlong(eye, direction);
+    this.stats.shots += 1;
+    this.audio.rifleShot(true, this.loadout.suppressor);
+    if (this.rifle.magazine > 0) this.audio.bolt();
+    const hearing = SENTRY.hearingRange * (this.loadout.suppressor ? SUPPRESSED_HEARING : 1);
+    hearGunshot(this.sentries, eye, this.random, hearing);
+    this.population?.gunshot(eye, this.loadout.suppressor ? 18 : 45);
+    const recoil = this.body.stance === 'prone' ? 0.012 : this.body.stance === 'crouch' ? 0.022 : 0.03;
+    this.body.pitch += recoil;
+    this.recoilPitch = recoil * 0.7;
+  }
+
+  /** Fully automatic: fires while the trigger is held. */
+  private updateCarbine(ready: boolean): void {
+    if (this.input.tapped('reload') && this.carbine.startReload()) this.audio.reload();
+    const held = this.input.held('fire') || this.input.mouseDown(0) || this.debugFire;
+    if (!held || !ready) return;
+    if (this.carbine.magazine === 0 && !this.carbine.reloading) {
+      if (this.input.tapped('fire') || this.input.mouseClicked(0) || this.debugFire) {
+        this.audio.dryFire();
+        if (this.carbine.startReload()) this.audio.reload();
+      }
+      return;
+    }
+    if (!this.carbine.fire()) return;
+    const spread = this.carbine.spread();
+    const direction = this.viewDirection((this.random.next() - 0.5) * spread * 2, (this.random.next() - 0.5) * spread * 2);
+    const eye = this.body.eye;
+    this.bullets.push(fireBullet(eye, direction, 'carbine', CARBINE.speed));
+    this.suppressAlong(eye, direction);
+    this.stats.shots += 1;
+    this.audio.carbineShot();
+    hearGunshot(this.sentries, eye, this.random, SENTRY.hearingRange);
+    this.population?.gunshot(eye, 45);
+    const recoil = this.body.stance === 'prone' ? 0.003 : 0.006;
+    this.body.pitch += recoil;
+    this.body.yaw += (this.random.next() - 0.5) * 0.004;
+    this.recoilPitch += recoil * 0.6;
+  }
+
+  /** Robots the round passes close to dive for cover. */
+  private suppressAlong(eye: Vec3, direction: THREE.Vector3): void {
+    for (const sentry of this.sentries) {
+      const chest = { x: sentry.position.x - eye.x, y: sentry.position.y + SENTRY.bodyTop * 0.7 - eye.y, z: sentry.position.z - eye.z };
+      const along = chest.x * direction.x + chest.y * direction.y + chest.z * direction.z;
+      if (along <= 0 || along > 400) continue;
+      const miss = Math.hypot(chest.x - direction.x * along, chest.y - direction.y * along, chest.z - direction.z * along);
+      if (miss < 4) suppressSentry(sentry, eye);
+    }
   }
 
   private updateBullets(dt: number): void {
@@ -472,12 +568,14 @@ export class Game {
     for (const bullet of this.bullets) {
       const substeps = 3;
       for (let step = 0; step < substeps && bullet.alive; step += 1) {
-        const impact = stepBullet(bullet, dt / substeps, world.collision, this.sentries);
+        const impact = stepBullet(bullet, dt / substeps, world.collision, this.sentries, this.population?.targets() ?? []);
         if (impact === null) continue;
-        if (import.meta.env.DEV) this.debugImpacts.push(impact.kind === 'sentry' ? `sentry:${impact.headshot}` : `${impact.surface}@${impact.point.x.toFixed(1)},${impact.point.y.toFixed(1)},${impact.point.z.toFixed(1)}`);
-        if (impact.kind === 'sentry') {
-          // A rifle round destroys a robot wherever it lands; a headshot just looks better.
-          const damage = impact.headshot ? 150 : 100;
+        if (import.meta.env.DEV) this.debugImpacts.push(impact.kind === 'sentry' ? `sentry:${impact.headshot}` : impact.kind === 'target' ? `${impact.target.kind}:${impact.target.id}` : `${impact.surface}@${impact.point.x.toFixed(1)},${impact.point.y.toFixed(1)},${impact.point.z.toFixed(1)}`);
+        if (impact.kind === 'target') {
+          this.onTargetHit(impact.target, impact.point, bullet.weapon);
+        } else if (impact.kind === 'sentry') {
+          // A rifle round destroys a robot wherever it lands; the carbine takes a few rounds (or one to the head).
+          const damage = bullet.weapon === 'rifle' ? (impact.headshot ? 150 : 100) : impact.headshot ? CARBINE.headDamage : CARBINE.damage;
           const killed = damageSentry(impact.sentry, damage, this.body.position);
           this.logEvent(`your shot hit ${this.robotId(impact.sentry)}${impact.headshot ? ' in the head' : ''}${killed ? ' - destroyed' : ''}`);
           this.stats.hits += 1;
@@ -489,6 +587,7 @@ export class Game {
           this.sparks(impact.point, 0xffc070, 10);
           if (killed) {
             this.stats.kills += 1;
+            this.dropRobotWeapon(impact.sentry);
             this.audio.robotDown();
             this.toast(impact.headshot ? `HEADSHOT · ${Math.round(impact.distance + bullet.age * 820)} m` : 'ROBOT DOWN');
             this.refreshObjectives();
@@ -509,6 +608,57 @@ export class Game {
     for (let index = this.bullets.length - 1; index >= 0; index -= 1) if (!this.bullets[index]!.alive) this.bullets.splice(index, 1);
   }
 
+  /** A destroyed robot drops its carbine (and armor plates) on the ground for the sniper to take. */
+  private dropRobotWeapon(sentry: SentryState): void {
+    const rig = this.rigs[this.sentries.indexOf(sentry)];
+    if (rig !== undefined) rig.gun.visible = false;
+    const side = { x: Math.cos(sentry.heading) * 1.4, z: -Math.sin(sentry.heading) * 1.4 };
+    const x = sentry.position.x + side.x; const z = sentry.position.z + side.z;
+    const y = this.world!.collision.groundHeight(x, z, 0.2, sentry.position.y + 0.5, 0.45);
+    this.spawnPickup({ kind: 'carbine', amount: 1 }, { x, y: y + 0.35, z }, 0);
+  }
+
+  /** A round hit a tank, a civilian, or a dog. */
+  private onTargetHit(target: HitTarget, point: Vec3, weapon: WeaponName): void {
+    const population = this.population!;
+    if (target.kind === 'tank') {
+      const tank = population.tank(target.id)!;
+      this.sparks(point, 0xffd080, 14);
+      this.audio.impact('robot');
+      this.hud.hitmarker.classList.add('show');
+      this.hitTimer = 0.25;
+      this.stats.hits += 1;
+      const destroyed = population.hitTank(tank, weapon === 'rifle' ? 100 : 25, this.body.position);
+      this.hud.hitmarker.classList.toggle('kill', destroyed);
+      if (destroyed) {
+        this.stats.kills += 1;
+        this.toast('TANK DESTROYED', 2.4);
+        this.logEvent(`your shot destroyed tank ${tank.id}`);
+      } else {
+        this.logEvent(`your shot hit tank ${tank.id} (${Math.round(Math.max(0, tank.health) / TANK.health * 100)}% armor left)`);
+      }
+      return;
+    }
+    const civilian = population.civilian(target.id);
+    if (civilian === undefined || !population.kill(civilian)) return;
+    this.onInnocentShot(civilian);
+  }
+
+  /** Shooting an innocent costs 5% health. */
+  private onInnocentShot(civilian: Civilian): void {
+    this.innocentsShot += 1;
+    this.loadout.health -= 5;
+    this.sinceHurt = 0;
+    this.audio.hurt();
+    const who = civilian.kind === 'dog' ? 'A DOG' : civilian.kind === 'child' ? 'A CHILD' : 'A CIVILIAN';
+    this.toast(`YOU SHOT ${who} · −5% HEALTH`, 3);
+    this.hud.root.classList.add('innocent');
+    window.setTimeout(() => this.hud.root.classList.remove('innocent'), 900);
+    this.logEvent(`you shot ${civilian.kind === 'dog' ? 'dog' : 'civilian'} ${civilian.id} - an innocent; lost 5 health`);
+    this.refreshObjectives();
+    if (this.loadout.health <= 0) this.die();
+  }
+
   private snapshot(): PlayerSnapshot {
     const eye = this.body.eye;
     return {
@@ -520,7 +670,7 @@ export class Game {
   private updateSentries(dt: number): void {
     const player = this.snapshot();
     this.sentries.forEach((sentry, index) => {
-      const shot = updateSentry(sentry, player, this.world!.collision, dt, this.random);
+      const shot = updateSentry(sentry, player, this.world!.collision, dt, this.random, this.population?.victimFor(sentry) ?? null);
       radioSquad(this.sentries, sentry, player.position);
       poseRobot(this.rigs[index]!, sentry, this.time + index, player.eye);
       if (sentry.mode === 'alert' && !this.alerted.has(sentry.id)) {
@@ -530,6 +680,16 @@ export class Game {
       }
       if (sentry.mode !== 'alert' && sentry.mode !== 'dead') this.alerted.delete(sentry.id);
       if (shot === null) return;
+      if (shot.victim !== undefined) {
+        // A robot shooting at a civilian, not at you.
+        this.tracer(shot.from, shot.to);
+        this.flashMuzzle(shot.from);
+        this.audio.robotShot(0, Math.hypot(shot.from.x - player.eye.x, shot.from.z - player.eye.z));
+        if (shot.impact !== null) this.dust(shot.impact, 'tree');
+        const killed = this.population?.robotShotCivilian(shot.victim, shot.hit, shot.from) ?? null;
+        if (killed !== null) this.onInnocentLost(killed, `${this.robotId(sentry)} shot`);
+        return;
+      }
       const distance = Math.hypot(shot.from.x - player.eye.x, shot.from.z - player.eye.z);
       const bearing = angleDifference(Math.atan2(shot.from.x - player.eye.x, -(shot.from.z - player.eye.z)), this.body.yaw);
       this.audio.robotShot(Math.sin(bearing), distance);
@@ -546,20 +706,52 @@ export class Game {
         const taken = takeDamage(this.loadout, shot.damage);
         this.logEvent(`${this.robotId(sentry)} shot you for ${Math.round(taken)} damage from ${Math.round(distance)} m, ${Math.round(bearing * 180 / Math.PI)}° from where you look`);
         if (armored) this.audio.impact('world');
-        this.sinceHurt = 0;
-        this.audio.hurt();
-        this.hud.damage.style.transition = 'none';
-        this.hud.damage.style.boxShadow = 'inset 0 0 160px 60px rgba(170, 0, 0, 0.75)';
-        requestAnimationFrame(() => {
-          this.hud.damage.style.transition = '';
-          this.hud.damage.style.boxShadow = '';
-        });
-        if (this.loadout.health <= 0) this.die();
+        this.hurtFlash();
       } else {
         this.logEvent(`${this.robotId(sentry)} shot at you and missed (${Math.round(distance)} m, ${Math.round(bearing * 180 / Math.PI)}° from where you look)${shot.impact !== null ? ' - your cover stopped it' : ''}`);
         if (shot.impact === null) this.audio.bulletSnap();
       }
     });
+  }
+
+  private hurtFlash(): void {
+    this.sinceHurt = 0;
+    this.audio.hurt();
+    this.hud.damage.style.transition = 'none';
+    this.hud.damage.style.boxShadow = 'inset 0 0 160px 60px rgba(170, 0, 0, 0.75)';
+    requestAnimationFrame(() => {
+      this.hud.damage.style.transition = '';
+      this.hud.damage.style.boxShadow = '';
+    });
+    if (this.loadout.health <= 0) this.die();
+  }
+
+  /** Civilians, dogs, and tanks; shells from tanks can hurt the player. */
+  private updatePopulation(dt: number): void {
+    const population = this.population;
+    if (population === null) return;
+    const player = this.snapshot();
+    const events = population.update(dt, player, this.sentries, this.time);
+    for (const tank of events.tankShots) {
+      this.showThreat(tank.position, false);
+      this.logEvent(`tank ${tank.id} fired at you from ${Math.round(Math.hypot(tank.position.x - player.eye.x, tank.position.z - player.eye.z))} m`);
+    }
+    if (events.playerDamage > 0.5) {
+      const taken = takeDamage(this.loadout, events.playerDamage);
+      const blast = events.explosions[0]!;
+      this.showThreat(blast, true);
+      this.logEvent(`a tank shell burst ${Math.round(Math.hypot(blast.x - player.position.x, blast.z - player.position.z))} m from you: ${Math.round(taken)} damage`);
+      this.hurtFlash();
+    }
+    for (const civilian of events.killedByEnemies) this.onInnocentLost(civilian, 'a tank shell killed');
+  }
+
+  private onInnocentLost(civilian: Civilian, how: string): void {
+    this.innocentsLost += 1;
+    const near = Math.hypot(civilian.position.x - this.body.position.x, civilian.position.z - this.body.position.z) < 90;
+    if (near) this.toast(civilian.kind === 'dog' ? 'A DOG WAS KILLED' : 'A ROBOT KILLED A CIVILIAN', 2.2);
+    this.logEvent(`${how} ${civilian.kind === 'dog' ? 'dog' : 'civilian'} ${civilian.id}`);
+    this.refreshObjectives();
   }
 
   /** A red (hit) or amber (miss) arrow at the screen edge pointing at the robot that fired. */
@@ -744,7 +936,7 @@ export class Game {
     pickup.root.removeFromParent();
     const important = pickup.drop.kind === 'life' || pickup.drop.kind === 'magazine' || pickup.drop.kind === 'suppressor' || pickup.drop.kind === 'scope';
     this.audio.pickup(important);
-    this.toast(applyLoot(pickup.drop, this.loadout, this.rifle), 2.6);
+    this.toast(applyLoot(pickup.drop, this.loadout, this.rifle, this.carbine), 2.6);
     this.stats.loot += 1;
     this.sparks(pickup.position, 0xfff0a0, 8);
   }
@@ -769,7 +961,9 @@ export class Game {
     const feet = this.body.position;
     for (const pickup of [...this.pickups]) {
       if (pickup.age < 0.8 || this.refusal(pickup) !== null) continue;
-      if (Math.hypot(pickup.position.x - feet.x, pickup.position.z - feet.z) < 0.8 && Math.abs(pickup.position.y - feet.y - 0.6) < 1.4) this.collect(pickup);
+      // Walking up to a fallen robot's carbine takes it; other finds are picked up by walking onto them.
+      const reach = pickup.drop.kind === 'carbine' ? 2 : 0.8;
+      if (Math.hypot(pickup.position.x - feet.x, pickup.position.z - feet.z) < reach && Math.abs(pickup.position.y - feet.y - 0.6) < 1.4) this.collect(pickup);
     }
   }
 
@@ -875,9 +1069,17 @@ export class Game {
     hud.visibility.textContent = spotted ? 'SPOTTED' : hidden ? 'HIDDEN' : player.concealed ? 'IN COVER' : 'VISIBLE';
     hud.visibility.classList.toggle('spotted', spotted);
     hud.visibility.classList.toggle('hidden-state', !spotted && hidden);
-    hud.ammo.textContent = String(this.rifle.magazine);
-    hud.reserve.textContent = `/ ${this.rifle.reserve}`;
-    hud.weaponState.textContent = this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · PRESS R' : `BOLT-ACTION${this.loadout.suppressor ? ' · SUPPRESSED' : ''} · ZEROED 100 m`;
+    if (this.weapon === 'rifle') {
+      hud.ammo.textContent = String(this.rifle.magazine);
+      hud.reserve.textContent = `/ ${this.rifle.reserve}`;
+      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · PRESS R' : `SNIPER RIFLE${this.loadout.suppressor ? ' · SUPPRESSED' : ''} · ZEROED 100 m`;
+    } else {
+      hud.ammo.textContent = String(this.carbine.magazine);
+      hud.reserve.textContent = `/ ${this.carbine.reserve}`;
+      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.carbine.reloading ? 'RELOADING…' : this.carbine.magazine === 0 ? 'EMPTY · PRESS R' : 'ROBOT CARBINE · AUTOMATIC';
+    }
+    hud.weapons.innerHTML = `<span class="${this.weapon === 'rifle' ? 'active' : ''}"><kbd>1</kbd> RIFLE ${this.rifle.magazine}/${this.rifle.reserve}</span>`
+      + `<span class="${this.weapon === 'carbine' ? 'active' : ''}${this.carbine.owned ? '' : ' locked'}"><kbd>2</kbd> CARBINE ${this.carbine.owned ? `${this.carbine.magazine}/${this.carbine.reserve}` : '—'}</span>`;
     const scoped = this.rifle.aim > 0.85;
     hud.scope.style.opacity = scoped ? '1' : '0';
     hud.crosshair.classList.toggle('scoped', this.rifle.aim > 0.2);
@@ -913,19 +1115,23 @@ export class Game {
     // Red brackets over robots that are shooting at you, so you can find the shooter.
     const shooterMarks: string[] = [];
     const projected = new THREE.Vector3();
-    for (const sentry of this.sentries) {
-      if (sentry.mode !== 'alert' && sentry.sinceShot > 3) continue;
-      if (sentry.mode === 'dead') continue;
-      projected.set(sentry.position.x, sentry.position.y + SENTRY.headHeight + 0.3, sentry.position.z).project(this.camera);
+    const bracket = (position: Vec3, height: number, aspect: number, sinceShot: number): void => {
+      projected.set(position.x, position.y + height, position.z).project(this.camera);
       const top = projected.y;
-      projected.set(sentry.position.x, sentry.position.y, sentry.position.z).project(this.camera);
-      if (projected.z > 1 || Math.abs(projected.x) > 1.05 || projected.y > 1.05 || top < -1.05) continue;
-      const distance = Math.hypot(sentry.position.x - this.body.position.x, sentry.position.z - this.body.position.z);
-      const height = Math.max(34, (top - projected.y) * 0.5 * this.canvas.clientHeight + 8);
-      const size = height * 0.5;
+      projected.set(position.x, position.y, position.z).project(this.camera);
+      if (projected.z > 1 || Math.abs(projected.x) > 1.05 || projected.y > 1.05 || top < -1.05) return;
+      const distance = Math.hypot(position.x - this.body.position.x, position.z - this.body.position.z);
+      const tall = Math.max(34, (top - projected.y) * 0.5 * this.canvas.clientHeight + 8);
       projected.y = (top + projected.y) / 2;
-      const firing = sentry.sinceShot < 0.4 ? ' firing' : '';
-      shooterMarks.push(`<div class="shooter${firing}" style="left:${(projected.x * 0.5 + 0.5) * 100}%;top:${(-projected.y * 0.5 + 0.5) * 100}%;width:${size}px;height:${height}px"><span>${Math.round(distance)} m</span></div>`);
+      const firing = sinceShot < 0.4 ? ' firing' : '';
+      shooterMarks.push(`<div class="shooter${firing}" style="left:${(projected.x * 0.5 + 0.5) * 100}%;top:${(-projected.y * 0.5 + 0.5) * 100}%;width:${tall * aspect}px;height:${tall}px"><span>${Math.round(distance)} m</span></div>`);
+    };
+    for (const sentry of this.sentries) {
+      if (sentry.mode === 'dead' || (sentry.mode !== 'alert' && sentry.sinceShot > 3)) continue;
+      bracket(sentry.position, SENTRY.headHeight + 0.3, 0.5, sentry.sinceShot);
+    }
+    for (const tank of this.population?.tanks ?? []) {
+      if (tank.mode === 'alert') bracket(tank.position, TANK.eyeHeight + 0.8, 1.8, tank.sinceShot);
     }
     hud.shooters.innerHTML = shooterMarks.join('');
   }
@@ -938,7 +1144,8 @@ export class Game {
     const sway = this.rifle.sway(this.time, this.body.stance, this.body.moving, this.body.stamina);
     this.camera.position.set(eye.x, eye.y + bob - this.body.landingImpact * 0.12, eye.z);
     this.camera.rotation.set(this.body.pitch + sway.pitch, -this.body.yaw - sway.yaw, Math.sin(this.body.stride * 1.7) * bobAmount * 0.3, 'YXZ');
-    const targetFov = BASE_FOV + (BASE_FOV / this.rifle.zoom - BASE_FOV) * Math.max(0, (this.rifle.aim - 0.75) / 0.25) + (this.body.sprinting ? 4 : 0);
+    const zoomIn = this.weapon === 'rifle' ? (BASE_FOV / this.rifle.zoom - BASE_FOV) * Math.max(0, (this.rifle.aim - 0.75) / 0.25) : (BASE_FOV / CARBINE.zoom - BASE_FOV) * this.carbine.aim;
+    const targetFov = BASE_FOV + zoomIn + (this.body.sprinting ? 4 : 0);
     this.camera.fov += (targetFov - this.camera.fov) * Math.min(1, dt * 14);
     this.camera.updateProjectionMatrix();
 
@@ -959,13 +1166,18 @@ export class Game {
     this.renderer.info.reset();
     this.renderer.clear();
     this.renderer.render(this.scene, this.camera);
-    if (this.rifle.aim < 0.9 && this.phase !== 'menu') {
+    if ((this.weapon === 'carbine' || this.rifle.aim < 0.9) && this.phase !== 'menu') {
       this.renderer.clearDepth();
       this.renderer.render(this.viewScene, this.viewCamera);
     }
   }
 
   private poseViewModel(): void {
+    // Lowered out of view and back up while switching weapons.
+    const lower = this.switchTimer > 0 ? Math.sin(this.switchTimer / 0.45 * Math.PI) * 0.35 : 0;
+    this.rifleModel.group.visible = this.weapon === 'rifle';
+    this.carbineModel.group.visible = this.weapon === 'carbine';
+    if (this.weapon === 'carbine') { this.poseCarbine(lower); return; }
     const aim = this.rifle.aim;
     const model = this.rifleModel;
     const hip = new THREE.Vector3(0.17, -0.19, -0.5);
@@ -998,6 +1210,28 @@ export class Game {
     model.bolt.position.z = 0.1 + Math.sin(phase * Math.PI) * 0.09;
     model.suppressor.visible = this.loadout.suppressor;
     (model.flash.material as THREE.MeshBasicMaterial).opacity = this.rifle.sinceShot < 0.05 && !this.loadout.suppressor ? 1 : 0;
+    model.group.position.y -= lower;
+  }
+
+  private poseCarbine(lower: number): void {
+    const carbine = this.carbine;
+    const position = new THREE.Vector3(0.16, -0.17, -0.42).lerp(new THREE.Vector3(0, -0.105, -0.3), carbine.aim);
+    const moving = this.body.moving && this.body.onGround;
+    const walk = moving ? (this.body.sprinting ? 1.8 : 1) : 0;
+    position.x += Math.sin(this.body.stride * 1.7) * 0.012 * walk * (1 - carbine.aim);
+    position.y += Math.abs(Math.cos(this.body.stride * 1.7)) * 0.012 * walk * (1 - carbine.aim) - lower;
+    position.z += carbine.recoil * 0.035;
+    let pitch = carbine.recoil * 0.05;
+    let roll = 0;
+    if (this.body.sprinting) { position.x += 0.08; position.y -= 0.06; roll = 0.5; pitch -= 0.3; }
+    if (carbine.reloading) {
+      const dip = Math.sin(Math.min(1, 1 - carbine.reloadTime / CARBINE.reloadSeconds) * Math.PI);
+      position.y -= dip * 0.1;
+      roll += dip * 0.5;
+    }
+    this.carbineModel.group.position.copy(position);
+    this.carbineModel.group.rotation.set(pitch, 0, roll);
+    (this.carbineModel.flash.material as THREE.MeshBasicMaterial).opacity = carbine.sinceShot < 0.04 ? 1 : 0;
   }
 
   /** Development hook used by screenshot scripts. */
@@ -1048,13 +1282,18 @@ export class Game {
     // What the crosshair is on: the nearest robot along the view line, unless a wall is closer.
     const eye = this.body.eye;
     const direction = this.viewDirection();
-    let crosshair: GameSnapshot['crosshair'] = { robot: null, distance: null };
-    const wall = world.collision.raycast(eye, direction, 600, (volume) => volume.tag === 'glass');
+    // What the crosshair is on: the nearest robot, tank, or innocent along the view line, unless a wall is closer.
+    let nearest = world.collision.raycast(eye, direction, 600, (volume) => volume.tag === 'glass')?.distance ?? Infinity;
+    let crosshair: GameSnapshot['crosshair'] = { robot: null, distance: null, innocent: null };
     for (const sentry of this.sentries) {
       const hit = raySentry(eye, direction, sentry);
-      if (hit !== null && (wall === null || hit.distance < wall.distance) && (crosshair.distance === null || hit.distance < crosshair.distance)) {
-        crosshair = { robot: this.robotId(sentry), distance: Math.round(hit.distance) };
-      }
+      if (hit !== null && hit.distance < nearest) { nearest = hit.distance; crosshair = { robot: this.robotId(sentry), distance: Math.round(hit.distance), innocent: null }; }
+    }
+    for (const target of this.population?.targets() ?? []) {
+      const distance = target.hit(eye, direction);
+      if (distance === null || distance >= nearest) continue;
+      nearest = distance;
+      crosshair = target.kind === 'tank' ? { robot: target.id, distance: Math.round(distance), innocent: null } : { robot: null, distance: Math.round(distance), innocent: target.id };
     }
     return {
       time: this.time,
@@ -1063,6 +1302,7 @@ export class Game {
         { text: 'Search containers in the houses for the portal keycard', done: this.keycard },
         { text: 'Reach the portal and enter it', done: false },
         { text: `Optional: destroy the robots (${this.sentries.length - alive}/${this.sentries.length})`, done: alive === 0 },
+        { text: `${this.civilianObjective()} (shooting an innocent costs 5% health)`, done: false },
       ],
       player: {
         x: this.body.position.x, y: this.body.position.y, z: this.body.position.z, stance: this.body.stance, moving: this.body.moving,
@@ -1070,11 +1310,16 @@ export class Game {
         magazine: this.rifle.magazine, capacity: this.rifle.capacity, reserve: this.rifle.reserve, reloading: this.rifle.reloading,
         boltReady: this.rifle.cooldown <= 0, scoped: this.rifle.aim > 0.5, zoom: this.rifle.zoom, suppressor: this.loadout.suppressor,
         visibility, indoors: this.indoorBlend > 0.5, keycard: this.keycard,
+        weapon: this.weapon, carbine: { owned: this.carbine.owned, magazine: this.carbine.magazine, reserve: this.carbine.reserve },
       },
-      robots: this.sentries.map((sentry) => ({
-        id: this.robotId(sentry), position: { ...sentry.position }, mode: sentry.mode, tactic: sentry.tactic, seesYou: sentry.canSeePlayer && sentry.mode !== 'dead',
+      innocents: (this.population?.civilians ?? []).map((civilian) => ({ id: civilian.id, kind: civilian.kind, position: { ...civilian.position }, mode: civilian.mode })),
+      robots: [...this.sentries.map((sentry) => ({
+        id: this.robotId(sentry), kind: 'robot' as const, position: { ...sentry.position }, mode: sentry.mode, tactic: sentry.tactic, seesYou: sentry.canSeePlayer && sentry.mode !== 'dead',
         chest: { x: sentry.position.x, y: sentry.position.y + (SENTRY.bodyBottom + SENTRY.bodyTop) / 2, z: sentry.position.z },
-      })),
+      })), ...(this.population?.tanks ?? []).map((tank: TankState) => ({
+        id: tank.id, kind: 'tank' as const, position: { ...tank.position }, mode: tank.mode, tactic: 'tank', seesYou: tank.canSeePlayer && tank.mode !== 'dead',
+        chest: { x: tank.position.x, y: tank.position.y + 1.2, z: tank.position.z },
+      }))],
       doors: world.doors.map((door, index) => {
         const angle = door.plan.closedYaw;
         return {
@@ -1121,7 +1366,11 @@ export class Game {
       },
       setAim: (value: number) => { this.rifle.aim = value; this.debugAim = value > 0.5; },
       fire: () => { this.debugFire = true; },
-      loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels }),
+      loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels, weapon: this.weapon, carbine: { owned: this.carbine.owned, magazine: this.carbine.magazine, reserve: this.carbine.reserve } }),
+      population: () => this.population,
+      giveCarbine: () => applyLoot({ kind: 'carbine', amount: 1 }, this.loadout, this.rifle, this.carbine),
+      weapon: (name?: WeaponName) => { if (name !== undefined) this.switchTo(name); return this.weapon; },
+      innocents: () => ({ lost: this.innocentsLost, shot: this.innocentsShot }),
       pickups: () => this.pickups.map((pickup) => ({ kind: pickup.drop.kind, position: pickup.position })),
       collectAll: () => { for (const pickup of [...this.pickups]) this.collect(pickup); },
       containers: () => this.world!.containers.map((container) => ({ ...container.plan, searched: container.searched, keycard: container.hasKeycard })),

@@ -15,8 +15,9 @@ The main browser game is now [Zama Sniper: Open World](world/README.md), a reali
 | | |
 | --- | --- |
 | ![Dust Ridge through the scope](world/docs/screenshots/scope.jpg) | ![A searched crate with its loot floating out](world/docs/screenshots/loot.jpg) |
+| ![A family picnic beside their house](world/docs/screenshots/family-picnic.jpg) | ![A tank patrolling the road through Dust Ridge](world/docs/screenshots/tank.jpg) |
 
-The robots fight as a squad: they radio your position, bound from cover to cover, flank, and dive for cover when your shots land near them. Doors, boxes, and the ground around the houses hide randomized loot, from cash and armor to a suppressor and a 12x scope.
+Every world is home to civilian families (some picnicking, some strolling with their dogs) who panic and hide when fighting starts; shooting an innocent costs you health. Tanks patrol the roads and shell you from close range, and a destroyed robot drops its automatic carbine for you to take. The robots fight as a squad: they radio your position, bound from cover to cover, flank, and dive for cover when your shots land near them. Doors, boxes, and the ground around the houses hide randomized loot, from cash and armor to a suppressor and a 12x scope.
 
 ```powershell
 npm ci

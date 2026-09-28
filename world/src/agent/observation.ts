@@ -18,26 +18,40 @@ export interface Observation {
     readonly health: number; readonly armor: number; readonly lives: number; readonly money: number;
     readonly magazine: number; readonly capacity: number; readonly reserve: number; readonly reloading: boolean; readonly boltReady: boolean;
     readonly scoped: boolean; readonly zoom: number; readonly suppressor: boolean;
+    /** The weapon in hand, and the robot carbine's rounds (once one has been taken from a destroyed robot). */
+    readonly weapon: 'rifle' | 'carbine';
+    readonly carbine: { readonly owned: boolean; readonly magazine: number; readonly reserve: number };
     readonly visibility: 'hidden' | 'concealed' | 'visible' | 'spotted';
     readonly indoors: boolean; readonly keycard: boolean;
   };
-  /** Robots worth knowing about, nearest first: any in line of sight, within 150 m, or hunting you. */
+  /** Enemies worth knowing about (robots and tanks), nearest first: any in line of sight, within 150 m, or hunting you. */
   readonly robots: readonly RobotView[];
+  /** Civilians and their dogs nearby. Never shoot them: each one you hit costs 5% health. */
+  readonly innocents: readonly InnocentView[];
   /** Doors, unsearched containers, pickups, and the portal within reach of a short walk, nearest first. */
   readonly nearby: readonly ThingView[];
   /** The nearest houses: go to one (by id) to search its containers. */
   readonly buildings: readonly { readonly id: string; readonly bearing: number; readonly relative: number; readonly distance: number; readonly unsearched: number }[];
   readonly portal: { readonly bearing: number; readonly relative: number; readonly distance: number; readonly unlocked: boolean };
   /** What is under the crosshair right now. */
-  readonly crosshair: { readonly robot: string | null; readonly distance: number | null };
+  readonly crosshair: { readonly robot: string | null; readonly distance: number | null; readonly innocent: string | null };
   /** What interact would do right now (the on-screen prompt), if anything is in reach. */
   readonly prompt: string | null;
   /** Things that happened since the last observation, oldest first. */
   readonly events: readonly string[];
 }
 
+export interface InnocentView {
+  readonly id: string;
+  readonly kind: 'adult' | 'child' | 'dog';
+  readonly bearing: number; readonly relative: number; readonly distance: number;
+  readonly state: 'calm' | 'fleeing' | 'hiding';
+}
+
 export interface RobotView {
   readonly id: string;
+  /** A walking robot (r#) or a tank (t#; four rifle hits to destroy). */
+  readonly kind: 'robot' | 'tank';
   readonly bearing: number; readonly relative: number; readonly distance: number;
   /** patrol (unaware), suspicious, searching, alert (hunting you), or down. */
   readonly state: 'patrol' | 'suspicious' | 'search' | 'alert';
@@ -108,16 +122,21 @@ export function describeObservation(observation: Observation): string {
   lines.push(`[${observation.phase.toUpperCase()}] ${observation.world.name} (world ${observation.world.index + 1} of ${observation.world.count}), t=${round(observation.time, 1)}s`);
   lines.push(`Objectives: ${observation.objectives.map((item) => `${item.done ? '[x]' : '[ ]'} ${item.text}`).join('; ')}`);
   lines.push(`You: at (${round(player.x)}, ${round(player.z)}), facing ${Math.round(player.heading)}° (pitch ${Math.round(player.pitch)}°), ${player.stance}, ${player.visibility}${player.indoors ? ', indoors' : ''}. Health ${Math.round(player.health)}, armor ${Math.round(player.armor)}, lives ${player.lives}, cash $${player.money}${player.keycard ? ', HAVE KEYCARD' : ''}.`);
-  lines.push(`Rifle: ${player.magazine}/${player.capacity} in magazine, ${player.reserve} spare${player.reloading ? ', reloading' : ''}${player.boltReady ? '' : ', cycling bolt'}${player.scoped ? `, scoped ${player.zoom}x` : ''}${player.suppressor ? ', suppressed' : ''}.`);
+  lines.push(`Rifle${player.weapon === 'rifle' ? ' (in hand)' : ''}: ${player.magazine}/${player.capacity} in magazine, ${player.reserve} spare${player.reloading ? ', reloading' : ''}${player.boltReady ? '' : ', cycling bolt'}${player.scoped ? `, scoped ${player.zoom}x` : ''}${player.suppressor ? ', suppressed' : ''}.`);
+  lines.push(player.carbine.owned ? `Robot carbine${player.weapon === 'carbine' ? ' (in hand)' : ''}: ${player.carbine.magazine} loaded, ${player.carbine.reserve} spare.` : 'Robot carbine: not yet (destroy a robot and walk up to it to take its carbine).');
   if (observation.robots.length === 0) lines.push('Robots: none nearby.');
   else {
     lines.push('Robots (relative angle: + right / - left):');
     for (const robot of observation.robots) {
       const flags = [robot.state, robot.tactic, robot.seesYou ? 'SEES YOU' : null, robot.inSight ? 'in your line of fire' : 'blocked from view', robot.canHurtYou ? 'CLOSE ENOUGH TO HIT YOU' : null].filter(Boolean).join(', ');
-      lines.push(`  ${robot.id}: ${Math.round(robot.distance)} m at ${Math.round(robot.relative)}° (bearing ${Math.round(robot.bearing)}°) - ${flags}`);
+      lines.push(`  ${robot.id}${robot.kind === 'tank' ? ' (TANK)' : ''}: ${Math.round(robot.distance)} m at ${Math.round(robot.relative)}° (bearing ${Math.round(robot.bearing)}°) - ${flags}`);
     }
   }
-  if (observation.crosshair.robot !== null) lines.push(`Crosshair: on ${observation.crosshair.robot} at ${Math.round(observation.crosshair.distance ?? 0)} m.`);
+  if (observation.crosshair.innocent !== null) lines.push(`WARNING: the crosshair is on innocent ${observation.crosshair.innocent} - do not fire.`);
+  else if (observation.crosshair.robot !== null) lines.push(`Crosshair: on ${observation.crosshair.robot} at ${Math.round(observation.crosshair.distance ?? 0)} m.`);
+  if (observation.innocents.length > 0) {
+    lines.push(`Innocents nearby (never shoot them): ${observation.innocents.map((innocent) => `${innocent.id} ${innocent.kind} ${Math.round(innocent.distance)} m at ${Math.round(innocent.relative)}°${innocent.state === 'calm' ? '' : ` (${innocent.state})`}`).join('; ')}`);
+  }
   if (observation.prompt !== null) lines.push(`Within reach: ${observation.prompt} (interact / search).`);
   if (observation.nearby.length > 0) {
     lines.push('Nearby:');

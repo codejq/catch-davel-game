@@ -11,10 +11,11 @@ describe('keyboard controls', () => {
     expect(CAPTURED_KEYS.has('ArrowUp')).toBe(true);
   });
 
-  it('never binds one key to two actions', () => {
+  it('never binds one key to two actions, except Right Shift (tap: scope, hold with an arrow: sprint)', () => {
     const seen = new Map<string, string>();
     for (const [action, codes] of Object.entries(CONTROLS)) {
       for (const code of codes) {
+        if (code === 'ShiftRight' && action === 'run') continue;
         expect(seen.get(code), `${code} is bound to ${seen.get(code)} and ${action}`).toBeUndefined();
         seen.set(code, action);
       }

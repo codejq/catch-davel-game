@@ -94,7 +94,12 @@ export interface SentryShot {
   readonly damage: number;
   /** Where the round struck the world (a tree, wall, or the ground) instead of the player, if it did. */
   readonly impact: Vec3 | null;
+  /** Set when the robot fired at a civilian instead of the player: the civilian's id. */
+  readonly victim?: string;
 }
+
+/** A civilian a patrolling robot has picked on. */
+export interface Victim { readonly id: string; readonly position: Vec3 }
 
 /** Each layer of leaves between a sentry and a body point lets through this much visibility. */
 export const FOLIAGE_TRANSMISSION = 0.3;
@@ -175,7 +180,7 @@ export function sentryHeadPosition(sentry: SentryState): Vec3 {
 
 /** Advances one sentry. Returns a shot when it fires at the player. */
 export function updateSentry(
-  sentry: SentryState, player: PlayerSnapshot, world: CollisionWorld, dt: number, random: Random,
+  sentry: SentryState, player: PlayerSnapshot, world: CollisionWorld, dt: number, random: Random, victim: Victim | null = null,
 ): SentryShot | null {
   sentry.sinceShot += dt;
   if (sentry.mode === 'dead') {
@@ -224,6 +229,20 @@ export function updateSentry(
   let faceMovement = true;
   switch (sentry.mode) {
     case 'patrol': {
+      if (victim !== null) {
+        // Picking on a civilian: close in, then shoot.
+        const gap = Math.hypot(victim.position.x - sentry.position.x, victim.position.z - sentry.position.z);
+        const victimBearing = Math.atan2(victim.position.x - sentry.position.x, victim.position.z - sentry.position.z);
+        sentry.fireCooldown -= dt;
+        if (gap > 8.5) { target = victim.position; speed = SENTRY.patrolSpeed * 1.5; break; }
+        sentry.heading = turnToward(sentry.heading, victimBearing, 4 * dt);
+        if (sentry.fireCooldown <= 0 && Math.abs(angleDifference(victimBearing, sentry.heading)) < 0.3) {
+          sentry.fireCooldown = SENTRY.fireInterval * (1 + random.next() * 0.6);
+          sentry.sinceShot = 0;
+          shot = fireAtVictim(sentry, victim, world, eye, random);
+        }
+        break;
+      }
       const waypoint = sentry.waypoints[sentry.waypoint];
       if (waypoint !== undefined && !(sentry.guard && sentry.waypoints.length < 2)) {
         target = waypoint;
@@ -442,6 +461,21 @@ export function radioSquad(sentries: readonly SentryState[], spotter: SentryStat
     told += 1;
   }
   return told;
+}
+
+/** A round at a civilian: about half miss, and cover stops it like any other round. */
+function fireAtVictim(sentry: SentryState, victim: Victim, world: CollisionWorld, eye: Vec3, random: Random): SentryShot {
+  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * SCALE, y: eye.y - 0.4 * SCALE, z: eye.z + Math.cos(sentry.heading) * 0.5 * SCALE };
+  const wantsHit = random.next() < 0.5;
+  const spread = wantsHit ? 0 : 0.8 + random.next();
+  const target = { x: victim.position.x + (random.next() - 0.5) * spread, y: victim.position.y + 1 + (random.next() - 0.5) * spread, z: victim.position.z + (random.next() - 0.5) * spread };
+  const direction = { x: target.x - from.x, y: target.y - from.y, z: target.z - from.z };
+  const reach = Math.hypot(direction.x, direction.y, direction.z);
+  const blocked = world.raycast(from, direction, Math.max(0, reach - 0.4), (volume) => volume.tag === 'glass');
+  if (blocked !== null) return { from, to: blocked.point, hit: false, damage: 0, impact: blocked.point, victim: victim.id };
+  const scale = (reach + (wantsHit ? 0 : 15)) / Math.max(reach, 1e-6);
+  const to = { x: from.x + direction.x * scale, y: from.y + direction.y * scale, z: from.z + direction.z * scale };
+  return { from, to, hit: wantsHit, damage: 0, impact: null, victim: victim.id };
 }
 
 /**
