@@ -130,7 +130,9 @@ export class GameAudio {
   }
 
   robotShot(pan: number, distance: number): void {
-    const gain = Math.max(0.08, 0.9 - distance / 120);
+    // Fades out with distance: gunfire far across the map is not heard at all.
+    const gain = 0.9 - distance / 130;
+    if (gain <= 0.02) return;
     this.tone(1800, 0.14, gain * 0.35, 'sawtooth', 300);
     this.burst({ duration: 0.18, gain: gain * 0.5, frequency: 900, q: 1, pan });
   }
@@ -156,7 +158,8 @@ export class GameAudio {
 
   /** A dog barking twice. */
   bark(pan: number, distance: number): void {
-    const gain = Math.max(0.05, 0.6 - distance / 60);
+    const gain = 0.45 - distance / 100;
+    if (gain <= 0.02) return;
     for (const delay of [0, 0.22]) {
       this.tone(520, 0.1, gain * 0.5, 'sawtooth', 300, delay);
       this.burst({ duration: 0.08, gain: gain * 0.4, frequency: 900, q: 2, delay, pan });
@@ -165,7 +168,8 @@ export class GameAudio {
 
   /** A frightened cry from a civilian. */
   scream(pan: number, distance: number): void {
-    const gain = Math.max(0.04, 0.45 - distance / 70);
+    const gain = 0.45 - distance / 70;
+    if (gain <= 0.02) return;
     this.tone(700 + Math.random() * 300, 0.6, gain, 'triangle', 1100);
     void pan;
   }
