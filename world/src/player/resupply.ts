@@ -3,7 +3,7 @@ import type { RifleState } from './rifle-state';
 
 /**
  * Nothing stays empty for ever: while a weapon is low it slowly gets rounds back (a round every few seconds, up to
- * a small floor, so found ammo still matters), and health creeps back up after a few seconds without being hurt.
+ * a small floor, so found ammo still matters), and health creeps back up after a minute without being hurt.
  */
 export const RESUPPLY = {
   /** Seconds per rifle round, while the rifle holds fewer than `rifleFloor` rounds in all. */
@@ -12,7 +12,7 @@ export const RESUPPLY = {
   carbineEvery: 0.8,
   carbineFloor: 24,
   /** Seconds without damage before health starts coming back, and how fast (points per second). */
-  healthDelay: 5,
+  healthDelay: 60,
   healthRate: 4,
   maxHealth: 100,
 } as const;

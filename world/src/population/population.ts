@@ -50,12 +50,15 @@ export class Population {
   private readonly shells: Shell[] = [];
   private readonly blasts: Blast[] = [];
   /** Which civilian each robot is picking on, and when robots may pick on someone again. */
-  private readonly victims = new Map<SentryState, { civilian: Civilian; since: number }>();
+  private readonly victims = new Map<SentryState, { civilian: Civilian; since: number; shots: number }>();
   private readonly victimCooldown = new Map<SentryState, number>();
   private readonly byId = new Map<string, Civilian>();
   private victimClock = 0;
   private panicClock = 0;
-  private barkClock = 0;
+  /** Seconds until each dog may bark again. */
+  private readonly barkWait = new Map<Civilian, number>();
+  /** Where the player hears from; sounds are placed relative to this. */
+  private listener: Vec3 = { x: 0, y: 0, z: 0 };
   private readonly targetList: HitTarget[];
 
   constructor(layout: WorldLayout, private readonly world: CollisionWorld, private readonly root: THREE.Object3D, private readonly random: Random,
@@ -136,6 +139,7 @@ export class Population {
 
   update(dt: number, player: PlayerSnapshot, sentries: readonly SentryState[], time: number): PopulationEvents {
     const events: PopulationEvents = { playerDamage: 0, explosions: [], killedByEnemies: [], tankShots: [] };
+    this.listener = player.eye;
     this.chooseVictims(dt, sentries);
     this.panicAtThreats(dt, sentries);
 
@@ -177,22 +181,30 @@ export class Population {
   /** A robot's round at a civilian landed: kill them if it hit, and frighten everyone nearby either way. */
   robotShotCivilian(id: string, hit: boolean, from: Vec3): Civilian | null {
     const civilian = this.byId.get(id);
+    for (const entry of this.victims.values()) if (entry.civilian.id === id) entry.shots += 1;
     this.gunshot(from, 30);
     if (civilian === undefined || !hit) return null;
     return this.kill(civilian) ? civilian : null;
   }
 
+  /** Distance from the player to a sound. */
+  private hearing(at: { x: number; z: number }): number {
+    return Math.hypot(at.x - this.listener.x, at.z - this.listener.z);
+  }
+
   private frighten(civilian: Civilian, threat: Vec3): void {
     const wasCalm = civilian.mode === 'calm';
     alarm(civilian, threat, this.random);
-    if (wasCalm && civilian.mode !== 'calm' && civilian.kind !== 'dog' && this.random.chance(0.35)) this.sounds.scream(0, 20);
+    const heard = this.hearing(civilian.position);
+    if (wasCalm && civilian.mode !== 'calm' && civilian.kind !== 'dog' && heard < 60 && this.random.chance(0.35)) this.sounds.scream(0, heard);
   }
 
   /** Every couple of seconds, a patrolling robot may pick on a civilian it can see nearby. */
   private chooseVictims(dt: number, sentries: readonly SentryState[]): void {
     for (const [sentry, entry] of this.victims) {
       entry.since += dt;
-      if (entry.civilian.mode === 'dead' || sentry.mode !== 'patrol' || entry.since > 25) {
+      // A robot gives up after a few rounds (a civilian in cover can't be hit), so it doesn't keep firing for ever.
+      if (entry.civilian.mode === 'dead' || sentry.mode !== 'patrol' || entry.since > 25 || entry.shots >= 4) {
         this.victims.delete(sentry);
         this.victimCooldown.set(sentry, 30);
       }
@@ -202,7 +214,7 @@ export class Population {
     if (this.victimClock > 0) return;
     this.victimClock = 2;
     for (const sentry of sentries) {
-      if (sentry.mode !== 'patrol' || this.victims.has(sentry) || (this.victimCooldown.get(sentry) ?? 0) > 0 || !this.random.chance(0.06)) continue;
+      if (sentry.mode !== 'patrol' || this.victims.has(sentry) || (this.victimCooldown.get(sentry) ?? 0) > 0 || !this.random.chance(0.015)) continue;
       const eye = { x: sentry.position.x, y: sentry.position.y + sentrySize(sentry).eyeHeight, z: sentry.position.z };
       let chosen: Civilian | null = null; let nearest = 35;
       for (const civilian of this.civilians) {
@@ -210,14 +222,14 @@ export class Population {
         const distance = Math.hypot(civilian.position.x - sentry.position.x, civilian.position.z - sentry.position.z);
         if (distance < nearest && this.world.lineOfSight(eye, { x: civilian.position.x, y: civilian.position.y + 1.2, z: civilian.position.z })) { nearest = distance; chosen = civilian; }
       }
-      if (chosen !== null) this.victims.set(sentry, { civilian: chosen, since: 0 });
+      if (chosen !== null) this.victims.set(sentry, { civilian: chosen, since: 0, shots: 0 });
     }
   }
 
   /** Alerted or hunting robots and tanks coming close set civilians running; dogs bark at robots. */
   private panicAtThreats(dt: number, sentries: readonly SentryState[]): void {
     this.panicClock -= dt;
-    this.barkClock -= dt;
+    for (const [dog, wait] of this.barkWait) this.barkWait.set(dog, wait - dt);
     if (this.panicClock > 0) return;
     this.panicClock = 0.5;
     for (const civilian of this.civilians) {
@@ -227,9 +239,11 @@ export class Population {
         const hunting = sentry.mode === 'alert' || this.victims.has(sentry);
         const distance = Math.hypot(sentry.position.x - civilian.position.x, sentry.position.z - civilian.position.z);
         if (hunting && distance < CIVILIAN.robotPanicRange) this.frighten(civilian, sentry.position);
-        if (civilian.kind === 'dog' && distance < 18 && this.barkClock <= 0) {
-          this.barkClock = 2.5 + this.random.next() * 3;
-          this.sounds.bark(0, distance);
+        // A dog barks at a robot close by now and then (each dog waits 20-30 s), heard only when you are near.
+        if (civilian.kind === 'dog' && distance < 18 && (this.barkWait.get(civilian) ?? 0) <= 0) {
+          this.barkWait.set(civilian, 20 + this.random.next() * 10);
+          const heard = this.hearing(civilian.position);
+          if (heard < 45) this.sounds.bark(0, heard);
         }
       }
       for (const tank of this.tanks) {

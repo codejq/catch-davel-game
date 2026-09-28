@@ -69,7 +69,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - **Sound**: every shot is loud. Robots within 75 m hear it and move to search the area it came from, so relocate after you fire.
 - **Ballistics**: bullets fly at 820 m/s with gravity, zeroed at 100 m. Aim higher for long shots; the scope shows the range. A single hit anywhere on a robot destroys it.
 - **Scope**: sway grows with standing, moving, and fatigue. It shrinks when you crouch or go prone, or when you hold your breath.
-- **Survival**: after five seconds without being hurt, health comes back at 4 points a second, all the way to full. Medkits and extra rounds still turn up when you search.
+- **Survival**: after a full minute without being hurt, health comes back at 4 points a second, all the way to full. Medkits and extra rounds still turn up when you search.
 - **Resupply**: a weapon never stays empty. While the rifle holds fewer than 10 rounds in all, it gets one back every 4 seconds; a carbine under 24 rounds gets one every 0.8 seconds. An empty magazine reloads by itself as soon as there is a round to load, and the HUD shows LOW AMMO · RESUPPLYING while it happens.
 
 ## Architecture
