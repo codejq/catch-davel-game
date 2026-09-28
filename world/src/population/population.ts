@@ -5,7 +5,7 @@ import { createTankRig, poseTank, type TankRig } from '../enemies/tank-mesh';
 import {
   createTank, damageTank, pushOutOfTank, rayTank, splashDamage, TANK, tankHearsGunshot, updateTank, type TankShell, type TankState,
 } from '../enemies/tank';
-import { SENTRY, type PlayerSnapshot, type SentryState, type Victim } from '../enemies/sentry';
+import { sentrySize, type PlayerSnapshot, type SentryState, type Victim } from '../enemies/sentry';
 import type { HitTarget } from '../player/ballistics';
 import type { WorldLayout } from '../world/layout';
 import { alarm, CIVILIAN, rayCivilian, updateCivilian, type Civilian } from './civilians';
@@ -203,7 +203,7 @@ export class Population {
     this.victimClock = 2;
     for (const sentry of sentries) {
       if (sentry.mode !== 'patrol' || this.victims.has(sentry) || (this.victimCooldown.get(sentry) ?? 0) > 0 || !this.random.chance(0.06)) continue;
-      const eye = { x: sentry.position.x, y: sentry.position.y + SENTRY.eyeHeight, z: sentry.position.z };
+      const eye = { x: sentry.position.x, y: sentry.position.y + sentrySize(sentry).eyeHeight, z: sentry.position.z };
       let chosen: Civilian | null = null; let nearest = 35;
       for (const civilian of this.civilians) {
         if (civilian.mode === 'dead' || civilian.kind === 'dog') continue;

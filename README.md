@@ -16,8 +16,9 @@ The main browser game is now [Zama Sniper: Open World](world/README.md), a reali
 | --- | --- |
 | ![Dust Ridge through the scope](world/docs/screenshots/scope.jpg) | ![A searched crate with its loot floating out](world/docs/screenshots/loot.jpg) |
 | ![A family picnic beside their house](world/docs/screenshots/family-picnic.jpg) | ![A tank patrolling the road through Dust Ridge](world/docs/screenshots/tank.jpg) |
+| ![A squad of human soldiers on patrol](world/docs/screenshots/soldiers.jpg) | ![The robot carbine, taken from a destroyed robot](world/docs/screenshots/carbine.jpg) |
 
-Every world is home to civilian families (some picnicking, some strolling with their dogs) who panic and hide when fighting starts; shooting an innocent costs you health. Tanks patrol the roads and shell you from close range, and a destroyed robot drops its automatic carbine for you to take. The robots fight as a squad: they radio your position, bound from cover to cover, flank, and dive for cover when your shots land near them. Doors, boxes, and the ground around the houses hide randomized loot, from cash and armor to a suppressor and a 12x scope.
+Every world is home to civilian families (some picnicking, some strolling with their dogs) who panic and hide when fighting starts; shooting an innocent costs you health. Each world sends 30 to 40 robots, 10 to 15 fast human soldiers, and four to six tanks against you, deployed somewhere new every run. Tanks roam the roads and open country and shell you from close range, and a fallen robot or soldier drops an automatic carbine for you to take. Health heals back to full when you stay out of trouble, and an empty weapon slowly resupplies. The robots fight as a squad: they radio your position, bound from cover to cover, flank, and dive for cover when your shots land near them. Doors, boxes, and the ground around the houses hide randomized loot, from cash and armor to a suppressor and a 12x scope.
 
 ```powershell
 npm ci

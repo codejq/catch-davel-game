@@ -28,7 +28,12 @@ try {
   const combat = await page.evaluate(() => {
     const w = window.zamaSniperWorld;
     w.play();
-    const target = w.sentries()[2];
+    const [target, shooter] = w.sentries().filter((sentry) => sentry.kind === 'robot').slice(2, 4);
+    // Just these two robots take part; the rest of the force is parked out of the way.
+    for (const sentry of w.sentries()) if (sentry !== target && sentry !== shooter) { sentry.mode = 'dead'; sentry.deathTime = 9; sentry.position.x += 5000; }
+    shooter.mode = 'dead';
+    for (const tank of w.population().tanks) tank.position.x += 5000;
+    const soldiers = w.sentries().filter((sentry) => sentry.kind === 'soldier').length;
     let spot = null;
     for (let angle = 0; angle < Math.PI * 2 && spot === null; angle += 0.3) {
       const x = target.position.x + Math.cos(angle) * 50; const z = target.position.z + Math.sin(angle) * 50;
@@ -47,14 +52,29 @@ try {
       w.fire(); w.step(1.35);
     }
     const sniped = target.mode === 'dead';
-    const other = w.sentries().find((sentry) => sentry.mode !== 'dead');
+    // Stand in the open 7 m from a live robot that has seen us: it must open fire.
     w.setAim(0); w.stance('stand');
-    w.teleport(other.position.x + 12, other.position.z, 0, 0);
+    let other = null;
+    for (const candidate of [shooter]) {
+      for (let angle = 0; angle < Math.PI * 2 && other === null; angle += 0.4) {
+        const x = candidate.position.x + Math.cos(angle) * 7; const z = candidate.position.z + Math.sin(angle) * 7;
+        w.teleport(x, z, 0, 0);
+        const body = w.body();
+        const eye = { x: candidate.position.x, y: candidate.position.y + 3.3, z: candidate.position.z };
+        // Fully in the open: the robot can see head, chest, and hips.
+        if ([0.9, 1.3, 1.6].every((height) => w.los(eye, { x, y: body.position.y + height, z }))) other = candidate;
+      }
+      if (other !== null) break;
+    }
+    other.mode = 'alert'; other.awareness = 1.1; other.lastKnown = { x: w.body().position.x, z: w.body().position.z };
     const before = w.stats().health;
-    w.step(10);
-    return { spot: spot !== null, sniped, damageTaken: before - w.stats().health };
+    // Health heals back after a few quiet seconds, so track the lowest it gets.
+    let lowest = before;
+    for (let tick = 0; tick < 40; tick += 1) { w.step(0.25); lowest = Math.min(lowest, w.stats().health); }
+    return { spot: spot !== null, sniped, damageTaken: before - lowest, enemies: w.sentries().length, soldiers };
   });
   if (!combat.spot || !combat.sniped) throw new Error(`Sniping a robot failed: ${JSON.stringify(combat)}`);
+  if (combat.enemies < 30 || combat.soldiers < 10) throw new Error(`Not enough enemies deployed: ${JSON.stringify(combat)}`);
   if (combat.damageTaken <= 0) throw new Error(`Robots never fired at an exposed player: ${JSON.stringify(combat)}`);
 
   await page.evaluate(() => {
@@ -87,14 +107,29 @@ try {
     };
     const population = w.population();
     const counts = { people: population.civilians.filter((c) => c.kind !== 'dog').length, dogs: population.civilians.filter((c) => c.kind === 'dog').length, tanks: population.tanks.length };
-    // Destroy a robot and walk up to it: its carbine and armor are taken.
-    const robot = w.sentries()[2];
-    standNear(robot.position, 30, 2);
-    aimAt({ x: robot.position.x, y: robot.position.y + 2.2, z: robot.position.z }); w.setAim(1); w.step(0.5);
-    aimAt({ x: robot.position.x, y: robot.position.y + 2.2, z: robot.position.z }); w.fire(); w.step(1.5);
+    // Destroy a robot and walk up to it: its carbine and armor are taken. The rest of the (large) force, and the
+    // tanks until their turn comes, are parked out of the way so these checks are not cut short by the player dying.
+    const tanksHome = population.tanks.map((tank) => ({ tank, x: tank.position.x, z: tank.position.z, heading: tank.heading, waypoint: tank.waypoint }));
+    for (const tank of population.tanks) tank.position.x += 5000;
+    const candidates = w.sentries().filter((sentry) => sentry.kind === 'robot').slice(2, 8);
+    for (const sentry of w.sentries()) if (!candidates.includes(sentry)) { sentry.mode = 'dead'; sentry.deathTime = 9; sentry.position.x += 5000; }
+    for (const robot of candidates) {
+      if (candidates.some((candidate) => candidate.mode === 'dead' && candidate.position.x < 4000)) { robot.mode = 'dead'; robot.deathTime = 9; robot.position.x += 5000; continue; }
+      if (!standNear(robot.position, 30, 2.4)) continue;
+      w.refill();
+      w.setAim(1); w.step(0.5);
+      for (let attempt = 0; attempt < 3 && robot.mode !== 'dead'; attempt += 1) {
+        const eye = { ...w.body().position, y: w.body().position.y + 1.6 };
+        if (!w.los(eye, { x: robot.position.x, y: robot.position.y + 2.4, z: robot.position.z })) standNear(robot.position, 30, 2.4);
+        aimAt({ x: robot.position.x, y: robot.position.y + 2.4, z: robot.position.z }); w.fire(); w.step(1.5);
+      }
+      w.setAim(0);
+    }
     w.setAim(0);
     const drop = w.pickups().find((pickup) => pickup.kind === 'carbine');
     if (drop) { w.teleport(drop.position.x + 1.2, drop.position.z, 0, 0); w.step(0.5); }
+    if (drop && !w.loadout().carbine.owned) { w.teleport(drop.position.x, drop.position.z, 0, 0); w.step(0.5); }
+    const robotsDown = candidates.filter((robot) => robot.mode === 'dead' && robot.position.x < 4000).length;
     const took = w.loadout();
     // Shooting an innocent costs 5% health.
     for (const sentry of w.sentries()) { sentry.mode = 'dead'; sentry.deathTime = 9; }
@@ -121,7 +156,12 @@ try {
       w.setAim(1);
       w.step(0.4);
       aimAt({ x: person.position.x, y: person.position.y + height, z: person.position.z });
-      if (onInnocent()) { lined = true; w.fire(); w.step(1); w.setAim(0); break; }
+      if (onInnocent()) {
+        lined = true; w.fire(); w.step(1); w.setAim(0);
+        if (population.civilians.some((c) => c.mode === 'dead')) break;
+        w.step(1.5);
+        continue;
+      }
       w.setAim(0);
     }
     const person = population.civilians.find((c) => c.mode === 'dead') ?? population.civilians[0];
@@ -134,20 +174,28 @@ try {
       })() };
     // A tank shells the player at close range and four rifle hits destroy it.
     const tank = population.tanks[0];
-    standNear(tank.position, 22, 1.5);
+    const home = tanksHome[0];
+    tank.position.x = home.x; tank.position.z = home.z; tank.heading = home.heading; tank.turret = home.heading; tank.waypoint = home.waypoint;
+    w.refill();
+    standNear(tank.position, 22, 1.9);
+    // The crew has spotted the sniper.
+    tank.awareness = 1.1; tank.lastKnown = { x: w.body().position.x, z: w.body().position.z };
     for (let wait = 0; wait < 30 && tank.sinceShot > 50; wait += 1) w.step(0.5);
     const shelled = tank.sinceShot < 50;
     for (let shot = 0; shot < 8 && tank.mode !== 'dead'; shot += 1) {
       if (w.loadout().reserve === 0 && w.loadout().capacity === 0) break;
-      aimAt({ x: tank.position.x, y: tank.position.y + 1.2, z: tank.position.z }); w.fire(); w.step(1.3);
+      // Keep a clear line to the turret (the tank may have crept behind a crest or a wall).
+      const eye = { ...w.body().position, y: w.body().position.y + 1.6 };
+      if (!w.los(eye, { x: tank.position.x, y: tank.position.y + 1.9, z: tank.position.z })) standNear(tank.position, 22, 1.9);
+      aimAt({ x: tank.position.x, y: tank.position.y + 1.9, z: tank.position.z }); w.fire(); w.step(1.3);
       if (w.stats().health <= 20) w.body();
       w.step(0.1);
       // Reload when the magazine runs dry.
       w.fire(); w.step(3.2);
     }
-    return { counts, took: { armor: took.armor, carbine: took.carbine }, innocent, shelled, tank: tank.mode };
+    return { counts, robotsDown, dropped: drop !== undefined, took: { armor: took.armor, carbine: took.carbine }, innocent, shelled, tank: tank.mode };
   });
-  if (extras.counts.people < 6 || extras.counts.dogs < 1 || extras.counts.tanks !== 2) throw new Error(`World population missing: ${JSON.stringify(extras)}`);
+  if (extras.counts.people < 6 || extras.counts.dogs < 1 || extras.counts.tanks < 4) throw new Error(`World population missing: ${JSON.stringify(extras)}`);
   if (!extras.took.carbine.owned || extras.took.armor < 25) throw new Error(`Robot carbine was not taken: ${JSON.stringify(extras)}`);
   if (!extras.innocent.dead || extras.innocent.healthDrop < 5 || extras.innocent.shot !== 1 || (extras.innocent.bystanders > 0 && extras.innocent.panicked < 1)) throw new Error(`Innocent penalty failed: ${JSON.stringify(extras)}`);
   if (!extras.shelled || extras.tank !== 'dead') throw new Error(`Tank fight failed: ${JSON.stringify(extras)}`);

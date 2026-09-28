@@ -6,6 +6,7 @@ export type SentryMode = 'patrol' | 'suspicious' | 'alert' | 'search' | 'dead';
 
 /** Robots are 1.8x human size (about three and a half metres tall) so they read clearly through the scope at range. */
 const SCALE = 1.8;
+const SENTRY_BASE_FIRE = 1.2;
 
 export const SENTRY = {
   scale: SCALE,
@@ -21,7 +22,7 @@ export const SENTRY = {
   patrolSpeed: 1.35,
   huntSpeed: 3.2,
   health: 100,
-  fireInterval: 1.2,
+  fireInterval: SENTRY_BASE_FIRE,
   damage: 12,
   /** Robot rifles only hurt at close quarters; beyond this they close in instead of shooting. */
   effectiveRange: 10,
@@ -38,10 +39,34 @@ export const SENTRY = {
 
 /** How an alerted robot fights: `assault` bounds from cover to cover, `flank` swings round to the player's side. */
 export type SentryRole = 'assault' | 'flank';
+/** Combat robots are big and slow; human soldiers are life-size, quicker on their feet, and fire faster. */
+export type SentryKind = 'robot' | 'soldier';
+
+/** Per-kind scale (1 = human), movement pace (x robot speed), fire interval, and damage. */
+export const SENTRY_KINDS: Record<SentryKind, { readonly scale: number; readonly pace: number; readonly fireInterval: number; readonly damage: number }> = {
+  robot: { scale: SCALE, pace: 1, fireInterval: SENTRY_BASE_FIRE, damage: 12 },
+  soldier: { scale: 0.92, pace: 1.6, fireInterval: 0.85, damage: 10 },
+};
+
+/** Body dimensions of one sentry, from its kind's scale. */
+export function sentrySize(sentry: { readonly scale: number }): {
+  radius: number; eyeHeight: number; headHeight: number; headRadius: number; bodyHalfWidth: number; bodyBottom: number; bodyTop: number;
+} {
+  const k = sentry.scale;
+  return { radius: 0.45 * k, eyeHeight: 1.85 * k, headHeight: 1.95 * k, headRadius: 0.24 * k, bodyHalfWidth: 0.45 * k, bodyBottom: 0.75 * k, bodyTop: 1.65 * k };
+}
+
+function patrolSpeed(sentry: SentryState): number { return SENTRY.patrolSpeed * sentry.pace; }
+function huntSpeed(sentry: SentryState): number { return SENTRY.huntSpeed * sentry.pace; }
 export type SentryTactic = 'advance' | 'cover' | 'flank' | 'engage';
 
 export interface SentryState {
   readonly id: string;
+  readonly kind: SentryKind;
+  /** Body scale: 1.8 for robots, about 0.9 for soldiers. */
+  readonly scale: number;
+  /** Movement speed relative to a robot. */
+  readonly pace: number;
   position: Vec3;
   heading: number;
   readonly waypoints: readonly { readonly x: number; readonly z: number }[];
@@ -139,10 +164,11 @@ export function playerExposure(world: CollisionWorld, eye: Vec3, player: PlayerS
   return { exposure: total / samples.length, aimPoint };
 }
 
-export function createSentry(id: string, waypoints: readonly { x: number; z: number }[], guard: boolean, world: CollisionWorld): SentryState {
+export function createSentry(id: string, waypoints: readonly { x: number; z: number }[], guard: boolean, world: CollisionWorld, kind: SentryKind = 'robot'): SentryState {
   const start = waypoints[0] ?? { x: 0, z: 0 };
+  const stats = SENTRY_KINDS[kind];
   return {
-    id, waypoints, guard, waypoint: 0, mode: 'patrol', awareness: 0, health: SENTRY.health, fireCooldown: 1,
+    id, kind, scale: stats.scale, pace: stats.pace, waypoints, guard, waypoint: 0, mode: 'patrol', awareness: 0, health: SENTRY.health, fireCooldown: 1,
     position: { x: start.x, y: world.terrainHeight(start.x, start.z), z: start.z },
     heading: 0, lastKnown: null, searchTimer: 0, sightCheckTimer: 0, canSeePlayer: false, exposure: 0, aimPoint: null, walkPhase: 0, deathTime: 0, sinceShot: 99,
     role: hashId(id) % 2 === 0 ? 'assault' : 'flank', side: hashId(id) % 4 < 2 ? 1 : -1,
@@ -175,7 +201,7 @@ export function hitChance(player: PlayerSnapshot, distance: number): number {
 }
 
 export function sentryHeadPosition(sentry: SentryState): Vec3 {
-  return { x: sentry.position.x, y: sentry.position.y + SENTRY.headHeight, z: sentry.position.z };
+  return { x: sentry.position.x, y: sentry.position.y + sentrySize(sentry).headHeight, z: sentry.position.z };
 }
 
 /** Advances one sentry. Returns a shot when it fires at the player. */
@@ -187,7 +213,7 @@ export function updateSentry(
     sentry.deathTime += dt;
     return null;
   }
-  const eye = { x: sentry.position.x, y: sentry.position.y + SENTRY.eyeHeight, z: sentry.position.z };
+  const eye = { x: sentry.position.x, y: sentry.position.y + sentrySize(sentry).eyeHeight, z: sentry.position.z };
   const toPlayerX = player.eye.x - eye.x;
   const toPlayerZ = player.eye.z - eye.z;
   const distance = Math.hypot(toPlayerX, toPlayerZ, player.eye.y - eye.y);
@@ -234,10 +260,10 @@ export function updateSentry(
         const gap = Math.hypot(victim.position.x - sentry.position.x, victim.position.z - sentry.position.z);
         const victimBearing = Math.atan2(victim.position.x - sentry.position.x, victim.position.z - sentry.position.z);
         sentry.fireCooldown -= dt;
-        if (gap > 8.5) { target = victim.position; speed = SENTRY.patrolSpeed * 1.5; break; }
+        if (gap > 8.5) { target = victim.position; speed = patrolSpeed(sentry) * 1.5; break; }
         sentry.heading = turnToward(sentry.heading, victimBearing, 4 * dt);
         if (sentry.fireCooldown <= 0 && Math.abs(angleDifference(victimBearing, sentry.heading)) < 0.3) {
-          sentry.fireCooldown = SENTRY.fireInterval * (1 + random.next() * 0.6);
+          sentry.fireCooldown = SENTRY_KINDS[sentry.kind].fireInterval * (1 + random.next() * 0.6);
           sentry.sinceShot = 0;
           shot = fireAtVictim(sentry, victim, world, eye, random);
         }
@@ -246,7 +272,7 @@ export function updateSentry(
       const waypoint = sentry.waypoints[sentry.waypoint];
       if (waypoint !== undefined && !(sentry.guard && sentry.waypoints.length < 2)) {
         target = waypoint;
-        speed = SENTRY.patrolSpeed;
+        speed = patrolSpeed(sentry);
         if (Math.hypot(waypoint.x - sentry.position.x, waypoint.z - sentry.position.z) < 0.8) {
           sentry.waypoint = (sentry.waypoint + 1) % sentry.waypoints.length;
         }
@@ -263,7 +289,7 @@ export function updateSentry(
       sentry.fireCooldown -= dt;
       if (sentry.tacticTimer >= 0) sentry.tacticTimer = Math.max(0, sentry.tacticTimer - dt);
       if (sentry.canSeePlayer && distance <= SENTRY.effectiveRange && sentry.fireCooldown <= 0 && facing < 0.35 && sentry.suppressed <= 0) {
-        sentry.fireCooldown = SENTRY.fireInterval * (0.8 + random.next() * 0.5);
+        sentry.fireCooldown = SENTRY_KINDS[sentry.kind].fireInterval * (0.8 + random.next() * 0.5);
         sentry.sinceShot = 0;
         shot = fireAt(sentry, player, world, eye, distance, random);
       }
@@ -281,13 +307,13 @@ export function updateSentry(
       if (sentry.suppressed > 0 && sentry.lastKnown !== null) {
         const threat = { x: sentry.lastKnown.x, y: sentry.position.y + 1.6, z: sentry.lastKnown.z };
         if (sentry.moveTarget === null || sentry.tactic !== 'cover') {
-          setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), SENTRY.huntSpeed);
+          setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), huntSpeed(sentry));
           sentry.tactic = 'cover';
         }
-        if (sentry.moveTarget !== null) { target = sentry.moveTarget; speed = SENTRY.huntSpeed; }
+        if (sentry.moveTarget !== null) { target = sentry.moveTarget; speed = huntSpeed(sentry); }
       } else if (sentry.lastKnown !== null && Math.hypot(sentry.lastKnown.x - sentry.position.x, sentry.lastKnown.z - sentry.position.z) > 1.5) {
         target = sentry.lastKnown;
-        speed = SENTRY.huntSpeed * 0.7;
+        speed = huntSpeed(sentry) * 0.7;
       } else {
         sentry.heading += dt * 0.9;
       }
@@ -308,10 +334,10 @@ export function updateSentry(
       sentry.position.x += Math.sin(desired) * step;
       sentry.position.z += Math.cos(desired) * step;
     }
-    world.resolveHorizontal(sentry.position, SENTRY.radius, 2.1, 0.45);
+    world.resolveHorizontal(sentry.position, sentrySize(sentry).radius, 2.1, 0.45);
     sentry.walkPhase += step * 2.4;
   }
-  sentry.position.y = world.groundHeight(sentry.position.x, sentry.position.z, SENTRY.radius * 0.5, sentry.position.y + 0.3, 0.45);
+  sentry.position.y = world.groundHeight(sentry.position.x, sentry.position.z, sentrySize(sentry).radius * 0.5, sentry.position.y + 0.3, 0.45);
   return shot;
 }
 
@@ -335,12 +361,12 @@ function planTactic(sentry: SentryState, known: { x: number; z: number }, threat
   if (sentry.suppressed > 0) {
     if (sentry.tactic !== 'cover' || sentry.moveTarget === null) {
       sentry.tactic = 'cover';
-      setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), SENTRY.huntSpeed);
+      setMoveTarget(sentry, findCover(world, sentry, threat, SENTRY.coverRadius * 0.6, null), huntSpeed(sentry));
       sentry.tacticTimer = 2 + random.next() * 1.5;
     }
     return sentry.moveTarget === null || arrived
       ? { target: null, speed: 0, faceMovement: false }
-      : { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+      : { target: sentry.moveTarget, speed: huntSpeed(sentry), faceMovement: true };
   }
 
   if (distance <= SENTRY.effectiveRange && sentry.canSeePlayer) {
@@ -351,15 +377,15 @@ function planTactic(sentry: SentryState, known: { x: number; z: number }, threat
       // Sidestep across the player's line of fire.
       const awayX = here.x - known.x; const awayZ = here.z - known.z;
       const length = Math.hypot(awayX, awayZ) || 1;
-      setMoveTarget(sentry, { x: here.x + (-awayZ / length) * sentry.side * 2.5, z: here.z + (awayX / length) * sentry.side * 2.5 }, SENTRY.patrolSpeed);
+      setMoveTarget(sentry, { x: here.x + (-awayZ / length) * sentry.side * 2.5, z: here.z + (awayX / length) * sentry.side * 2.5 }, patrolSpeed(sentry));
     }
     // Close in a little if still far from the standoff distance.
     if (distance > SENTRY.standoff + 1.5 && sentry.moveTarget !== null) {
       const towardX = known.x - here.x; const towardZ = known.z - here.z;
       const length = Math.hypot(towardX, towardZ) || 1;
-      return { target: { x: sentry.moveTarget.x + towardX / length * 1.5, z: sentry.moveTarget.z + towardZ / length * 1.5 }, speed: SENTRY.patrolSpeed, faceMovement: false };
+      return { target: { x: sentry.moveTarget.x + towardX / length * 1.5, z: sentry.moveTarget.z + towardZ / length * 1.5 }, speed: patrolSpeed(sentry), faceMovement: false };
     }
-    return { target: sentry.moveTarget, speed: SENTRY.patrolSpeed * 0.8, faceMovement: false };
+    return { target: sentry.moveTarget, speed: patrolSpeed(sentry) * 0.8, faceMovement: false };
   }
 
   // Out of range (or the player is out of sight): work closer.
@@ -372,30 +398,30 @@ function planTactic(sentry: SentryState, known: { x: number; z: number }, threat
       const angle = Math.atan2(awayX, awayZ) + 1.1 * sentry.side;
       sentry.tactic = 'flank';
       sentry.tacticTimer = 1;
-      setMoveTarget(sentry, { x: known.x + Math.sin(angle) * radius, z: known.z + Math.cos(angle) * radius }, SENTRY.huntSpeed);
+      setMoveTarget(sentry, { x: known.x + Math.sin(angle) * radius, z: known.z + Math.cos(angle) * radius }, huntSpeed(sentry));
     } else if (arrived || sentry.tacticTimer < 0) {
       // Flank reached: now close in on the player from the side (tacticTimer < 0 marks this stage).
       sentry.tacticTimer = -1;
-      setMoveTarget(sentry, { x: known.x, z: known.z }, SENTRY.huntSpeed);
+      setMoveTarget(sentry, { x: known.x, z: known.z }, huntSpeed(sentry));
     }
-    return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+    return { target: sentry.moveTarget, speed: huntSpeed(sentry), faceMovement: true };
   }
 
   // Assault: bound from cover to cover, pausing in each.
   if (sentry.tactic === 'cover' && sentry.moveTarget !== null && !arrived) {
-    return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+    return { target: sentry.moveTarget, speed: huntSpeed(sentry), faceMovement: true };
   }
   if (sentry.tactic === 'cover' && sentry.tacticTimer > 0) return { target: null, speed: 0, faceMovement: false };
   const next = findCover(world, sentry, threat, SENTRY.coverRadius, known);
   if (next !== null) {
     sentry.tactic = 'cover';
-    setMoveTarget(sentry, next, SENTRY.huntSpeed);
+    setMoveTarget(sentry, next, huntSpeed(sentry));
     sentry.tacticTimer = 1.2 + random.next() * 1.4;
-    return { target: next, speed: SENTRY.huntSpeed, faceMovement: true };
+    return { target: next, speed: huntSpeed(sentry), faceMovement: true };
   }
   sentry.tactic = 'advance';
-  setMoveTarget(sentry, { x: known.x, z: known.z }, SENTRY.huntSpeed);
-  return { target: sentry.moveTarget, speed: SENTRY.huntSpeed, faceMovement: true };
+  setMoveTarget(sentry, { x: known.x, z: known.z }, huntSpeed(sentry));
+  return { target: sentry.moveTarget, speed: huntSpeed(sentry), faceMovement: true };
 }
 
 /**
@@ -415,7 +441,7 @@ export function findCover(world: CollisionWorld, sentry: SentryState, threat: Ve
     const centerX = (volume.minX + volume.maxX) / 2; const centerZ = (volume.minZ + volume.maxZ) / 2;
     const awayX = centerX - threat.x; const awayZ = centerZ - threat.z;
     const length = Math.hypot(awayX, awayZ) || 1;
-    const reach = Math.max(volume.maxX - volume.minX, volume.maxZ - volume.minZ) / 2 + SENTRY.radius + 0.35;
+    const reach = Math.max(volume.maxX - volume.minX, volume.maxZ - volume.minZ) / 2 + sentrySize(sentry).radius + 0.35;
     const spot = { x: centerX + awayX / length * reach, z: centerZ + awayZ / length * reach };
     const travel = Math.hypot(spot.x - here.x, spot.z - here.z);
     if (travel > radius) continue;
@@ -424,8 +450,8 @@ export function findCover(world: CollisionWorld, sentry: SentryState, threat: Ve
       gap = Math.hypot(toward.x - spot.x, toward.z - spot.z);
       if (gap > currentGap - 3 || gap < SENTRY.standoff) continue;
     }
-    const ground = world.groundHeight(spot.x, spot.z, SENTRY.radius * 0.5, here.y + 0.5, 0.45);
-    if (world.inside('solid', { x: spot.x, y: ground + 1, z: spot.z }, SENTRY.radius * 0.6) !== null) continue;
+    const ground = world.groundHeight(spot.x, spot.z, sentrySize(sentry).radius * 0.5, here.y + 0.5, 0.45);
+    if (world.inside('solid', { x: spot.x, y: ground + 1, z: spot.z }, sentrySize(sentry).radius * 0.6) !== null) continue;
     if (world.lineOfSight(threat, { x: spot.x, y: ground + 1.8, z: spot.z }, (candidate) => candidate.tag === 'glass')) continue;
     const score = travel + gap * 0.6;
     if (score < bestScore) { bestScore = score; best = spot; }
@@ -465,7 +491,7 @@ export function radioSquad(sentries: readonly SentryState[], spotter: SentryStat
 
 /** A round at a civilian: about half miss, and cover stops it like any other round. */
 function fireAtVictim(sentry: SentryState, victim: Victim, world: CollisionWorld, eye: Vec3, random: Random): SentryShot {
-  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * SCALE, y: eye.y - 0.4 * SCALE, z: eye.z + Math.cos(sentry.heading) * 0.5 * SCALE };
+  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * sentry.scale, y: eye.y - 0.4 * sentry.scale, z: eye.z + Math.cos(sentry.heading) * 0.5 * sentry.scale };
   const wantsHit = random.next() < 0.5;
   const spread = wantsHit ? 0 : 0.8 + random.next();
   const target = { x: victim.position.x + (random.next() - 0.5) * spread, y: victim.position.y + 1 + (random.next() - 0.5) * spread, z: victim.position.z + (random.next() - 0.5) * spread };
@@ -483,7 +509,7 @@ function fireAtVictim(sentry: SentryState, victim: Victim, world: CollisionWorld
  * its target so a tree trunk or wall in the way stops it.
  */
 function fireAt(sentry: SentryState, player: PlayerSnapshot, world: CollisionWorld, eye: Vec3, distance: number, random: Random): SentryShot {
-  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * SCALE, y: eye.y - 0.4 * SCALE, z: eye.z + Math.cos(sentry.heading) * 0.5 * SCALE };
+  const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * sentry.scale, y: eye.y - 0.4 * sentry.scale, z: eye.z + Math.cos(sentry.heading) * 0.5 * sentry.scale };
   const aim = sentry.aimPoint ?? { x: player.position.x, y: player.position.y + 1, z: player.position.z };
   // Out of effective range a round can never hurt; hitChance is zero there.
   const wantsHit = random.next() < hitChance(player, distance) * Math.min(1, sentry.exposure * 1.3);
@@ -499,7 +525,7 @@ function fireAt(sentry: SentryState, player: PlayerSnapshot, world: CollisionWor
   if (blocked !== null) return { from, to: blocked.point, hit: false, damage: 0, impact: blocked.point };
   const scale = travel / Math.max(reach, 1e-6);
   const to = { x: from.x + direction.x * scale, y: from.y + direction.y * scale, z: from.z + direction.z * scale };
-  return { from, to, hit: wantsHit, damage: wantsHit ? SENTRY.damage : 0, impact: null };
+  return { from, to, hit: wantsHit, damage: wantsHit ? SENTRY_KINDS[sentry.kind].damage : 0, impact: null };
 }
 
 /** A gunshot alerts every living sentry within hearing range, pointing them roughly at the shooter. */
@@ -534,11 +560,12 @@ export function damageSentry(sentry: SentryState, damage: number, shooter: Vec3)
 export function raySentry(origin: Vec3, direction: Vec3, sentry: SentryState): { distance: number; headshot: boolean } | null {
   if (sentry.mode === 'dead') return null;
   const head = sentryHeadPosition(sentry);
-  const headDistance = raySphere(origin, direction, head, SENTRY.headRadius);
-  const w = SENTRY.bodyHalfWidth;
+  const size = sentrySize(sentry);
+  const headDistance = raySphere(origin, direction, head, size.headRadius);
+  const w = size.bodyHalfWidth;
   const bodyDistance = rayAabb(origin, direction,
     sentry.position.x - w, sentry.position.y + 0.15, sentry.position.z - w,
-    sentry.position.x + w, sentry.position.y + SENTRY.bodyTop, sentry.position.z + w);
+    sentry.position.x + w, sentry.position.y + size.bodyTop, sentry.position.z + w);
   if (headDistance !== null && (bodyDistance === null || headDistance <= bodyDistance + 0.05)) return { distance: headDistance, headshot: true };
   if (bodyDistance !== null) return { distance: bodyDistance, headshot: false };
   return null;

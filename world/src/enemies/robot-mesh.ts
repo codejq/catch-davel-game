@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { clamp, type Vec3 } from '../core/collision';
 import { texture, worldBox } from '../world/materials';
-import { SENTRY, type SentryState } from './sentry';
+import { SENTRY, SENTRY_KINDS, sentrySize, type SentryState } from './sentry';
 
 interface Leg { readonly hip: THREE.Group; readonly knee: THREE.Group; readonly ankle: THREE.Group }
 interface Arm { readonly shoulder: THREE.Group; readonly elbow: THREE.Group }
@@ -236,6 +236,99 @@ export function createRobotRig(paint: number): RobotRig {
   return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, stride: 0, lastPhase: 0 };
 }
 
+const fabric = (color: number): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0 });
+
+/**
+ * A human soldier on the same skeleton as the robots (so the same poses drive it), at life size: camouflage
+ * fatigues, plate carrier with pouches, boots, gloves, a helmet with goggles, and a face. `eyes` is a small
+ * red status light on the helmet so a soldier's mood still reads through the scope.
+ */
+export function createSoldierRig(camo: number): RobotRig {
+  const uniform = new THREE.MeshStandardMaterial({ color: camo, roughness: 0.95, map: texture('fabric') });
+  const vest = fabric(new THREE.Color(camo).multiplyScalar(0.62).getHex());
+  const boots = fabric(0x231c15);
+  const gloves = fabric(0x1c1c1a);
+  const skin = new THREE.MeshStandardMaterial({ color: [0xe0ac86, 0xc68a62, 0x9b6a45, 0xf1c7a5, 0x70482c][serialCounter % 5]!, roughness: 0.75 });
+  const helmetMaterial = new THREE.MeshStandardMaterial({ color: new THREE.Color(camo).multiplyScalar(0.8), roughness: 0.8, metalness: 0.1 });
+  const eyes = new THREE.MeshStandardMaterial({ color: 0x111111, emissive: 0x33ddff, emissiveIntensity: 2, fog: false });
+  serialCounter += 1;
+  const root = new THREE.Group();
+  root.scale.setScalar(SENTRY_KINDS.soldier.scale);
+
+  const pelvis = new THREE.Group();
+  pelvis.position.y = HIP_HEIGHT;
+  pelvis.add(box(0.36, 0.18, 0.24, uniform, 0, 0.02, 0));
+  pelvis.add(box(0.38, 0.05, 0.26, vest, 0, 0.1, 0));
+  root.add(pelvis);
+
+  const legs = ([-1, 1] as const).map((side): Leg => {
+    const hip = new THREE.Group();
+    hip.position.set(side * 0.1, 0, 0);
+    hip.add(box(0.16, THIGH, 0.18, uniform, 0, -THIGH * 0.5, 0));
+    hip.add(box(0.07, 0.12, 0.1, vest, side * 0.09, -THIGH * 0.45, 0.02));
+    const knee = new THREE.Group();
+    knee.position.y = -THIGH;
+    knee.add(box(0.14, 0.12, 0.06, vest, 0, 0, 0.08));
+    knee.add(box(0.13, SHIN, 0.15, uniform, 0, -SHIN * 0.5, 0));
+    const ankle = new THREE.Group();
+    ankle.position.y = -SHIN;
+    ankle.add(box(0.14, 0.13, 0.28, boots, 0, -0.03, 0.05));
+    ankle.add(box(0.15, 0.03, 0.3, rubberMaterial, 0, -0.09, 0.05));
+    knee.add(ankle);
+    hip.add(knee);
+    pelvis.add(hip);
+    return { hip, knee, ankle };
+  }) as [Leg, Leg];
+
+  const torso = new THREE.Group();
+  torso.position.y = 0.1;
+  torso.add(box(0.38, 0.52, 0.22, uniform, 0, 0.36, 0));
+  // Plate carrier with magazine pouches, and a small pack.
+  torso.add(box(0.42, 0.4, 0.28, vest, 0, 0.4, 0));
+  for (let pouch = 0; pouch < 3; pouch += 1) torso.add(box(0.09, 0.12, 0.06, vest, -0.11 + pouch * 0.11, 0.3, 0.17));
+  torso.add(box(0.3, 0.34, 0.14, vest, 0, 0.42, -0.2));
+  torso.add(sphere(0.022, eyes, 0.14, 0.52, 0.15));
+  pelvis.add(torso);
+
+  const arms = ([-1, 1] as const).map((side): Arm => {
+    const shoulder = new THREE.Group();
+    shoulder.position.set(side * 0.25, 0.58, 0);
+    shoulder.add(sphere(0.075, uniform));
+    shoulder.add(box(0.11, 0.3, 0.12, uniform, 0, -0.16, 0));
+    const elbow = new THREE.Group();
+    elbow.position.y = -0.3;
+    elbow.add(box(0.1, 0.27, 0.1, uniform, 0, -0.14, 0));
+    elbow.add(box(0.09, 0.1, 0.1, gloves, 0, -0.32, 0.01));
+    shoulder.add(elbow);
+    torso.add(shoulder);
+    return { shoulder, elbow };
+  }) as [Arm, Arm];
+
+  const { gun, muzzle } = carbine();
+  gun.position.set(0, -0.32, 0.04);
+  gun.scale.setScalar(0.85);
+  arms[1].elbow.add(gun);
+
+  // Head: face, nose, ears, helmet with a brim and goggles.
+  const head = new THREE.Group();
+  head.position.set(0, 0.66, 0.01);
+  head.add(cylinder(0.055, 0.06, 0.1, skin, 0, 0.03, 0, 10));
+  const face = sphere(0.11, skin, 0, 0.17, 0.01);
+  face.scale.set(0.9, 1.1, 1);
+  head.add(face);
+  head.add(box(0.03, 0.04, 0.04, skin, 0, 0.16, 0.11));
+  for (const side of [-1, 1] as const) head.add(box(0.02, 0.05, 0.03, skin, side * 0.1, 0.17, 0));
+  const helmet = sphere(0.14, helmetMaterial, 0, 0.24, -0.01);
+  helmet.scale.set(1.02, 0.78, 1.08);
+  head.add(helmet);
+  head.add(box(0.27, 0.025, 0.27, helmetMaterial, 0, 0.2, 0));
+  head.add(box(0.19, 0.045, 0.02, lensMaterial, 0, 0.26, 0.13));
+  head.add(box(0.03, 0.03, 0.03, eyes, 0.08, 0.33, 0.06));
+  torso.add(head);
+
+  return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, stride: 0, lastPhase: 0 };
+}
+
 export const MODE_EYE_COLOR: Record<SentryState['mode'], number> = {
   patrol: 0x33ddff, suspicious: 0xffb020, search: 0xffb020, alert: 0xff2a1a, dead: 0x000000,
 };
@@ -287,7 +380,7 @@ export function poseRobot(rig: RobotRig, sentry: SentryState, time: number, targ
   let lookYaw: number;
   let lookPitch: number;
   if (target !== null && (combat === 1 || sentry.mode === 'suspicious')) {
-    const eyeY = sentry.position.y + SENTRY.eyeHeight;
+    const eyeY = sentry.position.y + sentrySize(sentry).eyeHeight;
     lookYaw = clamp(wrapAngle(Math.atan2(target.x - sentry.position.x, target.z - sentry.position.z) - sentry.heading), -1, 1);
     lookPitch = clamp(Math.atan2(target.y - eyeY, Math.hypot(target.x - sentry.position.x, target.z - sentry.position.z)), -0.7, 0.5);
   } else if (wary === 1) {
@@ -338,7 +431,7 @@ export function poseRobot(rig: RobotRig, sentry: SentryState, time: number, targ
     right.shoulder.rotation.set(-0.2, 0, 0.6 * buckle);
     left.shoulder.rotation.set(-0.3, 0, -0.7 * buckle);
     rig.root.rotation.x = -fall * fall * 1.35;
-    rig.root.position.y = sentry.position.y - fall * 0.35 * SENTRY.scale;
+    rig.root.position.y = sentry.position.y - fall * 0.35 * sentry.scale;
   }
 }
 

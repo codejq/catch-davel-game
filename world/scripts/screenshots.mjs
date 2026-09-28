@@ -61,7 +61,7 @@ await shot('village', () => {
 
 await shot('robots-flanking', () => {
   const w = window.zamaSniperWorld; window.shots.world(0);
-  const [a, b] = [w.sentries()[3], w.sentries()[4]];
+  const [a, b] = w.sentries().filter((s) => s.kind === 'robot').slice(3, 5);
   window.shots.viewOf(a.position, 22, 2.2, 0.02, 1.2);
   const body = w.body();
   b.position.x = a.position.x + 5; b.position.z = a.position.z + 3;
@@ -72,9 +72,33 @@ await shot('robots-flanking', () => {
   w.step(1 / 60);
 });
 
+await shot('soldiers', () => {
+  const w = window.zamaSniperWorld; window.shots.world(0);
+  // A squad of human soldiers on patrol: life-size and quicker than the robots.
+  const squad = w.sentries().filter((s) => s.kind === 'soldier');
+  const lead = squad[0];
+  for (const s of w.sentries()) if (!squad.slice(0, 3).includes(s)) { s.mode = 'dead'; s.deathTime = 9; s.position.x += 5000; }
+  // Walk them across the village square, in the open.
+  const b = w.layout().buildings[5].plan;
+  const square = { x: b.x + Math.cos(0.8) * 16, z: b.z + Math.sin(0.8) * 16 };
+  squad.slice(0, 3).forEach((mate, index) => {
+    mate.position.x = square.x + (index === 1 ? 1.8 : index === 2 ? -1.8 : 0); mate.position.z = square.z + index * 1.3;
+    mate.waypoints.splice(0, mate.waypoints.length, { x: mate.position.x + 30, z: mate.position.z }, { x: mate.position.x - 30, z: mate.position.z });
+    mate.waypoint = 0; mate.heading = Math.PI / 2;
+  });
+  w.step(0.5);
+  window.shots.viewOf(lead.position, 8, 1.1, 0, 5.3);
+  w.stance('crouch');
+  w.step(0.6);
+  const body = w.body();
+  body.yaw = Math.atan2(lead.position.x - body.position.x, -(lead.position.z - body.position.z));
+  body.pitch = Math.atan2(lead.position.y + 1.1 - (body.position.y + body.eyeHeight), Math.hypot(lead.position.x - body.position.x, lead.position.z - body.position.z));
+  w.step(1 / 60);
+});
+
 await shot('scope', () => {
   const w = window.zamaSniperWorld; window.shots.world(1);
-  const robot = w.sentries()[2];
+  const robot = w.sentries().filter((s) => s.kind === 'robot')[2];
   window.shots.viewOf(robot.position, 85, 2.3, 0.004);
   w.setAim(1); w.step(0.8);
 });
@@ -128,7 +152,7 @@ await shot('tank', () => {
 await shot('carbine', () => {
   const w = window.zamaSniperWorld; window.shots.world(0);
   // Take a carbine off a destroyed robot, then face the squad with it.
-  const [fallen, target] = [w.sentries()[3], w.sentries()[4]];
+  const [fallen, target] = w.sentries().filter((s) => s.kind === 'robot').slice(3, 5);
   fallen.mode = 'dead'; fallen.deathTime = 9;
   w.population().civilians.forEach((c) => { c.position.x += 5000; });
   window.shots.viewOf(target.position, 16, 2, 0, 1);
