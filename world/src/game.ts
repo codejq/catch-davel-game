@@ -43,8 +43,13 @@ const SOLDIER_CAMO: Record<string, number> = { 'green-valley': 0x7d8c5c, 'dust-r
 /** How long the sniper must stand still before the information panels fade back in. */
 const HUD_RETURN_SECONDS = 0.6;
 
+/** `?seed=name` in the address replays the same run (same enemies, families, and loot); otherwise every run differs. */
+const RUN_SEED = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('seed');
+let seedCount = 0;
+
 function freshSeed(): string {
-  return `${Date.now()}-${Math.random()}`;
+  seedCount += 1;
+  return RUN_SEED === null ? `${Date.now()}-${Math.random()}` : `${RUN_SEED}-${seedCount}`;
 }
 
 type Phase = 'menu' | 'playing' | 'paused' | 'dead' | 'victory';

@@ -22,56 +22,70 @@ try {
   const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.goto(server.resolvedUrls.local[0], { waitUntil: 'load' });
+  // A fixed run seed keeps the randomized enemies, families, and loot the same from run to run.
+  await page.goto(`${server.resolvedUrls.local[0]}?seed=${process.env.SMOKE_SEED ?? 'smoke'}`, { waitUntil: 'load' });
   await page.waitForFunction(() => window.zamaSniperWorld !== undefined);
 
   const combat = await page.evaluate(() => {
     const w = window.zamaSniperWorld;
     w.play();
-    const [target, shooter] = w.sentries().filter((sentry) => sentry.kind === 'robot').slice(2, 4);
-    // Just these two robots take part; the rest of the force is parked out of the way.
-    for (const sentry of w.sentries()) if (sentry !== target && sentry !== shooter) { sentry.mode = 'dead'; sentry.deathTime = 9; sentry.position.x += 5000; }
+    const robots = w.sentries().filter((sentry) => sentry.kind === 'robot');
+    const shooter = robots[1];
+    const targets = robots.slice(2, 6);
+    // Just these robots take part; the rest of the force is parked out of the way.
+    for (const sentry of w.sentries()) if (sentry !== shooter && !targets.includes(sentry)) { sentry.mode = 'dead'; sentry.deathTime = 9; sentry.position.x += 5000; }
     shooter.mode = 'dead';
     for (const tank of w.population().tanks) tank.position.x += 5000;
     const soldiers = w.sentries().filter((sentry) => sentry.kind === 'soldier').length;
     let spot = null;
-    for (let angle = 0; angle < Math.PI * 2 && spot === null; angle += 0.3) {
-      const x = target.position.x + Math.cos(angle) * 50; const z = target.position.z + Math.sin(angle) * 50;
-      w.teleport(x, z, 0, 0);
-      const body = w.body();
-      if (w.los({ x, y: body.position.y + 1.1, z }, { x: target.position.x, y: target.position.y + 1.9, z: target.position.z })) spot = { x, z };
+    let target = targets[0];
+    // Snipe from 50 m. A robot that dodges into cover after a miss is swapped for the next one.
+    for (const candidate of targets) {
+      if (targets.some((other) => other.mode === 'dead')) break;
+      target = candidate;
+      spot = null;
+      for (let angle = 0; angle < Math.PI * 2 && spot === null; angle += 0.3) {
+        const x = target.position.x + Math.cos(angle) * 50; const z = target.position.z + Math.sin(angle) * 50;
+        w.teleport(x, z, 0, 0);
+        const body = w.body();
+        if (w.los({ x, y: body.position.y + 1.1, z }, { x: target.position.x, y: target.position.y + 1.9, z: target.position.z })) spot = { x, z };
+      }
+      if (spot === null) continue;
+      w.refill();
+      w.stance('crouch');
+      w.setAim(1);
+      w.step(0.6);
+      for (let attempt = 0; attempt < 5 && target.mode !== 'dead'; attempt += 1) {
+        const body = w.body();
+        const dx = target.position.x - body.position.x; const dz = target.position.z - body.position.z;
+        body.yaw = Math.atan2(dx, -dz);
+        body.pitch = Math.atan2(target.position.y + 1.9 - (body.position.y + body.eyeHeight), Math.hypot(dx, dz));
+        w.fire(); w.step(1.35);
+      }
     }
-    w.stance('crouch');
-    w.setAim(1);
-    w.step(0.6);
-    for (let attempt = 0; attempt < 5 && target.mode !== 'dead'; attempt += 1) {
-      const body = w.body();
-      const dx = target.position.x - body.position.x; const dz = target.position.z - body.position.z;
-      body.yaw = Math.atan2(dx, -dz);
-      body.pitch = Math.atan2(target.position.y + 1.9 - (body.position.y + body.eyeHeight), Math.hypot(dx, dz));
-      w.fire(); w.step(1.35);
-    }
+    for (const other of targets) if (other !== target) { other.mode = 'dead'; other.deathTime = 9; other.position.x += 5000; }
+    w.refill();
     const sniped = target.mode === 'dead';
     // Stand in the open 7 m from a live robot that has seen us: it must open fire.
     w.setAim(0); w.stance('stand');
-    let other = null;
-    for (const candidate of [shooter]) {
-      for (let angle = 0; angle < Math.PI * 2 && other === null; angle += 0.4) {
-        const x = candidate.position.x + Math.cos(angle) * 7; const z = candidate.position.z + Math.sin(angle) * 7;
-        w.teleport(x, z, 0, 0);
-        const body = w.body();
-        const eye = { x: candidate.position.x, y: candidate.position.y + 3.3, z: candidate.position.z };
-        // Fully in the open: the robot can see head, chest, and hips.
-        if ([0.9, 1.3, 1.6].every((height) => w.los(eye, { x, y: body.position.y + height, z }))) other = candidate;
-      }
-      if (other !== null) break;
-    }
-    other.mode = 'alert'; other.awareness = 1.1; other.lastKnown = { x: w.body().position.x, z: w.body().position.z };
+    // Try spots round the robot until it sees all of us (foliage counts, not just walls), then let it shoot.
     const before = w.stats().health;
+    let best = null;
+    for (let angle = 0; angle < Math.PI * 2; angle += 0.4) {
+      const x = shooter.position.x + Math.cos(angle) * 7; const z = shooter.position.z + Math.sin(angle) * 7;
+      w.teleport(x, z, 0, 0);
+      shooter.mode = 'alert'; shooter.awareness = 1.1; shooter.lastKnown = { x: w.body().position.x, z: w.body().position.z }; shooter.sightCheckTimer = 0;
+      shooter.heading = Math.atan2(x - shooter.position.x, z - shooter.position.z);
+      w.step(0.05);
+      if (best === null || shooter.exposure > best.exposure) best = { x, z, exposure: shooter.exposure };
+      if (shooter.exposure > 0.8) break;
+    }
+    w.teleport(best.x, best.z, 0, 0);
+    shooter.mode = 'alert'; shooter.awareness = 1.1; shooter.lastKnown = { x: w.body().position.x, z: w.body().position.z };
     // Health heals back after a few quiet seconds, so track the lowest it gets.
     let lowest = before;
     for (let tick = 0; tick < 40; tick += 1) { w.step(0.25); lowest = Math.min(lowest, w.stats().health); }
-    return { spot: spot !== null, sniped, damageTaken: before - lowest, enemies: w.sentries().length, soldiers };
+    return { spot: spot !== null, sniped, exposure: best.exposure, damageTaken: before - lowest, enemies: w.sentries().length, soldiers };
   });
   if (!combat.spot || !combat.sniped) throw new Error(`Sniping a robot failed: ${JSON.stringify(combat)}`);
   if (combat.enemies < 30 || combat.soldiers < 10) throw new Error(`Not enough enemies deployed: ${JSON.stringify(combat)}`);
@@ -109,7 +123,7 @@ try {
     const counts = { people: population.civilians.filter((c) => c.kind !== 'dog').length, dogs: population.civilians.filter((c) => c.kind === 'dog').length, tanks: population.tanks.length };
     // Destroy a robot and walk up to it: its carbine and armor are taken. The rest of the (large) force, and the
     // tanks until their turn comes, are parked out of the way so these checks are not cut short by the player dying.
-    const tanksHome = population.tanks.map((tank) => ({ tank, x: tank.position.x, z: tank.position.z, heading: tank.heading, waypoint: tank.waypoint }));
+    const tanksHome = population.tanks.map((tank) => ({ tank, x: tank.position.x, y: tank.position.y, z: tank.position.z, heading: tank.heading, waypoint: tank.waypoint }));
     for (const tank of population.tanks) tank.position.x += 5000;
     const candidates = w.sentries().filter((sentry) => sentry.kind === 'robot').slice(2, 8);
     for (const sentry of w.sentries()) if (!candidates.includes(sentry)) { sentry.mode = 'dead'; sentry.deathTime = 9; sentry.position.x += 5000; }
@@ -173,12 +187,24 @@ try {
         return { bystanders: near.length, panicked: near.filter((c) => c.mode !== 'calm').length };
       })() };
     // A tank shells the player at close range and four rifle hits destroy it.
-    const tank = population.tanks[0];
-    const home = tanksHome[0];
-    tank.position.x = home.x; tank.position.z = home.z; tank.heading = home.heading; tank.turret = home.heading; tank.waypoint = home.waypoint;
+    // Bring back a tank the crew of which can see the sniper from 22 m (foliage counts); one boxed in by trees
+    // and houses is parked again and the next one tried.
+    let tank = population.tanks[0];
+    for (const home of tanksHome) {
+      tank = home.tank;
+      tank.position.x = home.x; tank.position.y = home.y; tank.position.z = home.z; tank.heading = home.heading; tank.turret = home.heading; tank.waypoint = home.waypoint;
+      let seen = false;
+      for (let angle = 0; angle < Math.PI * 2 && !seen; angle += 0.3) {
+        const x = tank.position.x + Math.cos(angle) * 22; const z = tank.position.z + Math.sin(angle) * 22;
+        w.teleport(x, z, 0, 0);
+        tank.sightTimer = 0;
+        w.step(0.05);
+        seen = tank.canSeePlayer;
+      }
+      if (seen) break;
+      tank.position.x += 5000;
+    }
     w.refill();
-    standNear(tank.position, 22, 1.9);
-    // The crew has spotted the sniper.
     tank.awareness = 1.1; tank.lastKnown = { x: w.body().position.x, z: w.body().position.z };
     for (let wait = 0; wait < 30 && tank.sinceShot > 50; wait += 1) w.step(0.5);
     const shelled = tank.sinceShot < 50;
