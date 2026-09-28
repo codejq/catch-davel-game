@@ -127,7 +127,11 @@ try {
     const person = population.civilians.find((c) => c.mode === 'dead') ?? population.civilians[0];
     // The round may strike another family member standing in the line of fire; any innocent counts.
     const innocent = { lined, dead: population.civilians.some((c) => c.mode === 'dead'), healthDrop: before - w.stats().health, shot: w.innocents().shot,
-      panicked: population.civilians.filter((c) => c.family === person.family && c !== person && c.mode !== 'calm').length };
+      // Everyone alive within 30 m panics (a lone civilian may have no one nearby).
+      ...(() => {
+        const near = population.civilians.filter((c) => c !== person && c.mode !== 'dead' && Math.hypot(c.position.x - person.position.x, c.position.z - person.position.z) < 30);
+        return { bystanders: near.length, panicked: near.filter((c) => c.mode !== 'calm').length };
+      })() };
     // A tank shells the player at close range and four rifle hits destroy it.
     const tank = population.tanks[0];
     standNear(tank.position, 22, 1.5);
@@ -145,7 +149,7 @@ try {
   });
   if (extras.counts.people < 6 || extras.counts.dogs < 1 || extras.counts.tanks !== 2) throw new Error(`World population missing: ${JSON.stringify(extras)}`);
   if (!extras.took.carbine.owned || extras.took.armor < 25) throw new Error(`Robot carbine was not taken: ${JSON.stringify(extras)}`);
-  if (!extras.innocent.dead || extras.innocent.healthDrop < 5 || extras.innocent.shot !== 1 || extras.innocent.panicked < 1) throw new Error(`Innocent penalty failed: ${JSON.stringify(extras)}`);
+  if (!extras.innocent.dead || extras.innocent.healthDrop < 5 || extras.innocent.shot !== 1 || (extras.innocent.bystanders > 0 && extras.innocent.panicked < 1)) throw new Error(`Innocent penalty failed: ${JSON.stringify(extras)}`);
   if (!extras.shelled || extras.tank !== 'dead') throw new Error(`Tank fight failed: ${JSON.stringify(extras)}`);
   // Switch to the carbine with 2 and hold Ctrl for automatic fire; Right Shift + up arrow sprints.
   await page.evaluate(() => window.zamaSniperWorld.step(1));
