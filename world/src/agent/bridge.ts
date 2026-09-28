@@ -38,7 +38,7 @@ export interface GameSnapshot {
   readonly objectives: readonly { readonly text: string; readonly done: boolean }[];
   readonly player: Omit<Observation['player'], 'heading' | 'pitch'> & { readonly moving: boolean };
   readonly robots: readonly {
-    readonly id: string; readonly kind: 'robot' | 'tank'; readonly position: Vec3; readonly chest: Vec3; readonly mode: string; readonly tactic: string;
+    readonly id: string; readonly kind: 'robot' | 'soldier' | 'tank'; readonly position: Vec3; readonly chest: Vec3; readonly mode: string; readonly tactic: string;
     readonly seesYou: boolean;
   }[];
   readonly innocents: readonly { readonly id: string; readonly kind: 'adult' | 'child' | 'dog'; readonly position: Vec3; readonly mode: string }[];
@@ -91,7 +91,7 @@ export const COMMAND_HELP = `Commands (send a list; they run in order and the wo
   {"do":"go_to","target":"c3","run":false,"seconds":30} or {"do":"go_to","x":10,"z":-4}   walk there by a route
                                             around walls, opening doors; stops early if a robot spots you or you are hit
   {"do":"wait","seconds":1}                 let time pass (max 10 s; stops early if a robot spots you or you are hit)
-Ids: r# robots, t# tanks, h# civilians and k# dogs (innocents: never shoot), d# doors, c# containers, p# pickups, b# buildings (go_to walks to the entrance), "portal".`;
+Ids: r# robots and soldiers, t# tanks, h# civilians and k# dogs (innocents: never shoot), d# doors, c# containers, p# pickups, b# buildings (go_to walks to the entrance), "portal".`;
 
 const FRAME = 1 / 60;
 

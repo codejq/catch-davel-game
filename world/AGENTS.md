@@ -21,7 +21,7 @@ There are three ways in:
 
 Angles: a **bearing** is a compass direction in degrees (0 = north, 90 = east). A **relative** angle is measured from where the sniper is looking, positive to the right.
 
-Ids in observations: `r#` robots, `t#` tanks, `h#` civilians and `k#` dogs (innocents: never shoot them), `d#` doors, `c#` containers, `p#` pickups, `b#` buildings, and `portal`.
+Ids in observations: `r#` robots and human soldiers (`kind` tells them apart; soldiers move about 60% faster), `t#` tanks, `h#` civilians and `k#` dogs (innocents: never shoot them), `d#` doors, `c#` containers, `p#` pickups, `b#` buildings, and `portal`.
 
 **Innocents.** Observations list the civilians and dogs nearby with their state (calm, fleeing, hiding). If one is in the line of fire, the crosshair reports it and the briefing warns *do not fire*. Every innocent the sniper hits costs 5% health, and a round can strike someone standing behind or in front of the target.
 
@@ -120,7 +120,7 @@ A briefing looks like this:
 
 ```text
 [PLAYING] Green Valley (world 1 of 3), t=0.2s
-Objectives: [ ] Search containers in the houses for the portal keycard; [ ] Reach the portal and enter it; [ ] Optional: destroy the robots (0/7); [ ] Protect the civilians: 18 of 18 safe (shooting an innocent costs 5% health)
+Objectives: [ ] Search containers in the houses for the portal keycard; [ ] Reach the portal and enter it; [ ] Optional: defeat the enemy (robots 0/33 · soldiers 0/12 · tanks 0/5); [ ] Protect the civilians: 18 of 18 safe (shooting an innocent costs 5% health)
 You: at (35, 50.6), facing 44° (pitch 0°), stand, spotted. Health 100, armor 0, lives 0, cash $0.
 Rifle (in hand): 5/5 in magazine, 20 spare.
 Robot carbine: not yet (destroy a robot and walk up to it to take its carbine).
@@ -140,7 +140,8 @@ The observation's TypeScript types are in [`src/agent/observation.ts`](src/agent
 - Search buildings nearest first; `go_to` a building's id (`b#`) walks to just outside its door. Inside, containers show up under *Nearby*, and ones on the other floor are marked `upstairs` or `downstairs`.
 - In the example above a frightened family is between the sniper and robot r5: move to get a clear line before firing.
 - Tanks shell you from 35 m or closer; keep further away or get behind a wall, and put four rifle rounds into them.
-- Robots only hurt you within 10 m, but they radio your position to each other, take cover, and flank. Shoot from far away, and after every shot expect robots to come looking.
+- Every run deploys 30 to 40 robots, 10 to 15 soldiers, and four to six tanks in new places, so scout before you move. Health comes back after five seconds out of harm's way, and empty weapons slowly resupply, so falling back to cover is always an option.
+- Robots and soldiers only hurt you within 10 m, but they radio your position to each other, take cover, and flank. Shoot from far away, and after every shot expect robots to come looking.
 - Check `inSight` before shooting and heed `aim`'s "something is in the way" warning; move or change stance to get a clear line.
 - A medkit or armor pickup you don't need yet stays where it is ("health full"), so you can come back for it.
 

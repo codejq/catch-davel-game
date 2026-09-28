@@ -24,7 +24,7 @@ export interface Observation {
     readonly visibility: 'hidden' | 'concealed' | 'visible' | 'spotted';
     readonly indoors: boolean; readonly keycard: boolean;
   };
-  /** Enemies worth knowing about (robots and tanks), nearest first: any in line of sight, within 150 m, or hunting you. */
+  /** Enemies worth knowing about (robots, soldiers, and tanks), nearest first: any in line of sight, within 150 m, or hunting you. */
   readonly robots: readonly RobotView[];
   /** Civilians and their dogs nearby. Never shoot them: each one you hit costs 5% health. */
   readonly innocents: readonly InnocentView[];
@@ -50,8 +50,8 @@ export interface InnocentView {
 
 export interface RobotView {
   readonly id: string;
-  /** A walking robot (r#) or a tank (t#; four rifle hits to destroy). */
-  readonly kind: 'robot' | 'tank';
+  /** A walking robot or a human soldier (r#; soldiers are faster) or a tank (t#; four rifle hits to destroy). */
+  readonly kind: 'robot' | 'soldier' | 'tank';
   readonly bearing: number; readonly relative: number; readonly distance: number;
   /** patrol (unaware), suspicious, searching, alert (hunting you), or down. */
   readonly state: 'patrol' | 'suspicious' | 'search' | 'alert';
@@ -129,7 +129,7 @@ export function describeObservation(observation: Observation): string {
     lines.push('Robots (relative angle: + right / - left):');
     for (const robot of observation.robots) {
       const flags = [robot.state, robot.tactic, robot.seesYou ? 'SEES YOU' : null, robot.inSight ? 'in your line of fire' : 'blocked from view', robot.canHurtYou ? 'CLOSE ENOUGH TO HIT YOU' : null].filter(Boolean).join(', ');
-      lines.push(`  ${robot.id}${robot.kind === 'tank' ? ' (TANK)' : ''}: ${Math.round(robot.distance)} m at ${Math.round(robot.relative)}° (bearing ${Math.round(robot.bearing)}°) - ${flags}`);
+      lines.push(`  ${robot.id}${robot.kind === 'tank' ? ' (TANK)' : robot.kind === 'soldier' ? ' (SOLDIER, fast)' : ''}: ${Math.round(robot.distance)} m at ${Math.round(robot.relative)}° (bearing ${Math.round(robot.bearing)}°) - ${flags}`);
     }
   }
   if (observation.crosshair.innocent !== null) lines.push(`WARNING: the crosshair is on innocent ${observation.crosshair.innocent} - do not fire.`);

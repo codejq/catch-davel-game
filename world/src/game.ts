@@ -5,7 +5,9 @@ import type { Vec3 } from './core/collision';
 import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
-import { createRobotRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
+import { createRobotRig, createSoldierRig, poseRobot, type RobotRig } from './enemies/robot-mesh';
+import { planForces } from './enemies/deployment';
+import { Resupply } from './player/resupply';
 import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop, type LootKind } from './player/loot';
 import { createPickupMesh } from './world/pickups';
 import { scatterLootSpots } from './world/loot-spots';
@@ -20,7 +22,7 @@ import { PLAYER_RADIUS } from './player/body';
 import { TANK, type TankState } from './enemies/tank';
 import {
   angleDifference, createSentry, damageSentry, hearGunshot, radioSquad, raySentry, suppressSentry, updateSentry, type PlayerSnapshot, type SentryState,
-  SENTRY,
+  SENTRY, sentrySize,
 } from './enemies/sentry';
 import { fireBullet, stepBullet, type Bullet } from './player/ballistics';
 import { PlayerBody, STANCE, type MoveIntent } from './player/body';
@@ -35,12 +37,19 @@ import { windUniforms } from './world/vegetation';
 const BASE_FOV = 72;
 const LOOK_SENSITIVITY = 0.0022;
 const ROBOT_PAINT: Record<string, number> = { 'green-valley': 0x5f6a4a, 'dust-ridge': 0x9a8466, 'frost-pass': 0xc4c8cc };
+/** Soldiers' fatigues blend with each world: woodland green, desert tan, winter grey. */
+const SOLDIER_CAMO: Record<string, number> = { 'green-valley': 0x7d8c5c, 'dust-ridge': 0xc7b08a, 'frost-pass': 0xd4d8dc };
 
 /** How long the sniper must stand still before the information panels fade back in. */
 const HUD_RETURN_SECONDS = 0.6;
 
+/** `?seed=name` in the address replays the same run (same enemies, families, and loot); otherwise every run differs. */
+const RUN_SEED = typeof location === 'undefined' ? null : new URLSearchParams(location.search).get('seed');
+let seedCount = 0;
+
 function freshSeed(): string {
-  return `${Date.now()}-${Math.random()}`;
+  seedCount += 1;
+  return RUN_SEED === null ? `${Date.now()}-${Math.random()}` : `${RUN_SEED}-${seedCount}`;
 }
 
 type Phase = 'menu' | 'playing' | 'paused' | 'dead' | 'victory';
@@ -127,6 +136,7 @@ export class Game {
   private debugAim = false;
   private scopeToggled = false;
   private readonly carbine = new CarbineState();
+  private readonly resupply = new Resupply();
   private readonly carbineModel = createCarbineViewModel();
   private weapon: WeaponName = 'rifle';
   /** Seconds left lowering one weapon and raising the other. */
@@ -247,9 +257,11 @@ export class Game {
     this.applyAtmosphere(theme);
     this.lootRandom = new Random(freshSeed());
     this.scatterLoot();
-    this.sentries = this.layout.patrols.map((patrol) => createSentry(patrol.id, patrol.waypoints, patrol.guard, this.world!.collision));
-    this.rigs = this.sentries.map(() => {
-      const rig = createRobotRig(ROBOT_PAINT[theme.id] ?? 0x707070);
+    // Robots and soldiers: a different force in different places every run.
+    const forces = planForces(this.layout, this.world.collision, new Random(freshSeed()));
+    this.sentries = forces.map((unit) => createSentry(unit.id, unit.waypoints, unit.guard, this.world!.collision, unit.kind));
+    this.rigs = this.sentries.map((sentry) => {
+      const rig = sentry.kind === 'soldier' ? createSoldierRig(SOLDIER_CAMO[theme.id] ?? 0x55623c) : createRobotRig(ROBOT_PAINT[theme.id] ?? 0x707070);
       this.scene.add(rig.root);
       return rig;
     });
@@ -336,12 +348,28 @@ export class Game {
     return `Protect the civilians: ${safe} of ${people.length} safe${this.innocentsShot > 0 ? ` · you shot ${this.innocentsShot}` : ''}`;
   }
 
+  /** "robots 3/31 · soldiers 1/12 · tanks 0/5" */
+  private enemyTally(): { text: string; done: boolean } {
+    const count = (kind: SentryState['kind']): [number, number] => {
+      const all = this.sentries.filter((sentry) => sentry.kind === kind);
+      return [all.filter((sentry) => sentry.mode === 'dead').length, all.length];
+    };
+    const [robotsDown, robots] = count('robot');
+    const [soldiersDown, soldiers] = count('soldier');
+    const tanks = this.population?.tanks ?? [];
+    const tanksDown = tanks.filter((tank) => tank.mode === 'dead').length;
+    return {
+      text: `robots ${robotsDown}/${robots} · soldiers ${soldiersDown}/${soldiers} · tanks ${tanksDown}/${tanks.length}`,
+      done: robotsDown === robots && soldiersDown === soldiers && tanksDown === tanks.length,
+    };
+  }
+
   private refreshObjectives(): void {
-    const alive = this.sentries.filter((sentry) => sentry.mode !== 'dead').length;
+    const tally = this.enemyTally();
     const items = [
       { text: 'Search the houses for the portal keycard', done: this.keycard },
       { text: 'Reach the portal and travel on', done: false },
-      { text: `Optional: destroy the robots (${this.sentries.length - alive}/${this.sentries.length})`, done: alive === 0 },
+      { text: `Optional: defeat the enemy (${tally.text})`, done: tally.done },
       { text: this.civilianObjective(), done: false },
     ];
     this.hud.objectives.replaceChildren(...items.map((item) => {
@@ -420,7 +448,7 @@ export class Game {
     this.updateEffects(dt);
 
     this.sinceHurt += dt;
-    if (this.sinceHurt > 6 && this.loadout.health < 50) this.loadout.health = Math.min(50, this.loadout.health + dt * 3);
+    this.resupply.step(dt, this.rifle, this.carbine, this.loadout, this.sinceHurt);
     this.toastTimer -= dt;
     if (this.toastTimer <= 0) this.hud.toast.classList.remove('show');
     this.hitTimer -= dt;
@@ -555,7 +583,7 @@ export class Game {
   /** Robots the round passes close to dive for cover. */
   private suppressAlong(eye: Vec3, direction: THREE.Vector3): void {
     for (const sentry of this.sentries) {
-      const chest = { x: sentry.position.x - eye.x, y: sentry.position.y + SENTRY.bodyTop * 0.7 - eye.y, z: sentry.position.z - eye.z };
+      const chest = { x: sentry.position.x - eye.x, y: sentry.position.y + sentrySize(sentry).bodyTop * 0.7 - eye.y, z: sentry.position.z - eye.z };
       const along = chest.x * direction.x + chest.y * direction.y + chest.z * direction.z;
       if (along <= 0 || along > 400) continue;
       const miss = Math.hypot(chest.x - direction.x * along, chest.y - direction.y * along, chest.z - direction.z * along);
@@ -589,7 +617,7 @@ export class Game {
             this.stats.kills += 1;
             this.dropRobotWeapon(impact.sentry);
             this.audio.robotDown();
-            this.toast(impact.headshot ? `HEADSHOT · ${Math.round(impact.distance + bullet.age * 820)} m` : 'ROBOT DOWN');
+            this.toast(impact.headshot ? `HEADSHOT · ${Math.round(impact.distance + bullet.age * 820)} m` : impact.sentry.kind === 'soldier' ? 'SOLDIER DOWN' : 'ROBOT DOWN');
             this.refreshObjectives();
           }
         } else {
@@ -608,7 +636,7 @@ export class Game {
     for (let index = this.bullets.length - 1; index >= 0; index -= 1) if (!this.bullets[index]!.alive) this.bullets.splice(index, 1);
   }
 
-  /** A destroyed robot drops its carbine (and armor plates) on the ground for the sniper to take. */
+  /** A destroyed robot (or fallen soldier) drops its carbine (and armor plates) on the ground for the sniper to take. */
   private dropRobotWeapon(sentry: SentryState): void {
     const rig = this.rigs[this.sentries.indexOf(sentry)];
     if (rig !== undefined) rig.gun.visible = false;
@@ -1072,11 +1100,11 @@ export class Game {
     if (this.weapon === 'rifle') {
       hud.ammo.textContent = String(this.rifle.magazine);
       hud.reserve.textContent = `/ ${this.rifle.reserve}`;
-      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · PRESS R' : `SNIPER RIFLE${this.loadout.suppressor ? ' · SUPPRESSED' : ''} · ZEROED 100 m`;
+      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.rifle.reloading ? 'RELOADING…' : this.rifle.cooldown > 0 ? 'CYCLING BOLT' : this.rifle.magazine === 0 ? 'EMPTY · RESUPPLYING…' : this.resupply.rifleLow(this.rifle) ? 'LOW AMMO · RESUPPLYING' : `SNIPER RIFLE${this.loadout.suppressor ? ' · SUPPRESSED' : ''} · ZEROED 100 m`;
     } else {
       hud.ammo.textContent = String(this.carbine.magazine);
       hud.reserve.textContent = `/ ${this.carbine.reserve}`;
-      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.carbine.reloading ? 'RELOADING…' : this.carbine.magazine === 0 ? 'EMPTY · PRESS R' : 'ROBOT CARBINE · AUTOMATIC';
+      hud.weaponState.textContent = this.switchTimer > 0 ? 'SWITCHING…' : this.carbine.reloading ? 'RELOADING…' : this.carbine.magazine === 0 ? 'EMPTY · RESUPPLYING…' : this.resupply.carbineLow(this.carbine) ? 'LOW AMMO · RESUPPLYING' : 'ROBOT CARBINE · AUTOMATIC';
     }
     hud.weapons.innerHTML = `<span class="${this.weapon === 'rifle' ? 'active' : ''}"><kbd>1</kbd> RIFLE ${this.rifle.magazine}/${this.rifle.reserve}</span>`
       + `<span class="${this.weapon === 'carbine' ? 'active' : ''}${this.carbine.owned ? '' : ' locked'}"><kbd>2</kbd> CARBINE ${this.carbine.owned ? `${this.carbine.magazine}/${this.carbine.reserve}` : '—'}</span>`;
@@ -1128,7 +1156,7 @@ export class Game {
     };
     for (const sentry of this.sentries) {
       if (sentry.mode === 'dead' || (sentry.mode !== 'alert' && sentry.sinceShot > 3)) continue;
-      bracket(sentry.position, SENTRY.headHeight + 0.3, 0.5, sentry.sinceShot);
+      bracket(sentry.position, sentrySize(sentry).headHeight + 0.3, 0.5, sentry.sinceShot);
     }
     for (const tank of this.population?.tanks ?? []) {
       if (tank.mode === 'alert') bracket(tank.position, TANK.eyeHeight + 0.8, 1.8, tank.sinceShot);
@@ -1301,7 +1329,7 @@ export class Game {
       objectives: [
         { text: 'Search containers in the houses for the portal keycard', done: this.keycard },
         { text: 'Reach the portal and enter it', done: false },
-        { text: `Optional: destroy the robots (${this.sentries.length - alive}/${this.sentries.length})`, done: alive === 0 },
+        { text: `Optional: defeat the enemy (${this.enemyTally().text})`, done: this.enemyTally().done },
         { text: `${this.civilianObjective()} (shooting an innocent costs 5% health)`, done: false },
       ],
       player: {
@@ -1314,8 +1342,8 @@ export class Game {
       },
       innocents: (this.population?.civilians ?? []).map((civilian) => ({ id: civilian.id, kind: civilian.kind, position: { ...civilian.position }, mode: civilian.mode })),
       robots: [...this.sentries.map((sentry) => ({
-        id: this.robotId(sentry), kind: 'robot' as const, position: { ...sentry.position }, mode: sentry.mode, tactic: sentry.tactic, seesYou: sentry.canSeePlayer && sentry.mode !== 'dead',
-        chest: { x: sentry.position.x, y: sentry.position.y + (SENTRY.bodyBottom + SENTRY.bodyTop) / 2, z: sentry.position.z },
+        id: this.robotId(sentry), kind: sentry.kind, position: { ...sentry.position }, mode: sentry.mode, tactic: sentry.tactic, seesYou: sentry.canSeePlayer && sentry.mode !== 'dead',
+        chest: { x: sentry.position.x, y: sentry.position.y + (sentrySize(sentry).bodyBottom + sentrySize(sentry).bodyTop) / 2, z: sentry.position.z },
       })), ...(this.population?.tanks ?? []).map((tank: TankState) => ({
         id: tank.id, kind: 'tank' as const, position: { ...tank.position }, mode: tank.mode, tactic: 'tank', seesYou: tank.canSeePlayer && tank.mode !== 'dead',
         chest: { x: tank.position.x, y: tank.position.y + 1.2, z: tank.position.z },
@@ -1369,6 +1397,8 @@ export class Game {
       loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels, weapon: this.weapon, carbine: { owned: this.carbine.owned, magazine: this.carbine.magazine, reserve: this.carbine.reserve } }),
       population: () => this.population,
       giveCarbine: () => applyLoot({ kind: 'carbine', amount: 1 }, this.loadout, this.rifle, this.carbine),
+      /** Full health and a full rifle, for test steps that should not depend on what came before. */
+      refill: () => { this.loadout.health = 100; this.rifle.magazine = this.rifle.capacity; this.rifle.reserve = Math.max(this.rifle.reserve, 20); this.rifle.reloadTime = 0; },
       weapon: (name?: WeaponName) => { if (name !== undefined) this.switchTo(name); return this.weapon; },
       innocents: () => ({ lost: this.innocentsLost, shot: this.innocentsShot }),
       pickups: () => this.pickups.map((pickup) => ({ kind: pickup.drop.kind, position: pickup.position })),

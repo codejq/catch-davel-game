@@ -27,7 +27,7 @@ function look(random: Random, dog = false): CivilianLook {
 }
 
 /** True when a patch of ground is open (no walls, trunks, or furniture) and dry. */
-function open(world: CollisionWorld, layout: WorldLayout, x: number, z: number, radius: number): boolean {
+export function open(world: CollisionWorld, layout: WorldLayout, x: number, z: number, radius: number): boolean {
   const water = layout.theme.waterLevel;
   if (water !== null && layout.terrain.heightAt(x, z) < water + 0.4) return false;
   const ground = world.groundHeight(x, z, 0.3, layout.terrain.heightAt(x, z) + 0.5, 0.42);
@@ -55,7 +55,7 @@ function person(id: string, kind: Civilian['kind'], family: number, home: { x: n
  * dog) and plans tank patrols: one along the road from the village to the portal and one circling the village,
  * both starting well away from the player's spawn.
  */
-export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, families = 5, tanks = 2): PopulationPlan {
+export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, families = 5, tanks = 4 + random.int(0, 2)): PopulationPlan {
   const civilians: Civilian[] = [];
   const picnics: PicnicPlan[] = [];
   const homes = [...layout.buildings].sort(() => random.next() - 0.5);
@@ -128,13 +128,61 @@ export function planPopulation(layout: WorldLayout, world: CollisionWorld, rando
     if (reach !== undefined) ring.push({ x: village.x + Math.cos(angle) * reach, z: village.z + Math.sin(angle) * reach });
   }
   routes.push(ring);
-  const tankPlans = routes.map((route) => route.filter((point) => dry(point.x, point.z))).filter((route) => route.length >= 2).slice(0, tanks).map((route, index) => {
-    // Start at the point of the route furthest from where the player spawns.
-    let start = 0; let furthest = -1;
-    route.forEach((point, pointIndex) => {
-      const distance = Math.hypot(point.x - layout.spawn.x, point.z - layout.spawn.z);
-      if (distance > furthest) { furthest = distance; start = pointIndex; }
-    });
+  // More tanks roam loops across open country, somewhere new every run. A route has to be dry and clear of
+  // buildings, trees, and rocks for the whole width of a tank.
+  const half = layout.theme.size / 2 * 0.78;
+  // Trees are counted rather than refused (the forests are thick); walls and rocks rule a route out.
+  const obstacles = (x: number, z: number): number => {
+    if (!dry(x, z) || Math.abs(x) > half || Math.abs(z) > half) return Infinity;
+    const y = world.terrainHeight(x, z) + 1.2;
+    let trees = 0;
+    for (const volume of world.query(x - 2.4, z - 2.4, x + 2.4, z + 2.4, 'solid')) {
+      if (y < volume.minY - 0.6 || y > volume.maxY + 0.6) continue;
+      if (volume.tag !== 'tree') return Infinity;
+      trees += 1;
+    }
+    return trees;
+  };
+  const runCost = (a: { x: number; z: number }, b: { x: number; z: number }): number => {
+    const steps = Math.ceil(Math.hypot(b.x - a.x, b.z - a.z) / 3);
+    let cost = 0;
+    for (let step = 0; step <= steps; step += 1) cost += obstacles(a.x + (b.x - a.x) * step / steps, a.z + (b.z - a.z) * step / steps);
+    return cost;
+  };
+  for (let attempt = 0; attempt < 120 && routes.length < tanks + 2; attempt += 1) {
+    const center = { x: random.range(-half * 0.8, half * 0.8), z: random.range(-half * 0.8, half * 0.8) };
+    if (Math.hypot(center.x - layout.spawn.x, center.z - layout.spawn.z) < 70) continue;
+    const radius = random.range(16, 34);
+    const start = random.range(0, Math.PI * 2);
+    // Walk round the centre, picking each corner at whatever reach gives a clear run from the last one.
+    const corners: { x: number; z: number }[] = [];
+    for (let index = 0; index < 8; index += 1) {
+      const angle = start + index / 8 * Math.PI * 2;
+      const previous = corners[corners.length - 1];
+      const corner = [1, 0.8, 1.2, 0.6, 1.4, 0.45].map((scale) => ({ x: center.x + Math.cos(angle) * radius * scale, z: center.z + Math.sin(angle) * radius * scale }))
+        .find((candidate) => obstacles(candidate.x, candidate.z) === 0 && (previous === undefined || runCost(previous, candidate) <= 1));
+      if (corner !== undefined) corners.push(corner);
+    }
+    if (corners.length < 5 || runCost(corners[corners.length - 1]!, corners[0]!) > 1) continue;
+    routes.push(densify([...corners, corners[0]!], 8));
+  }
+  // Dense forest can leave little room for loops; straight out-and-back runs across a clearing fill the gaps.
+  for (let attempt = 0; attempt < 200 && routes.length < tanks + 1; attempt += 1) {
+    const a = { x: random.range(-half * 0.85, half * 0.85), z: random.range(-half * 0.85, half * 0.85) };
+    if (Math.hypot(a.x - layout.spawn.x, a.z - layout.spawn.z) < 70 || obstacles(a.x, a.z) !== 0) continue;
+    const angle = random.range(0, Math.PI * 2);
+    const b = [50, 40, 30, 22].map((length) => ({ x: a.x + Math.cos(angle) * length, z: a.z + Math.sin(angle) * length }))
+      .find((candidate) => obstacles(candidate.x, candidate.z) === 0 && runCost(a, candidate) <= 1);
+    if (b !== undefined) routes.push(densify([a, b], 8));
+  }
+  // The road and ring always get a tank; the rest are shuffled so different loops are used each run.
+  const [first = [], second = [], ...extra] = routes.map((route) => route.filter((point) => dry(point.x, point.z))).filter((route) => route.length >= 2);
+  const chosen = [first, second, ...extra.sort(() => random.next() - 0.5)].filter((route) => route.length >= 2).slice(0, tanks);
+  const tankPlans = chosen.map((route, index) => {
+    // Start at a random point on the route, well away from where the player spawns.
+    const away = route.map((point, pointIndex) => ({ pointIndex, distance: Math.hypot(point.x - layout.spawn.x, point.z - layout.spawn.z) }));
+    const candidates = away.filter((entry) => entry.distance > 70);
+    const start = candidates.length > 0 ? random.pick(candidates).pointIndex : away.sort((a, b) => b.distance - a.distance)[0]!.pointIndex;
     return { id: `t${index + 1}`, route, start: Math.max(0, Math.min(start, route.length - 2)) };
   });
   return { civilians, picnics, tanks: tankPlans };

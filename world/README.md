@@ -11,6 +11,7 @@ A realistic first-person sniper game in the browser, built with [Three.js](https
 | ![Dust Ridge through the scope: a robot at 99 m](docs/screenshots/scope.jpg) | ![A searched crate: its lid is open and a 12x scope floats out to be picked up](docs/screenshots/loot.jpg) |
 | ![A family having a picnic beside their house](docs/screenshots/family-picnic.jpg) | ![A tank patrolling the road through Dust Ridge](docs/screenshots/tank.jpg) |
 | ![The robot carbine, taken from a destroyed robot](docs/screenshots/carbine.jpg) | ![Frost Pass: snowy bunkers from a rooftop](docs/screenshots/frost-pass.jpg) |
+| ![A squad of human soldiers patrolling the village](docs/screenshots/soldiers.jpg) | |
 
 ## Play
 
@@ -52,7 +53,10 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 
 ## How it plays
 
-- **Tanks**: two tanks patrol each world, one along the road to the portal and one circling the village. Once a tank sees you its turret swings round and, from 35 m or closer, it fires shells that burst with splash damage; trees and walls stop them. Four rifle hits (or a long burst of carbine fire) destroy a tank, which burns and smokes.
+- **A big enemy force, different every run**: each world deploys its robots plus 20 to 30 more, 10 to 15 human soldiers, and four to six tanks. Where they start and the beats they walk (round houses, along the roads, across open ground) are drawn fresh every time you play; nobody starts within about 50 m of you, and one robot always guards the portal.
+- **Human soldiers**: life-size troops in camouflage fatigues, helmets, and plate carriers, patrolling in squads of two or three. They move about 60% faster than the robots and fire more often, but like the robots they only hurt you within 10 m and one rifle hit drops them. They are smaller targets, and a fallen soldier drops a carbine too.
+- **Replay a run**: add `?seed=anything` to the address to get the same enemies, families, and loot every time (handy for sharing a run or practising); without it every run is different.
+- **Tanks**: one tank patrols the road to the portal, one circles the village, and the rest roam loops across open country, somewhere new each run. Once a tank sees you its turret swings round and, from 35 m or closer, it fires shells that burst with splash damage; trees and walls stop them. Four rifle hits (or a long burst of carbine fire) destroy a tank, which burns and smokes.
 - **Civilians and their dogs**: families live in every world. Some picnic at a table beside their house, eating and chatting; others stroll, play, or stand waving. They are unarmed and never attack. Gunfire, explosions, and hunting robots panic them: braver ones run for the nearest cover and hide, others freeze and cower with their hands over their heads, and after a while they creep home and carry on. Robots that aren't busy with you sometimes pick on a civilian and shoot them. Shooting an innocent yourself (person or dog) costs 5% of your health; the objectives count how many are still safe.
 - **The robot carbine**: a destroyed robot drops its carbine beside it. Walk up to it to take the gun, its armor plates (+25 armor), and 48 rounds; later carbines give more rounds and armor. It fires automatically while you hold the trigger, with iron sights instead of a scope: deadly close up, loose at range. Switch with 1, 2, or Q.
 - **Robot squads**: once a robot spots you it radios your position to every robot within 60 m, and they converge. Assault robots bound forward from cover to cover (tree trunks, rocks, walls), pausing hunkered down in each; flankers swing wide round to your side and close in from there. Up close they strafe while they shoot. A shot that passes near a robot makes it dive for the nearest cover, and robots keep hunting for several seconds after losing sight of you.
@@ -65,7 +69,8 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - **Sound**: every shot is loud. Robots within 75 m hear it and move to search the area it came from, so relocate after you fire.
 - **Ballistics**: bullets fly at 820 m/s with gravity, zeroed at 100 m. Aim higher for long shots; the scope shows the range. A single hit anywhere on a robot destroys it.
 - **Scope**: sway grows with standing, moving, and fatigue. It shrinks when you crouch or go prone, or when you hold your breath.
-- **Survival**: health slowly regenerates up to 50%. Medkits and extra rounds turn up when you search.
+- **Survival**: after five seconds without being hurt, health comes back at 4 points a second, all the way to full. Medkits and extra rounds still turn up when you search.
+- **Resupply**: a weapon never stays empty. While the rifle holds fewer than 10 rounds in all, it gets one back every 4 seconds; a carbine under 24 rounds gets one every 0.8 seconds. An empty magazine reloads by itself as soon as there is a round to load, and the HUD shows LOW AMMO · RESUPPLYING while it happens.
 
 ## Architecture
 
@@ -74,7 +79,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - `src/player`: character physics (stances, stamina, jumping, ladders, climbing onto ledges), rifle state, ballistics, and the first-person rifle model. The rifle renders in its own scene with a narrower lens.
 - `src/population`: civilians and dogs (calm routines, panic, hiding), family and picnic placement, their meshes and animations, and the population manager that also runs tanks, shells, and explosions.
 - `src/weapons`: the robot carbine's state and first-person model.
-- `src/enemies`: tank AI and model; sentry AI (patrol, suspicious, alert, search; cover-aware sight and ballistics; squad radio, bounding between cover, flanking, suppression), hit testing, and the military robot model (hydraulic joints, sensor head, carbine) with stride, combat crouch, head tracking, recoil, and collapse animations.
+- `src/enemies`: tank AI and model; random deployment of robots and soldiers; sentry AI for both kinds (patrol, suspicious, alert, search; cover-aware sight and ballistics; squad radio, bounding between cover, flanking, suppression), hit testing, the military robot model (hydraulic joints, sensor head, carbine) and the human soldier model on the same skeleton, with stride, combat crouch, head tracking, recoil, and collapse animations.
 - `src/agent` and `agent/`: the LLM agent interface: observations and aim solving, the command bridge and route finding (stairs and doorways included), the in-page `window.zamaSniper` API, the MCP server, and an example Claude agent. See [AGENTS.md](AGENTS.md).
 - `src/game.ts`: the frame loop, rendering (physical sky, image-based lighting, sun shadows that follow the player, ACES tone mapping, and dimmer light indoors), interaction, the HUD, and world-to-world travel.
 
