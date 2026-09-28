@@ -25,13 +25,13 @@ const farPlayer: PlayerSnapshot = { eye: { x: 900, y: 1.6, z: 900 }, position: {
 
 describe('deploying the enemy', () => {
   for (const [index, theme] of WORLDS.entries()) {
-    it(`sends 20+ extra robots and 10+ soldiers into ${theme.name}, away from the spawn`, () => {
+    it(`sends a doubled force (2x the robots plus 40+, and 20+ soldiers) into ${theme.name}, away from the spawn`, () => {
       const { layout, world } = buildWorld(index);
       const forces = planForces(layout, world, new Random(`forces-${index}`));
       const robots = forces.filter((unit) => unit.kind === 'robot');
       const soldiers = forces.filter((unit) => unit.kind === 'soldier');
-      expect(robots.length).toBeGreaterThanOrEqual(theme.sentries + 20 - 2);
-      expect(soldiers.length).toBeGreaterThanOrEqual(10);
+      expect(robots.length).toBeGreaterThanOrEqual((theme.sentries + 20) * 2 - 4);
+      expect(soldiers.length).toBeGreaterThanOrEqual(20);
       expect(new Set(forces.map((unit) => unit.id)).size).toBe(forces.length);
       for (const unit of forces) {
         const start = unit.waypoints[0]!;

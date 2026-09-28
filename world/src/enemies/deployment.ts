@@ -11,18 +11,21 @@ export interface Deployment {
   readonly waypoints: readonly { readonly x: number; readonly z: number }[];
 }
 
+/** Every world fields double the base force. */
+export const FORCE_MULTIPLIER = 2;
+
 /** Nobody starts closer than this to where the player spawns. */
 export const SPAWN_CLEARANCE = 55;
 
 type Point = { x: number; z: number };
 
 /**
- * Deploys a world's enemies at random, so every run is different: the theme's robots plus 20 to 30 more, and 10
- * to 15 human soldiers in squads of two or three. Robots patrol round buildings, along roads, and across open
+ * Deploys a world's enemies at random, so every run is different: twice the theme's robots plus 20 to 30 more, and
+ * twice 10 to 15 human soldiers in squads of two or three. Robots patrol round buildings, along roads, and across open
  * ground; one always guards the portal. Everyone starts well away from the player.
  */
 export function planForces(layout: WorldLayout, world: CollisionWorld, random: Random,
-  robots = layout.theme.sentries + 20 + random.int(0, 10), soldiers = 10 + random.int(0, 5)): Deployment[] {
+  robots = (layout.theme.sentries + 20 + random.int(0, 10)) * FORCE_MULTIPLIER, soldiers = (10 + random.int(0, 5)) * FORCE_MULTIPLIER): Deployment[] {
   const half = layout.theme.size / 2 * 0.78;
   const spawn = layout.spawn;
   const clear = (point: Point): boolean => Math.hypot(point.x - spawn.x, point.z - spawn.z) > SPAWN_CLEARANCE * 0.8

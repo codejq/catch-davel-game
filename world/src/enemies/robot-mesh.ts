@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { clamp, type Vec3 } from '../core/collision';
 import { texture, worldBox } from '../world/materials';
 import { SENTRY, SENTRY_KINDS, sentrySize, type SentryState } from './sentry';
@@ -17,6 +18,11 @@ export interface RobotRig {
   /** Visor, chest core, and antenna tip: glows in the colour of the robot's mood. */
   readonly eyes: THREE.MeshStandardMaterial;
   readonly muzzle: THREE.Mesh;
+  /**
+   * A one-piece stand-in (plus the glowing visor) drawn instead of the full model when the enemy is far away, so
+   * a hundred enemies cost a few hundred draw calls instead of thousands.
+   */
+  readonly far: THREE.Group;
   /** Smoothed walking speed, used to blend between the stride and the standing pose. */
   stride: number;
   lastPhase: number;
@@ -233,8 +239,39 @@ export function createRobotRig(paint: number): RobotRig {
   head.add(box(0.05, 0.05, 0.22, accent, 0, 0.35, -0.03));
   torso.add(head);
 
-  return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, stride: 0, lastPhase: 0 };
+  const far = farProxy([
+    [0.18, 1.0, 0.2, -0.17, 0.5, 0, paint], [0.18, 1.0, 0.2, 0.17, 0.5, 0, paint], [0.42, 0.18, 0.28, 0, 1.0, 0, paint],
+    [0.56, 0.62, 0.4, 0, 1.45, 0, paint], [0.44, 0.46, 0.2, 0, 1.5, -0.28, paint], [0.14, 0.6, 0.15, -0.36, 1.4, 0.05, paint],
+    [0.14, 0.6, 0.15, 0.36, 1.4, 0.05, paint], [0.3, 0.3, 0.32, 0, 2.02, 0.02, paint], [0.08, 0.12, 0.72, 0.3, 1.15, 0.35, 0x232527],
+  ], eyes, [0.24, 0.05, 0.03, 0, 2.05, 0.19]);
+  root.add(far);
+  return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, far, stride: 0, lastPhase: 0 };
 }
+
+/** Boxes (w, h, d, x, y, z, colour) merged into one vertex-coloured mesh, plus a visor strip in the mood light. */
+function farProxy(boxes: readonly (readonly [number, number, number, number, number, number, number])[], eyes: THREE.Material,
+  visor: readonly [number, number, number, number, number, number]): THREE.Group {
+  const parts = boxes.map(([width, height, depth, x, y, z, color]) => {
+    const geometry = new THREE.BoxGeometry(width, height, depth).translate(x, y, z).toNonIndexed();
+    const tint = new THREE.Color(color);
+    const colors = new Float32Array(geometry.attributes.position!.count * 3);
+    for (let index = 0; index < colors.length; index += 3) { colors[index] = tint.r; colors[index + 1] = tint.g; colors[index + 2] = tint.b; }
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    return geometry;
+  });
+  const group = new THREE.Group();
+  const body = new THREE.Mesh(mergeGeometries(parts)!, farMaterial);
+  body.castShadow = true;
+  group.add(body);
+  const [width, height, depth, x, y, z] = visor;
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(width, height, depth), eyes);
+  strip.position.set(x, y, z);
+  group.add(strip);
+  group.visible = false;
+  return group;
+}
+
+const farMaterial = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.7, metalness: 0.2 });
 
 const fabric = (color: number): THREE.MeshStandardMaterial => new THREE.MeshStandardMaterial({ color, roughness: 0.92, metalness: 0 });
 
@@ -326,7 +363,15 @@ export function createSoldierRig(camo: number): RobotRig {
   head.add(box(0.03, 0.03, 0.03, eyes, 0.08, 0.33, 0.06));
   torso.add(head);
 
-  return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, stride: 0, lastPhase: 0 };
+  const vestColor = new THREE.Color(camo).multiplyScalar(0.62).getHex();
+  const far = farProxy([
+    [0.15, 0.92, 0.17, -0.1, 0.5, 0, camo], [0.15, 0.92, 0.17, 0.1, 0.5, 0, camo], [0.4, 0.58, 0.28, 0, 1.4, 0, vestColor],
+    [0.3, 0.34, 0.14, 0, 1.45, -0.2, vestColor], [0.11, 0.6, 0.12, -0.25, 1.38, 0.03, camo], [0.11, 0.6, 0.12, 0.25, 1.38, 0.03, camo],
+    [0.2, 0.24, 0.22, 0, 1.9, 0.02, skin.color.getHex()], [0.28, 0.12, 0.28, 0, 2.04, 0, helmetMaterial.color.getHex()],
+    [0.07, 0.1, 0.62, 0.22, 1.12, 0.3, 0x232527],
+  ], eyes, [0.04, 0.04, 0.04, 0.08, 2.08, 0.1]);
+  root.add(far);
+  return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, far, stride: 0, lastPhase: 0 };
 }
 
 export const MODE_EYE_COLOR: Record<SentryState['mode'], number> = {
@@ -342,6 +387,22 @@ function wrapAngle(angle: number): number {
  * shouldered and the head tracking the player, recoil when firing, and a buckling collapse when destroyed.
  * `target` is the player's eye position, which alerted robots look and aim at.
  */
+/** Shows the full model or the far stand-in. Returns true when the full model is showing. */
+export function setRobotDetail(rig: RobotRig, near: boolean): boolean {
+  rig.far.visible = !near;
+  rig.pelvis.visible = near;
+  return near;
+}
+
+/** Poses the far stand-in: where it is, which way it faces, and toppling over when destroyed. */
+export function poseRobotFar(rig: RobotRig, sentry: SentryState): void {
+  rig.root.position.set(sentry.position.x, sentry.position.y, sentry.position.z);
+  rig.root.rotation.set(sentry.mode === 'dead' ? -(Math.min(1, sentry.deathTime / 1.05) ** 2) * 1.35 : 0, sentry.heading, 0);
+  rig.lastPhase = sentry.walkPhase;
+  rig.eyes.emissive.setHex(MODE_EYE_COLOR[sentry.mode === 'dead' ? 'alert' : sentry.mode]);
+  rig.eyes.emissiveIntensity = sentry.mode === 'dead' ? 0 : 4;
+}
+
 export function poseRobot(rig: RobotRig, sentry: SentryState, time: number, target: Vec3 | null = null): void {
   const { legs, arms, pelvis, torso, head, gun } = rig;
   rig.root.position.set(sentry.position.x, sentry.position.y, sentry.position.z);

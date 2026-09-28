@@ -55,7 +55,7 @@ function person(id: string, kind: Civilian['kind'], family: number, home: { x: n
  * dog) and plans tank patrols: one along the road from the village to the portal and one circling the village,
  * both starting well away from the player's spawn.
  */
-export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, families = 5, tanks = 4 + random.int(0, 2)): PopulationPlan {
+export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, families = 5, tanks = (4 + random.int(0, 2)) * 2): PopulationPlan {
   const civilians: Civilian[] = [];
   const picnics: PicnicPlan[] = [];
   const homes = [...layout.buildings].sort(() => random.next() - 0.5);
@@ -178,11 +178,23 @@ export function planPopulation(layout: WorldLayout, world: CollisionWorld, rando
   // The road and ring always get a tank; the rest are shuffled so different loops are used each run.
   const [first = [], second = [], ...extra] = routes.map((route) => route.filter((point) => dry(point.x, point.z))).filter((route) => route.length >= 2);
   const chosen = [first, second, ...extra.sort(() => random.next() - 0.5)].filter((route) => route.length >= 2).slice(0, tanks);
+  // Not enough room for a route each: the longer routes take a second tank, starting elsewhere along them.
+  const longest = [...chosen].sort((a, b) => b.length - a.length);
+  for (let index = 0; chosen.length < tanks && longest.length > 0; index += 1) {
+    const route = longest[index % longest.length]!;
+    if (route.length < 6) break;
+    chosen.push(route);
+  }
+  const used = new Map<{ x: number; z: number }[], number[]>();
   const tankPlans = chosen.map((route, index) => {
     // Start at a random point on the route, well away from where the player spawns.
     const away = route.map((point, pointIndex) => ({ pointIndex, distance: Math.hypot(point.x - layout.spawn.x, point.z - layout.spawn.z) }));
-    const candidates = away.filter((entry) => entry.distance > 70);
+    // Tanks sharing a route start well apart from each other.
+    const taken = used.get(route) ?? [];
+    const spread = (entry: { pointIndex: number }): boolean => taken.every((other) => Math.abs(other - entry.pointIndex) > route.length / 4);
+    const candidates = away.filter((entry) => entry.distance > 70 && spread(entry));
     const start = candidates.length > 0 ? random.pick(candidates).pointIndex : away.sort((a, b) => b.distance - a.distance)[0]!.pointIndex;
+    used.set(route, [...taken, start]);
     return { id: `t${index + 1}`, route, start: Math.max(0, Math.min(start, route.length - 2)) };
   });
   return { civilians, picnics, tanks: tankPlans };
