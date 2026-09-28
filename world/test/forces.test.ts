@@ -89,12 +89,13 @@ describe('resupply', () => {
     expect(carbine.magazine + carbine.reserve).toBe(RESUPPLY.carbineFloor);
   });
 
-  it('health comes back after a few seconds without damage, up to full', () => {
+  it('health comes back only after a minute without damage, then up to full', () => {
     const resupply = new Resupply();
     const rifle = new RifleState();
     const carbine = new CarbineState();
     const loadout = { health: 20 };
     resupply.step(1, rifle, carbine, loadout, 2);
+    resupply.step(1, rifle, carbine, loadout, 59);
     expect(loadout.health).toBe(20);
     let sinceHurt = RESUPPLY.healthDelay;
     for (let tick = 0; tick < 60 * 30; tick += 1) { sinceHurt += 1 / 60; resupply.step(1 / 60, rifle, carbine, loadout, sinceHurt); }

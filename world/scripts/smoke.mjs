@@ -226,7 +226,8 @@ try {
   if (!extras.innocent.dead || extras.innocent.healthDrop < 5 || extras.innocent.shot !== 1 || (extras.innocent.bystanders > 0 && extras.innocent.panicked < 1)) throw new Error(`Innocent penalty failed: ${JSON.stringify(extras)}`);
   if (!extras.shelled || extras.tank !== 'dead') throw new Error(`Tank fight failed: ${JSON.stringify(extras)}`);
   // Switch to the carbine with 2 and hold Ctrl for automatic fire; Right Shift + up arrow sprints.
-  await page.evaluate(() => window.zamaSniperWorld.step(1));
+  // (Health takes a minute to come back on its own, so patch up after the tank fight first.)
+  await page.evaluate(() => { window.zamaSniperWorld.refill(); window.zamaSniperWorld.step(1); });
   await page.keyboard.down('Digit2');
   await page.evaluate(() => window.zamaSniperWorld.step(0.05));
   await page.keyboard.up('Digit2');
