@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>Zama Sniper: Open World</title>
     <meta name="description" content="A realistic first-person sniper game in the browser: cross three worlds held by robot squads that take cover and flank you, search houses for loot and the portal keycard. LLM agents can play too." />
     <meta property="og:title" content="Zama Sniper: Open World" />
@@ -12,6 +12,13 @@
     <meta property="og:image" content="https://codejq.github.io/zama-sniper/preview.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2213%22 fill=%22none%22 stroke=%22%23cfe3a0%22 stroke-width=%222.5%22/%3E%3Cpath d=%22M16 4v24M4 16h24%22 stroke=%22%23cfe3a0%22 stroke-width=%222%22/%3E%3C/svg%3E" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#0e1511" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Zama Sniper" />
     <link rel="stylesheet" href="./src/style.css" />
   </head>
   <body>
@@ -61,12 +68,33 @@
       <div id="progress"><i></i></div>
       <div id="toast"></div>
     </div>
+    <div id="touch" hidden>
+      <div id="touch-look"></div>
+      <div id="touch-stick" aria-label="Move"><div id="touch-knob"></div></div>
+      <button class="tb pause" type="button" data-action="pause" aria-label="Pause">❚❚</button>
+      <button class="tb fire" type="button" data-action="fire" data-hold="true">FIRE</button>
+      <button class="tb scope" type="button" data-action="scope">SCOPE</button>
+      <button class="tb reload" type="button" data-action="reload">RELOAD</button>
+      <button class="tb use" type="button" data-action="interact" data-hold="true">USE</button>
+      <button class="tb jump" type="button" data-action="jump">JUMP</button>
+      <button class="tb crouch" type="button" data-action="crouch">CROUCH</button>
+      <button class="tb crawl" type="button" data-action="prone">CRAWL</button>
+      <button class="tb weapon" type="button" data-action="switchWeapon">WEAPON</button>
+      <button class="tb zoom" type="button" data-action="zoom">ZOOM</button>
+    </div>
+    <div id="rotate" aria-live="polite"><span>⟳</span>Turn your phone sideways to play</div>
     <section id="menu" class="overlay">
       <div class="panel">
         <small>QUANTUM BILLING PRESENTS</small>
         <h1>ZAMA SNIPER<span>OPEN WORLD</span></h1>
         <p>Armed robots, soldiers, and tanks have taken three worlds where families still live. Move in silence, hide in the trees, search the houses for the portal keycard, and pick your shots: never the civilians.</p>
         <p id="continue-info" class="continue" hidden></p>
+        <div class="touch-help">
+          <div><b>Left thumb</b> move · push all the way up to sprint</div>
+          <div><b>Drag</b> anywhere on the right to look (drag from FIRE to aim while shooting)</div>
+          <div><b>SCOPE</b> sniper scope · <b>ZOOM</b> scope power · <b>USE</b> doors, search (hold), portal</div>
+          <div><b>WEAPON</b> rifle / carbine · <b>CROUCH</b>, <b>CRAWL</b> hide in bushes · <b>❚❚</b> pause</div>
+        </div>
         <div class="controls">
           <div><kbd>↑</kbd><kbd>↓</kbd> move forward · back</div><div><kbd>←</kbd><kbd>→</kbd> turn</div>
           <div><kbd>Ctrl</kbd> fire</div><div><kbd>Right Shift</kbd> tap: scope on / off</div>

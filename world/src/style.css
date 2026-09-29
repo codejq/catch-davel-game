@@ -120,3 +120,96 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #0b0f0d; }
 #weapons span.locked { opacity: .45; }
 #weapons kbd { margin-right: 3px; }
 #hud.innocent #damage { box-shadow: inset 0 0 200px 80px rgba(255, 180, 0, 0.55); }
+
+/* ---------- Touch screens (phones and tablets) ---------- */
+#touch, #rotate, .touch-help { display: none; }
+body.touch .touch-help { display: block; margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #cdd6c6; }
+body.touch .touch-help b { color: #eef2ea; }
+body.touch .controls { display: none; }
+body.touch.playing #touch { display: block; }
+body.touch, body.touch #view { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+#touch { position: fixed; inset: 0; z-index: 5; }
+#touch-look { position: absolute; inset: 0; }
+#touch-stick {
+  position: absolute; left: calc(26px + env(safe-area-inset-left)); bottom: calc(22px + env(safe-area-inset-bottom));
+  width: 128px; height: 128px; border-radius: 50%; background: #ffffff12; border: 2px solid #ffffff38; touch-action: none;
+}
+#touch-stick.active { background: #ffffff1f; }
+#touch-stick.sprint { border-color: #cfe3a0; box-shadow: 0 0 0 4px #cfe3a033; }
+#touch-knob { position: absolute; left: 50%; top: 50%; width: 56px; height: 56px; margin: -28px 0 0 -28px; border-radius: 50%; background: #eef2eacc; box-shadow: 0 2px 8px #0008; transition: transform .06s linear; }
+#touch-stick.active #touch-knob { transition: none; }
+.tb {
+  position: absolute; width: 54px; height: 54px; border-radius: 50%; border: 1.5px solid #ffffff55; background: #0e1511a8;
+  color: #eef2ea; font: 800 8.5px/1 system-ui, sans-serif; letter-spacing: .02em; padding: 0; touch-action: none; -webkit-tap-highlight-color: transparent;
+  backdrop-filter: blur(4px);
+}
+.tb.pressed { background: #cfe3a0; color: #0e1511; border-color: #cfe3a0; }
+.tb.fire { right: calc(22px + env(safe-area-inset-right)); bottom: calc(30px + env(safe-area-inset-bottom)); width: 92px; height: 92px; font-size: 13px; border: 2px solid #ff6b5a; background: #5a15107a; }
+.tb.fire.pressed { background: #ff6b5a; color: #fff; }
+.tb.scope { right: calc(128px + env(safe-area-inset-right)); bottom: calc(40px + env(safe-area-inset-bottom)); width: 62px; height: 62px; border-color: #6fd0ff; }
+.tb.reload { right: calc(34px + env(safe-area-inset-right)); bottom: calc(136px + env(safe-area-inset-bottom)); }
+.tb.use { right: calc(112px + env(safe-area-inset-right)); bottom: calc(118px + env(safe-area-inset-bottom)); }
+.tb.zoom { right: calc(34px + env(safe-area-inset-right)); bottom: calc(202px + env(safe-area-inset-bottom)); }
+.tb.weapon { right: calc(100px + env(safe-area-inset-right)); bottom: calc(186px + env(safe-area-inset-bottom)); }
+.tb.jump { right: calc(206px + env(safe-area-inset-right)); bottom: calc(28px + env(safe-area-inset-bottom)); }
+.tb.crouch { right: calc(194px + env(safe-area-inset-right)); bottom: calc(96px + env(safe-area-inset-bottom)); }
+.tb.crawl { right: calc(172px + env(safe-area-inset-right)); bottom: calc(160px + env(safe-area-inset-bottom)); }
+.tb.pause { right: calc(14px + env(safe-area-inset-right)); top: calc(12px + env(safe-area-inset-top)); width: 44px; height: 44px; font-size: 12px; }
+
+/* The HUD moves out of the thumbs' way and shrinks on small screens. */
+body.touch #ammo { top: calc(64px + env(safe-area-inset-top)); bottom: auto; right: calc(16px + env(safe-area-inset-right)); }
+body.touch #ammo { transform: scale(.72); transform-origin: top right; }
+body.touch #weapon-state { display: none; }
+body.touch #vitals { left: calc(170px + env(safe-area-inset-left)); bottom: calc(14px + env(safe-area-inset-bottom)); width: 170px; transform: scale(.85); transform-origin: bottom left; }
+body.touch #objective { transform: scale(.8); transform-origin: top left; }
+body.touch #compass { transform: scale(.85); transform-origin: top center; }
+@media (max-width: 700px) { body.touch #compass { display: none; } }
+
+/* Phones held upright: ask to turn sideways while playing. */
+@media (orientation: portrait) {
+  body.touch.playing #rotate {
+    display: flex; position: fixed; inset: 0; z-index: 20; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
+    background: #050706f2; color: #eef2ea; font-size: 18px; font-weight: 700; text-align: center; padding: 24px;
+  }
+  #rotate span { font-size: 54px; animation: turn 1.6s ease-in-out infinite; }
+}
+@keyframes turn { 0%, 30% { transform: rotate(0); } 60%, 100% { transform: rotate(90deg); } }
+@media (max-width: 560px) { .panel { padding: 22px 18px; } .panel h1 { font-size: 36px; } }
+/* On a phone the menu leads with the play (or continue) button, then the help. */
+body.touch .panel { display: flex; flex-direction: column; }
+body.touch .panel > * { order: 5; }
+body.touch .panel > small, body.touch .panel > h1 { order: 0; }
+body.touch #continue-info { order: 1; }
+body.touch #play { order: 2; }
+body.touch #new-game { order: 3; }
+body.touch .panel > p:not(.continue):not(.agents) { order: 4; margin-top: 16px; }
+@media (max-height: 500px) { body.touch .panel { padding: 18px 22px; } body.touch .panel h1 { font-size: 34px; margin-bottom: 6px; } }
+
+/* ---------- Install sheet (phones and tablets) ---------- */
+.install-sheet {
+  position: fixed; inset: 0; z-index: 50; display: flex; align-items: flex-end; justify-content: center;
+  padding: 0 12px calc(12px + env(safe-area-inset-bottom)); background: #00000000; transition: background .3s ease;
+}
+.install-sheet.open { background: #000000a0; }
+.install-card {
+  display: grid; grid-template-columns: 64px 1fr; gap: 14px 16px; width: min(560px, 100%); padding: 18px 18px 16px;
+  border: 1px solid #cfe3a044; border-radius: 16px; background: #0e1511f7; box-shadow: 0 -10px 60px #000c;
+  transform: translateY(120%); transition: transform .35s cubic-bezier(.2, .9, .3, 1.15);
+}
+.install-sheet.open .install-card { transform: none; }
+.install-card img { width: 64px; height: 64px; border-radius: 14px; }
+.install-text h2 { margin: 2px 0 4px; font-size: 18px; letter-spacing: .02em; }
+.install-text p { margin: 0; color: #cdd6c6; font-size: 14px; line-height: 1.45; }
+.install-steps { margin: 10px 0 0; padding-left: 20px; color: #eef2ea; font-size: 14px; line-height: 1.6; }
+.install-steps .glyph { display: inline-block; min-width: 22px; padding: 0 4px; border: 1px solid #ffffff44; border-radius: 5px; text-align: center; font-size: 12px; }
+.install-actions { grid-column: 1 / -1; display: flex; gap: 10px; }
+.install-actions button {
+  flex: 1; min-height: 46px; border: 1px solid #cfe3a066; border-radius: 10px; background: transparent; color: #cfe3a0;
+  font: 800 12px/1 system-ui, sans-serif; letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; padding: 0 8px;
+}
+.install-actions button.primary { flex: 1.4; border: 0; background: #cfe3a0; color: #0e1511; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .install-sheet { align-items: center; }
+  .install-card { transform: scale(.9); opacity: 0; transition: transform .3s ease, opacity .3s ease; }
+  .install-sheet.open .install-card { transform: none; opacity: 1; }
+}

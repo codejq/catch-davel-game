@@ -2,7 +2,7 @@
 // snipes a robot, gets shot at in the open, takes a robot's carbine, shoots an innocent (and pays for it), destroys a tank,
 // sprints with Shift + arrow, opens a door with Enter, plays with the arrow keys and Ctrl,
 // finds the keycard, opens boxes and picks up what is inside,
-// travels through every portal, and fails on any browser error.
+// travels through every portal, plays with touch controls on an emulated phone, and fails on any browser error.
 // Usage: CHROME_PATH=/path/to/chromium node scripts/smoke.mjs
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -297,8 +297,46 @@ try {
   if (!journey.worlds.every((entry, index) => entry.world === index && entry.keycard && entry.pickups > 0 && entry.collected === entry.pickups) || journey.phase !== 'victory') {
     throw new Error(`World-to-world journey failed: ${JSON.stringify(journey)}`);
   }
+  // Phones: touch controls appear, the stick walks, drag looks, FIRE shoots, and the pause button opens the menu.
+  const phone = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true,
+    userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36' });
+  const mobile = await phone.newPage();
+  mobile.on('pageerror', (error) => errors.push(`mobile: ${error.message}`));
+  await mobile.goto(`${server.resolvedUrls.local[0]}?seed=${process.env.SMOKE_SEED ?? 'smoke'}`, { waitUntil: 'load' });
+  await mobile.waitForFunction(() => window.zamaSniperWorld !== undefined);
+  const touch = await mobile.evaluate(async () => {
+    const w = window.zamaSniperWorld;
+    const label = document.querySelector('#play').textContent;
+    document.querySelector('#play').click();
+    w.step(0.3);
+    const fire = (element, type, x, y) => element.dispatchEvent(new PointerEvent(type, { pointerId: 3, bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: 'touch' }));
+    const centre = (element) => { const r = element.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; };
+    // The controls appear with the next drawn frame.
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const shown = getComputedStyle(document.querySelector('#touch')).display !== 'none';
+    const stick = document.querySelector('#touch-stick'); const c = centre(stick);
+    const start = { ...w.body().position }; const yaw = w.body().yaw;
+    fire(stick, 'pointerdown', c.x, c.y); fire(stick, 'pointermove', c.x, c.y - 45);
+    w.step(1);
+    fire(stick, 'pointerup', c.x, c.y - 45);
+    const walked = Math.hypot(w.body().position.x - start.x, w.body().position.z - start.z);
+    const look = document.querySelector('#touch-look');
+    fire(look, 'pointerdown', 600, 150); fire(look, 'pointermove', 660, 150); fire(look, 'pointerup', 660, 150);
+    w.step(0.1);
+    const shots = w.stats().shots;
+    const trigger = document.querySelector('.tb.fire'); const t = centre(trigger);
+    fire(trigger, 'pointerdown', t.x, t.y); w.step(0.1); fire(trigger, 'pointerup', t.x, t.y);
+    w.step(0.2);
+    const pause = document.querySelector('.tb.pause'); const p = centre(pause);
+    fire(pause, 'pointerdown', p.x, p.y); fire(pause, 'pointerup', p.x, p.y);
+    return { label, shown, walked, turned: w.body().yaw - yaw, fired: w.stats().shots - shots, paused: !document.querySelector('#menu').hidden, resume: document.querySelector('#play').textContent };
+  });
+  await phone.close();
+  if (touch.label !== 'TAP TO PLAY' || !touch.shown || touch.walked < 1 || Math.abs(touch.turned) < 0.01 || touch.fired !== 1 || !touch.paused || touch.resume !== 'TAP TO RESUME') {
+    throw new Error(`Touch controls failed: ${JSON.stringify(touch)}`);
+  }
   if (errors.length > 0) throw new Error(`Browser errors: ${errors.join('; ')}`);
-  console.log(JSON.stringify({ combat, door: { open: door.open }, keyboard, journey }, null, 2));
+  console.log(JSON.stringify({ combat, door: { open: door.open }, keyboard, journey, touch }, null, 2));
   console.log('Open-world smoke test passed');
 } finally {
   await browser.close();

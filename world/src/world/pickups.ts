@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { LootKind } from '../player/loot';
 import { carbine } from '../enemies/robot-mesh';
+import { fitModel, modelNow, type ModelName } from './models';
 
 /** Glow colour under each kind of pickup, so you can tell them apart at a glance. */
 export const LOOT_GLOW: Record<LootKind, number> = {
@@ -32,8 +33,23 @@ function tube(radius: number, length: number, material: THREE.Material, x = 0, y
   return mesh;
 }
 
+/** Finds drawn from Poly Haven's scanned models (CC0), and how big they show (metres, before the pickup scale). */
+const SCANNED: Partial<Record<LootKind, { readonly name: ModelName; readonly size: number }>> = {
+  ammo: { name: 'ammo-box', size: 0.3 },
+  medkit: { name: 'medical-box', size: 0.34 },
+};
+
 function model(kind: LootKind): THREE.Group {
   const group = new THREE.Group();
+  const scanned = SCANNED[kind];
+  const real = scanned === undefined ? null : modelNow(scanned.name);
+  if (real !== null && scanned !== undefined) {
+    const fitted = fitModel(real, scanned.size);
+    fitted.position.y = -0.12;
+    group.add(fitted);
+    group.scale.setScalar(1.6);
+    return group;
+  }
   switch (kind) {
     case 'money':
       // Three banded bundles of notes.

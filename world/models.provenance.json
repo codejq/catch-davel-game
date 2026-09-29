@@ -1,0 +1,105 @@
+[
+  {
+    "file": "public/models/sniper-rifle.glb",
+    "title": "Bolt Action Rifle 7.62",
+    "creators": [
+      "Mateusz Sadek"
+    ],
+    "source": "https://polyhaven.com/a/bolt_action_rifle_7_62",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "60a5c7a745625dd38275756ca359170ffadcd427827ff5a161af3149bdabb9ec",
+    "originalFiles": {
+      "textures/bolt_action_rifle_7_62_accesories_nor_gl_1k.jpg": "a437112195ecebbb809d208a444e38581c769ab4849d9a714f65c1d8bde414b4",
+      "textures/bolt_action_rifle_7_62_accesories_diff_1k.jpg": "624908d9514c958f0f17cd967ca93a3060b613eda97d6d94bc25aa40edcaa8f9",
+      "textures/bolt_action_rifle_7_62_accesories_arm_1k.jpg": "d45228bcdd1fb969f2a5fe07dacb4864c68baf27cd0bfc821ea9ae0b9f0bafed",
+      "textures/bolt_action_rifle_7_62_nor_gl_1k.jpg": "cc0477d86301ea63fdd877416f80d70a9b8fe0598a8772c9cbd754b212d9c2ea",
+      "textures/bolt_action_rifle_7_62_diff_1k.jpg": "81a7a97770e7f8d5e19bb45b35d2ba97404d6bd44ab1d29487c3c3b431883c4a",
+      "textures/bolt_action_rifle_7_62_arm_1k.jpg": "8206367baa98eda75c09bca5c43341e382eb4365c1a08cf7abbdfaa3801c46f5",
+      "bolt_action_rifle_7_62.bin": "c9a32b6471ef08b6d901f9c1865a31c22d37b254a3f772a3c3348d0fa8203ed0"
+    },
+    "shippedSha256": "793afeb3549c957d391dc1dc1a73e1a65a58d15f7862f971cb225852b6a940c4",
+    "modifications": "Poly Haven 1k glTF converted to a single .glb with @gltf-transform/cli optimize: textures resized to 1024 px and re-encoded as WebP, geometry quantized (KHR_mesh_quantization), duplicate data merged.",
+    "attribution": "Not required (CC0). Credited as Poly Haven, polyhaven.com."
+  },
+  {
+    "file": "public/models/ammo-box.glb",
+    "title": "Ammo Box",
+    "creators": [
+      "DanKit"
+    ],
+    "source": "https://polyhaven.com/a/ammo_box",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "05dd0a1f2a09d170c1274e7d28d001177920d5c325de6c7460f10d4f314b5638",
+    "originalFiles": {
+      "textures/ammo_box_nor_gl_1k.jpg": "5fc921d93f97646944b4bacae9e8eed1325091103766a8e6477c54bf199e5579",
+      "textures/ammo_box_diff_1k.jpg": "6a21a1ca96526f97bd05b52808986152d3266a056d1dbe90204bf191697f0f56",
+      "textures/ammo_box_arm_1k.jpg": "fc4ce56bc139d7482ea6e59e5410a19f58af07631d02840a6f0bbf08a1b33189",
+      "ammo_box.bin": "7f7211c643fe5fc4e7ec033e644e4fdea18188e15bc55a27972b72e6ff7e1d03"
+    },
+    "shippedSha256": "536eaece1d5ba731d59656ec364571d83ef1898395b4c10f74c372f0c67a1232",
+    "modifications": "Poly Haven 1k glTF converted to a single .glb with @gltf-transform/cli optimize: textures resized to 512 px and re-encoded as WebP, geometry quantized (KHR_mesh_quantization), duplicate data merged.",
+    "attribution": "Not required (CC0). Credited as Poly Haven, polyhaven.com."
+  },
+  {
+    "file": "public/models/medical-box.glb",
+    "title": "Medical Box",
+    "creators": [
+      "Ulan Cabanilla"
+    ],
+    "source": "https://polyhaven.com/a/medical_box",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "ae52391cf95b6ec6505530ad00c098a5bafb173f39371296da3ce9db6808f01f",
+    "originalFiles": {
+      "textures/medical_box_nor_gl_1k.jpg": "9afa38d3139b6cd9c022e371e3c53d2e8c21ab6cb2326a08e9457c506d82058c",
+      "textures/medical_box_diff_1k.jpg": "64627e4be15f9a83a2d160b62e54bb9963f225c2312671b3d6d82928f7de19a9",
+      "textures/medical_box_arm_1k.jpg": "eb61c506d05506fabd141a1a0caa130e305f81bb75847ab5dba7eaf621ad49c4",
+      "medical_box.bin": "0104f7edd5da4cd1847bf4b3c23d6d4af14c16670827387b1f33048c554da189"
+    },
+    "shippedSha256": "1103a7a03da65fb7a576f4686f8d7ebcbab2a0963ce8444fb4a1ce01b319997a",
+    "modifications": "Poly Haven 1k glTF converted to a single .glb with @gltf-transform/cli optimize: textures resized to 512 px and re-encoded as WebP, geometry quantized (KHR_mesh_quantization), duplicate data merged.",
+    "attribution": "Not required (CC0). Credited as Poly Haven, polyhaven.com."
+  },
+  {
+    "file": "public/models/jerrycan.glb",
+    "title": "Metal Jerrycan Green",
+    "creators": [
+      "Ulan Cabanilla"
+    ],
+    "source": "https://polyhaven.com/a/metal_jerrycan_green",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "7c63c43f9042a08fff0cec69d1d954d029cc10d2546ba63072fcf719d5db49c5",
+    "originalFiles": {
+      "textures/metal_jerrycan_green_nor_gl_1k.jpg": "7af3a6bb717b13cfafaad5b933b40484983a57b3806992b1b349d2fa77eadb6c",
+      "textures/metal_jerrycan_green_diff_1k.jpg": "422b63d79fd360a5d016b75ae110917da64ce682c9e1e97c73ac441a000652e9",
+      "textures/metal_jerrycan_green_arm_1k.jpg": "5012d95478dc0818e9ad883eee6f4ce5d99523cc190d3c6543c0b5750d954239",
+      "metal_jerrycan_green.bin": "386534027d20514402c05d68115f4bff7b466db0b02022f9ab51ac6a576bb3fa"
+    },
+    "shippedSha256": "4b8d614d338acb336404f2af8ea60d6a215fd5fde1875020c0c189cbb0291349",
+    "modifications": "Poly Haven 1k glTF converted to a single .glb with @gltf-transform/cli optimize: textures resized to 512 px and re-encoded as WebP, geometry quantized (KHR_mesh_quantization), duplicate data merged.",
+    "attribution": "Not required (CC0). Credited as Poly Haven, polyhaven.com."
+  },
+  {
+    "file": "public/models/barrel.glb",
+    "title": "Barrel_01",
+    "creators": [
+      "Jorge Camacho"
+    ],
+    "source": "https://polyhaven.com/a/Barrel_01",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "e084945dedd6a3379c6f3e97842cac89df7169797707e123a5e5b42c135d6888",
+    "originalFiles": {
+      "Barrel_01.bin": "fe8369c1ac796059b62a091c0db7367dc420aa2cee212672e48f991f4208da98",
+      "textures/Barrel_01_explosive_diff_1k.jpg": "a7e5a7b03bbe0c9c56bf1ac09b24121a5d19148428e9e6eac326c803fc297098",
+      "textures/Barrel_01_explosive_nor_gl_1k.jpg": "fa4750d64c6f568c8de3e36bc631348710329cf2d6d9c8c87bd2e47a96bc4fcb",
+      "textures/Barrel_01_explosive_arm_1k.jpg": "eab507df7719f0e7a3615bd22bb7bc0c09fed83bfc44e72a51451f8069c2d374"
+    },
+    "shippedSha256": "e19fdd3599d4c45cf055bad521af172055dc01e38a7149a0d4c8ee18dc4da03a",
+    "modifications": "Poly Haven 1k glTF converted to a single .glb with @gltf-transform/cli optimize: textures resized to 512 px and re-encoded as WebP, geometry quantized (KHR_mesh_quantization), duplicate data merged.",
+    "attribution": "Not required (CC0). Credited as Poly Haven, polyhaven.com."
+  }
+]

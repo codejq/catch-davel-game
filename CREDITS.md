@@ -19,6 +19,8 @@ music. Its development build also contains a product-owner-supplied wall-art col
 public redistribution rights must be cleared before release. The auditable inventory and admission
 policy are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
+Zama Sniper: Open World uses CC0 3D models from [Poly Haven](https://polyhaven.com): the bolt-action rifle by Mateusz Sadek and the ammo box, medical box, jerrycan, and oil drum by their Poly Haven authors (listed with sources and checksums in THIRD_PARTY_ASSETS.md). Thank you.
+
 ## Inspiration boundary
 
 FacePrintLab's Zama Sniper interactive demonstration inspired the goal of expressive articulated dancing robots. Its implementation and presentation are reference material only and are not copied into this game. Classic first-person maze games inform the genre, but their code, maps, characters, artwork, sounds, music, names, and trade dress are not used.

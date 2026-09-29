@@ -13,6 +13,8 @@ export class Input {
   private readonly virtualHeld = new Set<ControlAction>();
   private readonly virtualTapped = new Set<ControlAction>();
   wheel = 0;
+  /** Analog movement from a touch joystick: forward and strafe, each -1..1. */
+  readonly analog = { forward: 0, strafe: 0 };
   /** While playing, game keys never scroll or navigate the page. */
   capture = false;
 
@@ -62,7 +64,7 @@ export class Input {
   /** Taps an action on behalf of an agent: true for the next frame only. */
   tapVirtual(action: ControlAction): void { this.virtualTapped.add(action); }
 
-  releaseVirtual(): void { this.virtualHeld.clear(); this.virtualTapped.clear(); }
+  releaseVirtual(): void { this.virtualHeld.clear(); this.virtualTapped.clear(); this.analog.forward = 0; this.analog.strafe = 0; }
 
   wasPressed(code: string): boolean { return this.pressed.has(code); }
 
@@ -71,6 +73,12 @@ export class Input {
   mouseDown(button: number): boolean { return (this.buttons & (1 << button)) !== 0; }
 
   mouseClicked(button: number): boolean { return (this.clicked & (1 << button)) !== 0; }
+
+  /** Look input from a touch drag, in the same units as mouse movement. */
+  addLook(dx: number, dy: number): void {
+    this.mouseDx += dx;
+    this.mouseDy += dy;
+  }
 
   consumeLook(): { readonly dx: number; readonly dy: number } {
     const look = { dx: this.mouseDx, dy: this.mouseDy };

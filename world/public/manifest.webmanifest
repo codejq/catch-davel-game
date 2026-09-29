@@ -1,0 +1,22 @@
+{
+  "name": "Zama Sniper: Open World",
+  "short_name": "Zama Sniper",
+  "description": "A first-person sniper game across three open worlds held by robots, soldiers, and tanks.",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "display_override": ["fullscreen", "standalone"],
+  "orientation": "landscape",
+  "background_color": "#050706",
+  "theme_color": "#0e1511",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "screenshots": [
+    { "src": "preview.jpg", "sizes": "1280x720", "type": "image/jpeg", "form_factor": "wide", "label": "Sniping robots in Green Valley" }
+  ]
+}
