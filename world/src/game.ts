@@ -8,6 +8,7 @@ import { Random } from './core/random';
 import { createRobotRig, createSoldierRig, poseRobot, poseRobotFar, setRobotDetail, type RobotRig } from './enemies/robot-mesh';
 import { planForces } from './enemies/deployment';
 import { Resupply } from './player/resupply';
+import { isTouchDevice, TouchControls } from './ui/touch-controls';
 import { applyProgress, captureProgress, clearProgress, describeArsenal, loadProgress, saveProgress, type Progress } from './player/progress';
 import { applyLoot, LOOT_NAMES, MAX_ARMOR, rollDoorLoot, rollLoot, SUPPRESSED_HEARING, takeDamage, usefulKinds, type Loadout, type LootDrop, type LootKind } from './player/loot';
 import { createPickupMesh } from './world/pickups';
@@ -27,7 +28,9 @@ import {
 } from './enemies/sentry';
 import { fireBullet, stepBullet, type Bullet } from './player/ballistics';
 import { PlayerBody, STANCE, type MoveIntent } from './player/body';
-import { createRifleModel } from './player/rifle';
+import { createRifleModel, fitScannedRifle } from './player/rifle';
+import { fitModel, loadModel, modelNow, preloadModels } from './world/models';
+import { planProps, PROP_SIZE } from './world/props';
 import { RifleState } from './player/rifle-state';
 import { generateLayout, type WorldLayout } from './world/layout';
 import { buildWorld, type BuiltWorld, type Container, type Door, type QualityTier } from './world/scene-builder';
@@ -153,8 +156,12 @@ export class Game {
   private scopeToggled = false;
   private readonly carbine = new CarbineState();
   private readonly resupply = new Resupply();
+  /** On-screen controls, on phones and tablets only. */
+  private touch: TouchControls | null = null;
   /** A run saved on reaching a later world, offered as CONTINUE on the menu. */
   private saved: Progress | null = null;
+  /** Where the drums and cans stand in this world (for screenshots and tests). */
+  private propSpots: { kind: string; x: number; y: number; z: number }[] = [];
   /** Height of the view in CSS pixels, kept from the last resize so the HUD never has to measure the page. */
   private viewHeight = 720;
   private readonly carbineModel = createCarbineViewModel();
@@ -193,7 +200,12 @@ export class Game {
     this.renderer.autoClear = false;
     this.pmrem = new THREE.PMREMGenerator(this.renderer);
     this.input = new Input(canvas);
-    this.quality = navigator.hardwareConcurrency > 4 ? 'high' : 'low';
+    // Phones and tablets start on low graphics (they can switch to high in the menu).
+    this.quality = navigator.hardwareConcurrency > 4 && !isTouchDevice() ? 'high' : 'low';
+    if (isTouchDevice()) {
+      this.touch = new TouchControls(element('#touch'), this.input, { toggleScope: () => { this.scopeToggled = !this.scopeToggled; }, pause: () => this.pause() });
+      element('#play').textContent = 'TAP TO PLAY';
+    }
     element<HTMLSelectElement>('#quality').value = this.quality;
 
     this.sky.scale.setScalar(4000);
@@ -209,6 +221,13 @@ export class Game {
     viewSun.position.set(0.4, 1, 0.3);
     this.viewScene.add(viewSun, this.viewCamera);
     this.viewCamera.add(this.rifleModel.group, this.carbineModel.group);
+    // Professionally modelled props (Poly Haven, CC0) load in the background; the built-in ones stand in until then.
+    void preloadModels();
+    void loadModel('sniper-rifle').then((scanned) => {
+      if (scanned === null) return;
+      fitScannedRifle(this.rifleModel, scanned);
+      this.renderer.compile(this.viewScene, this.viewCamera);
+    });
 
     addEventListener('resize', () => this.resize());
     this.resize();
@@ -239,13 +258,13 @@ export class Game {
       }
       this.phase = 'playing';
       this.hud.root.hidden = false;
-      this.input.lock();
+      this.capture();
     });
     element('#retry').addEventListener('click', () => {
       element('#death').hidden = true;
       this.loadWorld(this.worldIndex);
       this.phase = 'playing';
-      this.input.lock();
+      this.capture();
     });
     element('#again').addEventListener('click', () => location.reload());
     // Keyboard players can start, resume, and retry with Enter.
@@ -254,14 +273,35 @@ export class Game {
       if (!element('#menu').hidden) { event.preventDefault(); element('#play').click(); }
       else if (!element('#death').hidden) { event.preventDefault(); element('#retry').click(); }
     });
-    this.canvas.addEventListener('click', () => { if (this.phase === 'playing') this.input.lock(); });
+    this.canvas.addEventListener('click', () => { if (this.phase === 'playing' && this.touch === null) this.input.lock(); });
+    // On a phone, switching apps or locking the screen pauses the game.
+    document.addEventListener('visibilitychange', () => { if (document.hidden && this.touch !== null && this.phase === 'playing') this.pause(); });
     document.addEventListener('pointerlockchange', () => {
-      if (!this.input.locked && this.phase === 'playing') {
-        this.phase = 'paused';
-        element('#menu').hidden = false;
-        element('#play').textContent = 'PRESS ENTER OR CLICK TO RESUME';
-      }
+      if (!this.input.locked && this.phase === 'playing' && this.touch === null) this.pause();
     });
+  }
+
+  /**
+   * Takes over the controls for play: the mouse (pointer lock) on a computer; on a phone, full screen in landscape
+   * where the browser allows it (it is only a nicety: the game plays in a normal tab too).
+   */
+  private capture(): void {
+    if (this.touch === null) { this.input.lock(); return; }
+    const page = document.documentElement;
+    if (document.fullscreenElement === null && typeof page.requestFullscreen === 'function') {
+      page.requestFullscreen({ navigationUI: 'hide' })
+        .then(() => (screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> }).lock?.('landscape'))
+        .catch(() => { /* not allowed here (iPhone Safari, or already installed as an app): play in the page */ });
+    }
+  }
+
+  /** Pause menu (Esc on a computer, the pause button or leaving the app on a phone). */
+  private pause(): void {
+    if (this.phase !== 'playing') return;
+    this.phase = 'paused';
+    this.touch?.reset();
+    element('#menu').hidden = false;
+    element('#play').textContent = this.touch === null ? 'PRESS ENTER OR CLICK TO RESUME' : 'TAP TO RESUME';
   }
 
   private resize(): void {
@@ -321,6 +361,31 @@ export class Game {
     this.showCard(theme, index, carried);
     this.refreshObjectives();
     this.warmUp();
+    // Scanned oil drums and jerrycans round the houses, once their models have loaded.
+    const built = this.world;
+    const propsRandom = new Random(freshSeed());
+    void Promise.all([loadModel('barrel'), loadModel('jerrycan')]).then(() => { if (this.world === built) this.placeProps(propsRandom); });
+  }
+
+  /** Drums and cans are solid: waist-high cover that stops rounds. */
+  private placeProps(random: Random): void {
+    const world = this.world!;
+    const layout = this.layout!;
+    const doors = world.doors.map((door) => ({ x: door.plan.hingeX, z: door.plan.hingeZ }));
+    this.propSpots = [];
+    for (const prop of planProps(layout, world.collision, random, doors)) {
+      const model = modelNow(prop.kind);
+      if (model === null) continue;
+      const size = PROP_SIZE[prop.kind];
+      const placed = fitModel(model, size.model);
+      const y = world.collision.groundHeight(prop.x, prop.z, 0.3, layout.terrain.heightAt(prop.x, prop.z) + 0.5, 0.45);
+      placed.position.set(prop.x, y, prop.z);
+      placed.rotation.y = prop.yaw;
+      world.root.add(placed);
+      world.collision.addBox('solid', prop.x, y, prop.z, size.width, size.height, size.width, 'prop');
+      this.propSpots.push({ kind: prop.kind, x: prop.x, y, z: prop.z });
+    }
+    this.renderer.compile(this.scene, this.camera);
   }
 
   /**
@@ -471,6 +536,8 @@ export class Game {
       const dt = Math.min(1 / 30, (now - last) / 1000);
       last = now;
       this.input.capture = this.phase === 'playing';
+      // Touch controls show only while playing.
+      document.body.classList.toggle('playing', this.phase === 'playing');
       if (this.phase === 'playing' && !this.lockstep) this.update(dt);
       // While an agent drives, the world is frozen between commands: draw once after each batch, not every frame.
       if (!this.lockstep || this.redraw) { this.render(this.lockstep ? 1 : dt); this.redraw = false; }
@@ -497,8 +564,8 @@ export class Game {
     );
 
     const intent: MoveIntent = {
-      forward: (this.input.held('forward') ? 1 : 0) - (this.input.held('back') ? 1 : 0),
-      strafe: (this.input.held('strafeRight') ? 1 : 0) - (this.input.held('strafeLeft') ? 1 : 0),
+      forward: THREE.MathUtils.clamp((this.input.held('forward') ? 1 : 0) - (this.input.held('back') ? 1 : 0) + this.input.analog.forward, -1, 1),
+      strafe: THREE.MathUtils.clamp((this.input.held('strafeRight') ? 1 : 0) - (this.input.held('strafeLeft') ? 1 : 0) + this.input.analog.strafe, -1, 1),
       sprint: this.input.held('run') && this.rifle.aim < 0.3 && this.carbine.aim < 0.3,
       jump: this.input.tapped('jump'),
       crouch: this.input.tapped('crouch'),
@@ -1493,6 +1560,7 @@ export class Game {
       fire: () => { this.debugFire = true; },
       loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels, weapon: this.weapon, carbine: { owned: this.carbine.owned, magazine: this.carbine.magazine, reserve: this.carbine.reserve } }),
       population: () => this.population,
+      props: () => this.propSpots,
       giveCarbine: () => applyLoot({ kind: 'carbine', amount: 1 }, this.loadout, this.rifle, this.carbine),
       /** Full health and a full rifle, for test steps that should not depend on what came before. */
       refill: () => { this.loadout.health = 100; this.rifle.magazine = this.rifle.capacity; this.rifle.reserve = Math.max(this.rifle.reserve, 20); this.rifle.reloadTime = 0; },

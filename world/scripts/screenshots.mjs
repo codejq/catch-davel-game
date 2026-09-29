@@ -166,5 +166,34 @@ await shot('carbine', () => {
   w.step(1 / 60);
 }, true);
 
+// A phone in landscape: touch controls over the game.
+const phone = await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2,
+  userAgent: 'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Mobile Safari/537.36' });
+const mobile = await phone.newPage();
+await mobile.addInitScript(() => localStorage.setItem('zama-sniper-install', JSON.stringify({ state: 'never' })));
+await mobile.goto(`${server.resolvedUrls.local[0]}?seed=phone`);
+await mobile.waitForFunction(() => window.zamaSniperWorld !== undefined);
+await mobile.evaluate(() => {
+  const w = window.zamaSniperWorld;
+  document.querySelector('#play').click();
+  w.step(0.3);
+  const robot = w.sentries().filter((s) => s.kind === 'robot')[3];
+  for (let step = 0; step < 40; step += 1) {
+    const angle = step * 0.31;
+    const x = robot.position.x + Math.cos(angle) * 30; const z = robot.position.z + Math.sin(angle) * 30;
+    w.teleport(x, z, 0, 0);
+    const body = w.body();
+    if (w.los({ x, y: body.position.y + 1.6, z }, { x: robot.position.x, y: robot.position.y + 2.5, z: robot.position.z })) break;
+  }
+  const body = w.body();
+  body.yaw = Math.atan2(robot.position.x - body.position.x, -(robot.position.z - body.position.z));
+  body.pitch = -0.02;
+  w.step(0.5);
+});
+await mobile.waitForTimeout(2500);
+await mobile.screenshot({ path: `${out}mobile.jpg`, type: 'jpeg', quality: 82, timeout: 180000 });
+console.log('mobile.jpg');
+await phone.close();
+
 await browser.close();
 await server.close();

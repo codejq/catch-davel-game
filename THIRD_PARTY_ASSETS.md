@@ -16,3 +16,18 @@ CC0-1.0 and CC-BY-4.0. Assets with unclear terms, non-commercial restrictions, o
 terms are rejected from public releases.
 
 This inventory records technical provenance and development-policy acceptance. Final public-release license, trademark, and company approvals remain separate release gates.
+
+
+## Zama Sniper: Open World 3D models
+
+The open-world game ships five photo-scanned or professionally modelled props from [Poly Haven](https://polyhaven.com), all released under CC0-1.0 (public domain dedication: commercial use allowed, no attribution required). They are fetched and optimized by `world/scripts/fetch-models.mjs`, which also records each asset's creator, HTTPS source URL, license, retrieval date, original SHA-256 checksums (glTF and every texture/binary), shipped SHA-256 checksum, and modifications in [`world/models.provenance.json`](world/models.provenance.json).
+
+| Shipped file | Asset | Creator | License | Retrieved |
+| --- | --- | --- | --- | --- |
+| `world/public/models/sniper-rifle.glb` | [Bolt Action Rifle 7.62](https://polyhaven.com/a/bolt_action_rifle_7_62) | Mateusz Sadek | CC0-1.0 | 2026-09-29 |
+| `world/public/models/ammo-box.glb` | [Ammo Box](https://polyhaven.com/a/ammo_box) | DanKit | CC0-1.0 | 2026-09-29 |
+| `world/public/models/medical-box.glb` | [Medical Box](https://polyhaven.com/a/medical_box) | Ulan Cabanilla | CC0-1.0 | 2026-09-29 |
+| `world/public/models/jerrycan.glb` | [Metal Jerrycan Green](https://polyhaven.com/a/metal_jerrycan_green) | Ulan Cabanilla | CC0-1.0 | 2026-09-29 |
+| `world/public/models/barrel.glb` | [Barrel_01](https://polyhaven.com/a/Barrel_01) | Jorge Camacho | CC0-1.0 | 2026-09-29 |
+
+Modifications: converted from Poly Haven's 1k glTF to single `.glb` files with `@gltf-transform/cli optimize` (textures resized and re-encoded as WebP, geometry quantized). The game falls back to its own procedural models if a file fails to load. All other open-world visuals and sounds are project-original procedural content.

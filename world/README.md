@@ -11,7 +11,7 @@ A realistic first-person sniper game in the browser, built with [Three.js](https
 | ![Dust Ridge through the scope: a robot at 99 m](docs/screenshots/scope.jpg) | ![A searched crate: its lid is open and a 12x scope floats out to be picked up](docs/screenshots/loot.jpg) |
 | ![A family having a picnic beside their house](docs/screenshots/family-picnic.jpg) | ![A tank patrolling the road through Dust Ridge](docs/screenshots/tank.jpg) |
 | ![The robot carbine, taken from a destroyed robot](docs/screenshots/carbine.jpg) | ![Frost Pass: snowy bunkers from a rooftop](docs/screenshots/frost-pass.jpg) |
-| ![A squad of human soldiers patrolling the village](docs/screenshots/soldiers.jpg) | |
+| ![A squad of human soldiers patrolling the village](docs/screenshots/soldiers.jpg) | ![Playing on a phone: movement stick on the left, fire, scope, and action buttons on the right](docs/screenshots/mobile.jpg) |
 
 ## Play
 
@@ -43,6 +43,26 @@ The main layout uses the right hand around the arrow keys, like the classic maze
 
 Most browsers close the tab on Ctrl + W, so if you move with W, fire with the mouse.
 
+### Phones and tablets
+
+The game plays on phones and tablets in the browser, best held sideways (it asks you to turn the phone if you hold it upright, and goes full screen where the browser allows). Touch controls appear while playing:
+
+| Touch | Action |
+| --- | --- |
+| Left thumb on the stick | Move; push all the way up to sprint |
+| Drag anywhere on the right | Look (drag from FIRE to keep aiming while you shoot) |
+| FIRE | Shoot (hold for automatic fire with the carbine) |
+| SCOPE / ZOOM | Raise the scope / change its power |
+| USE | Doors, pick up, hold to search, enter the portal |
+| RELOAD, WEAPON, JUMP, CROUCH, CRAWL | As on the keyboard |
+| ❚❚ | Pause (leaving the app also pauses) |
+
+Graphics start on Low on phones (switch in the menu), and the menu leads with the play button.
+
+### Install it as an app
+
+The game is a Progressive Web App: it can be installed to the home screen and then starts full screen and plays offline. On a phone or tablet, a sheet offers **Install**, **Later**, or **No thanks** on the menu a few seconds after the game opens (never in the middle of a fight). Install opens the browser's own install dialog on Android and other Chromium browsers; on iPhone and iPad it shows the two Safari taps (Share, then Add to Home Screen). The answer is remembered: No thanks is never asked again, Later waits three days, and an installed game is never asked.
+
 ## The worlds
 
 - **Green Valley**: a farming village among oak, birch, and pine forests, with a lake and wooden watchtowers.
@@ -70,6 +90,7 @@ Each world is generated deterministically from its seed: heightfield terrain wit
 - **Sound**: every shot is loud. Robots within 75 m hear it and move to search the area it came from, so relocate after you fire.
 - **Ballistics**: bullets fly at 820 m/s with gravity, zeroed at 100 m. Aim higher for long shots; the scope shows the range. A single hit anywhere on a robot destroys it.
 - **Scope**: sway grows with standing, moving, and fatigue. It shrinks when you crouch or go prone, or when you hold your breath.
+- **Real 3D models**: the sniper rifle in your hands, ammo boxes, medical boxes, oil drums, and jerrycans are photo-scanned or professionally modelled assets from [Poly Haven](https://polyhaven.com) (CC0), optimized for the web (about 2.3 MB in all). Drums and cans stand around the houses as waist-high cover that stops rounds. If a model can't load, the game uses its own built-in version.
 - **Survival**: after a full minute without being hurt, health comes back at 4 points a second, all the way to full. Medkits and extra rounds still turn up when you search.
 - **Resupply**: a weapon never stays empty. While the rifle holds fewer than 10 rounds in all, it gets one back every 4 seconds; a carbine under 24 rounds gets one every 0.8 seconds. An empty magazine reloads by itself as soon as there is a round to load, and the HUD shows LOW AMMO · RESUPPLYING while it happens.
 
