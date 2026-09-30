@@ -6,6 +6,8 @@ import { KEYBOARD_LOOK_SPEED, KEYBOARD_TURN_SPEED } from './core/controls';
 import { Input } from './core/input';
 import { Random } from './core/random';
 import { createRobotRig, createSoldierRig, poseRobot, poseRobotFar, setRobotDetail, type RobotRig } from './enemies/robot-mesh';
+import { createHumanSoldierRig, isHumanRig, poseHumanSoldier, setHumanDetail, type HumanSoldierRig } from './enemies/soldier-human';
+import { humansReady, loadHumans } from './population/human-model';
 import { planForces } from './enemies/deployment';
 import { Resupply } from './player/resupply';
 import { isTouchDevice, TouchControls } from './ui/touch-controls';
@@ -128,7 +130,7 @@ export class Game {
   private layout: WorldLayout | null = null;
   private world: BuiltWorld | null = null;
   private sentries: SentryState[] = [];
-  private rigs: RobotRig[] = [];
+  private rigs: (RobotRig | HumanSoldierRig)[] = [];
   private body = new PlayerBody(0, 0, 0);
   private readonly loadout: Loadout = { health: 100, armor: 0, lives: 0, money: 0, suppressor: false };
   private pickups: Pickup[] = [];
@@ -223,6 +225,8 @@ export class Game {
     this.viewCamera.add(this.rifleModel.group, this.carbineModel.group);
     // Professionally modelled props (Poly Haven, CC0) load in the background; the built-in ones stand in until then.
     void preloadModels();
+    // Real animated people for soldiers (and civilians): swap them in as soon as the models arrive.
+    void loadHumans().then((ready) => { if (ready !== null) this.upgradeSoldiers(); });
     void loadModel('sniper-rifle').then((scanned) => {
       if (scanned === null) return;
       fitScannedRifle(this.rifleModel, scanned);
@@ -338,8 +342,11 @@ export class Game {
     // Robots and soldiers: a different force in different places every run.
     const forces = planForces(this.layout, this.world.collision, new Random(freshSeed()));
     this.sentries = forces.map((unit) => createSentry(unit.id, unit.waypoints, unit.guard, this.world!.collision, unit.kind));
+    const rigRandom = new Random(freshSeed());
     this.rigs = this.sentries.map((sentry) => {
-      const rig = sentry.kind === 'soldier' ? createSoldierRig(SOLDIER_CAMO[theme.id] ?? 0x55623c) : createRobotRig(ROBOT_PAINT[theme.id] ?? 0x707070);
+      // Soldiers are real animated people once the character models have loaded (built-in figures until then).
+      const fatigues = SOLDIER_CAMO[theme.id] ?? 0x55623c;
+      const rig = sentry.kind === 'soldier' ? createHumanSoldierRig(fatigues, rigRandom) ?? createSoldierRig(fatigues) : createRobotRig(ROBOT_PAINT[theme.id] ?? 0x707070);
       this.scene.add(rig.root);
       return rig;
     });
@@ -365,6 +372,27 @@ export class Game {
     const built = this.world;
     const propsRandom = new Random(freshSeed());
     void Promise.all([loadModel('barrel'), loadModel('jerrycan')]).then(() => { if (this.world === built) this.placeProps(propsRandom); });
+  }
+
+  /** Replaces built-in soldier figures with animated people (when the character models load mid-world). */
+  private upgradeSoldiers(): void {
+    if (this.world === null || this.theme === undefined) return;
+    const fatigues = SOLDIER_CAMO[this.theme.id] ?? 0x55623c;
+    const random = new Random(freshSeed());
+    let changed = false;
+    this.sentries.forEach((sentry, index) => {
+      const old = this.rigs[index];
+      if (sentry.kind !== 'soldier' || old === undefined || isHumanRig(old)) return;
+      const rig = createHumanSoldierRig(fatigues, random);
+      if (rig === null) return;
+      this.scene.remove(old.root);
+      this.scene.add(rig.root);
+      if (sentry.mode === 'dead') rig.gun.visible = false;
+      this.rigs[index] = rig;
+      changed = true;
+    });
+    this.population?.upgradePeople();
+    if (changed) this.renderer.compile(this.scene, this.camera);
   }
 
   /** Drums and cans are solid: waist-high cover that stops rounds. */
@@ -843,7 +871,11 @@ export class Game {
       // Full model when close (or close-looking through the scope), a one-piece stand-in further out.
       const rig = this.rigs[index]!;
       const apparent = Math.hypot(sentry.position.x - player.eye.x, sentry.position.z - player.eye.z) * (this.camera.fov / BASE_FOV) / sentry.scale;
-      if (setRobotDetail(rig, apparent < DETAIL_RANGE)) poseRobot(rig, sentry, this.time + index, player.eye);
+      if (isHumanRig(rig)) {
+        const near = setHumanDetail(rig, apparent < DETAIL_RANGE);
+        poseHumanSoldier(rig, sentry, dt, near);
+        if (!near && sentry.mode === 'dead') rig.root.rotation.x = -(Math.min(1, sentry.deathTime / 1.05) ** 2) * 1.35;
+      } else if (setRobotDetail(rig, apparent < DETAIL_RANGE)) poseRobot(rig, sentry, this.time + index, player.eye);
       else poseRobotFar(rig, sentry);
       if (sentry.mode === 'alert' && !this.alerted.has(sentry.id)) {
         this.alerted.add(sentry.id);
@@ -1561,6 +1593,8 @@ export class Game {
       loadout: () => ({ ...this.loadout, capacity: this.rifle.capacity, reserve: this.rifle.reserve, zoomLevels: this.rifle.zoomLevels, weapon: this.weapon, carbine: { owned: this.carbine.owned, magazine: this.carbine.magazine, reserve: this.carbine.reserve } }),
       population: () => this.population,
       props: () => this.propSpots,
+      /** True once the animated human models have loaded (screenshots and tests wait for it). */
+      humans: () => humansReady(),
       giveCarbine: () => applyLoot({ kind: 'carbine', amount: 1 }, this.loadout, this.rifle, this.carbine),
       /** Full health and a full rifle, for test steps that should not depend on what came before. */
       refill: () => { this.loadout.health = 100; this.rifle.magazine = this.rifle.capacity; this.rifle.reserve = Math.max(this.rifle.reserve, 20); this.rifle.reloadTime = 0; },

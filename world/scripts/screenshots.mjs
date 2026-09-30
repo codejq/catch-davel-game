@@ -16,6 +16,8 @@ const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
 page.on('pageerror', (error) => console.error(error.message));
 await page.goto(server.resolvedUrls.local[0]);
 await page.waitForFunction(() => window.zamaSniperWorld !== undefined);
+// The animated people load in the background; shoot once they are in.
+await page.waitForFunction(() => window.zamaSniperWorld.humans(), null, { timeout: 120000 });
 
 async function shot(name, setup, carbine = false) {
   await page.evaluate(setup);
@@ -25,7 +27,7 @@ async function shot(name, setup, carbine = false) {
     await page.evaluate(() => window.zamaSniperWorld.step(0.8));
   }
   await page.waitForTimeout(700);
-  await page.screenshot({ path: `${out}${name}.jpg`, type: 'jpeg', quality: 82 });
+  await page.screenshot({ path: `${out}${name}.jpg`, type: 'jpeg', quality: 82, timeout: 180000 });
   console.log(`${name}.jpg`);
 }
 

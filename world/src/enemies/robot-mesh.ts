@@ -363,15 +363,21 @@ export function createSoldierRig(camo: number): RobotRig {
   head.add(box(0.03, 0.03, 0.03, eyes, 0.08, 0.33, 0.06));
   torso.add(head);
 
-  const vestColor = new THREE.Color(camo).multiplyScalar(0.62).getHex();
-  const far = farProxy([
-    [0.15, 0.92, 0.17, -0.1, 0.5, 0, camo], [0.15, 0.92, 0.17, 0.1, 0.5, 0, camo], [0.4, 0.58, 0.28, 0, 1.4, 0, vestColor],
-    [0.3, 0.34, 0.14, 0, 1.45, -0.2, vestColor], [0.11, 0.6, 0.12, -0.25, 1.38, 0.03, camo], [0.11, 0.6, 0.12, 0.25, 1.38, 0.03, camo],
-    [0.2, 0.24, 0.22, 0, 1.9, 0.02, skin.color.getHex()], [0.28, 0.12, 0.28, 0, 2.04, 0, helmetMaterial.color.getHex()],
-    [0.07, 0.1, 0.62, 0.22, 1.12, 0.3, 0x232527],
-  ], eyes, [0.04, 0.04, 0.04, 0.08, 2.08, 0.1]);
+  const far = createSoldierFarProxy(camo, skin.color.getHex(), eyes);
   root.add(far);
   return { root, pelvis, torso, head, legs, arms, gun, eyes, muzzle, far, stride: 0, lastPhase: 0 };
+}
+
+/** The one-piece far-away stand-in for a soldier (fatigues, vest, face, helmet, carbine) at human scale. */
+export function createSoldierFarProxy(camo: number, skin: number, eyes: THREE.Material): THREE.Group {
+  const vestColor = new THREE.Color(camo).multiplyScalar(0.62).getHex();
+  const helmetColor = new THREE.Color(camo).multiplyScalar(0.8).getHex();
+  return farProxy([
+    [0.15, 0.92, 0.17, -0.1, 0.5, 0, camo], [0.15, 0.92, 0.17, 0.1, 0.5, 0, camo], [0.4, 0.58, 0.28, 0, 1.4, 0, vestColor],
+    [0.3, 0.34, 0.14, 0, 1.45, -0.2, vestColor], [0.11, 0.6, 0.12, -0.25, 1.38, 0.03, camo], [0.11, 0.6, 0.12, 0.25, 1.38, 0.03, camo],
+    [0.2, 0.24, 0.22, 0, 1.9, 0.02, skin], [0.28, 0.12, 0.28, 0, 2.04, 0, helmetColor],
+    [0.07, 0.1, 0.62, 0.22, 1.12, 0.3, 0x232527],
+  ], eyes, [0.04, 0.04, 0.04, 0.08, 2.08, 0.1]);
 }
 
 export const MODE_EYE_COLOR: Record<SentryState['mode'], number> = {
