@@ -1,0 +1,63 @@
+[
+  {
+    "file": "public/models/human-male.glb",
+    "title": "Universal Base Characters: Superhero_Male_FullBody",
+    "creators": [
+      "Quaternius"
+    ],
+    "source": "https://quaternius.itch.io/universal-base-characters",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "e7fcea214ecf8855afbf910b50de6f9c7d1decfb71ca28bad8a4481452dafeb4",
+    "originalBinSha256": "459003f9745853ae562a85506a2b94dd56515c1f37728f9fa3d2ce1a3e4cd92f",
+    "shippedSha256": "8df83ee6107db42050c08ec1b70285641cce2581e934d5dba2f0a0acdf88fda6",
+    "modifications": "Standard (free) version, glTF converted to .glb with @gltf-transform/cli optimize: textures resized to 1024 px and re-encoded as WebP."
+  },
+  {
+    "file": "public/models/human-female.glb",
+    "title": "Universal Base Characters: Superhero_Female_FullBody",
+    "creators": [
+      "Quaternius"
+    ],
+    "source": "https://quaternius.itch.io/universal-base-characters",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "adedf28000a0716f689b009a70314506fc62f827498f77ba852acb5610f3f3f4",
+    "originalBinSha256": "3a8220a485b33d05d879115a50697728b45a151781106033afb8b8c243fca208",
+    "shippedSha256": "b07280fa97f4ed3e73ab9a88ea2c468519d932ffdbcabd9b6ee82b4d70adacae",
+    "modifications": "Standard (free) version, glTF converted to .glb with @gltf-transform/cli optimize: textures resized to 1024 px and re-encoded as WebP."
+  },
+  {
+    "file": "public/models/human-hair.glb",
+    "title": "Universal Base Characters: hairstyles (Hair_SimpleParted, Hair_Long, Hair_Buns, Hair_Buzzed, Hair_BuzzedFemale, Hair_Beard)",
+    "creators": [
+      "Quaternius"
+    ],
+    "source": "https://quaternius.itch.io/universal-base-characters",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": {
+      "Hair_SimpleParted": "ce6c666d00bcca2baa0c58d0442505f90f8feff952592effc4697a2341e9e56d",
+      "Hair_Long": "94500e2e37e09efc8b8b920b8c6437ef1c76ca35863992b82d0d5de6e77122e9",
+      "Hair_Buns": "2bb3593575e21c9af39a53e48c42c1314b0a894e9577f3f14abffcb145cd56c5",
+      "Hair_Buzzed": "43752a4c8f2464eb2494a8ab179bf7ad237638a3d47fb3de0a38361db40e1451",
+      "Hair_BuzzedFemale": "3f30e5a7b0fc6d04d2980a4e937cc5e4b03ca923c9247869168ef13e1b40b747",
+      "Hair_Beard": "c91ef54606aad25a9d1191deaba90cb411c0067d8cef262b2f4819f242e5b365"
+    },
+    "shippedSha256": "dd1b8e389b28bb8178e0d3e9dc405a7324370e8cc25f940ada541ff2baa0050c",
+    "modifications": "The \"Origin at 0\" glTF hairstyles merged into one .glb (one mesh per style) with @gltf-transform; textures resized to 512 px WebP, geometry quantized."
+  },
+  {
+    "file": "public/models/human-anims.glb",
+    "title": "Universal Animation Library (Standard)",
+    "creators": [
+      "Quaternius"
+    ],
+    "source": "https://quaternius.itch.io/universal-animation-library",
+    "license": "CC0-1.0",
+    "retrieved": "2026-09-29",
+    "originalSha256": "69591853d817488edaa8fd9bf8fc1d821eaeaf789f8627b3cd23b41c4ed67997",
+    "shippedSha256": "2d0f1d98f60c91ff8ff22b3388b38c2a9120e00e64559f693f9f4cf21818b095",
+    "modifications": "Kept 12 of the library's clips (Idle_Loop, Walk_Loop, Jog_Fwd_Loop, Sprint_Loop, Death01, Crouch_Idle_Loop, Crouch_Fwd_Loop, Sitting_Idle_Loop, Idle_Talking_Loop, Pistol_Aim_Neutral, Pistol_Shoot, Hit_Chest); meshes removed; keyframes resampled and deduplicated with @gltf-transform."
+  }
+]

@@ -19,7 +19,7 @@ music. Its development build also contains a product-owner-supplied wall-art col
 public redistribution rights must be cleared before release. The auditable inventory and admission
 policy are in [THIRD_PARTY_ASSETS.md](THIRD_PARTY_ASSETS.md).
 
-Zama Sniper: Open World uses CC0 3D models from [Poly Haven](https://polyhaven.com): the bolt-action rifle by Mateusz Sadek and the ammo box, medical box, jerrycan, and oil drum by their Poly Haven authors (listed with sources and checksums in THIRD_PARTY_ASSETS.md). Thank you.
+Zama Sniper: Open World uses CC0 3D models from [Poly Haven](https://polyhaven.com): the bolt-action rifle by Mateusz Sadek and the ammo box, medical box, jerrycan, and oil drum by their Poly Haven authors (listed with sources and checksums in THIRD_PARTY_ASSETS.md). Thank you. Its soldiers and civilians are Quaternius's CC0 Universal Base Characters and Universal Animation Library (quaternius.com).
 
 ## Inspiration boundary
 

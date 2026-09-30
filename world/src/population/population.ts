@@ -10,6 +10,8 @@ import type { HitTarget } from '../player/ballistics';
 import type { WorldLayout } from '../world/layout';
 import { alarm, CIVILIAN, rayCivilian, updateCivilian, type Civilian } from './civilians';
 import { createDogRig, createPersonRig, createPicnic, poseDog, posePerson, type DogRig, type PersonRig } from './meshes';
+import type { HumanRig } from './human-model';
+import { createHumanCivilian, poseHumanCivilian } from './people-human';
 import { planPopulation } from './placement';
 
 const TANK_PAINT: Record<string, number> = { 'green-valley': 0x55603f, 'dust-ridge': 0xb49a6a, 'frost-pass': 0xc8ccd0 };
@@ -45,6 +47,8 @@ export class Population {
   readonly civilians: Civilian[] = [];
   readonly tanks: TankState[] = [];
   private readonly personRigs = new Map<string, PersonRig>();
+  /** Civilians drawn as real animated people (once the character models have loaded). */
+  private readonly humanRigs = new Map<string, HumanRig>();
   private readonly dogRigs = new Map<string, DogRig>();
   private readonly tankRigs: TankRig[] = [];
   private readonly shells: Shell[] = [];
@@ -77,9 +81,15 @@ export class Population {
         this.dogRigs.set(civilian.id, rig);
         root.add(rig.root);
       } else {
-        const rig = createPersonRig(civilian);
-        this.personRigs.set(civilian.id, rig);
-        root.add(rig.root);
+        const human = createHumanCivilian(civilian);
+        if (human !== null) {
+          this.humanRigs.set(civilian.id, human);
+          root.add(human.root);
+        } else {
+          const rig = createPersonRig(civilian);
+          this.personRigs.set(civilian.id, rig);
+          root.add(rig.root);
+        }
       }
     }
     for (const tankPlan of plan.tanks) {
@@ -178,7 +188,7 @@ export class Population {
       this.explode(to, player.eye, 1);
     }
     this.updateBlasts(dt);
-    this.pose(time);
+    this.pose(time, dt);
     return events;
   }
 
@@ -295,8 +305,29 @@ export class Population {
     }
   }
 
-  private pose(time: number): void {
+  /** Swaps built-in figures for animated people once the character models have loaded. */
+  upgradePeople(): void {
+    for (const [id, rig] of this.personRigs) {
+      const civilian = this.byId.get(id);
+      const human = civilian === undefined ? null : createHumanCivilian(civilian);
+      if (human === null) continue;
+      this.root.remove(rig.root);
+      this.root.add(human.root);
+      this.personRigs.delete(id);
+      this.humanRigs.set(id, human);
+    }
+  }
+
+  private pose(time: number, dt: number): void {
     for (const civilian of this.civilians) {
+      const human = this.humanRigs.get(civilian.id);
+      // People far from the player keep their pose; animating them would cost time for nothing visible.
+      if (human !== undefined) {
+        const distance = Math.hypot(civilian.position.x - this.listener.x, civilian.position.z - this.listener.z);
+        // Beyond the haze they are not drawn at all.
+        human.root.visible = distance < 140;
+        if (human.root.visible) poseHumanCivilian(human, civilian, dt, distance < 110);
+      }
       const person = this.personRigs.get(civilian.id);
       if (person !== undefined) posePerson(person, civilian, time);
       const dog = this.dogRigs.get(civilian.id);

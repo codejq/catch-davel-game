@@ -45,7 +45,8 @@ export type SentryKind = 'robot' | 'soldier';
 /** Per-kind scale (1 = human), movement pace (x robot speed), fire interval, and damage. */
 export const SENTRY_KINDS: Record<SentryKind, { readonly scale: number; readonly pace: number; readonly fireInterval: number; readonly damage: number }> = {
   robot: { scale: SCALE, pace: 1, fireInterval: SENTRY_BASE_FIRE, damage: 12 },
-  soldier: { scale: 0.92, pace: 1.6, fireInterval: 0.85, damage: 10 },
+  // 0.88 matches the animated human model (1.81 m tall): head, chest, and hips line up with the hitboxes.
+  soldier: { scale: 0.88, pace: 1.6, fireInterval: 0.85, damage: 10 },
 };
 
 /** Body dimensions of one sentry, from its kind's scale. */
