@@ -232,7 +232,7 @@ try {
     }
     return { counts, robotsDown, dropped: drop !== undefined, took: { armor: took.armor, carbine: took.carbine }, innocent, shelled, tank: tank.mode };
   });
-  if (extras.counts.people < 6 || extras.counts.dogs < 1 || extras.counts.tanks < 4) throw new Error(`World population missing: ${JSON.stringify(extras)}`);
+  if (extras.counts.people < 40 || extras.counts.dogs < 10 || extras.counts.tanks < 4) throw new Error(`World population missing: ${JSON.stringify(extras)}`);
   if (!extras.took.carbine.owned || extras.took.armor < 25) throw new Error(`Robot carbine was not taken: ${JSON.stringify(extras)}`);
   if (!extras.innocent.dead || extras.innocent.healthDrop < 5 || extras.innocent.shot !== 1 || (extras.innocent.bystanders > 0 && extras.innocent.panicked < 1)) throw new Error(`Innocent penalty failed: ${JSON.stringify(extras)}`);
   if (!extras.shelled || extras.tank !== 'dead') throw new Error(`Tank fight failed: ${JSON.stringify(extras)}`);
