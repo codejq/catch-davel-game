@@ -38,12 +38,13 @@ function civilian(overrides: Partial<Civilian> = {}): Civilian {
 
 describe('populating the worlds', () => {
   for (const [index, theme] of WORLDS.entries()) {
-    it(`settles families, dogs, and eight to twelve tanks in ${theme.name}, all on open dry ground`, () => {
+    it(`settles 40+ civilians, 10+ dogs, and eight to twelve tanks in ${theme.name}, all on open dry ground`, () => {
       const { layout, world } = buildWorld(index);
       const plan = planPopulation(layout, world, new Random(`people-${index}`));
       const people = plan.civilians.filter((person) => person.kind !== 'dog');
-      expect(new Set(people.map((person) => person.family)).size).toBeGreaterThanOrEqual(3);
-      expect(plan.civilians.some((person) => person.kind === 'dog')).toBe(true);
+      expect(people.length).toBeGreaterThanOrEqual(40);
+      expect(new Set(people.map((person) => person.family)).size).toBeGreaterThanOrEqual(10);
+      expect(plan.civilians.filter((person) => person.kind === 'dog').length).toBeGreaterThanOrEqual(10);
       expect(plan.tanks.length).toBeGreaterThanOrEqual(8);
       expect(plan.tanks.length).toBeLessThanOrEqual(12);
       for (const person of plan.civilians) {

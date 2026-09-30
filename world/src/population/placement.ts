@@ -52,22 +52,28 @@ function person(id: string, kind: Civilian['kind'], family: number, home: { x: n
 
 /**
  * Settles families beside houses (some round a picnic table, some strolling or chatting in the yard, many with a
- * dog) and plans tank patrols: one along the road from the village to the portal and one circling the village,
- * both starting well away from the player's spawn.
+ * dog) until at least `people` civilians and `dogs` dogs live in the world, and plans tank patrols: one along the
+ * road from the village to the portal and one circling the village, both starting well away from the player's spawn.
  */
-export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, families = 5, tanks = (4 + random.int(0, 2)) * 2): PopulationPlan {
+export function planPopulation(layout: WorldLayout, world: CollisionWorld, random: Random, people = 40 + random.int(0, 10),
+  dogs = 10 + random.int(0, 5), tanks = (4 + random.int(0, 2)) * 2): PopulationPlan {
   const civilians: Civilian[] = [];
   const picnics: PicnicPlan[] = [];
+  const humans = (): number => civilians.filter((civilian) => civilian.kind !== 'dog').length;
+  const pets = (): number => civilians.filter((civilian) => civilian.kind === 'dog').length;
+  const yards: { x: number; z: number; heading: number; family: number; owner: string }[] = [];
   const homes = [...layout.buildings].sort(() => random.next() - 0.5);
   let placed = 0;
-  for (const { plan } of homes) {
-    if (placed >= families) break;
+  // Several families share each house's surroundings, each further out than the last round's, clear of their neighbours.
+  for (let round = 0; round < 8 && humans() < people; round += 1) for (const { plan } of homes) {
+    if (humans() >= people) break;
     let spot: { x: number; z: number } | null = null;
     for (let attempt = 0; attempt < 24 && spot === null; attempt += 1) {
       const angle = random.next() * Math.PI * 2;
-      const distance = Math.hypot(plan.width, plan.depth) / 2 + 3 + random.next() * 4;
+      const distance = Math.hypot(plan.width, plan.depth) / 2 + 3 + round * 3 + random.next() * 4;
       const x = plan.x + Math.cos(angle) * distance; const z = plan.z + Math.sin(angle) * distance;
-      if (open(world, layout, x, z, 2.2) && Math.hypot(x - layout.spawn.x, z - layout.spawn.z) > 25) spot = { x, z };
+      if (open(world, layout, x, z, 2.2) && Math.hypot(x - layout.spawn.x, z - layout.spawn.z) > 25
+        && yards.every((yard) => Math.hypot(yard.x - x, yard.z - z) > 6)) spot = { x, z };
     }
     if (spot === null) continue;
     const family = placed;
@@ -90,7 +96,7 @@ export function planPopulation(layout: WorldLayout, world: CollisionWorld, rando
         const x = spot!.x + Math.cos(heading) * along + Math.sin(heading) * across;
         const z = spot!.z - Math.sin(heading) * along + Math.cos(heading) * across;
         const facing = Math.atan2(spot!.x - x, spot!.z - z);
-        const id = `h${civilians.filter((civilian) => civilian.kind !== 'dog').length + 1}`;
+        const id = `h${humans() + 1}`;
         member.id = id;
         civilians.push(person(id, member.kind, family, { x, z, heading: facing }, 'eat', { x, y: ground, z, heading: facing }, null, random, world));
       });
@@ -98,17 +104,26 @@ export function planPopulation(layout: WorldLayout, world: CollisionWorld, rando
       members.forEach((member, index) => {
         const angle = heading + index * (Math.PI * 2 / members.length);
         const x = spot!.x + Math.cos(angle) * 1.1; const z = spot!.z + Math.sin(angle) * 1.1;
-        const id = `h${civilians.filter((civilian) => civilian.kind !== 'dog').length + 1}`;
+        const id = `h${humans() + 1}`;
         member.id = id;
         const activity: CalmActivity = member.kind === 'child' || random.chance(0.4) ? 'stroll' : 'idle';
         civilians.push(person(id, member.kind, family, { x, z, heading: Math.atan2(spot!.x - x, spot!.z - z) }, activity, null, null, random, world));
       });
     }
-    if (random.chance(0.7)) {
-      const owner = members[members.length - 1]!.id;
-      civilians.push(person(`k${civilians.filter((civilian) => civilian.kind === 'dog').length + 1}`, 'dog', family,
-        { x: spot.x + 1.8, z: spot.z + 1.2, heading }, 'stroll', null, owner, random, world));
+    const owner = members[members.length - 1]!.id;
+    yards.push({ x: spot.x, z: spot.z, heading, family, owner });
+    if (pets() < dogs && random.chance(0.7)) {
+      civilians.push(person(`k${pets() + 1}`, 'dog', family, { x: spot.x + 1.8, z: spot.z + 1.2, heading }, 'stroll', null, owner, random, world));
     }
+  }
+  // Families without a dog adopt one until there are enough; the rest get a second.
+  for (let index = 0; pets() < dogs && yards.length > 0 && index < dogs * 4; index += 1) {
+    const yard = yards[index % yards.length]!;
+    const angle = random.next() * Math.PI * 2;
+    const x = yard.x + Math.cos(angle) * 2; const z = yard.z + Math.sin(angle) * 2;
+    if (civilians.some((civilian) => civilian.kind === 'dog' && civilian.family === yard.family) && index < yards.length) continue;
+    if (!open(world, layout, x, z, 0.8)) continue;
+    civilians.push(person(`k${pets() + 1}`, 'dog', yard.family, { x, z, heading: yard.heading }, 'stroll', null, yard.owner, random, world));
   }
 
   // Tank routes: the village-to-portal road, densified, and a ring round the village.
