@@ -91,6 +91,17 @@ try {
   if (combat.enemies < 30 || combat.soldiers < 10) throw new Error(`Not enough enemies deployed: ${JSON.stringify(combat)}`);
   if (combat.damageTaken <= 0) throw new Error(`Robots never fired at an exposed player: ${JSON.stringify(combat)}`);
 
+  // Civilians must still be around when the player gets to them: with 60-80 robots in a world, robots picking on
+  // civilians once wiped every family out within three minutes.
+  const survivors = await page.evaluate(() => {
+    const w = window.zamaSniperWorld;
+    w.load(0); w.play();
+    for (let second = 0; second < 150; second += 2) { w.step(2); w.refill(); }
+    const people = w.population().civilians.filter((c) => c.kind !== 'dog');
+    return { alive: people.filter((c) => c.mode !== 'dead').length, total: people.length, dogs: w.population().civilians.filter((c) => c.kind === 'dog' && c.mode !== 'dead').length };
+  });
+  if (survivors.total === 0 || survivors.alive < survivors.total * 0.8 || survivors.dogs < 1) throw new Error(`Civilians were wiped out: ${JSON.stringify(survivors)}`);
+
   await page.evaluate(() => {
     const w = window.zamaSniperWorld;
     w.load(0); w.play();
@@ -336,7 +347,7 @@ try {
     throw new Error(`Touch controls failed: ${JSON.stringify(touch)}`);
   }
   if (errors.length > 0) throw new Error(`Browser errors: ${errors.join('; ')}`);
-  console.log(JSON.stringify({ combat, door: { open: door.open }, keyboard, journey, touch }, null, 2));
+  console.log(JSON.stringify({ combat, survivors, door: { open: door.open }, keyboard, journey, touch }, null, 2));
   console.log('Open-world smoke test passed');
 } finally {
   await browser.close();

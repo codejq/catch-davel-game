@@ -490,10 +490,11 @@ export function radioSquad(sentries: readonly SentryState[], spotter: SentryStat
   return told;
 }
 
-/** A round at a civilian: about half miss, and cover stops it like any other round. */
+/** A round at a civilian: three in four miss, and cover stops it like any other round. */
 function fireAtVictim(sentry: SentryState, victim: Victim, world: CollisionWorld, eye: Vec3, random: Random): SentryShot {
   const from = { x: eye.x + Math.sin(sentry.heading) * 0.5 * sentry.scale, y: eye.y - 0.4 * sentry.scale, z: eye.z + Math.cos(sentry.heading) * 0.5 * sentry.scale };
-  const wantsHit = random.next() < 0.5;
+  // Robots mostly miss a running, ducking civilian.
+  const wantsHit = random.next() < 0.25;
   const spread = wantsHit ? 0 : 0.8 + random.next();
   const target = { x: victim.position.x + (random.next() - 0.5) * spread, y: victim.position.y + 1 + (random.next() - 0.5) * spread, z: victim.position.z + (random.next() - 0.5) * spread };
   const direction = { x: target.x - from.x, y: target.y - from.y, z: target.z - from.z };

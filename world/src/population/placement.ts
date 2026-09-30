@@ -134,6 +134,8 @@ export function planPopulation(layout: WorldLayout, world: CollisionWorld, rando
   // Trees are counted rather than refused (the forests are thick); walls and rocks rule a route out.
   const obstacles = (x: number, z: number): number => {
     if (!dry(x, z) || Math.abs(x) > half || Math.abs(z) > half) return Infinity;
+    // Keep tanks off the families' yards and picnics.
+    if (civilians.some((civilian) => Math.hypot(civilian.home.x - x, civilian.home.z - z) < 9)) return Infinity;
     const y = world.terrainHeight(x, z) + 1.2;
     let trees = 0;
     for (const volume of world.query(x - 2.4, z - 2.4, x + 2.4, z + 2.4, 'solid')) {

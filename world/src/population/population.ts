@@ -43,6 +43,9 @@ interface Blast { readonly mesh: THREE.Mesh; readonly light: THREE.PointLight; a
  * Everyone besides the robots: civilian families (some picnicking), their dogs, and tanks. Owns their AI, their
  * meshes, tank shells, and explosions; the game feeds it the player, the robots, and gunshots.
  */
+/** Seconds between robot attacks on civilians, anywhere in the world (random within this range). */
+export const ATTACK_PAUSE = [120, 180] as const;
+
 export class Population {
   readonly civilians: Civilian[] = [];
   readonly tanks: TankState[] = [];
@@ -61,6 +64,8 @@ export class Population {
   private readonly victimCooldown = new Map<SentryState, number>();
   private readonly byId = new Map<string, Civilian>();
   private victimClock = 0;
+  /** Seconds until any robot may pick on a civilian again (one attack at a time across the whole world). */
+  private attackPause: number = ATTACK_PAUSE[0];
   private panicClock = 0;
   /** Seconds until each dog may bark again. */
   private readonly barkWait = new Map<Civilian, number>();
@@ -213,7 +218,11 @@ export class Population {
     if (wasCalm && civilian.mode !== 'calm' && civilian.kind !== 'dog' && heard < 60 && this.random.chance(0.35)) this.sounds.scream(0, heard);
   }
 
-  /** Every couple of seconds, a patrolling robot may pick on a civilian it can see nearby. */
+  /**
+   * Now and then a patrolling robot picks on a civilian it can see nearby. With 60 to 80 robots in a world this
+   * has to stay rare: only one attack at a time anywhere, with a pause of a few minutes between attacks, or the
+   * families would all be gone before the player ever reached them.
+   */
   private chooseVictims(dt: number, sentries: readonly SentryState[]): void {
     for (const [sentry, entry] of this.victims) {
       entry.since += dt;
@@ -221,13 +230,16 @@ export class Population {
       if (entry.civilian.mode === 'dead' || sentry.mode !== 'patrol' || entry.since > 25 || entry.shots >= 4) {
         this.victims.delete(sentry);
         this.victimCooldown.set(sentry, 30);
+        this.attackPause = ATTACK_PAUSE[0] + this.random.next() * (ATTACK_PAUSE[1] - ATTACK_PAUSE[0]);
       }
     }
     for (const [sentry, left] of this.victimCooldown) this.victimCooldown.set(sentry, left - dt);
+    this.attackPause -= dt;
     this.victimClock -= dt;
-    if (this.victimClock > 0) return;
+    if (this.victimClock > 0 || this.attackPause > 0 || this.victims.size > 0) return;
     this.victimClock = 2;
     for (const sentry of sentries) {
+      if (this.victims.size > 0) break;
       if (sentry.mode !== 'patrol' || this.victims.has(sentry) || (this.victimCooldown.get(sentry) ?? 0) > 0 || !this.random.chance(0.015)) continue;
       const eye = { x: sentry.position.x, y: sentry.position.y + sentrySize(sentry).eyeHeight, z: sentry.position.z };
       let chosen: Civilian | null = null; let nearest = 35;
